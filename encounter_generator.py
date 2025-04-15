@@ -83,6 +83,12 @@ monsters = {
            "Goristro", "Sphinx Of Valor"],
     "18": ["Demilich"],
     "19": ["Balor"],
+    "20": ["Ancient Brass Dragon", "Ancient White Dragon", "Animal Lord", "Pit Fiend"],
+    "21": ["Ancient Black Dragon", "Ancient Copper Dragon", "Arch-hag", "Lich", "Solar"],
+    "22": ["Ancient Bronze Dragon", "Ancient Green Dragon", "Elemental Cataclysm"],
+    "23": ["Ancient Blue Dragon", "Ancient Silver Dragon", "Blob Of Annihilation", "Empyrean",
+           "Kraken"],
+    "24": ["Ancient Gold Dragon", "Ancient Red Dragon"],
 }
 
 magic_items = {
