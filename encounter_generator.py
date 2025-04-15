@@ -33,6 +33,13 @@ monsters = {
           "Poltergeist", "Priest", "Quaggoth", "Rhinoceros", "Saber-Toothed Tiger", "Sahuagin Priest",
           "Sea Hag", "Silver Dragon Wyrmling", "Spined Devil", "Swarm Of Stirgest", "Swarm Of Venomous Snakes",
           "Wererat", "White Dragon Wyrmling", "Will-o'-Wisp"],
+    "3": ["Ankylosaurus", "Basilisk", "Bearded Devil", "Blue Dragon Wyrmling", "Bugbear Stalker", "Displacer Beast",
+          "Doppelganger", "Flaming Skeleton", "Giant Scorpion", "Githyanki Soldier", "Goblin Hexer",
+          "Golden Dragon Wyrmling", "Green Hag", "Grell", "Hell Hound", "Hobgoblin Captain", "Hook Horror",
+          "Knight", "Kuo-toa Monitor", "Manticore", "Minotaur Of Baphomet", "Mummy", "Nightmare", "Owlbear",
+          "Phase Spider", "Quaggoth Thonot", "Scout Captain", "Spectator", "Swarm Of Crawling Claws",
+          "Swarm Of Lemures", "Vampire Familiar", "Warrior Veteran", "Werewolf", "Wight", "Winter Wolf",
+          "Yeti", "Yuan-ti Malison"],
 }
 
 magic_items = {
