@@ -63,6 +63,8 @@ monsters = {
           "Gnoll Demoniac", "Green Slaad", "Hezrou", "Hydra", "Sphinx Of Secrets", "Spirit Naga",
           "Thri-kreen Psion", "Tyrannosaurus Rex", "Vampire Nightbringer", "Young Bronze Dragon",
           "Young Green Dragon"],
+    "9": ["Abominable Yeti", "Bone Devil", "Brazen Gorgon", "Clay Golem", "Cloud Giant", "Fire Giant",
+          "Glabrezu", "Gray Slaad", "Nycaloth", "Treant", "Young Blue Dragon", "Young Silver Dragon"],
 }
 
 magic_items = {
