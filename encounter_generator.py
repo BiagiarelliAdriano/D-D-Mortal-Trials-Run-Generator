@@ -51,6 +51,10 @@ monsters = {
           "Revenant", "Roper", "Sahuagin Baron", "Salamander", "Shambling Mound", "Triceratops", "Troll",
           "Umber Hulk", "Unicorn", "Vampire Spawn", "Water Elemental", "Werebear", "Wraith", "Xorn",
           "Young Remorhaz"],
+    "6": ["Azer Pyromancer", "Chasme", "Chimera", "Cyclops Sentry", "Drider", "Galeb Duhr", "Ghast Gravecaller",
+          "Githzerai Zerth", "Hobgoblin Warlord", "Invisible Stalker", "Kuo-toa Archpriest", "Mage", "Mammoth",
+          "Medusa", "Merfolk Wavebender", "Performer Maestro", "Pirate Captain", "Satyr Revelmaster", "Vrock",
+          "Wyvern", "Young Brass Dragon", "Young White Dragon"],
 }
 
 magic_items = {
