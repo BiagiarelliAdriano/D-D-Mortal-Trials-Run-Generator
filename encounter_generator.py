@@ -45,6 +45,12 @@ monsters = {
           "Guard Captain", "Helmed Horror", "Hippopotamus", "Incubus", "Juvenile Shadow Dragon", "Lamia",
           "Lizardfolk Sovereign", "Red Dragon Wyrmling", "Shadow Demon", "Succubus", "Swarm Of Dretches",
           "Tough Boss", "Wereboar", "Weretiger"],
+    "5": ["Air Elemental", "Barded Devil", "Barlgura", "Beholder Zombie", "Bulette", "Cambion", "Earth Elemental",
+          "Fire Elemental", "Flesh Golem", "Giant Axe Beak", "Giant Crocodile", "Gladiator", "Gorgon",
+          "Half-Dragon", "Hill Giant", "Mezzoloth", "Night Hag", "Otyugh", "Pixie Wonderbringer", "Red Slaad",
+          "Revenant", "Roper", "Sahuagin Baron", "Salamander", "Shambling Mound", "Triceratops", "Troll",
+          "Umber Hulk", "Unicorn", "Vampire Spawn", "Water Elemental", "Werebear", "Wraith", "Xorn",
+          "Young Remorhaz"],
 }
 
 magic_items = {
