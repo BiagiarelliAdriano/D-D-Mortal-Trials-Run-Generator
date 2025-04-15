@@ -9,6 +9,12 @@ monsters = {
             "Priest Acolyte", "Pseudodragon", "Pteranodon", "Riding Horse", "Skeleton", "Smoke Mephit",
             "Sprite", "Steam Mephit", "Swarm Of Bats", "Swarm Of Rats", "Swarm Of Ravens",
             "Troglodyte", "Violet Fungus", "Winged Kobold", "Wolf", "Zombie"],
+    "1/2": ["Ape", "Black Bear", "Cockatrice", "Crocodile", "Darkmantle", "Dust Mephit",
+            "Gas Spore Fungus", "Giant Goat", "Giant Wasp", "Gnoll Warrior", "Gray Ooze",
+            "Hobgoblin Warrior", "Ice Mephit", "Jackalwere", "Magma Mephit", "Magmin", "Modron Tridrone",
+            "Myconid Adult", "Perfomer", "Piercer", "Rust Monster", "Sahuagin Warrior", "Satyr",
+            "Scout", "Shadow", "Swarm Of Insects", "Tough", "Troll Limb", "Vine Blight", "Warhorse",
+            "Warhorse Skeleton", "Worg"],
 }
 
 magic_items = {
