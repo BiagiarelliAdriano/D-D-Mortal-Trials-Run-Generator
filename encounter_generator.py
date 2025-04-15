@@ -68,6 +68,8 @@ monsters = {
     "10": ["Aboleth", "Cultist Hierophant", "Cyclops Oracle", "Death Slaad", "Deva", "Dire Worg",
            "Guardian Naga", "Haunting Revenant", "Noble Prodigy", "Performer Legend", "Spy Master",
            "Stone Golem", "Warrior Commander", "Yochlol", "Young Gold Dragon", "Young Red Dragon"],
+    "11": ["Bandit Crime Lord", "Behir", "Dao", "Death Knight Aspirant", "Djinni", "Efreeti",
+           "Horned Devil", "Marid", "Mind Flayer Arcanist", "Remorhaz", "Roc", "Sphinx Of Lore"],
 }
 
 magic_items = {
