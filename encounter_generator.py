@@ -22,6 +22,17 @@ monsters = {
           "Modron Quadrone", "Myconid Spore Servant", "Ogrillon Ogre", "Pirate", "Psychic Gray Ooze",
           "Quasit", "Salamander Fire Snake", "Scarecrow", "Specter", "Sphinx Of Wonder", "Spy",
           "Swarm Of Larvae", "Thri-kreen Marauder", "Tiger", "Yuan-ti Infiltrator"],
+    "2": ["Allosaurus", "Animated Rug Of Smothering", "Ankheg", "Awakened Tree", "Azer Sentinel",
+          "Bandit Captain", "Berserker", "Black Dragon Wyrmling", "Bronze Dragon Wyrmling", "Bulette Pup",
+          "Carrion Crawler", "Centaur Trooper", "Cultist Fanatic", "Druid", "Ettercap",
+          "Faerie Dragon Adult", "Gargoyle", "Gelatinous Cube", "Ghast", "Giant Boar",
+          "Giant Constrictor Snake", "Giant Elk", "Gibbering Mouther", "Githzerai Monk", "Gnoll Pack Lord",
+          "Green Dragon Wyrmling", "Grick", "Griffon", "Intellect Devourer", "Lizardfolk Geomancer",
+          "Mage Apprentice", "Merrow", "Mimic", "Minotaur Skeleton", "Modron Pentadrone", "Myconid Sovereign",
+          "Nothic", "Ochre Jelly", "Ogre", "Ogre Zombie", "Pegasus", "Peryton", "Plesiosaurus", "Polar Bear",
+          "Poltergeist", "Priest", "Quaggoth", "Rhinoceros", "Saber-Toothed Tiger", "Sahuagin Priest",
+          "Sea Hag", "Silver Dragon Wyrmling", "Spined Devil", "Swarm Of Stirgest", "Swarm Of Venomous Snakes",
+          "Wererat", "White Dragon Wyrmling", "Will-o'-Wisp"],
 }
 
 magic_items = {
