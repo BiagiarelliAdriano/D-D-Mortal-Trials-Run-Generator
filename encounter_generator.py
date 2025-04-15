@@ -15,6 +15,13 @@ monsters = {
             "Myconid Adult", "Perfomer", "Piercer", "Rust Monster", "Sahuagin Warrior", "Satyr",
             "Scout", "Shadow", "Swarm Of Insects", "Tough", "Troll Limb", "Vine Blight", "Warhorse",
             "Warhorse Skeleton", "Worg"],
+    "1": ["Animated Armor", "Brass Dragon Wyrmling", "Brown Bear", "Bugbear Warrior", "Copper Dragon Wyrmling",
+          "Death Dog", "Dire Wolf", "Dryad", "Empyrean Iota", "Faerie Dragon Youth", "Ghoul", "Giant Eagle",
+          "Giant Hyena", "Giant Spider", "Giant Toad", "Giant Vulture", "Goblin Boss", "Harpy",
+          "Hippogriff", "Imp", "Kuo-toa Whip", "Lacedon Ghoul", "Lion", "Manes Vaporspawn",
+          "Modron Quadrone", "Myconid Spore Servant", "Ogrillon Ogre", "Pirate", "Psychic Gray Ooze",
+          "Quasit", "Salamander Fire Snake", "Scarecrow", "Specter", "Sphinx Of Wonder", "Spy",
+          "Swarm Of Larvae", "Thri-kreen Marauder", "Tiger", "Yuan-ti Infiltrator"],
 }
 
 magic_items = {
