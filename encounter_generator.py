@@ -79,6 +79,10 @@ monsters = {
            "Salamander Inferno Master", "Vampire Umbral Lord"],
     "16": ["Adult Blue Dragon", "Adult Silver Dragon", "Githyanki Dracomancer", "Gulthias Blight",
            "Iron Golem", "Marilith", "Planetar"],
+    "17": ["Adult Gold Dragon", "Adult Red Dragon", "Death Knight", "Dracolich", "Dragon Turtle",
+           "Goristro", "Sphinx Of Valor"],
+    "18": ["Demilich"],
+    "19": ["Balor"],
 }
 
 magic_items = {
