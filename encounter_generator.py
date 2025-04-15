@@ -1,8 +1,14 @@
 import random
 
 monsters = {
-    "1/4": ["Aarakocra Skirmisher", "Animated Broom", "Kenku", "Winged Kobold"],
-    "1/2": ["Orc", "Hobgoblin", "Scout"]
+    "1/4": ["Aarakocra Skirmisher", "Animated Broom", "Animated Flying Sword", "Axe Beak", "Blink Dog",
+            "Boar", "Bullywug Warrior", "Constrictor Snake", "Draft Horse", "Dretch", "Elk",
+            "Giant Badger", "Giant Bat", "Giant Centipede", "Giant Frog", "Giant Lizard", "Giant Owl",
+            "Giant Venomous Snake", "Giant Wolf Spider", "Goblin Warrior", "Grimlock", "Kenku",
+            "Kuo-toa", "Modron Duodrone", "Mud Mephit", "Needle Blight", "Panther", "Pixie",
+            "Priest Acolyte", "Pseudodragon", "Pteranodon", "Riding Horse", "Skeleton", "Smoke Mephit",
+            "Sprite", "Steam Mephit", "Swarm Of Bats", "Swarm Of Rats", "Swarm Of Ravens",
+            "Troglodyte", "Violet Fungus", "Winged Kobold", "Wolf", "Zombie"],
 }
 
 magic_items = {
