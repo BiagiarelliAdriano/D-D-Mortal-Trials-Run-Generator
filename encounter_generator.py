@@ -70,6 +70,8 @@ monsters = {
            "Stone Golem", "Warrior Commander", "Yochlol", "Young Gold Dragon", "Young Red Dragon"],
     "11": ["Bandit Crime Lord", "Behir", "Dao", "Death Knight Aspirant", "Djinni", "Efreeti",
            "Horned Devil", "Marid", "Mind Flayer Arcanist", "Remorhaz", "Roc", "Sphinx Of Lore"],
+    "12": ["Arcanaloth", "Archmage", "Archpriest", "Erinyes", "Githzerai Psion", "Pirate Admiral",
+           "Questing Knight"],
 }
 
 magic_items = {
