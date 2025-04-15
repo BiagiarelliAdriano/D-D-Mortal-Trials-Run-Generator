@@ -55,6 +55,9 @@ monsters = {
           "Githzerai Zerth", "Hobgoblin Warlord", "Invisible Stalker", "Kuo-toa Archpriest", "Mage", "Mammoth",
           "Medusa", "Merfolk Wavebender", "Performer Maestro", "Pirate Captain", "Satyr Revelmaster", "Vrock",
           "Wyvern", "Young Brass Dragon", "Young White Dragon"],
+    "7": ["Bandit Deceiver", "Blue Slaad", "Centaur Warden", "Giant Ape", "Graveyard Revenant", "Grick Ancient",
+          "Mind Flayer", "Oni", "Primeval Owlbear", "Shield Guardian", "Stone Giant", "Tree Blight",
+          "Violet Fungus Necrohulk", "Young Black Dragon", "Young Copper Dragon", "Yuan-ti Abomination"],
 }
 
 magic_items = {
