@@ -72,6 +72,8 @@ monsters = {
            "Horned Devil", "Marid", "Mind Flayer Arcanist", "Remorhaz", "Roc", "Sphinx Of Lore"],
     "12": ["Arcanaloth", "Archmage", "Archpriest", "Erinyes", "Githzerai Psion", "Pirate Admiral",
            "Questing Knight"],
+    "13": ["Adult Brass Dragon", "Adult White Dragon", "Beholder", "Nalfeshnee", "Rakshasa",
+           "Shadow Dragon", "Storm Giant", "Ultroloth", "Vampire"],
 }
 
 magic_items = {
