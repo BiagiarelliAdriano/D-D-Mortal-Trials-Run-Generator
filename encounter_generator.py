@@ -40,6 +40,11 @@ monsters = {
           "Phase Spider", "Quaggoth Thonot", "Scout Captain", "Spectator", "Swarm Of Crawling Claws",
           "Swarm Of Lemures", "Vampire Familiar", "Warrior Veteran", "Werewolf", "Wight", "Winter Wolf",
           "Yeti", "Yuan-ti Malison"],
+    "4": ["Aarakocra Aeromancer", "Archelon", "Banshee", "Black Pudding", "Bone Naga", "Bullywug Bog Sage",
+          "Chuul", "Couatl", "Elephant", "Ettin", "Flameskull", "Ghost", "Gnoll Fang Of Yeenoghu",
+          "Guard Captain", "Helmed Horror", "Hippopotamus", "Incubus", "Juvenile Shadow Dragon", "Lamia",
+          "Lizardfolk Sovereign", "Red Dragon Wyrmling", "Shadow Demon", "Succubus", "Swarm Of Dretches",
+          "Tough Boss", "Wereboar", "Weretiger"],
 }
 
 magic_items = {
