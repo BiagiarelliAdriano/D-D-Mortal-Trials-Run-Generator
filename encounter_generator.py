@@ -58,6 +58,11 @@ monsters = {
     "7": ["Bandit Deceiver", "Blue Slaad", "Centaur Warden", "Giant Ape", "Graveyard Revenant", "Grick Ancient",
           "Mind Flayer", "Oni", "Primeval Owlbear", "Shield Guardian", "Stone Giant", "Tree Blight",
           "Violet Fungus Necrohulk", "Young Black Dragon", "Young Copper Dragon", "Yuan-ti Abomination"],
+    "8": ["Aberrant Cultist", "Assassin", "Berserker Commander", "Chain Devil", "Cloaker", "Cockatrice Regent",
+          "Death Cultist", "Elemental Cultist", "Fiend Cultist", "Fomorian", "Frost Giant", "Githyanki Knight",
+          "Gnoll Demoniac", "Green Slaad", "Hezrou", "Hydra", "Sphinx Of Secrets", "Spirit Naga",
+          "Thri-kreen Psion", "Tyrannosaurus Rex", "Vampire Nightbringer", "Young Bronze Dragon",
+          "Young Green Dragon"],
 }
 
 magic_items = {
