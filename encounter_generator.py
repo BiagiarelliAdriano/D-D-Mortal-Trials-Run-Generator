@@ -77,6 +77,8 @@ monsters = {
     "14": ["Adult Black Dragon", "Adult Copper Dragon", "Death Tyrant", "Ice Devil"],
     "15": ["Adult Bronze Dragon", "Adult Green Dragon", "Mummy Lord", "Purple Worm",
            "Salamander Inferno Master", "Vampire Umbral Lord"],
+    "16": ["Adult Blue Dragon", "Adult Silver Dragon", "Githyanki Dracomancer", "Gulthias Blight",
+           "Iron Golem", "Marilith", "Planetar"],
 }
 
 magic_items = {
