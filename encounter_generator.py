@@ -65,6 +65,9 @@ monsters = {
           "Young Green Dragon"],
     "9": ["Abominable Yeti", "Bone Devil", "Brazen Gorgon", "Clay Golem", "Cloud Giant", "Fire Giant",
           "Glabrezu", "Gray Slaad", "Nycaloth", "Treant", "Young Blue Dragon", "Young Silver Dragon"],
+    "10": ["Aboleth", "Cultist Hierophant", "Cyclops Oracle", "Death Slaad", "Deva", "Dire Worg",
+           "Guardian Naga", "Haunting Revenant", "Noble Prodigy", "Performer Legend", "Spy Master",
+           "Stone Golem", "Warrior Commander", "Yochlol", "Young Gold Dragon", "Young Red Dragon"],
 }
 
 magic_items = {
