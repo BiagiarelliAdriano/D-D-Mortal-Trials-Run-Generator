@@ -74,6 +74,7 @@ monsters = {
            "Questing Knight"],
     "13": ["Adult Brass Dragon", "Adult White Dragon", "Beholder", "Nalfeshnee", "Rakshasa",
            "Shadow Dragon", "Storm Giant", "Ultroloth", "Vampire"],
+    "14": ["Adult Black Dragon", "Adult Copper Dragon", "Death Tyrant", "Ice Devil"],
 }
 
 magic_items = {
