@@ -399,6 +399,22 @@ spells = {
         {"name": "Sunburst", "school": "Evocation"},
         {"name": "Tsunami", "school": "Conjuration"},
     ],
+    "level 9": [
+        {"name": "Foresight", "school": "Divination"},
+        {"name": "Gate", "school": "Conjuration"},
+        {"name": "Imprisonment", "school": "Abjuration"},
+        {"name": "Mass Heal", "school": "Abjuration"},
+        {"name": "Meteor Swarm", "school": "Evocation"},
+        {"name": "Power Word Heal", "school": "Enchantment"},
+        {"name": "Power Word Kill", "school": "Enchantment"},
+        {"name": "Primastic Wall", "school": "Abjuration"},
+        {"name": "Shapechange", "school": "Transmutation"},
+        {"name": "Storm Of Vengeance", "school": "Conjuration"},
+        {"name": "Time Stop", "school": "Transmutation"},
+        {"name": "True Polymorph", "school": "Transmutation"},
+        {"name": "True Resurrection", "school": "Necromancy"},
+        {"name": "Weird", "school": "Illusion"},
+    ],
 }
 
 magic_items = {
