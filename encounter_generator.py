@@ -92,7 +92,7 @@ monsters = {
 }
 
 spells = {
-    "cantrip": [
+    0: [
         {"name": "Acid Splash", "school": "Evocation"},
         {"name": "Blade Ward", "school": "Abjuration"},
         {"name": "Chill Touch", "school": "Necromancy"},
@@ -120,7 +120,7 @@ spells = {
         {"name": "Vicious Mockery", "school": "Enchantment"},
         {"name": "Word Of Radiance", "school": "Evocation"},
     ],
-    "level 1": [
+    1: [
         {"name": "Armor Of Agathys", "school": "Abjuration"},
         {"name": "Arms Of Hadar", "school": "Conjuration"},
         {"name": "Bane", "school": "Enchantment"},
@@ -173,7 +173,7 @@ spells = {
         {"name": "With Bolt", "school": "Evocation"},
         {"name": "Wrathful Smite", "school": "Necromancy"},
     ],
-    "level 2": [
+    2: [
         {"name": "Aid", "school": "Abjuration"},
         {"name": "Arcane Lock", "school": "Abjuration"},
         {"name": "Arcane Vigor", "school": "Abjuration"},
@@ -220,7 +220,7 @@ spells = {
         {"name": "Warding Bond", "school": "Abjuration"},
         {"name": "Web", "school": "Conjuration"},
     ],
-    "level 3": [
+    3: [
         {"name": "Animate Dead", "school": "Necromancy"},
         {"name": "Aura Of Vitality", "school": "Abjuration"},
         {"name": "Beacon Of Hope", "school": "Abjuration"},
@@ -263,7 +263,7 @@ spells = {
         {"name": "Vampiric Touch", "school": "Necromancy"},
         {"name": "Wind Wall", "school": "Evocation"},
     ],
-    "level 4": [
+    4: [
         {"name": "Aura Of Life", "school": "Abjuration"},
         {"name": "Aura Of Purity", "school": "Abjuration"},
         {"name": "Banishment", "school": "Abjuration"},
@@ -301,7 +301,7 @@ spells = {
         {"name": "Vitriolic Sphere", "school": "Evocation"},
         {"name": "Wall Of Fire", "school": "Evocation"},
     ],
-    "level 5": [
+    5: [
         {"name": "Animate Objects", "school": "Transmutation"},
         {"name": "Antilife Shell", "school": "Abjuration"},
         {"name": "Awaken", "school": "Transmutation"},
@@ -340,7 +340,7 @@ spells = {
         {"name": "Wall Of Stone", "school": "Evocation"},
         {"name": "Yolande's Regal Presence", "school": "Enchantment"},
     ],
-    "level 6": [
+    6: [
         {"name": "Arcane Gate", "school": "Conjuration"},
         {"name": "Blade Barrier", "school": "Evocation"},
         {"name": "Chain Lightning", "school": "Evocation"},
@@ -366,7 +366,7 @@ spells = {
         {"name": "Wall Of Thorns", "school": "Conjuration"},
         {"name": "Wind Walk", "school": "Transmutation"},
     ],
-    "level 7": [
+    7: [
         {"name": "Conjure Celestial", "school": "Conjuration"},
         {"name": "Delayed Blast Fireball", "school": "Evocation"},
         {"name": "Divine Word", "school": "Evocation"},
@@ -384,7 +384,7 @@ spells = {
         {"name": "Simulacrum", "school": "Illusion"},
         {"name": "Teleport", "school": "Conjuration"},
     ],
-    "level 8": [
+    8: [
         {"name": "Animal Shapes", "school": "Transmutation"},
         {"name": "Antimagic Field", "school": "Abjuration"},
         {"name": "Befuddlement", "school": "Enchantment"},
@@ -399,7 +399,7 @@ spells = {
         {"name": "Sunburst", "school": "Evocation"},
         {"name": "Tsunami", "school": "Conjuration"},
     ],
-    "level 9": [
+    9: [
         {"name": "Foresight", "school": "Divination"},
         {"name": "Gate", "school": "Conjuration"},
         {"name": "Imprisonment", "school": "Abjuration"},
@@ -425,45 +425,7 @@ magic_items = {
         "Potion": ["Potion of Climbing", "Potion Of Healing"],
         "Ring": ["Ring"],
         "Rod": ["Rod"],
-        "Scroll": ["Spell Scroll Cantrip Acid Splash", "Spell Scroll Cantrip Blade Ward",
-                   "Spell Scroll Cantrip Chill Touch", "Spell Scroll Cantrip Eldritch Blast",
-                   "Spell Scroll Cantrip Fire Bolt", "Spell Scroll Cantrip Guidance",
-                   "Spell Scroll Cantrip Light", "Spell Scroll Cantrip Mending",
-                   "Spell Scroll Cantrip Mind Sliver", "Spell Scroll Cantrip Poison Spray",
-                   "Spell Scroll Cantrip Produce Flame", "Spell Scroll Cantrip Ray Of Frost",
-                   "Spell Scroll Cantrip Resistance", "Spell Scroll Cantrip Sacred Flame",
-                   "Spell Scroll Cantrip Shillelagh", "Spell Scroll Cantrip Shocking Grasp",
-                   "Spell Scroll Cantrip Sourcerous Burst", "Spell Scroll Cantrip Spare The Dying",
-                   "Spell Scroll Cantrip Starry Wisp", "Spell Scroll Cantrip Thorn Whip",
-                   "Spell Scroll Cantrip Thunderclap", "Spell Scroll Cantrip Toll The Dead",
-                   "Spell Scroll Cantrip True Strike", "Spell Scroll Cantrip Vicious Mockery",
-                   "Spell Scroll Cantrip Word Of Radiance", "Spell Scroll 1st Level Alarm",
-                   "Spell Scroll 1st Level Armor Of Agathys", "Spell Scroll 1st Level Arms Of Hadar",
-                   "Spell Scroll 1st Level Bane", "Spell Scroll 1st Level Bless",
-                   "Spell Scroll 1st Level Burning Hands", "Spell Scroll 1st Level Charm Person",
-                   "Spell Scroll 1st Level Chromatic Orb", "Spell Scroll 1st Level Color Spray",
-                   "Spell Scroll 1st Level Command", "Spell Scroll 1st Level Compelled Duel",
-                   "Spell Scroll 1st Level Cure Wounds", "Spell Scroll 1st Level Detect Evil And Good",
-                   "Spell Scroll 1st Level Detect Magic", "Spell Scroll 1st Level Detect Poison And Disease",
-                   "Spell Scroll 1st Level Dissonant Whispers", "Spell Scroll 1st Level Divine Favor",
-                   "Spell Scroll 1st Level Divine Smite", "Spell Scroll 1st Level Ensnaring Strike",
-                   "Spell Scroll 1st Level Entangle", "Spell Scroll 1st Level Expeditious Retreat",
-                   "Spell Scroll 1st Level Faerie Fire", "Spell Scroll 1st Level False Life",
-                   "Spell Scroll 1st Level Feather Fall", "Spell Scroll 1st Level Find Familiar",
-                   "Spell Scroll 1st Level Fog Cloud", "Spell Scroll 1st Level Goodberry",
-                   "Spell Scroll 1st Level Grease", "Spell Scroll 1st Level Guiding Bolt",
-                   "Spell Scroll 1st Level Hail Of Thorns", "Spell Scroll 1st Level Healing Word",
-                   "Spell Scroll 1st Level Hellish Rebuke", "Spell Scroll 1st Level Heroism",
-                   "Spell Scroll 1st Level Hex", "Spell Scroll 1st Level Hunter's Mark",
-                   "Spell Scroll 1st Level Ice Knife", "Spell Scroll 1st Level Inflict Wounds",
-                   "Spell Scroll 1st Level Jump", "Spell Scroll 1st Level Longstrider",
-                   "Spell Scroll 1st Level Mage Armor", "Spell Scroll 1st Level Magic Missile",
-                   "Spell Scroll 1st Level Protection From Evil And Good", "Spell Scroll 1st Level Ray Of Sickness",
-                   "Spell Scroll 1st Level Sanctuary", "Spell Scroll 1st Level Searing Smite",
-                   "Spell Scroll 1st Level Shield", "Spell Scroll 1st Level Shield Of Faith",
-                   "Spell Scroll 1st Level Sleep", "Spell Scroll 1st Level Tasha's Hideous Laughter",
-                   "Spell Scroll 1st Level Thunderous Smite", "Spell Scroll 1st Level Thunderwave",
-                   "Spell Scroll 1st Level Witch Bolt", "Spell Scroll 1st Level Wrathful Smite"],
+        "Scroll": ["generate"],
         "Staff": ["Staff"],
         "Wand": ["Wand"],
         "Weapon": ["Battleaxe", "Club", "Dagger", "Flail", "Glaive", "Greataxe", "Greatclub",
@@ -474,19 +436,18 @@ magic_items = {
     },
     "uncommon": {
         "Armor": ["Adamantine Breastplate", "Adamantine Chain Mail", "Adamantine Half Plate Armor",
-                  "Adamantine Plate Armor", "Adamantine Ring Mail", "Adamantine Scale Mail", "Adamantine Splint Armor",
-                  ""],
+                  "Adamantine Plate Armor", "Adamantine Ring Mail", "Adamantine Scale Mail", "Adamantine Splint Armor"],
         "Potion": ["Scroll of Protection"],
         "Ring": ["Mithral Armor"],
         "Rod": ["Ring of Water Walking"],
-        "Scroll": ["Rod of the Pact Keeper +1"],
+        "Scroll": ["generate"],
         "Staff": ["Staff of the Adder"],
         "Wand": ["Wand of Magic Missiles"],
         "Weapon": ["+1 Longsword"]
     },
     "rare": {
         "Potion": ["Potion of Superior Healing"],
-        "Scroll": ["Scroll of Fireball"],
+        "Scroll": ["generate"],
         "Armor": ["Adamantine Armor"],
         "Ring": ["Ring of Evasion"],
         "Rod": ["Rod of Absorption"],
@@ -496,7 +457,7 @@ magic_items = {
     },
     "very rare": {
         "Potion": ["Potion of Invisibility"],
-        "Scroll": ["Scroll of Wall of Force"],
+        "Scroll": ["generate"],
         "Armor": ["Armor of Invulnerability"],
         "Ring": ["Ring of Regeneration"],
         "Rod": ["Rod of Lordly Might"],
@@ -506,7 +467,7 @@ magic_items = {
     },
     "legendary": {
         "Potion": ["Potion of Storm Giant Strength"],
-        "Scroll": ["Scroll of Meteor Swarm"],
+        "Scroll": ["generate"],
         "Armor": ["Plate Armor of Etherealness"],
         "Ring": ["Ring of Three Wishes"],
         "Rod": ["Rod of Resurrection"],
@@ -514,6 +475,14 @@ magic_items = {
         "Wand": ["Wand of Orcus"],
         "Weapon": ["Vorpal Sword"]
     }
+}
+
+possible_rarities = {
+    "common": [0, 1],
+    "uncommon": [2, 3],
+    "rare": [4, 5],
+    "very rare": [6, 7, 8],
+    "legendary": [9]
 }
 
 def get_rations():
@@ -525,16 +494,40 @@ def get_rations():
     else:
         return 2
 
+def generate_scroll_for_rarity(rarity):
+    levels = possible_rarities[rarity]
+    level = random.choice(levels)
+    spell = random.choice(spells[level])["name"]
+    level_label = "Cantrip" if level == 0 else f"Level {level}"
+    return f"Spell Scroll {level_label} {spell}"
+
+def get_random_magic_item(rarity):
+    category = random.choice(list(magic_items[rarity].keys()))
+    item_list = magic_items[rarity][category]
+    
+    if category == "Scroll" and item_list == ["generate"]:
+        return generate_scroll_for_rarity(rarity)
+    else:
+        return random.choice(item_list)
+
 def generate_encounter(encounter_number):
     if encounter_number == 1:
-        encounter = {
-            "monsters": random.sample(monsters["1/2"], 2) + random.sample(monsters["1/4"], 2),
-            "xp": 600,
-            "gold": 100,
-            "magic_items": random.sample(magic_items["common"] + magic_items["uncommon"], 4),
-            "rations": get_rations()
-        }
-        return encounter
+        allowed_rarities = ["common", "uncommon"]
+        xp = 600
+        gold = 100
+        monster_list = random.sample(monsters["1/2"], 2) + random.sample(monsters["1/4"], 2)
+    
+    magic_loot = [get_random_magic_item(random.choice(allowed_rarities)) for _ in range(4)]
+    
+    encounter = {
+        "monsters": monster_list,
+        "xp": xp,
+        "gold": gold,
+        "magic_items": magic_loot,
+        "rations": get_rations()
+    }
+    
+    return encounter
 
 encounter = generate_encounter(1)
 for key, value in encounter.items():
