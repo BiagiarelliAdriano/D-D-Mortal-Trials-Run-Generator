@@ -366,7 +366,7 @@ spells = {
         {"name": "Wall Of Thorns", "school": "Conjuration"},
         {"name": "Wind Walk", "school": "Transmutation"},
     ],
-    "level 7": {
+    "level 7": [
         {"name": "Conjure Celestial", "school": "Conjuration"},
         {"name": "Delayed Blast Fireball", "school": "Evocation"},
         {"name": "Divine Word", "school": "Evocation"},
@@ -383,7 +383,22 @@ spells = {
         {"name": "Sequester", "school": "Transmutation"},
         {"name": "Simulacrum", "school": "Illusion"},
         {"name": "Teleport", "school": "Conjuration"},
-    },
+    ],
+    "level 8": [
+        {"name": "Animal Shapes", "school": "Transmutation"},
+        {"name": "Antimagic Field", "school": "Abjuration"},
+        {"name": "Befuddlement", "school": "Enchantment"},
+        {"name": "Clone", "school": "Necromancy"},
+        {"name": "Dominate Monster", "school": "Enchantment"},
+        {"name": "Earthquake", "school": "Transmutation"},
+        {"name": "Holy Aura", "school": "Abjuration"},
+        {"name": "Incendiary Cloud", "school": "Conjuration"},
+        {"name": "Maze", "school": "Conjuration"},
+        {"name": "Mind Blank", "school": "Abjuration"},
+        {"name": "Power Word Stun", "school": "Enchantment"},
+        {"name": "Sunburst", "school": "Evocation"},
+        {"name": "Tsunami", "school": "Conjuration"},
+    ],
 }
 
 magic_items = {
