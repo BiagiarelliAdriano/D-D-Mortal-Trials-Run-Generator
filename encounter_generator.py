@@ -366,6 +366,24 @@ spells = {
         {"name": "Wall Of Thorns", "school": "Conjuration"},
         {"name": "Wind Walk", "school": "Transmutation"},
     ],
+    "level 7": {
+        {"name": "Conjure Celestial", "school": "Conjuration"},
+        {"name": "Delayed Blast Fireball", "school": "Evocation"},
+        {"name": "Divine Word", "school": "Evocation"},
+        {"name": "Etherealness", "school": "Conjuration"},
+        {"name": "Finger Of Death", "school": "Necromancy"},
+        {"name": "Fire Storm", "school": "Evocation"},
+        {"name": "Forcecage", "school": "Evocation"},
+        {"name": "Mordenkainen's Sword", "school": "Evocation"},
+        {"name": "Power Word Fortify", "school": "Enchantment"},
+        {"name": "Primastic Spray", "school": "Evocation"},
+        {"name": "Regenerate", "school": "Transmutation"},
+        {"name": "Resurrection", "school": "Necromancy"},
+        {"name": "Reverse Gravity", "school": "Transmutation"},
+        {"name": "Sequester", "school": "Transmutation"},
+        {"name": "Simulacrum", "school": "Illusion"},
+        {"name": "Teleport", "school": "Conjuration"},
+    },
 }
 
 magic_items = {
