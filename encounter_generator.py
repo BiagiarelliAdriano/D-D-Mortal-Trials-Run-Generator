@@ -92,8 +92,102 @@ monsters = {
 }
 
 magic_items = {
-    "common": ["Potion Of Healing", "Scroll Of Light", "Driftglobe"],
-    "uncommon": ["Bag Of Holding", "Cloak Of Elvenkind", "Boots Of Striding"]
+    "common": {
+        "Armor": ["Breastplate", "Chain Mail", "Chain Shirt", "Half Plate Armor", "Hide Armor",
+                  "Leather Armor", "Padded Armor", "Plate Armor", "Ring Mail",
+                  "Scale Mail", "Shield", "Splint Armor", "Studded Leather Armor"],
+        "Potion": ["Potion of Climbing", "Potion Of Healing"],
+        "Ring": ["Ring"],
+        "Rod": ["Rod"],
+        "Scroll": ["Spell Scroll Cantrip Acid Splash", "Spell Scroll Cantrip Blade Ward",
+                   "Spell Scroll Cantrip Chill Touch", "Spell Scroll Cantrip Eldritch Blast",
+                   "Spell Scroll Cantrip Fire Bolt", "Spell Scroll Cantrip Guidance",
+                   "Spell Scroll Cantrip Light", "Spell Scroll Cantrip Mending",
+                   "Spell Scroll Cantrip Mind Sliver", "Spell Scroll Cantrip Poison Spray",
+                   "Spell Scroll Cantrip Produce Flame", "Spell Scroll Cantrip Ray Of Frost",
+                   "Spell Scroll Cantrip Resistance", "Spell Scroll Cantrip Sacred Flame",
+                   "Spell Scroll Cantrip Shillelagh", "Spell Scroll Cantrip Shocking Grasp",
+                   "Spell Scroll Cantrip Sourcerous Burst", "Spell Scroll Cantrip Spare The Dying",
+                   "Spell Scroll Cantrip Starry Wisp", "Spell Scroll Cantrip Thorn Whip",
+                   "Spell Scroll Cantrip Thunderclap", "Spell Scroll Cantrip Toll The Dead",
+                   "Spell Scroll Cantrip True Strike", "Spell Scroll Cantrip Vicious Mockery",
+                   "Spell Scroll Cantrip Word Of Radiance", "Spell Scroll 1st Level Alarm",
+                   "Spell Scroll 1st Level Armor Of Agathys", "Spell Scroll 1st Level Arms Of Hadar",
+                   "Spell Scroll 1st Level Bane", "Spell Scroll 1st Level Bless",
+                   "Spell Scroll 1st Level Burning Hands", "Spell Scroll 1st Level Charm Person",
+                   "Spell Scroll 1st Level Chromatic Orb", "Spell Scroll 1st Level Color Spray",
+                   "Spell Scroll 1st Level Command", "Spell Scroll 1st Level Compelled Duel",
+                   "Spell Scroll 1st Level Cure Wounds", "Spell Scroll 1st Level Detect Evil And Good",
+                   "Spell Scroll 1st Level Detect Magic", "Spell Scroll 1st Level Detect Poison And Disease",
+                   "Spell Scroll 1st Level Dissonant Whispers", "Spell Scroll 1st Level Divine Favor",
+                   "Spell Scroll 1st Level Divine Smite", "Spell Scroll 1st Level Ensnaring Strike",
+                   "Spell Scroll 1st Level Entangle", "Spell Scroll 1st Level Expeditious Retreat",
+                   "Spell Scroll 1st Level Faerie Fire", "Spell Scroll 1st Level False Life",
+                   "Spell Scroll 1st Level Feather Fall", "Spell Scroll 1st Level Find Familiar",
+                   "Spell Scroll 1st Level Fog Cloud", "Spell Scroll 1st Level Goodberry",
+                   "Spell Scroll 1st Level Grease", "Spell Scroll 1st Level Guiding Bolt",
+                   "Spell Scroll 1st Level Hail Of Thorns", "Spell Scroll 1st Level Healing Word",
+                   "Spell Scroll 1st Level Hellish Rebuke", "Spell Scroll 1st Level Heroism",
+                   "Spell Scroll 1st Level Hex", "Spell Scroll 1st Level Hunter's Mark",
+                   "Spell Scroll 1st Level Ice Knife", "Spell Scroll 1st Level Inflict Wounds",
+                   "Spell Scroll 1st Level Jump", "Spell Scroll 1st Level Longstrider",
+                   "Spell Scroll 1st Level Mage Armor", "Spell Scroll 1st Level Magic Missile",
+                   "Spell Scroll 1st Level Protection From Evil And Good", "Spell Scroll 1st Level Ray Of Sickness",
+                   "Spell Scroll 1st Level Sanctuary", "Spell Scroll 1st Level Searing Smite",
+                   "Spell Scroll 1st Level Shield", "Spell Scroll 1st Level Shield Of Faith",
+                   "Spell Scroll 1st Level Sleep", "Spell Scroll 1st Level Tasha's Hideous Laughter",
+                   "Spell Scroll 1st Level Thunderous Smite", "Spell Scroll 1st Level Thunderwave",
+                   "Spell Scroll 1st Level Witch Bolt", "Spell Scroll 1st Level Wrathful Smite"],
+        "Staff": ["Staff"],
+        "Wand": ["Wand"],
+        "Weapon": ["Battleaxe", "Club", "Dagger", "Flail", "Glaive", "Greataxe", "Greatclub",
+                   "Halberd", "Hand Crossbow", "Handaxe", "Heavy Crossbow", "Javelin", "Lance",
+                   "Light Crossbow", "Light Hammer", "Longbow", "Longsword", "Mace", "Maul", "Morningstar",
+                   "Musket", "Pike", "Pistol", "Quarterstaff", "Rapier", "Scimitar", "Shortbow", "Shortsword",
+                   "Sickle", "Sling", "Spear", "Trident", "War Pick", "Warhammer", "Whip", "Wooden Staff"],
+    },
+    "uncommon": {
+        "Armor": ["Adamantine Breastplate", "Adamantine Chain Mail", "Adamantine Half Plate Armor",
+                  "Adamantine Plate Armor", "Adamantine Ring Mail", "Adamantine Scale Mail", "Adamantine Splint Armor",
+                  ""],
+        "Potion": ["Scroll of Protection"],
+        "Ring": ["Mithral Armor"],
+        "Rod": ["Ring of Water Walking"],
+        "Scroll": ["Rod of the Pact Keeper +1"],
+        "Staff": ["Staff of the Adder"],
+        "Wand": ["Wand of Magic Missiles"],
+        "Weapon": ["+1 Longsword"]
+    },
+    "rare": {
+        "Potion": ["Potion of Superior Healing"],
+        "Scroll": ["Scroll of Fireball"],
+        "Armor": ["Adamantine Armor"],
+        "Ring": ["Ring of Evasion"],
+        "Rod": ["Rod of Absorption"],
+        "Staff": ["Staff of Fire"],
+        "Wand": ["Wand of Paralysis"],
+        "Weapon": ["+2 Longsword"]
+    },
+    "very rare": {
+        "Potion": ["Potion of Invisibility"],
+        "Scroll": ["Scroll of Wall of Force"],
+        "Armor": ["Armor of Invulnerability"],
+        "Ring": ["Ring of Regeneration"],
+        "Rod": ["Rod of Lordly Might"],
+        "Staff": ["Staff of Power"],
+        "Wand": ["Wand of Wonder"],
+        "Weapon": ["Holy Avenger"]
+    },
+    "legendary": {
+        "Potion": ["Potion of Storm Giant Strength"],
+        "Scroll": ["Scroll of Meteor Swarm"],
+        "Armor": ["Plate Armor of Etherealness"],
+        "Ring": ["Ring of Three Wishes"],
+        "Rod": ["Rod of Resurrection"],
+        "Staff": ["Staff of the Magi"],
+        "Wand": ["Wand of Orcus"],
+        "Weapon": ["Vorpal Sword"]
+    }
 }
 
 def get_rations():
@@ -103,7 +197,7 @@ def get_rations():
     elif roll <= 9:
         return 1
     else:
-        2
+        return 2
 
 def generate_encounter(encounter_number):
     if encounter_number == 1:
