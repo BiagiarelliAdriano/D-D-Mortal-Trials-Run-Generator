@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, render_template
 from encounter_generator import generate_encounter
 
 app = Flask(__name__)

@@ -879,8 +879,8 @@ def print_encounter(encounter, number):
                 print(value)
             time.sleep(0.3)
 
-encounters = generate_all_encounters(39)
-
-for i, encounter in enumerate(encounters, start=1):
-    print_encounter(encounter, i)
-    time.sleep(0.3)
+if __name__ == "__main__":
+    encounters = generate_all_encounters(39)
+    for i, encounter in enumerate(encounters, start=1):
+        print_encounter(encounter, i)
+        time.sleep(0.3)
