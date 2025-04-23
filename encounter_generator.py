@@ -647,7 +647,7 @@ def generate_shop_encounter(rarity1, rarity2):
         
     return {
         "type": "Shop Encounter",
-        "rarity_mix": f"2x {primary}, 1x {secondary} per category",
+        "rarity_mix": {primary: 2, secondary: 1},
         "items_by_category": shop_inventory
     }
 
