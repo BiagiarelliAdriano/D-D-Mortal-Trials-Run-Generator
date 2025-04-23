@@ -3,23 +3,45 @@
     <head>
         <meta charset="UTF-8">
         <title>The Mortal Trials Run Generator</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     </head>
     <body>
-        <h1>Generate a Run</h1>
+        <h1>Generate Your Run</h1>
         <form method="POST">
             <button type="submit">Start New Run</button>
         </form>
 
-        {% if run %}
-            <h2>Run Output:</h2>
-            <ul>
-                {% for number, encounter in run %}
-                    <li>
-                        <strong>Encounter {{ number }}:</strong><br>
-                        {{ encounter }}
-                    </li>
-                {% endfor %}
-            </ul>
+        {% if encounters %}
+            {% for num, encounter in encounters %}
+                <div class="encounter">
+                    <h2>Encounter {{ num }}</h2>
+                    <p><strong>XP:</strong> {{ encounter.xp }}</p>
+                    <p><strong>Gold:</strong> {{ encounter.gold }}</p>
+
+                    <div class="section">
+                        <h3>Monsters</h3>
+                        <ul>
+                            {% for monster in encounter.monsters %}
+                            <li>{{ monster }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+
+                    <div class="section">
+                        <h3>Divine Gifts</h3>
+                        <ul>
+                            {% for item in encounter.magic_items %}
+                                <li>{{ item }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+
+                    <div class="section">
+                        <h3>Rations</h3>
+                        <p>{{ encounter.rations }}</p>
+                    </div>
+                </div>
+            {% endfor %}
         {% endif %}
     </body>
 </html>
