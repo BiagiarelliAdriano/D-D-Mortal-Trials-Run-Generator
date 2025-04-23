@@ -1,4 +1,5 @@
 import random
+import time
 
 monsters = {
     "1/4": ["Aarakocra Skirmisher", "Animated Broom", "Animated Flying Sword", "Axe Beak", "Blink Dog",
@@ -431,49 +432,90 @@ magic_items = {
         "Weapon": ["Battleaxe", "Club", "Dagger", "Flail", "Glaive", "Greataxe", "Greatclub",
                    "Halberd", "Hand Crossbow", "Handaxe", "Heavy Crossbow", "Javelin", "Lance",
                    "Light Crossbow", "Light Hammer", "Longbow", "Longsword", "Mace", "Maul", "Morningstar",
-                   "Musket", "Pike", "Pistol", "Quarterstaff", "Rapier", "Scimitar", "Shortbow", "Shortsword",
-                   "Sickle", "Sling", "Spear", "Trident", "War Pick", "Warhammer", "Whip", "Wooden Staff"],
+                   "Pike", "Quarterstaff", "Rapier", "Scimitar", "Shortbow", "Shortsword", "Sickle", "Sling",
+                   "Spear", "Trident", "War Pick", "Warhammer", "Whip"],
     },
     "uncommon": {
         "Armor": ["Adamantine Breastplate", "Adamantine Chain Mail", "Adamantine Half Plate Armor",
-                  "Adamantine Plate Armor", "Adamantine Ring Mail", "Adamantine Scale Mail", "Adamantine Splint Armor"],
-        "Potion": ["Scroll of Protection"],
-        "Ring": ["Mithral Armor"],
-        "Rod": ["Ring of Water Walking"],
+                  "Adamantine Plate Armor", "Adamantine Ring Mail", "Adamantine Scale Mail", "Adamantine Splint Armor",
+                  "enspelled", "Mariner's Breastplate Armor", "Mariner's Chain Mail Armor", "Mariner's Chain Shirt Armor",
+                  "Mariner's Half Plate Armor", "Mariner's Hide Armor", "Mariner's Leather Armor", "Mariner's Padded Armor",
+                  "Mariner's Plate Armor", "Mariner's Ring Mail", "Mariner's Scale Mail", "Mariner's Splint Armor",
+                  "Mariner's Studded Leather Armor", "Mithral Brestplate Armor", "Mithral Chain Mail Armor",
+                  "Mithral Chain Shirt Armor", "Mithral Half Plate Armor", "Mithral Plate Armor", "Mithral Ring Mail Armor",
+                  "Mithral Scale Mail Armor", "Mithral Splint Armor", "Sentinel Shield", "Shield +1"],
+        "Potion": ["Oil Of Slipperiness", "Potion Of Fire Breath", "Potion Of Greater Healing", "Potion Of Growth",
+                   "Potion Of Hill Giant Strength", "Potion Of Poison", "Potion Of Pugilism", "Potion Of Acid Resistance",
+                   "Potion Of Cold Resistance", "Potion Of Fire Resistance", "Potion Of Force Resistance",
+                   "Potion Of Lightning Resistance", "Potion Of Necrotic Resistance", "Potion Of Poison Resistance",
+                   "Potion Of Psychic Resistance", "Potion Of Radiant Resistance", "Potion Of Thunder Resistance"],
+        "Ring": ["Ring Of Jumping", "Ring Of Mind Shielding", "Ring Of Warmth"],
+        "Rod": ["Immovable Rod", "Rod Of The Pact Keeper +1"],
         "Scroll": ["generate"],
-        "Staff": ["Staff of the Adder"],
-        "Wand": ["Wand of Magic Missiles"],
-        "Weapon": ["+1 Longsword"]
+        "Staff": ["enspelled", "Staff Of The Adder", "Staff Of The Python"],
+        "Wand": ["Wand Of Magic Detection", "Wand Of Magic Missiles", "Wand Of Secrets", "Wand Of Web",
+                 "Wand Of The War Mage +1"],
+        "Weapon": ["Adamantine Battleaxe", "Adamantine Club", "Adamantine Dagger", "Adamantine Flail", "Adamantine Glaive",
+                   "Adamantine Greataxe", "Adamantine Greatclub", "Adamantine Greatsword", "Adamantine Halberd", "Adamantine Handaxe",
+                   "Adamantine Javelin", "Adamantine Lance", "Adamantine Light Hammer", "Adamantine Longsword", "Adamantine Mace",
+                   "Adamantine Maul", "Adamantine Morningstar", "Adamantine Pike", "Adamantine Quarterstaff", "Adamantine Rapier",
+                   "Adamantine Scimitar", "Adamantine Shortsword", "Adamantine Sickle", "Adamantine Spear", "Adamantine Trident",
+                   "Adamantine War Pick", "Adamantine Warhammer", "Adamantine Whip", "Arrow +1", "Bolt +1", "enspelled",
+                   "Javelin Of Lightning", "Glaive Of Vengeance", "Greatsword Of Vengeance", "Longsword Of Vengeance", "Rapier Of Vengeance",
+                   "Scimitar Of Vengeance", "Shortsword Of Vengeance", "Trident Of Fish Command", "Battleaxe Of Warning", "Club Of Warning",
+                   "Dagger Of Warning", "Flail Of Warning", "Glaive Of Warning", "Greataxe Of Warning", "Greatclub Of Warning",
+                   "Greatsword Of Warning", "Halberd Of Warning", "Hand Crossbow Of Warning", "Javelin Of Warning", "Lance Of Warning",
+                   "Light Crossbow Of Warning", "Light Hammer Of Warning", "Longbow Of Warning", "Longsword Of Warning", "Mace Of Warning",
+                   "Maul Of Warning", "Morningstar Of Warning", "Pike Of Warning", "Quarterstaff Of Warning", "Rapier Of Warning",
+                   "Scimitar Of Warning", "Shortbow Of Warning", "Shortsword Of Warning", "Sickle Of Warning", "Spear Of Warning", "Trident Of Warning",
+                   "War Pick Of Warning", "Warhammer Of Warning", "Whip Of Warning", "Battleaxe +1", "Club +1", "Dagger +1", "Flail +1", "Glaive +1",
+                   "Greataxe +1", "Greatclub +1", "Greatsword +1", "Halberd +1", "Hand Crossbow +1", "Handaxe +1", "Heavy Crossbow +1", "Javelin +1",
+                   "Lance +1", "Light Crossbow +1", "Light Hammer +1", "Longbow +1", "Longsword +1", "Mace +1", "Maul +1", "Morningstar +1", "Pike +1",
+                   "Quarterstaff +1", "Rapier +1", "Scimitar +1", "Shortbow +1", "Shortsword +1", "Sickle +1", "Spear +1", "Trident +1", "War Pick +1",
+                   "Warhammer +1", "Whip +1"]
     },
     "rare": {
-        "Potion": ["Potion of Superior Healing"],
+        "Armor": ["Armor Of Resistance", "Armor Of Vulnerability", "Armor +1", "enspelled", "Arrow-catching Shield", "Elven Chain",
+                  "Glamoured Studded Leather", "Shield Of Missile Attraction", "Shield +2"],
+        "Potion": ["Elixir Of Health", "Oil Of Etherealness", "Potion Of Diminution", "Potion Of Fire Giant Strength", "Potion Of Frost Giant Strength",
+                   "Potion Of Gaseous Form", "Potion Of Heroism", "Potion Of Invisibility", "Potion Of Invulnerability", "Potion Of Mind Reading",
+                   "Potion Of Stone Giant Strength", "Potion Of Superior Healing"],
+        "Ring": ["Ring Of Animal Influence", "Ring Of Evasion", "Ring Of Feather Falling", "Ring Of Free Action", "Ring Of Protection",
+                 "Ring Of Resistance", "Ring Of Spell Storing", "Ring Of X-Ray Vision", "Ring Of The Ram"],
+        "Rod": ["Rod Of Rulership", "Rod Of The Pact Keeper +2", "Tentacle Rod"],
         "Scroll": ["generate"],
-        "Armor": ["Adamantine Armor"],
-        "Ring": ["Ring of Evasion"],
-        "Rod": ["Rod of Absorption"],
-        "Staff": ["Staff of Fire"],
-        "Wand": ["Wand of Paralysis"],
-        "Weapon": ["+2 Longsword"]
+        "Staff": ["enspelled", "Staff Of Charming", "Staff Of Healing", "Staff Of Swarming Insects", "Staff Of Withering", "Staff Of The Woodlands"],
+        "Wand": ["Wand Of Binding", "Wand Of Enemy Detection", "Wand Of Fear", "Wand Of Fireballs", "Wand Of Lightning Bolts", "Wand Of Paralysis",
+                 "Wand Of Wonder", "Wand Of The War Mage +2"],
+        "Weapon": ["Ammunition +2", "Berserker Axe", "Dagger Of Venom", "Dragon Slayer", "enspelled", "Flame Tongue", "Giant Slayer", "Mace Of Disruption",
+                   "Mace Of Smiting", "Mace Of Terror", "Sun Blade", "Sword Of Life Stealing", "Sword Of Wounding", "Vicious Weapon", "Weapon +2"]
     },
     "very rare": {
-        "Potion": ["Potion of Invisibility"],
+        "Armor": ["Animated Shield", "Armor +2", "enspelled", "Demon Armor", "Dragon Scale Mail", "Dwarven Plate", "Shield +3", "Shield Of The Cavalier",
+                  "Spellguard Shield"],
+        "Potion": ["Oil Of Sharpness", "Potion Of Cloud Giant Strength", "Potion Of Flying", "Potion Of Invisibility", "Potion Of Speed", "Potion Of Supreme Healing",
+                   "Potion Of Vitality"],
+        "Ring": ["Ring Of Regeneration", "Ring Of Shooting Stars", "Ring Of Telekinesis"],
+        "Rod": ["Rod Of Absorption", "Rod Of Alertness", "Rod Of The Pact Keeper +3"],
         "Scroll": ["generate"],
-        "Armor": ["Armor of Invulnerability"],
-        "Ring": ["Ring of Regeneration"],
-        "Rod": ["Rod of Lordly Might"],
-        "Staff": ["Staff of Power"],
-        "Wand": ["Wand of Wonder"],
-        "Weapon": ["Holy Avenger"]
+        "Staff": ["enspelled", "Quarterstaff Of The Acrobat", "Staff Of Fire", "Staff Of Frost", "Staff Of Power", "Staff Of Striking",
+                  "Staff Of Thunder And Lightning"],
+        "Wand": ["Wand Of Polymorph", "Wand Of The War Mage +3"],
+        "Weapon": ["Ammunition +3", "Arrow Of Slaying", "Dancing Sword", "Dwarven Thrower", "Energy Bow", "enspelled", "Executioner's Axe", "Frost Brand",
+                   "Lute Of Thunderous Thumping", "Nine Lives Stealer", "Oathbow", "Scimitar Of Speed", "Sword Of Sharpness", "Thunderous Greatclub",
+                   "Weapon +3"]
     },
     "legendary": {
-        "Potion": ["Potion of Storm Giant Strength"],
+        "Armor": ["Armor Of Invulnerability", "Armor +3", "Efreeti Chain", "enspelled", "Plate Armor Of Etherealness"],
+        "Potion": ["Draught Of The Colossus", "Potion Of Giant Size", "Potion Of Storm Giant Strength", "Skygrinder's Tonic"],
+        "Ring": ["Ring Of Air Elemental Command", "Ring Of Djinni Summoning", "Ring Of Earth Elemental Command", "Ring Of Fire Elemental Command",
+                 "Ring Of Invisibility", "Ring Of Spell Tuning", "Ring Of Water Elemental Command"],
+        "Rod": ["Rod Of Lordly Might", "Rod Of Resurrection", "Boomstick"],
         "Scroll": ["generate"],
-        "Armor": ["Plate Armor of Etherealness"],
-        "Ring": ["Ring of Three Wishes"],
-        "Rod": ["Rod of Resurrection"],
-        "Staff": ["Staff of the Magi"],
-        "Wand": ["Wand of Orcus"],
-        "Weapon": ["Vorpal Sword"]
+        "Staff": ["enspelled", "Staff Of The Magi"],
+        "Wand": ["Spindle Of Fate", "Dual Wands Of Spell Twinning", "Ling Kuo's Magnificent Ink Brush", "Temporal Wand", "True Wand"],
+        "Weapon": ["Defender", "enspelled", "Hammer Of Thunderbolts", "Holy Avenger", "Luck Blade", "Moonblade", "Sword Of Answering",
+                   "Vorpal Sword"]
     }
 }
 
@@ -483,6 +525,13 @@ possible_rarities = {
     "rare": [4, 5],
     "very rare": [6, 7, 8],
     "legendary": [9]
+}
+
+enspell_levels_by_rarity = {
+    "uncommon": [0, 1],
+    "rare": [2, 3],
+    "very rare": [4, 5],
+    "legendary": [6, 7, 8]
 }
 
 def get_rations():
@@ -501,23 +550,289 @@ def generate_scroll_for_rarity(rarity):
     level_label = "Cantrip" if level == 0 else f"Level {level}"
     return f"Spell Scroll {level_label} {spell}"
 
+def generate_enspell_armor(rarity):
+    levels = enspell_levels_by_rarity.get(rarity, [0])
+    level = random.choice(levels)
+    spell = random.choice(spells[level])["name"]
+    
+    level_label = "Cantrip" if level == 0 else f"Level {level}"
+    
+    valid_armors = [armor for armor in magic_items["common"]["Armor"] if armor != "Shield"]
+    base_armor = random.choice(valid_armors)
+    
+    return f"Enspelled {base_armor} {level_label} {spell}"
+
+def generate_enspell_staff(rarity):
+    levels = enspell_levels_by_rarity.get(rarity, [0])
+    level = random.choice(levels)
+    spell = random.choice(spells[level])["name"]
+    
+    level_label = "Cantrip" if level == 0 else f"Level {level}"
+    
+    return f"Enspelled Staff {level_label} {spell}"
+
+def generate_enspell_weapon(rarity):
+    levels = enspell_levels_by_rarity.get(rarity, [0])
+    level = random.choice(levels)
+    spell = random.choice(spells[level])["name"]
+    
+    level_label = "Cantrip" if level == 0 else f"Level {level}"
+    
+    valid_weapons = [weapon for weapon in magic_items["common"]["Weapon"]]
+    base_weapon = random.choice(valid_weapons)
+    
+    return f"Enspelled {base_weapon} {level_label} {spell}"
+
 def get_random_magic_item(rarity):
     category = random.choice(list(magic_items[rarity].keys()))
     item_list = magic_items[rarity][category]
-    
-    if category == "Scroll" and item_list == ["generate"]:
+    selected = random.choice(item_list)
+
+    if category == "Scroll" and selected == "generate":
         return generate_scroll_for_rarity(rarity)
+    elif category == "Armor" and selected == "enspelled":
+        return generate_enspell_armor(rarity)
+    elif category == "Staff" and selected == "enspelled":
+        return generate_enspell_staff(rarity)
+    elif category == "Weapon" and selected == "enspelled":
+        return generate_enspell_weapon(rarity)
     else:
-        return random.choice(item_list)
+        return selected
+
+def generate_shop_encounter(rarity1, rarity2):
+    shop_inventory = {}
+    
+    for category in magic_items[rarity1].keys():
+        # Decide the 2:1 rarity distribution
+        if random.choice([True, False]):
+            primary, secondary = rarity1, rarity2
+        else:
+            primary, secondary = rarity2, rarity1
+        
+        items = []
+        
+        # Generate 2 items from primary rarity
+        for _ in range(2):
+            item_list = magic_items[primary][category]
+            selected = random.choice(item_list)
+    
+            if category == "Scroll" and selected == "generate":
+                items.append(generate_scroll_for_rarity(primary))
+            elif category == "Armor" and selected == "enspelled":
+                items.append(generate_enspell_armor(primary))
+            elif category == "Staff" and selected == "enspelled":
+                items.append(generate_enspell_staff(primary))
+            elif category == "Weapon" and selected == "enspelled":
+                items.append(generate_enspell_weapon(primary))
+            else:
+                items.append(selected)
+
+        # Generate 1 item from secondary rarity
+        item_list = magic_items[secondary][category]
+        selected = random.choice(item_list)
+
+        if category == "Scroll" and selected == "generate":
+            items.append(generate_scroll_for_rarity(secondary))
+        elif category == "Armor" and selected == "enspelled":
+            items.append(generate_enspell_armor(secondary))
+        elif category == "Staff" and selected == "enspelled":
+            items.append(generate_enspell_staff(secondary))
+        elif category == "Weapon" and selected == "enspelled":
+            items.append(generate_enspell_weapon(secondary))
+        else:
+            items.append(selected)
+        
+        
+        shop_inventory[category] = items
+        
+    return {
+        "type": "Shop Encounter",
+        "rarity_mix": f"2x {primary}, 1x {secondary} per category",
+        "items_by_category": shop_inventory
+    }
 
 def generate_encounter(encounter_number):
+    
+    if encounter_number == 5:
+        return generate_shop_encounter("uncommon", "rare")
+    elif encounter_number == 10:
+        return {"note": "Revisit to last shop"}
+    elif encounter_number == 16:
+        return generate_shop_encounter("rare", "very rare")
+    elif encounter_number == 21:
+        return  {"note": "Revisit to last shop"}
+    elif encounter_number == 27:
+        return generate_shop_encounter("very rare", "legendary")
+    elif encounter_number == 32:
+        return {"note": "Revisit to last shop"}
+    elif encounter_number == 38:
+        return generate_shop_encounter("legendary", "legendary")
+    
     if encounter_number == 1:
         allowed_rarities = ["common", "uncommon"]
         xp = 600
         gold = 100
         monster_list = random.sample(monsters["1/2"], 2) + random.sample(monsters["1/4"], 2)
-    
-    magic_loot = [get_random_magic_item(random.choice(allowed_rarities)) for _ in range(4)]
+    elif encounter_number == 2:
+        allowed_rarities = ["common", "uncommon"]
+        xp = 900
+        gold = 100
+        monster_list = random.sample(monsters["1"], 2) + random.sample(monsters["1/2"], 2)
+    elif encounter_number == 3:
+        allowed_rarities = ["common", "uncommon"]
+        xp = 1050
+        gold = 200
+        monster_list = random.sample(monsters["1"], 2) + random.sample(monsters["1/2"], 3)
+    elif encounter_number == 4:
+        allowed_rarities = ["common", "uncommon"]
+        xp = 1425
+        gold = 200
+        monster_list = random.sample(monsters["2"], 1) + random.sample(monsters["1"], 2) + random.sample(monsters["1/2"], 1)
+    elif encounter_number == 6:
+        allowed_rarities = ["uncommon"]
+        xp = 1575
+        gold = 300
+        monster_list = random.sample(monsters["2"], 1) + random.sample(monsters["1"], 2) + random.sample(monsters["1/2"], 2)
+    elif encounter_number == 7:
+        allowed_rarities = ["uncommon"]
+        xp = 1725
+        gold = 300
+        monster_list = random.sample(monsters["2"], 1) + random.sample(monsters["1"], 2) + random.sample(monsters["1/2"], 3)
+    elif encounter_number == 8:
+        allowed_rarities = ["uncommon"]
+        xp = 3000
+        gold = 400
+        monster_list = random.sample(monsters["3"], 1) + random.sample(monsters["2"], 2) + random.sample(monsters["1"], 2)
+    elif encounter_number == 9:
+        allowed_rarities = ["uncommon"]
+        xp = 3425
+        gold = 400
+        monster_list = random.sample(monsters["3"], 1) + random.sample(monsters["2"], 2) + random.sample(monsters["1"], 3)
+    elif encounter_number == 11:
+        allowed_rarities = ["very rare"]
+        xp = 4350
+        gold = 4000
+        monster_list = random.sample(monsters["5"], 1) + random.sample(monsters["3"], 1) + random.sample(monsters["1"], 2)
+    elif encounter_number == 12:
+        allowed_rarities = ["uncommon", "rare"]
+        xp = 4650
+        gold = 500
+        monster_list = random.sample(monsters["4"], 2) + random.sample(monsters["2"], 1) + random.sample(monsters["1"], 2)
+    elif encounter_number == 13:
+        allowed_rarities = ["uncommon", "rare"]
+        xp = 5700
+        gold = 500
+        monster_list = random.sample(monsters["5"], 1) + random.sample(monsters["4"], 1) + random.sample(monsters["2"], 2)
+    elif encounter_number == 14:
+        allowed_rarities = ["uncommon", "rare"]
+        xp = 6075
+        gold = 600
+        monster_list = random.sample(monsters["5"], 1) + random.sample(monsters["4"], 1) + random.sample(monsters["3"], 1) + random.sample(monsters["2"], 1)
+    elif encounter_number == 15:
+        allowed_rarities = ["uncommon", "rare"]
+        xp = 6825
+        gold = 600
+        monster_list = random.sample(monsters["6"], 1) + random.sample(monsters["4"], 1) + random.sample(monsters["3"], 1) + random.sample(monsters["2"], 1)
+    elif encounter_number == 17:
+        allowed_rarities = ["rare"]
+        xp = 7200
+        gold = 700
+        monster_list = random.sample(monsters["6"], 1) + random.sample(monsters["4"], 1) + random.sample(monsters["3"], 2)
+    elif encounter_number == 18:
+        allowed_rarities = ["rare"]
+        xp = 8700
+        gold = 700
+        monster_list = random.sample(monsters["7"], 1) + random.sample(monsters["5"], 1) + random.sample(monsters["3"], 1) + random.sample(monsters["1"], 2)
+    elif encounter_number == 19:
+        allowed_rarities = ["rare"]
+        xp = 9450
+        gold = 800
+        monster_list = random.sample(monsters["7"], 1) + random.sample(monsters["5"], 1) + random.sample(monsters["3"], 1) + random.sample(monsters["2"], 2)
+    elif encounter_number == 20:
+        allowed_rarities = ["rare"]
+        xp = 10500
+        gold = 800
+        monster_list = random.sample(monsters["8"], 1) + random.sample(monsters["4"], 2) + random.sample(monsters["2"], 2)
+    elif encounter_number == 23:
+        allowed_rarities = ["rare", "very rare"]
+        xp = 10425
+        gold = 4000
+        monster_list = random.sample(monsters["9"], 1) + random.sample(monsters["4"], 1) + random.sample(monsters["2"], 1) + random.sample(monsters["1"], 2)
+    elif encounter_number == 24:
+        allowed_rarities = ["rare", "very rare"]
+        xp = 11475
+        gold = 4000
+        monster_list = random.sample(monsters["9"], 1) + random.sample(monsters["5"], 1) + random.sample(monsters["2"], 1) + random.sample(monsters["1"], 2)
+    elif encounter_number == 25:
+        allowed_rarities = ["rare", "very rare"]
+        xp = 15000
+        gold = 5000
+        monster_list = random.sample(monsters["10"], 1) + random.sample(monsters["6"], 1) + random.sample(monsters["4"], 1) + random.sample(monsters["3"], 1)
+    elif encounter_number == 26:
+        allowed_rarities = ["rare", "very rare"]
+        xp = 17250
+        gold = 5000
+        monster_list = random.sample(monsters["11"], 1) + random.sample(monsters["7"], 1) + random.sample(monsters["3"], 2)
+    elif encounter_number == 28:
+        allowed_rarities = ["very rare"]
+        xp = 20100
+        gold = 6000
+        monster_list = random.sample(monsters["12"], 1) + random.sample(monsters["8"], 1) + random.sample(monsters["4"], 1)
+    elif encounter_number == 29:
+        allowed_rarities = ["very rare"]
+        xp = 20550
+        gold = 6000
+        monster_list = random.sample(monsters["12"], 1) + random.sample(monsters["8"], 1) + random.sample(monsters["3"], 2)
+    elif encounter_number == 30:
+        allowed_rarities = ["very rare"]
+        xp = 23850
+        gold = 7000
+        monster_list = random.sample(monsters["13"], 1) + random.sample(monsters["9"], 1) + random.sample(monsters["2"], 2)
+    elif encounter_number == 31:
+        allowed_rarities = ["very rare"]
+        xp = 27150
+        gold = 7000
+        monster_list = random.sample(monsters["14"], 1) + random.sample(monsters["10"], 1) + random.sample(monsters["3"], 1)
+    elif encounter_number == 33:
+        allowed_rarities = ["legendary"]
+        xp = 29700
+        gold = 200000
+        monster_list = random.sample(monsters["16"], 1) + random.sample(monsters["6"], 1) + random.sample(monsters["4"], 1) + random.sample(monsters["3"], 2)
+    elif encounter_number == 34:
+        allowed_rarities = ["very rare", "legendary"]
+        xp = 34500
+        gold = 50000
+        monster_list = random.sample(monsters["15"], 1) + random.sample(monsters["14"], 1) + random.sample(monsters["9"], 2)
+    elif encounter_number == 35:
+        allowed_rarities = ["very rare", "legendary"]
+        xp = 34800
+        gold = 50000
+        monster_list = random.sample(monsters["16"], 1) + random.sample(monsters["13"], 1) + random.sample(monsters["10"], 1) + random.sample(monsters["8"], 1)
+    elif encounter_number == 36:
+        allowed_rarities = ["legendary"]
+        xp = 42600
+        gold = 100000
+        monster_list = random.sample(monsters["17"], 1) + random.sample(monsters["14"], 1) + random.sample(monsters["11"], 1) + random.sample(monsters["10"], 1)
+    elif encounter_number == 37:
+        allowed_rarities = ["legendary"]
+        xp = 0
+        gold = 100000
+        chosen_cr = random.choice(["17", "18", "19"])
+        monster_list = random.sample(monsters[chosen_cr], 1) + random.sample(monsters["14"], 2) + random.sample(monsters["11"], 1) + random.sample(monsters["8"], 1)
+    elif encounter_number == 39:
+        allowed_rarities = ["legendary"]
+        xp = 0
+        gold = 0
+        chosen_cr = random.choice(["20", "21", "22", "23", "24"])
+        monster_list = random.sample(monsters[chosen_cr], 1) + random.sample(monsters["15"], 1) + random.sample(monsters["5"], 2)
+    if encounter_number == 22:
+        allowed_rarities = ["very rare"]
+        xp = 12000
+        gold = 40000
+        monster_list = random.sample(monsters["10"], 1) + random.sample(monsters["3"], 3)
+        magic_loot = [get_random_magic_item(random.choice(allowed_rarities)) for _ in range(8)]
+    else:
+        magic_loot = [get_random_magic_item(random.choice(allowed_rarities)) for _ in range(4)]
     
     encounter = {
         "monsters": monster_list,
@@ -529,6 +844,43 @@ def generate_encounter(encounter_number):
     
     return encounter
 
-encounter = generate_encounter(1)
-for key, value in encounter.items():
-    print(f"{key.capitalize()}: {value}")
+def generate_all_encounters(total_encounters):
+    all_encounters = []
+    for i in range(1, total_encounters + 1):
+        encounter = generate_encounter(i)
+        all_encounters.append(encounter)
+    return all_encounters
+
+def print_encounter(encounter, number):
+    print(f"\n--- Generating Encounter {number} ---")
+    time.sleep(0.3)
+    
+    if encounter.get("type") == "Shop Encounter":
+        print(f"Type: Shop Encounter")
+        print(f"Rarity Distribution: {encounter['rarity_mix']}\n")
+        time.sleep(0.3)
+        for category, items in encounter["items_by_category"].items():
+            print(f"{category}:")
+            for item in items:
+                print(f" - {item}")
+                time.sleep(0.2)
+            print()
+    else:
+        for key, value in encounter.items():
+            print(f"{key.capitalize()}: ", end="")
+            time.sleep(0.3)
+            
+            if isinstance(value, list):
+                print()
+                for item in value:
+                    print(f" - {item}")
+                    time.sleep(0.2)
+            else:
+                print(value)
+            time.sleep(0.3)
+
+encounters = generate_all_encounters(39)
+
+for i, encounter in enumerate(encounters, start=1):
+    print_encounter(encounter, i)
+    time.sleep(0.3)
