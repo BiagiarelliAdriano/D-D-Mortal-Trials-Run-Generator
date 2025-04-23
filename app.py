@@ -13,9 +13,9 @@ def home():
         for i in range(1, 40):
             run_output.append((i, generate_encounter(i)))
         last_result = run_output
-        return render_template('index.html', run=last_result)
+        return render_template('index.html', encounters=last_result)
     
-    return render_template('index.html', run=last_result)
+    return render_template('index.html', encounters=last_result)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.encounters(debug=True)
