@@ -12,9 +12,34 @@
         </form>
 
         {% if encounters %}
-            {% for num, encounter in encounters %}
-                <div class="encounter">
-                    <h2>Encounter {{ num }}</h2>
+        {% for num, encounter in encounters %}
+            <div class="encounter">
+                <h2>Encounter {{ num }}</h2>
+
+                {% if encounter.type == "Shop Encounter" %}
+                    <p><strong>Type:</strong> Shop Encounter</p>
+                    <div class="section">
+                        <h3>Item Rarity Mix</h3>
+                        <ul>
+                            {% for rarity, count in encounter.rarity_mix.items() %}
+                                <li>{{ rarity }}: {{ count }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+
+                    <div class="section">
+                        <h3>Shop Inventory</h3>
+                        {% for category, items in encounter.items_by_category.items() %}
+                            <h4>{{ category }}</h4>
+                            <ul>
+                                {% for item in items %}
+                                    <li>{{ item }}</li>
+                                {% endfor %}
+                            </ul>
+                        {% endfor %}
+                    </div>
+
+                {% else %}
                     <p><strong>XP:</strong> {{ encounter.xp }}</p>
                     <p><strong>Gold:</strong> {{ encounter.gold }}</p>
 
@@ -22,7 +47,7 @@
                         <h3>Monsters</h3>
                         <ul>
                             {% for monster in encounter.monsters %}
-                            <li>{{ monster }}</li>
+                                <li>{{ monster }}</li>
                             {% endfor %}
                         </ul>
                     </div>
@@ -40,8 +65,9 @@
                         <h3>Rations</h3>
                         <p>{{ encounter.rations }}</p>
                     </div>
-                </div>
-            {% endfor %}
-        {% endif %}
+                {% endif %}
+            </div>
+        {% endfor %}
+    {% endif %}
     </body>
 </html>
