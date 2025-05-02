@@ -1,79 +1,83 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <title>The Mortal Trials Run Generator</title>
-        <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    </head>
-    <body>
-        <h1>Generate Your Run</h1>
-        <form method="POST">
-            <button type="submit">Start New Run</button>
-        </form>
-        {% if divine_blessing %}
-            <div class="blessing blessing-{{ divine_blessing.name | replace(' ', '') }}">
-                <h2>Divine Blessing</h2>
-                <p><strong>{{ divine_blessing.name }}</strong>: {{ divine_blessing.description }}</p>
-                <p><em>{{ divine_blessing.blessing }}</em></p>
-            </div>
-        {% endif %}
-        {% if encounters %}
-        {% for num, encounter in encounters %}
-            <div class="encounter">
-                <h2>Encounter {{ num }}</h2>
 
-                {% if encounter.type == "Shop Encounter" %}
-                    <p><strong>Type:</strong> Shop Encounter</p>
-                    <div class="section">
-                        <h3>Item Rarity Mix</h3>
-                        <ul>
-                            {% for rarity, count in encounter.rarity_mix.items() %}
-                                <li>{{ rarity }}: {{ count }}</li>
-                            {% endfor %}
-                        </ul>
-                    </div>
+<head>
+    <meta charset="UTF-8">
+    <title>The Mortal Trials Run Generator</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
 
-                    <div class="section">
-                        <h3>Shop Inventory</h3>
-                        {% for category, items in encounter.items_by_category.items() %}
-                            <h4>{{ category }}</h4>
-                            <ul>
-                                {% for item in items %}
-                                    <li>{{ item }}</li>
-                                {% endfor %}
-                            </ul>
-                        {% endfor %}
-                    </div>
-
-                {% else %}
-                    <p><strong>XP:</strong> {{ encounter.xp }}</p>
-                    <p><strong>Gold:</strong> {{ encounter.gold }}</p>
-
-                    <div class="section">
-                        <h3>Monsters</h3>
-                        <ul>
-                            {% for monster in encounter.monsters %}
-                                <li>{{ monster }}</li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-
-                    <div class="section">
-                        <h3>Divine Gifts</h3>
-                        <ul>
-                            {% for item in encounter.magic_items %}
-                                <li>{{ item }}</li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-
-                    <div class="section">
-                        <h3>Rations</h3>
-                        <p>{{ encounter.rations }}</p>
-                    </div>
-                {% endif %}
-            </div>
-        {% endfor %}
+<body>
+    <h1>Generate Your Run</h1>
+    <form method="POST">
+        <button type="submit">Start New Run</button>
+    </form>
+    {% if divine_blessing %}
+    <div class="blessing blessing-{{ divine_blessing.name }}">
+        <h2>Divine Blessing</h2>
+        <p><strong>{{ divine_blessing.name }}</strong> - <em>{{ divine_blessing.title }}</em>: {{
+            divine_blessing.description }}</p>
+        <p><em>{{ divine_blessing.blessing }}</em></p>
+    </div>
     {% endif %}
-    </body>
+    {% if encounters %}
+    {% for num, encounter in encounters %}
+    <div class="encounter">
+        <h2>Encounter {{ num }}</h2>
+
+        {% if encounter.type == "Shop Encounter" %}
+        <p><strong>Type:</strong> Shop Encounter</p>
+        <div class="section">
+            <h3>Item Rarity Mix</h3>
+            <ul>
+                {% for rarity, count in encounter.rarity_mix.items() %}
+                <li>{{ rarity }}: {{ count }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="section">
+            <h3>Shop Inventory</h3>
+            {% for category, items in encounter.items_by_category.items() %}
+            <h4>{{ category }}</h4>
+            <ul>
+                {% for item in items %}
+                <li>{{ item }}</li>
+                {% endfor %}
+            </ul>
+            {% endfor %}
+        </div>
+
+        {% else %}
+        <p><strong>XP:</strong> {{ encounter.xp }}</p>
+        <p><strong>Gold:</strong> {{ encounter.gold }}</p>
+
+        <div class="section">
+            <h3>Monsters</h3>
+            <ul>
+                {% for monster in encounter.monsters %}
+                <li>{{ monster }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="section">
+            <h3>Divine Gifts</h3>
+            <ul>
+                {% for item in encounter.magic_items %}
+                <li>{{ item }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="section">
+            <h3>Rations</h3>
+            <p>{{ encounter.rations }}</p>
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+    {% endif %}
+</body>
+
 </html>

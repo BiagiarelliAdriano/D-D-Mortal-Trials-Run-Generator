@@ -3,7 +3,8 @@ import time
 
 divine_blessings = [
     {
-        "name": "Aquila, Eye Of Twilight",
+        "name": "Aquila",
+        "title": "Eye Of Twilight",
         "description": """Aquila, the God of the sky, celestial bodies, and the cycle of day and night,
             was also the God that once had the largest realm. They reside above the heavens, encompassing
             and watching over the entire world. In most legends, Aquila's pride does not obscure their kindness.
@@ -16,7 +17,8 @@ divine_blessings = [
             and enemies have Disadvantage with any Saving Throw caused by you."""
     },
     {
-        "name": "Cerces, Bough Of Rift",
+        "name": "Cerces",
+        "title": "Bough Of Rift",
         "description": """Cerces is the master of wisdom, intellect, and vegetation. They wield authority over ecologies, knowledge,
             and rationality, and people refer to them as the hermit in search of wisdom. Nature is Cerces' courtyard and also their
             library. They allow people to study and rest there, and convey their knowledge to the ignorant tirelessly and generously.
@@ -26,7 +28,8 @@ divine_blessings = [
             if you would fail a Saving Throw, you can choose to succeed instead. The next time you fall to 0 HP, regain this Blessing."""
     },
     {
-        "name": "Georios, Pillar Of Stone",
+        "name": "Georios",
+        "title": "Pillar Of Stone",
         "description": """Georios is the God of earth. The skies and the seas were also born of their dormant breath. Mythology
             believes that every mountain range was once a physical manifestation of Georios. They are the largest, gentlest,
             and most benevolent God that protects the mortal world. Georios is also the God of agriculture and history.""",
@@ -34,7 +37,8 @@ divine_blessings = [
             by an attack, you reduce incoming damage by 20"""
     },
     {
-        "name": "Janus, Gate Of Infinity",
+        "name": "Janus",
+        "title": "Gate Of Infinity",
         "description": """Janus is the God of passages and roads. They know the existence and ends of all paths. Janus' power can open
             the doors to all broken mortal worlds, create non-existent paths, and point to unseen directions. Janus is the God most
             revered by humanity. They created roads and connected cities. The passages that Janus rules over are not just doors
@@ -47,7 +51,8 @@ divine_blessings = [
             you have double your speed and enemies cannot move."""
     },
     {
-        "name": "Kephale, Throne Of Worlds",
+        "name": "Kephale",
+        "title": "Throne Of Worlds",
         "description": """Kephale is the omniscient, omnipotent God of original creation that holds up the skies. Kephale was born from
             the combination of lightning bolts from the skies striking the spine of the earth. They were then given the duty of the creation
             of life. The first humans were created in Kephale's own image and given life. Kephale loved these tiny beings so deeply that their
@@ -57,7 +62,8 @@ divine_blessings = [
             the number of Critical Hits required to restore it increases by 1."""
     },
     {
-        "name": "Mnestia, Chrysalis Of Gold",
+        "name": "Mnestia",
+        "title": "Chrysalis Of Gold",
         "description": """Mnestia is the God that symbolizes beauty and love. Their appearance is often illustrated as a beautiful and elusive
             butterfly with golden patterns carved into their wings. They pursue beauty in the world, weave it into the golden thread, spin the
             romances of humankind and grant everyone love and affection.""",
@@ -66,7 +72,8 @@ divine_blessings = [
             all remaining Temporary Hit Points you have and heal Hit Points by the same amount."""
     },
     {
-        "name": "Nikador, Lance Of Fury",
+        "name": "Nikador",
+        "title": "Lance Of Fury",
         "description": """Nikador is the God of strife and competition. He is portrayed as a noble warrior that wears pure white sacred armor.
             Legend has it that the Lance of Fury that they wield can raze even the most powerful and prosperous city to the ground.
             Their bloodthirsty temperament has also made them a God of blood and sacrifice. Warriors gather under them and yearn to follow
@@ -77,7 +84,8 @@ divine_blessings = [
             to a creature, heal for half of the damage inflicted'."""
     },
     {
-        "name": "Oronyx, Veil Of Evernight",
+        "name": "Oronyx",
+        "title": "Veil Of Evernight",
         "description": """Oronyx is the God of time and night. Before the first dawn of the universe, the world was caged in the purest darkness.
             When the borders and day and night were separated, the young Oronyx jolted awake from the newborn concept of time, heading toward
             the outer reaches of the universe alone. There, they materialized as the Evernight Veil and henceforth remained afar from humanity,
@@ -85,7 +93,8 @@ divine_blessings = [
         "blessing": """For this run, each character starts with the Lucky feat. If they already have the Lucky feat, they gain 1 use more for it."""
     },
     {
-        "name": "Phagousa, Chalice Of Plenty",
+        "name": "Phagousa",
+        "title": "Chalice Of Plenty",
         "description": """Phagousa is the God that controls oceans and storms, as well as the master of honey brew and banquets. They are capable
             of freely moving bodies of water across any place as they please. According to mythology, they are a capricious and pleasure-obsessed
             God that sees the oceans as their place of alcoholic revelry. Phagousa also bears the duty of washing clean the filth of the world.
@@ -97,7 +106,8 @@ divine_blessings = [
             without gaining the level of Exhaustion or before taking a Long Rest, the chance doubles."""
     },
     {
-        "name": "Talanton, Scale Of Justice",
+        "name": "Talanton",
+        "title": "Scale Of Justice",
         "description": """Talanton is the God of law and justice. They rarely appear in the mortal world in physical form and there are almost no records
             of them in legend. People often say that they are the rules of destiny, the law of all things, and the divine retribution for violation of such
             rules and laws. Talanton is seen as a manifestation of justice. They uphold the taboos and boundaries of the world and lay down logic and laws
@@ -108,7 +118,8 @@ divine_blessings = [
             6 points from the other three."""
     },
     {
-        "name": "Thanatos, Hand Of Shadow",
+        "name": "Thanatos",
+        "title": "Hand Of Shadow",
         "description": """Thanatos is the God of death and annihilation, and no one knows their true form - for the dead cannot relay legends
             to the living. It is said that their touch causes flowers to wither, soil to crack, metal to corrode, and flesh to turn to ashes - everything
             shrouded in thick, dark mist and disintegrating into meaningless fragments.""",
@@ -116,7 +127,8 @@ divine_blessings = [
             if you have not recovered any amount of Hit Points from any source other than this Blessing, you die."""
     },
     {
-        "name": "Zagreus, Coin Of Whimsy",
+        "name": "Zagreus",
+        "title": "Coin Of Whimsy",
         "description": """Zagreus is the God of lies and fortune. The true Zagreus is often depicted as a two-faced God who is both smiling
             and crying. Its two parts are much like the coexistence of lies and truth in the world. One cannot exist without the other.
             Zagreus has no interest in fulfilling their divine duties. They love to cause divisions in the paths of the Gods and play tricks
