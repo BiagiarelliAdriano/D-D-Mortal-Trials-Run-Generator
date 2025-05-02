@@ -23,6 +23,102 @@ button:hover {
     background: #8e44ad;
 }
 
+.blessing {
+    background: linear-gradient(135deg, #3e3e5a, #2b2b3f);
+    border: 2px solid #ffd700;
+    padding: 1.5rem;
+    border-radius: 16px;
+    margin-bottom: 2rem;
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
+    text-align: left;
+    transition: all 0.3s ease;
+}
+
+.blessing h2 {
+    color: #ffd700;
+    margin-bottom: 0.5rem;
+    font-size: 1.6rem;
+    text-align: center;
+}
+
+.blessing p {
+    font-size: 1.1rem;
+    line-height: 1.6;
+}
+
+/* Individual Blessing Styles */
+.blessing-Aquila {
+    border-color: #00e6e6;
+    box-shadow: 0 0 20px rgba(0, 230, 230, 0.4);
+    background: linear-gradient(135deg, #164e63, #022c3a);
+}
+
+.blessing-Cerces {
+    border-color: #32cd75;
+    box-shadow: 0 0 20px rgba(50, 205, 117, 0.4);
+    background: linear-gradient(135deg, #1d3c34, #112c23);
+}
+
+.blessing-Georios {
+    border-color: #a0a0a0;
+    box-shadow: 0 0 20px rgba(160, 160, 160, 0.3);
+    background: linear-gradient(135deg, #3a3a3a, #1f1f1f);
+}
+
+.blessing-Janus {
+    border-color: #3498db;
+    box-shadow: 0 0 20px rgba(52, 152, 219, 0.4);
+    background: linear-gradient(135deg, #1e3a5f, #0b223b);
+}
+
+.blessing-Kephale {
+    border-color: #ffa552;
+    box-shadow: 0 0 20px rgba(255, 165, 82, 0.4);
+    background: linear-gradient(135deg, #5a3c1f, #2f1e0f);
+}
+
+.blessing-Mnestia {
+    border-color: #d26ae3;
+    box-shadow: 0 0 20px rgba(210, 106, 227, 0.4);
+    background: linear-gradient(135deg, #4d2d50, #2e1a32);
+}
+
+.blessing-Nikador {
+    border-color: #e63946;
+    box-shadow: 0 0 20px rgba(230, 57, 70, 0.5);
+    background: linear-gradient(135deg, #631c23, #2e0d10);
+}
+
+.blessing-Oronyx {
+    border-color: #3d5a80;
+    box-shadow: 0 0 20px rgba(61, 90, 128, 0.4);
+    background: linear-gradient(135deg, #1c2238, #0a0f1f);
+}
+
+.blessing-Phagousa {
+    border-color: #9b59b6;
+    box-shadow: 0 0 20px rgba(155, 89, 182, 0.4);
+    background: linear-gradient(135deg, #341f3b, #1e1121);
+}
+
+.blessing-Talanton {
+    border-color: #f1c40f;
+    box-shadow: 0 0 20px rgba(241, 196, 15, 0.4);
+    background: linear-gradient(135deg, #574d1e, #2c260f);
+}
+
+.blessing-Thanatos {
+    border-color: #6c5ce7;
+    box-shadow: 0 0 20px rgba(108, 92, 231, 0.4);
+    background: linear-gradient(135deg, #2d254f, #1a1433);
+}
+
+.blessing-Zagreus {
+    border-color: #f9ca24;
+    box-shadow: 0 0 20px rgba(249, 202, 36, 0.4);
+    background: linear-gradient(135deg, #5c4c1a, #2e250d);
+}
+
 .encounter {
     background: #2e2e40;
     padding: 1.5rem;
