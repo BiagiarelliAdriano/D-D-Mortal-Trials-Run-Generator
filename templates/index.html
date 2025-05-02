@@ -10,7 +10,13 @@
         <form method="POST">
             <button type="submit">Start New Run</button>
         </form>
-
+        {% if divine_blessing %}
+            <div class="blessing">
+                <h2>Divine Blessing</h2>
+                <p><strong>{{ divine_blessing.name }}</strong>: {{ divine_blessing.description }}</p>
+                <p><em>{{ divine_blessing.blessing }}</em></p>
+            </div>
+        {% endif %}
         {% if encounters %}
         {% for num, encounter in encounters %}
             <div class="encounter">

@@ -1013,6 +1013,10 @@ def print_encounter(encounter, number):
             time.sleep(0.3)
 
 if __name__ == "__main__":
+    divine_blessing_for_run = generate_divine_blessing()
+    print("\n=== Divine Blessing For This Run ===")
+    print(f" {divine_blessing_for_run}")
+    print("=======================================\n")
     encounters = generate_all_encounters(39)
     for i, encounter in enumerate(encounters, start=1):
         print_encounter(encounter, i)
