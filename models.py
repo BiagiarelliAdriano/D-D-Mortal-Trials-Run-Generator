@@ -7,7 +7,7 @@ db = SQLAlchemy()
 class Run(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), unique=True, nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utc)
+    created_at = db.Column(db.DateTime, default=datetime.now)
     data = db.Column(db.Text, nullable=False) # Stores the run as JSON
     
     def set_data(self, encounters):

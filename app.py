@@ -1,10 +1,11 @@
 from flask import Flask, request, render_template, redirect, url_for
+from flask_migrate import Migrate
 from encounter_generator import generate_encounter, generate_divine_blessing
 from models import db, Run
 import json
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite://runs.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///runs.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
 last_result = None
@@ -12,6 +13,8 @@ last_blessing = None
 
 with app.app_context():
     db.create_all()
+
+migrate = Migrate(app, db)
 
 @app.route('/', methods=['GET', 'POST'])
 def home():
