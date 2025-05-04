@@ -1,9 +1,17 @@
-from flask import Flask, request, render_template
+from flask import Flask, request, render_template, redirect, url_for
 from encounter_generator import generate_encounter, generate_divine_blessing
+from models import db, Run
+import json
 
 app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite://runs.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db.init_app(app)
 last_result = None
 last_blessing = None
+
+with app.app_context():
+    db.create_all()
 
 @app.route('/', methods=['GET', 'POST'])
 def home():
@@ -23,6 +31,36 @@ def home():
         )
     
     return render_template('index.html', encounters=last_result)
+
+@app.route('/save', methods=['POST'])
+def save():
+    global last_result, last_blessing
+    title = request.form.get('title')
+    
+    if title and last_result and last_blessing:
+        run = Run(
+            title=title,
+            blessing=json.dumps(last_blessing),
+            encounters=json.dumps(last_result)
+        )
+        db.session.add(run)
+        db.session.commit()
+    return redirect(url_for('list_runs'))
+
+@app.route('/runs')
+def list_runs():
+    runs = Run.query.all()
+    return render_template('runs.html', runs=runs)
+
+@app.route('/runs/<int:run_id>')
+def view_run(run_id):
+    run = Run.query.get_or_404(run_id)
+    data = run.to_dict()
+    return render_template(
+        'index.html',
+        divine_blessing=data['blessing'],
+        encounters=data['encounters']
+    )
 
 if __name__ == '__main__':
     app.run(debug=True)

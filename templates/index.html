@@ -9,9 +9,16 @@
 
 <body>
     <h1>Generate Your Run</h1>
-    <form method="POST">
+    <p><a href="{{ url_for('list_runs') }}">View Saved Runs</a></p>
+    <form class="inline-form" method="POST">
         <button type="submit">Start New Run</button>
     </form>
+    {% if divine_blessing and encounters %}
+        <form class="inline-form" method="POST" action="{{ url_for('save') }}">
+            <input type="text" name="title" placeholder="Name this Run" required>
+            <button type="submit">Save This Run</button>
+        </form>
+    {% endif %}
     {% if divine_blessing %}
     <div class="blessing blessing-{{ divine_blessing.name }}">
         <h2>Divine Blessing</h2>

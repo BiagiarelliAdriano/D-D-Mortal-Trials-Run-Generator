@@ -23,6 +23,24 @@ button:hover {
     background: #8e44ad;
 }
 
+form {
+    margin-bottom: 2rem;
+}
+
+.inline-form {
+    display: inline;
+    margin-left: 1rem;
+}
+
+input[type="text"] {
+    padding: 0.5rem;
+    margin: 1rem;
+    font-size: 1rem;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    width: 250px;
+}
+
 .blessing {
     background: linear-gradient(135deg, #3e3e5a, #2b2b3f);
     border: 2px solid #ffd700;
