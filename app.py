@@ -3,10 +3,13 @@ from flask_migrate import Migrate
 from encounter_generator import generate_encounter, generate_divine_blessing
 from models import db, Run
 import json
+import os
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///runs.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+uri = os.getenv("DATABASE_URL", "sqlite:///runs.db")
+if uri.startwith("postgres://"):
+    uri = uri.replace("postgres://", "postgresql://", 1)
+app.config['SQLALCHEMY_DATABASE_URI'] = uri
 db.init_app(app)
 last_result = None
 last_blessing = None
