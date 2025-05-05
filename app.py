@@ -14,8 +14,9 @@ db.init_app(app)
 last_result = None
 last_blessing = None
 
-with app.app_context():
-    db.create_all()
+if os.environ.get("FLASK_ENV") != "production":
+    with app.app_context():
+        db.create_all()
 
 migrate = Migrate(app, db)
 
