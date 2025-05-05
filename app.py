@@ -38,11 +38,11 @@ def home():
 @app.route('/save', methods=['POST'])
 def save():
     global last_result, last_blessing
-    title = request.form.get('title')
+    title_run = request.form.get('title')
     
-    if title and last_result and last_blessing:
+    if title_run and last_result and last_blessing:
         run = Run(
-            title=title,
+            title_run=title_run,
             blessing=json.dumps(last_blessing),
             encounters=json.dumps(last_result)
         )
