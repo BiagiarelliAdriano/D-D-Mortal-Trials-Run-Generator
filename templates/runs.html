@@ -1,15 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <title>Saved Runs</title>
 </head>
+
 <body>
     <h1>Saved Runs</h1>
+    {% if runs %}
     <ul>
         {% for run in runs %}
         <li><a href="{{ url_for('view_run', run_id=run.id) }}">{{ run.title_run }}</a></li>
         {% endfor %}
     </ul>
+    {% else %}
+    <p>No runs saved yet.</p>
+    {% endif %}
     <a href="{{ url_for('home') }}">Back to Generator</a>
 </body>
+
 </html>

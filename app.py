@@ -44,6 +44,11 @@ def save():
     global last_result, last_blessing
     title_run = request.form.get('title')
     
+    print("---- Save Route Triggered ----")
+    print("Title Run:", title_run)
+    print("Last Result is None?", last_result is None)
+    print("Last Blessing is None?", last_blessing is None)
+
     if title_run and last_result and last_blessing:
         run = Run(title_run=title_run)
         run.set_data({
@@ -52,13 +57,22 @@ def save():
         })
         db.session.add(run)
         db.session.commit()
-    
+        print("Run saved:", run.title_run)
+    else:
+        print("Run not saved — missing data")
+
     return redirect(url_for('list_runs'))
+
 
 @app.route('/runs')
 def list_runs():
     runs = Run.query.all()
+    print(f"---- Listing Runs ----")
+    print(f"Found {len(runs)} runs")
+    for r in runs:
+        print("Run ID:", r.id, "Title:", r.title_run)
     return render_template('runs.html', runs=runs)
+
 
 @app.route('/runs/<int:run_id>')
 def view_run(run_id):
