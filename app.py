@@ -45,13 +45,14 @@ def save():
     title_run = request.form.get('title')
     
     if title_run and last_result and last_blessing:
-        run = Run(
-            title_run=title_run,
-            blessing=json.dumps(last_blessing),
-            encounters=json.dumps(last_result)
-        )
+        run = Run(title_run=title_run)
+        run.set_data({
+            "encounters": last_result,
+            "blessing": last_blessing
+        })
         db.session.add(run)
         db.session.commit()
+    
     return redirect(url_for('list_runs'))
 
 @app.route('/runs')
@@ -62,11 +63,11 @@ def list_runs():
 @app.route('/runs/<int:run_id>')
 def view_run(run_id):
     run = Run.query.get_or_404(run_id)
-    data = run.to_dict()
+    data = run.get_data()
     return render_template(
         'index.html',
-        divine_blessing=data['blessing'],
-        encounters=data['encounters']
+        divine_blessing=data.get('blessing'),
+        encounters=data.get('encounters')
     )
 
 if __name__ == '__main__':
