@@ -1,22 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <title>Saved Runs</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
-
 <body>
     <h1>Saved Runs</h1>
-    {% if runs %}
-    <ul>
+    
+    <ul class="run-list">
         {% for run in runs %}
-        <li><a href="{{ url_for('view_run', run_id=run.id) }}">{{ run.title_run }}</a></li>
+        <li>
+            <a href="{{ url_for('view_run', run_id=run.id) }}">{{ run.title_run }}</a>
+            <span class="timestamp">{{ run.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+        </li>
+        {% else %}
+        <li class="empty">No runs saved yet.</li>
         {% endfor %}
     </ul>
-    {% else %}
-    <p>No runs saved yet.</p>
-    {% endif %}
-    <a href="{{ url_for('home') }}">Back to Generator</a>
-</body>
 
+    <a href="{{ url_for('home') }}" class="back-button">← Back to Generator</a>
+</body>
 </html>

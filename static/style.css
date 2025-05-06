@@ -154,3 +154,65 @@ ul {
     list-style: square;
     margin-left: 1.5rem;
 }
+
+/* runs.html */
+h1 {
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
+    color: #ffd700;
+}
+
+.run-list {
+    padding: 0;
+    list-style: none;
+    margin-bottom: 2rem;
+}
+
+.run-list li {
+    background: #2e2e40;
+    margin: 0.8rem 0;
+    padding: 1rem;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(100, 50, 150, 0.4);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: transform 0.2s;
+}
+
+.run-list li:hover {
+    transform: scale(1.02);
+}
+
+.run-list a {
+    color: #ffd700;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+.run-list .timestamp {
+    color: #aaa;
+    font-size: 0.9rem;
+}
+
+.run-list .empty {
+    color: #888;
+    font-style: italic;
+    text-align: center;
+}
+
+.back-button {
+    display: inline-block;
+    margin-top: 1rem;
+    text-decoration: none;
+    color: #fff;
+    background: #643173;
+    padding: 0.6rem 1.2rem;
+    border-radius: 8px;
+    transition: background 0.3s ease;
+}
+
+.back-button:hover {
+    background: #8e44ad;
+}
