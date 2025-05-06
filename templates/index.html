@@ -15,7 +15,7 @@
     </form>
     {% if divine_blessing and encounters %}
         <form class="inline-form" method="POST" action="{{ url_for('save') }}">
-            <input type="text" name="title_run" placeholder="Name this Run" required>
+            <input type="text" name="title" placeholder="Name this Run" required>
             <button type="submit">Save This Run</button>
         </form>
     {% endif %}
