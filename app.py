@@ -11,8 +11,6 @@ if uri.startswith("postgres://"):
     uri = uri.replace("postgres://", "postgresql://", 1)
 app.config['SQLALCHEMY_DATABASE_URI'] = uri
 db.init_app(app)
-last_result = None
-last_blessing = None
 
 if os.environ.get("FLASK_ENV") != "production":
     with app.app_context():
@@ -22,47 +20,45 @@ migrate = Migrate(app, db)
 
 @app.route('/', methods=['GET', 'POST'])
 def home():
-    global last_result, last_blessing
     if request.method == 'POST':
-        # Generate new run
-        run_output = []
-        for i in range(1, 40):
-            run_output.append((i, generate_encounter(i)))
-        last_result = run_output
-        last_blessing = generate_divine_blessing()
+        run_output = [(i, generate_encounter(i)) for i in range(1, 40)]
+        blessing = generate_divine_blessing()
         
         return render_template(
             'index.html',
-            encounters=last_result,
-            divine_blessing=last_blessing
+            encounters=run_output,
+            divine_blessing=blessing
         )
     
-    return render_template('index.html', encounters=last_result)
+    # For GET request, just render empty
+    return render_template('index.html')
 
 @app.route('/save', methods=['POST'])
 def save():
-    global last_result, last_blessing
     title_run = request.form.get('title')
-    
-    print("---- Save Route Triggered ----")
-    print("Title Run:", title_run)
-    print("Last Result is None?", last_result is None)
-    print("Last Blessing is None?", last_blessing is None)
+    blessing = request.form.get('blessing')
+    encounters = request.form.get('encounters')
 
-    if title_run and last_result and last_blessing:
-        run = Run(title_run=title_run)
-        run.set_data({
-            "encounters": last_result,
-            "blessing": last_blessing
-        })
+    print("---- Save Route Triggered ----")
+    print(f"Title Run: {title_run}")
+    print(f"Blessing: {blessing}")
+    print(f"Encounters: {encounters}")
+
+    if title_run and blessing and encounters:
+        run = Run(
+            title_run=title_run,
+            data=json.dumps({
+                "blessing": json.loads(blessing),
+                "encounters": json.loads(encounters)
+            })
+        )
         db.session.add(run)
         db.session.commit()
-        print("Run saved:", run.title_run)
+        print("✅ Run saved!")
     else:
-        print("Run not saved — missing data")
+        print("❌ Run not saved — missing data")
 
     return redirect(url_for('list_runs'))
-
 
 @app.route('/runs')
 def list_runs():
@@ -77,11 +73,11 @@ def list_runs():
 @app.route('/runs/<int:run_id>')
 def view_run(run_id):
     run = Run.query.get_or_404(run_id)
-    data = run.get_data()
+    parsed = json.loads(run.data)
     return render_template(
         'index.html',
-        divine_blessing=data.get('blessing'),
-        encounters=data.get('encounters')
+        divine_blessing=parsed['blessing'],
+        encounters=parsed['encounters']
     )
 
 if __name__ == '__main__':

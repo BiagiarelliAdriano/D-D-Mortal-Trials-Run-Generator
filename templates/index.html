@@ -14,10 +14,12 @@
         <button type="submit">Start New Run</button>
     </form>
     {% if divine_blessing and encounters %}
-        <form class="inline-form" method="POST" action="{{ url_for('save') }}">
-            <input type="text" name="title" placeholder="Name this Run" required>
-            <button type="submit">Save This Run</button>
-        </form>
+    <form class="inline-form" method="POST" action="{{ url_for('save') }}">
+        <input type="text" name="title" placeholder="Name this Run" required>
+        <input type="hidden" name="blessing" value="{{ divine_blessing | tojson }}">
+        <input type="hidden" name="encounters" value="{{ encounters | tojson }}">
+        <button type="submit">Save This Run</button>
+    </form>
     {% endif %}
     {% if divine_blessing %}
     <div class="blessing blessing-{{ divine_blessing.name }}">
