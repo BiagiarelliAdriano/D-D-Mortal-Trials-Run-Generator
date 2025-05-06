@@ -38,6 +38,8 @@ def save():
     title_run = request.form.get('title')
     blessing = request.form.get('blessing')
     encounters = request.form.get('encounters')
+    print("Raw blessing:", blessing)
+    print("Raw encounters:", encounters)
 
     print("---- Save Route Triggered ----")
     print(f"Title Run: {title_run}")

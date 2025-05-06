@@ -16,8 +16,8 @@
     {% if divine_blessing and encounters %}
     <form class="inline-form" method="POST" action="{{ url_for('save') }}">
         <input type="text" name="title" placeholder="Name this Run" required>
-        <input type="hidden" name="blessing" value="{{ divine_blessing | tojson }}">
-        <input type="hidden" name="encounters" value="{{ encounters | tojson }}">
+        <input type="hidden" name="blessing" value='{{ divine_blessing | tojson | safe }}'>
+        <input type="hidden" name="encounters" value='{{ encounters | tojson | safe }}'>
         <button type="submit">Save This Run</button>
     </form>
     {% endif %}
