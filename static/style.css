@@ -10,6 +10,8 @@ body {
 
 a {
     text-decoration: none;
+    text-shadow: 0 0 8px rgba(255, 215, 0, 0.6);
+    transition: text-shadow 0.3s ease, color 0.3s ease;
 }
 
 button {
@@ -219,4 +221,23 @@ h1 {
 
 .back-button:hover {
     background: #8e44ad;
+}
+
+.delete-form {
+    display: inline;
+    margin-left: 1rem;
+}
+
+.delete-button {
+    background: transparent;
+    border: none;
+    color: #ff6b6b;
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 0;
+    transition: color 0.2s ease;
+}
+
+.delete-button:hover {
+    color: #ff1e1e;
 }

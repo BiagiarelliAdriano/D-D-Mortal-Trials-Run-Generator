@@ -38,13 +38,6 @@ def save():
     title_run = request.form.get('title')
     blessing = request.form.get('blessing')
     encounters = request.form.get('encounters')
-    print("Raw blessing:", blessing)
-    print("Raw encounters:", encounters)
-
-    print("---- Save Route Triggered ----")
-    print(f"Title Run: {title_run}")
-    print(f"Blessing: {blessing}")
-    print(f"Encounters: {encounters}")
 
     if title_run and blessing and encounters:
         run = Run(
@@ -56,19 +49,12 @@ def save():
         )
         db.session.add(run)
         db.session.commit()
-        print("✅ Run saved!")
-    else:
-        print("❌ Run not saved — missing data")
 
     return redirect(url_for('list_runs'))
 
 @app.route('/runs')
 def list_runs():
     runs = Run.query.all()
-    print(f"---- Listing Runs ----")
-    print(f"Found {len(runs)} runs")
-    for r in runs:
-        print("Run ID:", r.id, "Title:", r.title_run)
     return render_template('runs.html', runs=runs)
 
 
@@ -81,6 +67,13 @@ def view_run(run_id):
         divine_blessing=parsed['blessing'],
         encounters=parsed['encounters']
     )
+
+@app.route('/runs/<int:run_id>/delete', methods=['POST'])
+def delete_run(run_id):
+    run = Run.query.get_or_404(run_id)
+    db.session.delete(run)
+    db.session.commit()
+    return redirect(url_for('list_runs'))
 
 if __name__ == '__main__':
     app.run(debug=True)
