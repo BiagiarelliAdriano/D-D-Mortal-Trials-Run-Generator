@@ -12,10 +12,10 @@
 </head>
 
 <body>
-    <h1><a href="{{ url_for('home') }}">Generate Your Run</a></h1>
+    <h1><a href="{{ url_for('home') }}">The Mortal Trials</a></h1>
     <p><a href="{{ url_for('list_runs') }}">View Saved Runs</a></p>
     <form class="inline-form" method="POST">
-        <button type="submit">Start New Run</button>
+        <button type="submit">Generate New Run</button>
     </form>
     {% if divine_blessing and encounters %}
     <form class="inline-form" method="POST" action="{{ url_for('save') }}">
