@@ -1041,7 +1041,7 @@ def generate_encounter(encounter_number):
         xp = 0
         gold = 0
         chosen_cr = random.choice(["20", "21", "22", "23", "24"])
-        monster_list = random.sample(monsters[chosen_cr], 1) + random.sample(monsters["15"], 1) + random.sample(monsters["5"], 2)
+        monster_list = random.sample(monsters[chosen_cr], 1) + random.sample(monsters["15"], 1) + random.sample(monsters["10"], 2)
     if encounter_number == 22:
         allowed_rarities = ["very rare"]
         xp = 12000

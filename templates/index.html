@@ -25,72 +25,82 @@
         <button type="submit">Save This Run</button>
     </form>
     {% endif %}
-    {% if divine_blessing %}
-    <div class="blessing blessing-{{ divine_blessing.name }}">
-        <h2>Divine Blessing</h2>
-        <p><strong>{{ divine_blessing.name }}</strong> - <em>{{ divine_blessing.title }}</em>: {{
-            divine_blessing.description }}</p>
-        <p><em>{{ divine_blessing.blessing }}</em></p>
-    </div>
-    {% endif %}
-    {% if encounters %}
-    {% for num, encounter in encounters %}
-    <div class="encounter">
-        <h2>Encounter {{ num }}</h2>
-
-        {% if encounter.type == "Shop Encounter" %}
-        <p><strong>Type:</strong> Shop Encounter</p>
-        <div class="section">
-            <h3>Item Rarity Mix</h3>
-            <ul>
-                {% for rarity, count in encounter.rarity_mix.items() %}
-                <li>{{ rarity }}: {{ count }}</li>
-                {% endfor %}
-            </ul>
-        </div>
-
-        <div class="section">
-            <h3>Shop Inventory</h3>
-            {% for category, items in encounter.items_by_category.items() %}
-            <h4>{{ category }}</h4>
-            <ul>
-                {% for item in items %}
-                <li>{{ item }}</li>
-                {% endfor %}
-            </ul>
-            {% endfor %}
-        </div>
-
-        {% else %}
-        <p><strong>XP:</strong> {{ encounter.xp }}</p>
-        <p><strong>Gold:</strong> {{ encounter.gold }}</p>
-
-        <div class="section">
-            <h3>Monsters</h3>
-            <ul>
-                {% for monster in encounter.monsters %}
-                <li>{{ monster }}</li>
-                {% endfor %}
-            </ul>
-        </div>
-
-        <div class="section">
-            <h3>Divine Gifts</h3>
-            <ul>
-                {% for item in encounter.magic_items %}
-                <li>{{ item }}</li>
-                {% endfor %}
-            </ul>
-        </div>
-
-        <div class="section">
-            <h3>Rations</h3>
-            <p>{{ encounter.rations }}</p>
+    <button id="download-btn" onclick="downloadRun()">Download Run</button>
+    <div id="run-content">
+        {% if divine_blessing %}
+        <div class="blessing blessing-{{ divine_blessing.name }}">
+            <h2>Divine Blessing</h2>
+            <p><strong>{{ divine_blessing.name }}</strong> - <em>{{ divine_blessing.title }}</em>: {{
+                divine_blessing.description }}</p>
+            <p><em>{{ divine_blessing.blessing }}</em></p>
         </div>
         {% endif %}
+        {% if encounters %}
+        {% for num, encounter in encounters %}
+        <div class="encounter">
+            <h2>Encounter {{ num }}</h2>
+
+            {% if encounter.type == "Shop Encounter" %}
+            <p><strong>Type:</strong> Shop Encounter</p>
+            <div class="section">
+                <h3>Item Rarity Mix</h3>
+                <ul>
+                    {% for rarity, count in encounter.rarity_mix.items() %}
+                    <li>{{ rarity }}: {{ count }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <div class="section">
+                <h3>Shop Inventory</h3>
+                {% for category, items in encounter.items_by_category.items() %}
+                <h4>{{ category }}</h4>
+                <ul>
+                    {% for item in items %}
+                    <li>{{ item }}</li>
+                    {% endfor %}
+                </ul>
+                {% endfor %}
+            </div>
+
+            {% else %}
+            <p><strong>XP:</strong> {{ encounter.xp }}</p>
+            <p><strong>Gold:</strong> {{ encounter.gold }}</p>
+
+            <div class="section">
+                <h3>Monsters</h3>
+                <ul>
+                    {% for monster in encounter.monsters %}
+                    <li>{{ monster }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <div class="section">
+                <h3>Divine Gifts</h3>
+                <ul>
+                    {% for item in encounter.magic_items %}
+                    <li>{{ item }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <div class="section">
+                <h3>Rations</h3>
+                <p>{{ encounter.rations }}</p>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+        {% endif %}
     </div>
-    {% endfor %}
-    {% endif %}
+
+    <!-- Load html2pdf library first -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <!-- Then load your custom script -->
+    <script src="html2pdf.js"></script>
+
 </body>
 
 </html>
