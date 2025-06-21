@@ -1,6 +1,7 @@
 from flask import Flask, request, render_template, redirect, url_for
 from flask_migrate import Migrate
-from encounter_generator import generate_encounter, generate_divine_blessing
+from encounter_generator.encounter_logic import generate_all_encounters
+from encounter_generator.generator import generate_divine_blessing
 from models import db, Run
 import json
 import os
@@ -21,9 +22,9 @@ migrate = Migrate(app, db)
 @app.route('/', methods=['GET', 'POST'])
 def home():
     if request.method == 'POST':
-        run_output = [(i, generate_encounter(i)) for i in range(1, 40)]
+        run_output = list(enumerate(generate_all_encounters(39), 1))
         blessing = generate_divine_blessing()
-        
+
         return render_template(
             'index.html',
             encounters=run_output,
