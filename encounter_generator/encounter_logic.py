@@ -363,21 +363,21 @@ ENCOUNTER_DEFINITIONS = {
 
 def generate_shop_encounter(rarity1, rarity2):
     shop_inventory = {}
-    
+
     for category in MAGIC_ITEMS[rarity1].keys():
         # Decide the 2:1 rarity distribution
         if random.choice([True, False]):
             primary, secondary = rarity1, rarity2
         else:
             primary, secondary = rarity2, rarity1
-        
+
         items = []
-        
+
         # Generate 2 items from primary rarity
         for _ in range(2):
             item_list = MAGIC_ITEMS[primary][category]
             selected = random.choice(item_list)
-    
+
             if category == "Scroll" and selected == "generate":
                 items.append(generate_scroll_for_rarity(primary))
             elif category == "Armor" and selected == "enspelled":
@@ -403,10 +403,18 @@ def generate_shop_encounter(rarity1, rarity2):
             items.append(generate_enspell_weapon(secondary))
         else:
             items.append(selected)
-        
-        
+
         shop_inventory[category] = items
-        
+
+    # 35% chance to add a Wondrous category
+    if random.random() < 0.35:
+        wondrous_items = []
+        allowed_rarities = [rarity1, rarity2]
+        for _ in range(3):
+            chosen_rarity = random.choice(allowed_rarities)
+            wondrous_items.append(get_random_wondrous_item(chosen_rarity))
+        shop_inventory["Wondrous"] = wondrous_items
+
     return {
         "type": "Shop Encounter",
         "rarity_mix": {primary: 2, secondary: 1},
@@ -453,15 +461,16 @@ def generate_encounter(encounter_number):
     loot_count = data.get("magic_loot_count", 0)
     rarities = data.get("allowed_rarities", [])
 
-    wondrous_included = False
+    # Generate all normal magic items first
     for _ in range(loot_count):
         if rarities:
-            if not wondrous_included and random.random() < 0.3:  # 30% chance for exactly one wondrous
-                chosen_rarity = random.choice(rarities)
-                magic_items.append(get_random_wondrous_item(chosen_rarity))
-                wondrous_included = True
-            else:
-                magic_items.append(get_random_magic_item(random.choice(rarities)))
+            magic_items.append(get_random_magic_item(random.choice(rarities)))
+
+    # Then do a single 30% roll to upgrade one to a wondrous item
+    if rarities and loot_count > 0 and random.random() < 0.3:
+        wondrous_index = random.randrange(loot_count)
+        chosen_rarity = random.choice(rarities)
+        magic_items[wondrous_index] = get_random_wondrous_item(chosen_rarity)
 
     if magic_items:
         encounter["magic_items"] = magic_items

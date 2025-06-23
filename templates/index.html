@@ -4,7 +4,6 @@
 <head>
     <meta charset="UTF-8">
     <title>The Mortal Trials Run Generator</title>
-    <!-- Standard Favicon -->
     <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon-32x32.png') }}">
     <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
     <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
@@ -17,6 +16,7 @@
     <form class="inline-form" method="POST">
         <button type="submit">Generate New Run</button>
     </form>
+
     {% if divine_blessing and encounters %}
     <form class="inline-form" method="POST" action="{{ url_for('save') }}">
         <input type="text" name="title" placeholder="Name this Run" required>
@@ -25,7 +25,9 @@
         <button type="submit">Save This Run</button>
     </form>
     {% endif %}
+
     <button id="download-btn" onclick="downloadRun()">Download Run</button>
+
     <div id="run-content">
         {% if divine_blessing %}
         <div class="blessing blessing-{{ divine_blessing.name }}">
@@ -35,6 +37,7 @@
             <p><em>{{ divine_blessing.blessing }}</em></p>
         </div>
         {% endif %}
+
         {% if encounters %}
         {% for num, encounter in encounters %}
         <div class="encounter">
@@ -42,6 +45,7 @@
 
             {% if encounter.type == "Shop Encounter" %}
             <p><strong>Type:</strong> Shop Encounter</p>
+
             <div class="section">
                 <h3>Item Rarity Mix</h3>
                 <ul>
@@ -64,9 +68,25 @@
             </div>
 
             {% else %}
-            <p><strong>XP:</strong> {{ encounter.xp }}</p>
-            <p><strong>Gold:</strong> {{ encounter.gold }}</p>
+            {% if encounter.note %}
+            <p><strong>Note:</strong> {{ encounter.note }}</p>
+            {% endif %}
 
+            {% if encounter.xp is defined %}
+            <p><strong>XP:</strong> {{ encounter.xp }}</p>
+            {% endif %}
+            {% if encounter.total_xp is defined %}
+            <p><strong>Total XP:</strong> {{ encounter.total_xp }}</p>
+            {% endif %}
+            {% if encounter.is_levelup %}
+            <p><strong>Level Up!</strong></p>
+            {% endif %}
+
+            {% if encounter.gold is defined %}
+            <p><strong>Gold:</strong> {{ encounter.gold }}</p>
+            {% endif %}
+
+            {% if encounter.monsters %}
             <div class="section">
                 <h3>Monsters</h3>
                 <ul>
@@ -75,7 +95,9 @@
                     {% endfor %}
                 </ul>
             </div>
+            {% endif %}
 
+            {% if encounter.magic_items %}
             <div class="section">
                 <h3>Divine Gifts</h3>
                 <ul>
@@ -84,23 +106,22 @@
                     {% endfor %}
                 </ul>
             </div>
+            {% endif %}
 
+            {% if encounter.rations is defined %}
             <div class="section">
                 <h3>Rations</h3>
                 <p>{{ encounter.rations }}</p>
             </div>
+            {% endif %}
             {% endif %}
         </div>
         {% endfor %}
         {% endif %}
     </div>
 
-    <!-- Load html2pdf library first -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-
-    <!-- Then load your custom script -->
     <script src="{{ url_for('static', filename='html2pdf.js') }}"></script>
-
 </body>
 
 </html>
