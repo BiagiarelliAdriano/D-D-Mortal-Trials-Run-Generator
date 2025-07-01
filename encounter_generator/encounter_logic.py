@@ -475,6 +475,11 @@ def generate_encounter(encounter_number):
     if magic_items:
         encounter["magic_items"] = magic_items
 
+    if "rations" in data:
+        encounter["rations"] = data["rations"]
+    else:
+        encounter["rations"] = get_rations()
+
     return encounter
 
 def generate_all_encounters(total_encounters):

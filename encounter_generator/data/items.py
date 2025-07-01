@@ -64,10 +64,10 @@ WONDROUS_ITEMS = {
     },
     "legendary": {
         "Arcana": ["Apparatus Of Kwalish", "Cloak Of Invisibility", "Ioun Stone: Greater Absorption", "Ioun Stone: Mastery", "Ioun Stone: Regeneration",
-                   "Iron Flask", "Robe Of The Archmagi", "Sovereign Glue", "Sphere Of Annihilation", "Talisman Of The Sphere", "Tome Of The Stilled Tongue",
-                   "Universal Solvent", "Well Of Many Worlds"],
+                   "Iron Flask", "Robe Of The Archmagi", "Sphere Of Annihilation", "Talisman Of The Sphere", "Tome Of The Stilled Tongue",
+                   "Well Of Many Worlds"],
         "Armaments": ["Belt Of Cloud Giant Strength", "Belt Of Storm Giant Strength", "Horn Of Valhalla Iron"],
-        "Implements": ["Ollamh Harp", "Sovereign Glue", "Sphere Of Annihilation", "Talisman Of The Sphere", "Universal Solvent"],
+        "Implements": ["Ollamh Harp", "Sphere Of Annihilation", "Talisman Of The Sphere"],
         "Relics": ["Blackrazor", "Book Of Exalted Deeds", "Book Of Vile Darkness", "Demonomicon Of Iggwilv", "Eye And Hand Of Vecna",
                    "Horn Of Valhalla Iron", "Orb Of Dragonkind", "Scarab Of Protection", "Sword Of Kas", "Talisman Of Pure Good",
                    "Talisman Of Ultimate Evil", "Wand Of Orcus", "Wave", "Whelm"]
