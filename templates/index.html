@@ -3,125 +3,35 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>The Mortal Trials Run Generator</title>
+    <title>The Mortal Trials</title>
     <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon-32x32.png') }}">
     <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
     <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
 
 <body>
-    <h1><a href="{{ url_for('home') }}">The Mortal Trials</a></h1>
-    <p><a href="{{ url_for('list_runs') }}">View Saved Runs</a></p>
-    <form class="inline-form" method="POST">
-        <button type="submit">Generate New Run</button>
-    </form>
+    <h1>Welcome to</h1>
+    <br>
+    <img id="themortaltrialslogo" src="{{ url_for('static', filename='assets/images/themortaltrialslogo.webp') }}"
+        alt="The Mortal Trials">
+    <p>Your hub for the ultimate tactical D&D roguelike experience.</p>
 
-    {% if divine_blessing and encounters %}
-    <form class="inline-form" method="POST" action="{{ url_for('save') }}">
-        <input type="text" name="title" placeholder="Name this Run" required>
-        <input type="hidden" name="blessing" value='{{ divine_blessing | tojson | safe }}'>
-        <input type="hidden" name="encounters" value='{{ encounters | tojson | safe }}'>
-        <button type="submit">Save This Run</button>
-    </form>
-    {% endif %}
-
-    <button id="download-btn" onclick="downloadRun()">Download Run</button>
-
-    <div id="run-content">
-        {% if divine_blessing %}
-        <div class="blessing blessing-{{ divine_blessing.name }}">
-            <h2>Divine Blessing</h2>
-            <p><strong>{{ divine_blessing.name }}</strong> - <em>{{ divine_blessing.title }}</em>: {{
-                divine_blessing.description }}</p>
-            <p><em>{{ divine_blessing.blessing }}</em></p>
-        </div>
-        {% endif %}
-
-        {% if encounters %}
-        {% for num, encounter in encounters %}
-        <div class="encounter">
-            <h2>Encounter {{ num }}</h2>
-
-            {% if encounter.type == "Shop Encounter" %}
-            <p><strong>Type:</strong> Shop Encounter</p>
-
-            <div class="section">
-                <h3>Item Rarity Mix</h3>
-                <ul>
-                    {% for rarity, count in encounter.rarity_mix.items() %}
-                    <li>{{ rarity }}: {{ count }}</li>
-                    {% endfor %}
-                </ul>
-            </div>
-
-            <div class="section">
-                <h3>Shop Inventory</h3>
-                {% for category, items in encounter.items_by_category.items() %}
-                <h4>{{ category }}</h4>
-                <ul>
-                    {% for item in items %}
-                    <li>{{ item }}</li>
-                    {% endfor %}
-                </ul>
-                {% endfor %}
-            </div>
-
-            {% else %}
-            {% if encounter.note %}
-            <p><strong>Note:</strong> {{ encounter.note }}</p>
-            {% endif %}
-
-            {% if encounter.xp is defined %}
-            <p><strong>XP:</strong> {{ encounter.xp }}</p>
-            {% endif %}
-            {% if encounter.total_xp is defined %}
-            <p><strong>Total XP:</strong> {{ encounter.total_xp }}</p>
-            {% endif %}
-            {% if encounter.is_levelup %}
-            <p><strong>Level Up!</strong></p>
-            {% endif %}
-
-            {% if encounter.gold is defined %}
-            <p><strong>Gold:</strong> {{ encounter.gold }}</p>
-            {% endif %}
-
-            {% if encounter.monsters %}
-            <div class="section">
-                <h3>Monsters</h3>
-                <ul>
-                    {% for monster in encounter.monsters %}
-                    <li>{{ monster }}</li>
-                    {% endfor %}
-                </ul>
-            </div>
-            {% endif %}
-
-            {% if encounter.magic_items %}
-            <div class="section">
-                <h3>Divine Gifts</h3>
-                <ul>
-                    {% for item in encounter.magic_items %}
-                    <li>{{ item }}</li>
-                    {% endfor %}
-                </ul>
-            </div>
-            {% endif %}
-
-            {% if encounter.rations is defined %}
-            <div class="section">
-                <h3>Rations</h3>
-                <p>{{ encounter.rations }}</p>
-            </div>
-            {% endif %}
-            {% endif %}
-        </div>
-        {% endfor %}
-        {% endif %}
+    <a href="{{ url_for('run_generator') }}">
+        <button>Go to Run Generator</button>
+    </a>
+    <a href="{{ url_for('characters_hub') }}">
+        <button>Go to Characters Hub</button>
+    </a>
+    <div class="social-icons">
+        <a href="https://discord.gg/CmNqX7Mrtp" target="_blank" rel="noopener noreferrer">
+            <i class="fa-brands fa-discord"></i>
+        </a>
+        <a href="https://www.patreon.com/c/TheMortalTrials" target="_blank" rel="noopener noreferrer">
+            <i class="fa-brands fa-patreon"></i>
+        </a>
     </div>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <script src="{{ url_for('static', filename='html2pdf.js') }}"></script>
 </body>
 
 </html>

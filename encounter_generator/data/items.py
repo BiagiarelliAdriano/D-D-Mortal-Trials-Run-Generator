@@ -4,7 +4,7 @@ WONDROUS_ITEMS = {
                    "Clothes Of Mending", "Dark Shard Amulet", "Enduring Spellbook", "Ersatz Eye",
                    "Hat Of Vermin", "Hat Of Wizardry", "Heward's Handy Spice Pouch", "Horn Of Silent Alarm",
                    "Instrument Of Illusions", "Instrument Of Scribing", "Lock Of Trickery", "Orb Of Direction",
-                   "Orb Of Time", "Perfume Of Bewitching", "Pipe Of Smoke MONSTERS", "Pot Of Awakening", "Prosthetic Limb",
+                   "Orb Of Time", "Perfume Of Bewitching", "Pipe Of Smoke Monsters", "Pot Of Awakening", "Prosthetic Limb",
                    "Rival Coin", "Rope Of Mending", "Ruby Of The War Mage", "Talking Doll", "Tankard Of Sobriety"],
         "Armaments": ["Dread Helm", "Veteran's Cane"],
         "Implements": ["Bead Of Nourishment", "Clockwork Amulet", "Ear Horn Of Hearing", "Horn Of Silent Alarm",

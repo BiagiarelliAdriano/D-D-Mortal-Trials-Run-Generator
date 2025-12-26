@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Character Hub</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+
+<body>
+    <h2><a href="{{ url_for('home') }}">Home Page</a></h2>
+    <h1>Character Hub</h1>
+    <p>Create, edit, and manage your heroes for The Mortal Trials.</p>
+
+    <!-- Main action buttons -->
+    <div class="action-buttons">
+        <button id="createCharacterBtn">+ Create Character</button>
+        <button id="editModeBtn">Edit Character</button>
+        <button id="deleteModeBtn">Delete Character</button>
+    </div>
+
+    <!-- Character Creation Modal -->
+    <div id="characterModal" class="modal hidden">
+        <div class="modal-content">
+            <h2>Create / Edit Character</h2>
+
+            <label for="charName">Name:</label>
+            <input type="text" id="charName" required>
+
+            <label for="charClass">Class:</label>
+            <input type="text" id="charClass" required>
+
+            <label for="charSubclass">Subclass:</label>
+            <input type="text" id="charSubclass">
+
+            <label for="charLevel">Level:</label>
+            <input type="number" id="charLevel" min="1" max="20" value="1">
+
+            <div class="modal-actions">
+                <button type="button" id="saveCharacterBtn">Save</button>
+                <button type="button" id="cancelCharacterBtn">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Character list grid -->
+    <div id="characterList" class="character-grid"
+        data-characters='{{ characters | map(attribute="data") | list | tojson | safe }}'
+        data-names='{{ characters | map(attribute="name") | list | tojson | safe }}'
+        data-ids='{{ characters | map(attribute="id") | list | tojson | safe }}'>
+    </div>
+
+    {% if not characters %}
+    <p>No characters yet. Create your first hero!</p>
+    {% endif %}
+
+    <div class="social-icons">
+        <a href="https://discord.gg/CmNqX7Mrtp" target="_blank" rel="noopener noreferrer">
+            <i class="fa-brands fa-discord"></i>
+        </a>
+        <a href="https://www.patreon.com/c/TheMortalTrials" target="_blank" rel="noopener noreferrer">
+            <i class="fa-brands fa-patreon"></i>
+        </a>
+    </div>
+
+    <script src="{{ url_for('static', filename='characters.js') }}"></script>
+</body>
+
+</html>

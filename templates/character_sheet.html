@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>{{ character.name }} - Character Sheet</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='favicon-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='favicon-16x16.png') }}">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+
+<body>
+    <h2><a href="{{ url_for('characters_hub') }}">← Back to Hub</a></h2>
+    <h1>{{ character.name }}</h1>
+
+    <form id="characterForm">
+        <!-- Basic Info -->
+        <section>
+            <h2>Basic Info</h2>
+            <label>Name: <input type="text" name="name" value="{{ character.name }}"></label>
+            <label>Class: <input type="text" name="class_name"
+                    value="{{ character_data.get('class_name', '') }}"></label>
+            <label>Subclass: <input type="text" name="subclass"
+                    value="{{ character_data.get('subclass', '') }}"></label>
+            <label>Level: <input type="number" name="level" value="{{ character_data.get('level', 1) }}"></label>
+        </section>
+
+        <!-- Ability Scores -->
+        <div class="abilities-container">
+            <section class="abilities">
+                <h2>Abilities</h2>
+                <label>
+                    Strength: <input type="number" name="strength">
+                    <button type="button" class="roll-btn" data-mod="{{ character_data.get('strength', 0) }}"><i
+                            class="fa-solid fa-dice-d20"></i></button>
+                </label>
+                <label>
+                    Dexterity: <input type="number" name="dexterity">
+                    <button type="button" class="roll-btn" data-mod="{{ character_data.get('dexterity', 0) }}"><i
+                            class="fa-solid fa-dice-d20"></i></button>
+                </label>
+                <label>
+                    Constitution: <input type="number" name="constitution">
+                    <button type="button" class="roll-btn" data-mod="{{ character_data.get('constitution', 0) }}"><i
+                            class="fa-solid fa-dice-d20"></i></button>
+                </label>
+                <label>
+                    Intelligence: <input type="number" name="intelligence">
+                    <button type="button" class="roll-btn" data-mod="{{ character_data.get('intelligence', 0) }}"><i
+                            class="fa-solid fa-dice-d20"></i></button>
+                </label>
+                <label>
+                    Wisdom: <input type="number" name="wisdom">
+                    <button type="button" class="roll-btn" data-mod="{{ character_data.get('wisdom', 0) }}"><i
+                            class="fa-solid fa-dice-d20"></i></button>
+                </label>
+                <label>
+                    Charisma: <input type="number" name="charisma">
+                    <button type="button" class="roll-btn" data-mod="{{ character_data.get('charisma', 0) }}"><i
+                            class="fa-solid fa-dice-d20"></i></button>
+                </label>
+            </section>
+
+
+            <!-- Saving Throws -->
+            <section class="saving-throws">
+                <h2>Saving Throws</h2>
+                <label>
+                    STR Save: <input type="number" name="str_save">
+                    <button type="button" class="roll-btn" data-mod="{{ character_data.get('str_save', 0) }}"><i
+                            class="fa-solid fa-dice-d20"></i></button>
+                </label>
+                <label>
+                    DEX Save: <input type="number" name="dex_save">
+                    <button type="button" class="roll-btn" data-mod="{{ character_data.get('dex_save', 0) }}"><i
+                            class="fa-solid fa-dice-d20"></i></button>
+                </label>
+                <label>
+                    CON Save: <input type="number" name="con_save">
+                    <button type="button" class="roll-btn" data-mod="{{ character_data.get('con_save', 0) }}"><i
+                            class="fa-solid fa-dice-d20"></i></button>
+                </label>
+                <label>
+                    INT Save: <input type="number" name="int_save">
+                    <button type="button" class="roll-btn" data-mod="{{ character_data.get('int_save', 0) }}"><i
+                            class="fa-solid fa-dice-d20"></i></button>
+                </label>
+                <label>
+                    WIS Save: <input type="number" name="wis_save">
+                    <button type="button" class="roll-btn" data-mod="{{ character_data.get('wis_save', 0) }}"><i
+                            class="fa-solid fa-dice-d20"></i></button>
+                </label>
+                <label>
+                    CHA Save: <input type="number" name="cha_save">
+                    <button type="button" class="roll-btn" data-mod="{{ character_data.get('cha_save', 0) }}"><i
+                            class="fa-solid fa-dice-d20"></i></button>
+                </label>
+            </section>
+
+            <!-- Skills -->
+            <section class="skills">
+                <h2>Skills</h2>
+                <div class="skills-container">
+                    <div class="skills-column">
+                        <label>
+                            Acrobatics: <input type="number" name="acrobatics">
+                            <button type="button" class="roll-btn"
+                                data-mod="{{ character_data.get('acrobatics', 0) }}"><i
+                                    class="fa-solid fa-dice-d20"></i></button>
+                        </label>
+                        <label>
+                            Animal Handling: <input type="number" name="animal_handling">
+                            <button type="button" class="roll-btn"
+                                data-mod="{{ character_data.get('animal_handling', 0) }}"><i
+                                    class="fa-solid fa-dice-d20"></i></button>
+                        </label>
+                        <label>
+                            Arcana: <input type="number" name="arcana">
+                            <button type="button" class="roll-btn" data-mod="{{ character_data.get('arcana', 0) }}"><i
+                                    class="fa-solid fa-dice-d20"></i></button>
+                        </label>
+                        <label>
+                            Athletics: <input type="number" name="athletics">
+                            <button type="button" class="roll-btn"
+                                data-mod="{{ character_data.get('athletics', 0) }}"><i
+                                    class="fa-solid fa-dice-d20"></i></button>
+                        </label>
+                        <label>
+                            Deception: <input type="number" name="deception">
+                            <button type="button" class="roll-btn"
+                                data-mod="{{ character_data.get('deception', 0) }}"><i
+                                    class="fa-solid fa-dice-d20"></i></button>
+                        </label>
+                        <label>
+                            History: <input type="number" name="history">
+                            <button type="button" class="roll-btn" data-mod="{{ character_data.get('history', 0) }}"><i
+                                    class="fa-solid fa-dice-d20"></i></button>
+                        </label>
+                        <label>
+                            Insight: <input type="number" name="insight">
+                            <button type="button" class="roll-btn" data-mod="{{ character_data.get('insight', 0) }}"><i
+                                    class="fa-solid fa-dice-d20"></i></button>
+                        </label>
+                        <label>
+                            Intimidation: <input type="number" name="intimidation">
+                            <button type="button" class="roll-btn"
+                                data-mod="{{ character_data.get('intimidation', 0) }}"><i
+                                    class="fa-solid fa-dice-d20"></i></button>
+                        </label>
+                        <label>
+                            Investigation: <input type="number" name="investigation">
+                            <button type="button" class="roll-btn"
+                                data-mod="{{ character_data.get('investigation', 0) }}"><i
+                                    class="fa-solid fa-dice-d20"></i></button>
+                        </label>
+                    </div>
+                    <div class="skills-column">
+                        <label>
+                            Medicine: <input type="number" name="medicine">
+                            <button type="button" class="roll-btn" data-mod="{{ character_data.get('medicine', 0) }}"><i
+                                    class="fa-solid fa-dice-d20"></i></button>
+                        </label>
+                        <label>
+                            Nature: <input type="number" name="nature">
+                            <button type="button" class="roll-btn" data-mod="{{ character_data.get('nature', 0) }}"><i
+                                    class="fa-solid fa-dice-d20"></i></button>
+                        </label>
+                        <label>
+                            Perception: <input type="number" name="perception">
+                            <button type="button" class="roll-btn"
+                                data-mod="{{ character_data.get('perception', 0) }}"><i
+                                    class="fa-solid fa-dice-d20"></i></button>
+                        </label>
+                        <label>
+                            Performance: <input type="number" name="performance">
+                            <button type="button" class="roll-btn"
+                                data-mod="{{ character_data.get('performance', 0) }}"><i
+                                    class="fa-solid fa-dice-d20"></i></button>
+                        </label>
+                        <label>
+                            Persuasion: <input type="number" name="persuasion">
+                            <button type="button" class="roll-btn"
+                                data-mod="{{ character_data.get('persuasion', 0) }}"><i
+                                    class="fa-solid fa-dice-d20"></i></button>
+                        </label>
+                        <label>
+                            Religion: <input type="number" name="religion">
+                            <button type="button" class="roll-btn" data-mod="{{ character_data.get('religion', 0) }}"><i
+                                    class="fa-solid fa-dice-d20"></i></button>
+                        </label>
+                        <label>
+                            Sleight Of Hand: <input type="number" name="sleight_of_hand">
+                            <button type="button" class="roll-btn"
+                                data-mod="{{ character_data.get('sleight_of_hand', 0) }}"><i
+                                    class="fa-solid fa-dice-d20"></i></button>
+                        </label>
+                        <label>
+                            Stealth: <input type="number" name="stealth">
+                            <button type="button" class="roll-btn" data-mod="{{ character_data.get('stealth', 0) }}"><i
+                                    class="fa-solid fa-dice-d20"></i></button>
+                        </label>
+                        <label>
+                            Survival: <input type="number" name="survival">
+                            <button type="button" class="roll-btn" data-mod="{{ character_data.get('survival', 0) }}"><i
+                                    class="fa-solid fa-dice-d20"></i></button>
+                        </label>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Attacks / Spells -->
+        <section class="attacks-spells">
+            <h2>Attacks / Spells</h2>
+            <label>Attack/Spell Name: <input type="text" name="attack1_name"></label>
+            <label>Attack/Spell Hit / DC: <input type="text" name="attack1_hitdc"></label>
+            <label>Attack/Spell Damage: <input type="text" name="attack1_damage"></label>
+            <button type="button" class="roll-damage-btn" data-dice="{{ character_data.get('attack1_damage', '') }}"><i
+                    class="fa-solid fa-dice"></i></button>
+            <label>Attack/Spell Name: <input type="text" name="attack2_name"></label>
+            <label>Attack/Spell Hit / DC: <input type="text" name="attack2_hitdc"></label>
+            <label>Attack/Spell Damage: <input type="text" name="attack2_damage"></label>
+            <button type="button" class="roll-damage-btn" data-dice="{{ character_data.get('attack2_damage', '') }}"><i
+                    class="fa-solid fa-dice"></i></button>
+            <label>Attack/Spell Name: <input type="text" name="attack3_name"></label>
+            <label>Attack/Spell Hit / DC: <input type="text" name="attack3_hitdc"></label>
+            <label>Attack/Spell Damage: <input type="text" name="attack3_damage"></label>
+            <button type="button" class="roll-damage-btn" data-dice="{{ character_data.get('attack3_damage', '') }}"><i
+                    class="fa-solid fa-dice"></i></button>
+            <label>Attack/Spell Name: <input type="text" name="attack4_name"></label>
+            <label>Attack/Spell Hit / DC: <input type="text" name="attack4_hitdc"></label>
+            <label>Attack/Spell Damage: <input type="text" name="attack4_damage"></label>
+            <button type="button" class="roll-damage-btn" data-dice="{{ character_data.get('attack4_damage', '') }}"><i
+                    class="fa-solid fa-dice"></i></button>
+            <label>Attack/Spell Name: <input type="text" name="attack5_name"></label>
+            <label>Attack/Spell Hit / DC: <input type="text" name="attack5_hitdc"></label>
+            <label>Attack/Spell Damage: <input type="text" name="attack5_damage"></label>
+            <button type="button" class="roll-damage-btn" data-dice="{{ character_data.get('attack5_damage', '') }}"><i
+                    class="fa-solid fa-dice"></i></button>
+            <label>Attack/Spell Name: <input type="text" name="attack6_name"></label>
+            <label>Attack/Spell Hit / DC: <input type="text" name="attack6_hitdc"></label>
+            <label>Attack/Spell Damage: <input type="text" name="attack6_damage"></label>
+            <button type="button" class="roll-damage-btn" data-dice="{{ character_data.get('attack6_damage', '') }}"><i
+                    class="fa-solid fa-dice"></i></button>
+            <label>Attack/Spell Name: <input type="text" name="attack7_name"></label>
+            <label>Attack/Spell Hit / DC: <input type="text" name="attack7_hitdc"></label>
+            <label>Attack/Spell Damage: <input type="text" name="attack7_damage"></label>
+            <button type="button" class="roll-damage-btn" data-dice="{{ character_data.get('attack7_damage', '') }}"><i
+                    class="fa-solid fa-dice"></i></button>
+        </section>
+
+        <button type="submit">Save Character</button>
+    </form>
+
+    <div id="rollResults" class="roll-results hidden"></div>
+
+
+    <div class="social-icons">
+        <a href="https://discord.gg/CmNqX7Mrtp" target="_blank" rel="noopener noreferrer">
+            <i class="fa-brands fa-discord"></i>
+        </a>
+        <a href="https://www.patreon.com/c/TheMortalTrials" target="_blank" rel="noopener noreferrer">
+            <i class="fa-brands fa-patreon"></i>
+        </a>
+    </div>
+
+    <script src="{{ url_for('static', filename='character_sheet.js') }}"></script>
+</body>

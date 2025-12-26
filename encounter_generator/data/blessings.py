@@ -69,6 +69,30 @@ DIVINE_BLESSINGS = [
             all remaining Temporary Hit Points you have and heal Hit Points by the same amount."""
     },
     {
+        "name": "Nekronis",
+        "title": "The Worldscar",
+        "description": """When the darkness clawed through flesh and soul, it left behind more than pain. It left power; broken, wild, and
+            hungry. You are no longer merely chosen. You are marked.
+            Fractured Soul. At the start of combat, each creature (including the players) rolls a d6. They gain temporary Hit Points equal
+            to twice the result. However, they also gain 1 Corruption Point.
+            Corruption Points represent the creeping influence of Nekronis. They can be spent or triggered for powerful effects, but stack too
+            many, and they backfire.
+            You gain 1 Corruption Point when:
+                - You are reduced to half HP or lower for the first time during the current Encounter.
+                - You critically hit.
+                - You kill another creature.
+            If a creature ends its turn with 5 Corruption Points, it must succeed a DC 15 Charisma saving throw or suffer Madness of the Worldscar.
+            Madness of the Worldscar. Until the end of their next turn, the creature is overwhelmed by the Brand:
+                - They roll with disadvantage on all saving throws.
+                - Any creature that hits them gains 1d4 Temporary Hit Points.
+                - At the end of the round, they take psychic damage equal to twice their level (or CR).
+            Corruption Surge (Once Per Combat). Any creature or player may spend 3 Corruption Points to trigger a Corruption Surge as a bonus action:
+            Until the end of their turn:
+                - Their weapon or spell attacks deal +1d6 Necrotic damage.
+                - They have Advantage on one attack roll of their choice.
+                - They gain resistance to all damage from opportunity attacks."""  
+    },
+    {
         "name": "Nikador",
         "title": "Lance Of Fury",
         "description": """Nikador is the God of strife and competition. He is portrayed as a noble warrior that wears pure white sacred armor.

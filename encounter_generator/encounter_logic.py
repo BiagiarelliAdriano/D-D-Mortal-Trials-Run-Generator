@@ -1,6 +1,7 @@
 import random
+from fractions import Fraction
 from encounter_generator.data.items import MAGIC_ITEMS
-from encounter_generator.data.monsters import MONSTERS
+from encounter_generator.data.monsters import MONSTERS, MONSTERS_BY_TYPE, filtered_monsters
 from encounter_generator.generator import (
     generate_enspell_armor,
     generate_enspell_staff,
@@ -351,7 +352,7 @@ ENCOUNTER_DEFINITIONS = {
         "is_combat": True,
     },
     38: {
-        "shop": ("very rare", "legendary"),
+        "shop": ("legendary", "legendary"),
         "total_gold": 500000,
         "is_shop": True
     },
@@ -364,6 +365,28 @@ ENCOUNTER_DEFINITIONS = {
 def generate_shop_encounter(rarity1, rarity2):
     shop_inventory = {}
 
+    # Special case: if both are "legendary", generate exactly 3 legendary items per category
+    if rarity1 == "legendary" and rarity2 == "legendary":
+        for category in MAGIC_ITEMS["legendary"].keys():
+            items = []
+            for _ in range(3):
+                item_list = MAGIC_ITEMS["legendary"][category]
+                selected = random.choice(item_list)
+
+                if category == "Scroll" and selected == "generate":
+                    items.append(generate_scroll_for_rarity("legendary"))
+                elif category == "Armor" and selected == "enspelled":
+                    items.append(generate_enspell_armor("legendary"))
+                elif category == "Staff" and selected == "enspelled":
+                    items.append(generate_enspell_staff("legendary"))
+                elif category == "Weapon" and selected == "enspelled":
+                    items.append(generate_enspell_weapon("legendary"))
+                else:
+                    items.append(selected)
+
+            shop_inventory[category] = items
+
+    # Default case: normal 2:1 mix
     for category in MAGIC_ITEMS[rarity1].keys():
         # Decide the 2:1 rarity distribution
         if random.choice([True, False]):
@@ -436,14 +459,16 @@ def generate_encounter(encounter_number):
 
     # Handle combat encounters
     monsters = []
-    if "random_cr_choices" in data:
-        # Special random monster group
-        chosen_cr = random.choice(data["random_cr_choices"])
-        monsters = random.sample(MONSTERS[chosen_cr], 1)
 
     if "monsters" in data:
         for cr, amount in data["monsters"]:
-            monsters += random.sample(MONSTERS[cr], amount)
+            if float(Fraction(str(cr))) < 20:
+                monsters += random.sample(MONSTERS[cr], amount)
+
+    # Add exactly one high CR monster from random choices
+    if "random_cr_choices" in data:
+        chosen_cr = random.choice(data["random_cr_choices"])
+        monsters += random.sample(MONSTERS[chosen_cr], 1)
 
     # Prepare base encounter data
     encounter = {
@@ -451,7 +476,7 @@ def generate_encounter(encounter_number):
     }
 
     # Include optional fields if present
-    optional_fields = ["gold", "xp", "total_xp", "is_levelup", "note", "magic_loot_count", "allowed_rarities", "rations"]
+    optional_fields = ["gold", "xp", "total_xp", "is_levelup", "note", "magic_loot_count", "allowed_rarities"]
     for field in optional_fields:
         if field in data:
             encounter[field] = data[field]
@@ -475,10 +500,75 @@ def generate_encounter(encounter_number):
     if magic_items:
         encounter["magic_items"] = magic_items
 
-    if "rations" in data:
-        encounter["rations"] = data["rations"]
-    else:
-        encounter["rations"] = get_rations()
+    # Only include rations if this is NOT the final encounter
+    if encounter_number != 39:
+        encounter["rations"] = data.get("rations", get_rations())
+
+    return encounter
+
+def generate_filtered_encounter(encounter_number):
+    data = ENCOUNTER_DEFINITIONS.get(encounter_number)
+    if not data:
+        return {"error": "Encounter not found."}
+
+    # Handle shop encounters
+    if data.get("is_shop"):
+        if "shop" in data:
+            shop_data = generate_shop_encounter(*data["shop"])
+            shop_data["total_gold"] = data.get("total_gold", 0)
+            return shop_data
+        return {"note": data.get("note", "Revisit to previous shop.")}
+
+    # Handle combat encounters
+    monsters = []
+    if "random_cr_choices" in data:
+        valid_crs = [cr for cr in data["random_cr_choices"] if cr in filtered_monsters and filtered_monsters[cr]]
+        if valid_crs:
+            chosen_cr = random.choice(valid_crs)
+            monsters = random.sample(filtered_monsters[chosen_cr], 1)
+        else:
+            return {
+                "monsters": [],
+                "note": f"No valid monsters found for CRs: {data['random_cr_choices']} in Encounter {encounter_number}"
+            }
+
+    if "monsters" in data:
+        skip_index = 1 if "random_cr_choices" in data else 0
+        for i, (cr, amount) in enumerate(data["monsters"]):
+            if i < skip_index:
+                continue  # skip first monster, handled via random_cr_choices
+            if cr in filtered_monsters and len(filtered_monsters[cr]) >= amount:
+                monsters += random.sample(filtered_monsters[cr], amount)
+            else:
+                monsters += [f"[No monster for CR {cr}]"] * amount
+
+    encounter = {
+        "monsters": monsters,
+    }
+
+    optional_fields = ["gold", "xp", "total_xp", "is_levelup", "note", "magic_loot_count", "allowed_rarities", "rations"]
+    for field in optional_fields:
+        if field in data:
+            encounter[field] = data[field]
+
+    # Generate magic items with exactly one wondrous item max
+    magic_items = []
+    loot_count = data.get("magic_loot_count", 0)
+    rarities = data.get("allowed_rarities", [])
+
+    for _ in range(loot_count):
+        if rarities:
+            magic_items.append(get_random_magic_item(random.choice(rarities)))
+
+    if rarities and loot_count > 0 and random.random() < 0.3:
+        wondrous_index = random.randrange(loot_count)
+        chosen_rarity = random.choice(rarities)
+        magic_items[wondrous_index] = get_random_wondrous_item(chosen_rarity)
+
+    if magic_items:
+        encounter["magic_items"] = magic_items
+
+    encounter["rations"] = data.get("rations", get_rations())
 
     return encounter
 
@@ -488,3 +578,10 @@ def generate_all_encounters(total_encounters):
         encounter = generate_encounter(i)
         all_encounters.append(encounter)
     return all_encounters
+
+def generate_all_filtered_encounters(total_encounters):
+    all_filtered_encounters = []
+    for i in range(1, total_encounters + 1):
+        encounter = generate_filtered_encounter(i)
+        all_filtered_encounters.append(encounter)
+    return all_filtered_encounters
