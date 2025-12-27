@@ -1,5 +1,6 @@
 from flask import Flask, request, render_template, redirect, url_for, jsonify
 from flask_migrate import Migrate
+from flask_cors import CORS
 from encounter_generator.encounter_logic import generate_all_encounters
 from encounter_generator.generator import generate_divine_blessing
 from models import db, Run, Character
@@ -7,6 +8,7 @@ import json
 import os
 
 app = Flask(__name__)
+CORS(app)
 uri = os.getenv("DATABASE_URL", "sqlite:///runs.db")
 if uri.startswith("postgres://"):
     uri = uri.replace("postgres://", "postgresql://", 1)
