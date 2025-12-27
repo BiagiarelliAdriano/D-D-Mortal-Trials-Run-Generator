@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Character API Test</title>
+    </head>
+    <body>
+        <h1>Character Info</h1>
+        <div id="characterName">Loading...</div>
+
+        <script>
+            fetch("/api/characters/3")
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById("characterName").textContent = data.name;
+                })
+                .catch(err => {
+                    document.getElementById("characterName").textContent = "Error fetching character";
+                    console.error(err);
+                });
+        </script>
+    </body>
+</html>

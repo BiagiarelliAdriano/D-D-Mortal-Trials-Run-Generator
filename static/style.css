@@ -182,7 +182,9 @@ input[type="text"] {
     margin-bottom: 30px;
 }
 
-.abilities, .saving-throws, .skills {
+.abilities,
+.saving-throws,
+.skills {
     display: flex;
     flex-direction: column;
 }
@@ -238,7 +240,8 @@ input[type="text"] {
     max-width: 600px;
 }
 
-.roll-btn, .roll-damage-btn {
+.roll-btn,
+.roll-damage-btn {
     margin-left: 5px;
     cursor: pointer;
     background: #ffd700;
@@ -253,7 +256,8 @@ input[type="text"] {
     transition: background 0.2s;
 }
 
-.roll-damage-btn:hover, .roll-btn:hover {
+.roll-damage-btn:hover,
+.roll-btn:hover {
     background: #ffec99;
 }
 
@@ -412,17 +416,18 @@ ul {
 }
 
 .wild-surge-toggle {
-    background: none;
+    background: #643173;
     border: none;
-    color: #7b2cbf;
+    color: #fff;
+    padding: 0.7rem 1.2rem;
     font-size: 1.1rem;
-    font-weight: bold;
+    border-radius: 8px;
     cursor: pointer;
-    padding: 0;
+    margin-bottom: 2rem;
 }
 
 .wild-surge-toggle:hover {
-    text-decoration: underline;
+    color: #ffd700;
 }
 
 .wild-surge-content {

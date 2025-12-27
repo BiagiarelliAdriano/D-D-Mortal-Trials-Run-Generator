@@ -84,6 +84,29 @@ def delete_character(char_id):
     db.session.commit()
     return redirect(url_for('characters_hub'))
 
+@app.route('/api/characters/<int:char_id>')
+def api_get_character(char_id):
+    character = Character.query.get_or_404(char_id)
+    
+    data = {}
+    if character.data:
+        data = json.loads(character.data)
+    
+    return jsonify({
+        "id": character.id,
+        "name": character.name,
+        "level": data.get("level", 1),
+        "class": {
+            "name": data.get("class_name"),
+            "subclass": data.get("subclass")
+        },
+        "data": data
+    })
+
+@app.route('/test-character-api')
+def test_character_api():
+    return render_template('character_api_test.html')
+
 @app.route('/run-generator', methods=['GET', 'POST'])
 def run_generator():
     if request.method == 'POST':
