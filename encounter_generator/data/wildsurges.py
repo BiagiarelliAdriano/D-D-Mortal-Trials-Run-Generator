@@ -1,5 +1,6 @@
 WILD_SURGES = {
-    "Wild Surge Of Abyssal Legion": {
+    "1": {
+        "name": "Wild Surge Of Abyssal Legion",
         "description": """Wild Magic tears open rifts to the shadowy depths beyond reality, summoning lesser fiends to the battlefield.
             On Initiative count 20 each Round, PB - 1 Quasits spawn in a random location within the map, all with an Initiative score of 10.
             On their turn, they attack the nearest creature indiscriminately but will not attack each other.""",
@@ -18,7 +19,8 @@ WILD_SURGES = {
             Each time it reduces a fiend to 0 Hit Points, it gains +1 to all Attack Rolls, Ability Checks and Saving Throws.
             It can gain this benefit a number of times equal to its PB."""
     },
-    "Wild Surge Of Arcane Vitality": {
+    "2": {
+        "name": "Wild Surge Of Arcane Vitality",
         "description": """The battlefield hums as raw magic pulses with living energy, twisting and surging unpredictably.
             The first time a creature casts a leveled spell on each turn, that spell is treated as if it were cast using a spell slot 2 levels higher than the one expended.
             Additionally, if a creature takes the Attack action, it can use a Bonus Action on that turn to cast one of the following Cantrips: Minor Illusion, Poison Spray,
@@ -39,7 +41,8 @@ WILD_SURGES = {
             If the spell cast forces a Saving Throw, the save DC is 12 + PB. If the spell requires an Attack Roll, it is 14 + PB to hit.
             After it takes damage from a spell, it gains Temporary Hit Points equal to the level of the spell that damaged it."""
     },
-    "Wild Surge Of Ascendant Convergence": {
+    "3": {
+        "name": "Wild Surge Of Ascendant Convergence",
         "description": """The crackling Wild Magic of ultimate potential surges across the battlefield, amplifying the power of all who embrace it.
             At the start of the Encounter, each player character chooses Echo Of Ascendance or Echo Of Ruin. The GM then generates a new Wild Surge,
             which can be this Surge again. The new Surge immediately takes effect, with each Ascendant gaining the chosen boon
@@ -54,7 +57,8 @@ WILD_SURGES = {
             Once per Run, when you trigger Echo Of Ascendance or Echo Of Ruin, you may forgo that boon to instead gain the Worldshift Trait
             of that Wild Surge for the remainder of the Encounter."""
     },
-    "Wild Surge Of Cataclysm": {
+    "4": {
+        "name": "Wild Surge Of Cataclysm",
         "description": """A choking pressure sweeps across the battlefield, as if reality itself momentarily forgets to sustain life.
             The air trembles, the ground pulses, and every beating heart feels the weight of imminent collapse.
             At the start of each creature's turn, they must succeed on a DC 8 + PB Constitution Saving Throw or fall to 1 Hit Point.""",
@@ -74,7 +78,8 @@ WILD_SURGES = {
             If it has 0 Hit Points, it does not die.
             At the end of its turn, if the creature has 0 Hit Points and has not dealt damage to a creature since the start of its last turn, it dies."""
     },
-    "Wild Surge Of Chance": {
+    "5": {
+        "name": "Wild Surge Of Chance",
         "description": """Chaotic Wild Magic flows unpredictably, tempting those bold enough to test fate.
             Whenever a creature makes an Attack Roll, it can choose to roll at Disadvantage (if not already at Disadvantage). If it hits, it can choose one of the following boons:
             Its attack deals an additional 2 x PB damage.
@@ -95,7 +100,8 @@ WILD_SURGES = {
             When it makes an Attack Roll at Disadvantage, it gains a +PB bonus to hit.
             When it hits a creature with an Attack Roll made at Disadvantage, it can choose two boons from this Surge rather than only one."""
     },
-    "Wild Surge Of Clockwork Advancement": {
+    "6": {
+        "name": "Wild Surge Of Clockwork Advancement",
         "description": """A Surge of mechanical Wild Magic tears through the battlefield, twisting flesh into gleaming metal and infusing beings with precise, whirring machinery.
             All creatures become Constructs and Resist Bludgeoning, Slashing and Piercing damage.""",
         "echo of ascendance": """Overdrive.
@@ -114,7 +120,8 @@ WILD_SURGES = {
             At the start of its turn, it can choose to take two actions that turn. If it does, both of those actions must be the Attack action, and its movement Speed
             falls to 0 until the end of its next turn. It cannot use this ability if its movement Speed is 0."""
     },
-    "Wild Surge Of Colossal Might": {
+    "7": {
+        "name": "Wild Surge Of Colossal Might",
         "description": """Wild Magic surges across the battlefield, infusing creatures with the strength and stature of legendary titans.
             If there is room, creatures grow to Huge in size, their reach increases by 10ft, they have Advantage on Strength checks and Saving Throws
             and their Strength-based weapon attacks deal an additional 1d4 damage.""",
@@ -136,7 +143,8 @@ WILD_SURGES = {
             It Resists Bludgeoning, Piercing and Slashing damage.
             As a Reaction when hit by an attack, it can gain a PB bonus to its AC until the end of the turn as its skin hardens to stone."""
     },
-    "Wild Surge Of Corrosive Mire": {
+    "8": {
+        "name": "Wild Surge Of Corrosive Mire",
         "description": """A sickly green vapor rises from cracks in the battlefield as bubbling acid seeps upward, hissing and devouring everything it touches.
             Stone softens, roots dissolve and the ground pulses with alchemical venom.
             Creatures that start their turn touching the ground or touch the ground during their turn take PBd4 Acid damage.""",
@@ -154,7 +162,8 @@ WILD_SURGES = {
             Constitution Saving Throws. It also scores a Critical Hit on an attack of 18-20.
             Attack Rolls made against it have Advantage."""
     },
-    "Wild Surge Of Dawning Brilliance": {
+    "9": {
+        "name": "Wild Surge Of Dawning Brilliance",
         "description": """A flood of shimmering, blazing radiance washes over the battlefield, threading itself through air, stone and flesh.
             Shadows are erased, leaving nowhere to hide.
             All creatures shed Bright Light in a 10ft radius, have Disadvantage on Stealth checks and gain no benefit from being Invisible.
@@ -175,7 +184,8 @@ WILD_SURGES = {
             It automatically fails any Stealth checks.
             It Resists Necrotic and Radiant damage."""
     },
-    "Wild Surge Of Dawnsworn Unity": {
+    "10": {
+        "name": "Wild Surge Of Dawnsworn Unity",
         "description": """A Surge of primal light, drawn from a realm where dawn never ends, floods the battlefield with uplifting brilliance.
         Its luminance strengthens comrades whose spirits are bound in shared purpose.
             Bright sunlight illuminates the entire battlefield, dispelling any area of darkness created by a spell of 8th level or below.
@@ -196,7 +206,8 @@ WILD_SURGES = {
             When a creature you can see within 30ft of you hits you with an Attack Roll, you retaliate with a searing bolt of radiant energy.
             That creature must succeed on a DC12 + PB Constitution Saving Throw or take PBd8 Radiant damage and be Blinded until the end of its next turn."""
     },
-    "Wild Surge Of Dimensional Incoherence": {
+    "11": {
+        "name": "Wild Surge Of Dimensional Incoherence",
         "description": """Chaotic spatial magic ripples outward, bending space and allowing creatures to instantaneously shift across the battlefield.
             All creatures can use a Bonus Action to teleport up to PB x 5ft to an unoccupied space they can see within range.""",
         "echo of ascendance": """Forced Shift.
@@ -216,7 +227,8 @@ WILD_SURGES = {
             Once per turn, when it casts a spell, target(s) of that spell must succeed on a DC12 + PB Charisma Saving Throw or be teleported PB x 5ft to an
             unoccupied space it can see (including in the air)."""
     },
-    "Wild Surge Of Draconic Awakening": {
+    "12": {
+        "name": "Wild Surge Of Draconic Awakening",
         "description": """Wild Magic surges with the raw might of dragons, filling the battlefield with draconic energy and loyal minions.
             On Initiative count 20 each Round, PB + 1 Kobolds appear in random, unoccupied spaces. They chant in unison but take no actions.
             If eight or more kobolds are chanting at the start of Initiative count 20, the chromatic dragon of the highest CR PB + 10 or less appears and
@@ -236,7 +248,8 @@ WILD_SURGES = {
             While there are 6 or more Kobolds on the battlefield, it has a +PB bonus to Saving Throws.
             While there are 8 or more Kobolds on the battlefield, it is Immune to Acid, Cold, Fire, Lighting and Poison damage, and it has a +PB bonus to AC."""
     },
-    "Wild Surge Of Echoing Chorus": {
+    "13": {
+        "name": "Wild Surge Of Echoing Chorus",
         "description": """A pulse of harmonic Wild Magic ripples through the battlefield, awakening every stone into rhythmic, synchronized motion.
         Pebbles vibrate like tuning forks, boulders sway in complex patterns, and the entire area becomes a living stage of quaking resonance.
             All creatures in the area are Deafened, and the ground becomes Difficult Terrain for any creature not proficient in Performance,
@@ -258,7 +271,8 @@ WILD_SURGES = {
             It has Advantage on Performance checks and Dexterity Saving Throws.
             At the start of its turn, it gains Heroic Inspiration if it doesn't have it."""
     },
-    "Wild Surge Of Enchanted Mischief": {
+    "14": {
+        "name": "Wild Surge Of Enchanted Mischief",
         "description": """Fey-infused Wild Magic spreads across the battlefield, altering size and perception in unpredictable ways.
             All creatures and their possessions become Tiny, imposing a cumulative -2 penalty to Strenght-based Damage Rolls for each size category lost.
             Damage cannot be reduced below 1. Tiny creatures also have Advantage on Dexterity Saving Throws, take no Falling Damage and their jump distance is tripled.""",
@@ -279,7 +293,8 @@ WILD_SURGES = {
             It has Advantage on melee Attack Rolls against creatures smaller than it.
             When it deals damage to a creature that is two or more sizes smaller than it with a weapon attack, that creature falls Prone."""
     },
-    "Wild Surge Of Entropic Decay": {
+    "15": {
+        "name": "Wild Surge Of Entropic Decay",
         "description": """A thin shimmer of rot-laced air spreads over the battlefield like invisible mold, gnawing at strength, clarity, and resolve.
             Every motion feels heavier, every breath slightly spoiled.
             Whenever a non-undead creature makes an Attack Roll, Ability Check or Saving Throw, it rolls 1d4 and subtracts the number rolled from their result.""",
@@ -300,7 +315,8 @@ WILD_SURGES = {
             Immunity to the Exhausted, Frightened and Poisoned condition.
             Resistance to Bludgeoning, Piercing and Slashing damage from weapons."""
     },
-    "Wild Surge Of Fractured Pandemonium": {
+    "16": {
+        "name": "Wild Surge Of Fractured Pandemonium",
         "description": """Nature convulses and splinters, as if every law of magic momentarily loses its grip. Threads of raw power lash across the battlefield,
             rewriting reality with each pulse.
             On Initiative count 20 each Round, roll 1d4. On a 3 or 4, generate a random Wild Surge. Its effects last for the remainder of the Encounter.
@@ -325,7 +341,8 @@ WILD_SURGES = {
             These Traits stack.
             Each time the creature gains a Trait beyond its first, magical instability lashes out, dealing PBd12 damage of a random damage type to the creature."""
     },
-    "Wild Surge Of Gale Dominion": {
+    "17": {
+        "name": "Wild Surge Of Gale Dominion",
         "description": """A violent storm tears across the battlefield, hurling creatures and debris with unrelenting force.
             The GM rolls 1d4 for each creature to determine the direction of the wind: 1. North, 2. East, 3. South, 4. West. On Initiative count 20,
             all creatures must succeed on a Strength Saving Throw or be pushed 5 x PB ft in the chosen direction the wind blows for each creature.
@@ -348,7 +365,8 @@ WILD_SURGES = {
             While airborne, the creature has Advantage on Attack Rolls against non-airborne creatures.
             It can use its Reaction to make a single melee weapon attack against any creature that leaves its reach, even if the creature leaves unwillingly."""
     },
-    "Wild Surge Of Gluttonous Delight": {
+    "18": {
+        "name": "Wild Surge Of Gluttonous Delight",
         "description": """A strange, chaotic essence of indulgence saturates the battlefield. Magical, malleable sustenance covers the ground, turning it springy and fragrant.
             Creatures can use a Bonus Action to consume a handful of this magical sustenance, gaining PBd4 Temporary Hit Points as long as they are not Poisoned.
             Each additional use of this Bonus Action requires a DC 5 + PB Constitution Saving Throw or the creature becomes Poisoned for the rest of the current Encounter.
@@ -372,7 +390,8 @@ WILD_SURGES = {
             the current Encounter attempts to use Banquet's Boon on this creature, and it also consumed the sustenance this Encounter, the creature has Disadvantage on its
             Insight check."""
     },
-    "Wild Surge Of Gravitic Collapse": {
+    "19": {
+        "name": "Wild Surge Of Gravitic Collapse",
         "description": """A crushing pulse of warped gravity sweeps across the battlefield, forcing all things toward the ground. Movement becomes heavy and
             labored as the air itself grows impossibly dense.
             Creatures cannot jump or fly, and at the end of each turn, creatures with a Strength score of 19 or lower fall Prone.""",
@@ -391,7 +410,8 @@ WILD_SURGES = {
             When it makes an Attack Roll at Advantage against a Prone creature, it can reroll one of the dice once.
             When it hits a Prone creature with an Attack Roll, it can reroll one of the damage dice once."""
     },
-    "Wild Surge Of Infernal Wagers": {
+    "20": {
+        "name": "Wild Surge Of Infernal Wagers",
         "description": """The battlefield becomes a stage for distant hellish spectators. Phantom nobles of the lower realms drift overhead like smoke, whispering bets and
             weaving crooked luck into the flow of combat.
             At the start of each creature's turn, it may petition one of these infernal gamblers for a sliver of stolen power. The creature makes a
@@ -414,7 +434,8 @@ WILD_SURGES = {
             It Resists Fire damage.
             It has Advantage on Charisma (Persuasion and Intimidation) checks to interact with devils."""
     },
-    "Wild Surge Of Lethargic Twilight": {
+    "21": {
+        "name": "Wild Surge Of Lethargic Twilight",
         "description": """A soft, hypnotic wind drifts across the battlefield, carrying warm currents and faint, otherworldly melodies.
             The area is bathed in Dim Light, like a starlit dusk. All creatures enter into a magical slumber and fall Unconscious.
             Creatures remain Unconscious even if they take damage. Creatures magically wake at the start of their turn and remain Conscious until the end of that turn.
@@ -435,7 +456,8 @@ WILD_SURGES = {
             lashing out in its slumber.
             As a Reaction, when it takes damage while Unconscious, it casts a random spell that it knows (if any), targeting a random creature within range."""
     },
-    "Wild Surge Of Malignant Exultation": {
+    "22": {
+        "name": "Wild Surge Of Malignant Exultation",
         "description": """A Surge of twisted jubilation erupts from a blighted realm where corruption is celebrated. The magic swells with perverse delight,
             empowering those whose spirits resonate with wicked intent.
             Evil-aligned creatures have Advantage on Saving Throws and the first time each turn an Evil-aligned creature deals damage to a creature,
@@ -457,7 +479,8 @@ WILD_SURGES = {
             Its alignment changes to Evil.
             Once per turn, if it deals Necrotic damage to a creature, it gains Heroic Inspiration if it doesn't already have it."""
     },
-    "Wild Surge Of Metamorphic Flux": {
+    "23": {
+        "name": "Wild Surge Of Metamorphic Flux",
         "description": """Shifting essence ruptures the battlefield, forcing every creature to momentarily adopt an unstable form.
             On Initiative count 20 each Round, each creature rolls 1d6 and gains the listed boon as its body warps in response to the flux.
             This lasts until Initiative count 20 of the next Round, at which point all creatures re-roll.
@@ -479,7 +502,8 @@ WILD_SURGES = {
             Any boons a creature gains from this Surge lat until the end of the current Encounter instead.
             A bonus to Strength and Dexterity Saving Throws equal to the number of unique boons it has received."""
     },
-    "Wild Surge Of Nightmarish Veil": {
+    "24": {
+        "name": "Wild Surge Of Nightmarish Veil",
         "description": """Thick, hallucinatory tendrils of Wild Magic warp the battlefield, filling the air with a pungent, mind-bending haze.
             Those touched by the Surge see horrifying visions and feel a creeping dread.
             Creatures who are Poisoned also gain the Frightened condition, as their senses are overwhelmed by illusions. In addition,
@@ -501,7 +525,8 @@ WILD_SURGES = {
             Once per turn, when it hits a creature with an Attack Roll, that target must succeed on a DC 12 + PB Constitution Saving Throw or be Poisoned
             for rest of the current Encounter. The target can repeat this save at the end of each of its turns ending the effect on a success."""
     },
-    "Wild Surge Of Nullification": {
+    "25": {
+        "name": "Wild Surge Of Nullification",
         "description": """A crushing stillness grips the battlefield, as if the world itself inhales and forgets to exhale. Sound dulls, colors fade,
             and the pulse of magic withers beneath an invisible weight.
             Spells of spell level PB - 1 or higher cannot be cast. Any ongoing magical effects from spells of PB - 1 or higher immediately unravel,
@@ -520,7 +545,8 @@ WILD_SURGES = {
             It has Advantage on Strength and Constitution Saving Throws.
             It has Disadvantage on Intelligence, Wisdom and Charisma Saving Throws."""
     },
-    "Wild Surge Of Primal Roar": {
+    "26": {
+        "name": "Wild Surge Of Primal Roar",
         "description": """Wild Magic courses through the battlefield, twisting flesh and spirit into bestial forms. Trees sprout fur, moss becomes bristling,
             and all creatures feel a surge of primal ferocity.
             All creatures are Immune to Bludgeoning, Slashing and Piercing damage from weapons. Unarmed Strikes deal 1d8 Slashing damage, that ignores Immunity to it.
@@ -541,7 +567,8 @@ WILD_SURGES = {
             Opportunity Attacks made against it have Disadvantage.
             It can make PB-1 Unarmed Strikes as a Bonus Action (minimum 1)."""
     },
-    "Wild Surge Of Resonant Momentum": {
+    "27": {
+        "name": "Wild Surge Of Resonant Momentum",
         "description": """Vibrant kinetic energy courses through the battlefield, animating the environment with pulsating force.
             Stones tremble, plants sway violently without wind, and the air ripples with crackling Wild Magic.
             All creatures' movement Speeds increase by 20ft. If a creature moves 50ft or more on its turn, all subsequent Attack Rolls it makes on that turn have +PB to hit.""",
@@ -559,7 +586,8 @@ WILD_SURGES = {
             On a failed save, their movement Speed falls to 0 and cannot be increased until the end of their next turn. For each creature that failed the save,
             you gain +1 to your AC until the start of your next turn. (Recharge 6)"""
     },
-    "Wild Surge Of Rigid Form": {
+    "28": {
+        "name": "Wild Surge Of Rigid Form",
         "description": """The battlefield is suffused with relentless, unyielding magic of law, forcing all creatures under its influence to follow strict patterns.
             Lawful-aligned creatures can forgo rolling a d20 for Attack Rolls and Saving Throws to get an 11 on the die instead. Additionally, when they damage a creature,
             they can forgo rolling for damage to instead get a result on any damage dice equal to half the dice's maximum roll. For example, a d8 would deal 4 damage.""",
@@ -582,7 +610,8 @@ WILD_SURGES = {
             since the end of its last turn (minimum of 1).
             It gains a bonus to its Attack Rolls equal to the number of creatures that dealt damage to it since the end of its last turn."""
     },
-    "Wild Surge Of Scorching Inferno": {
+    "29": {
+        "name": "Wild Surge Of Scorching Inferno",
         "description": """Wild fire erupts across the battlefield, feeding on the very essence of life and Wild Magic.
             All movement Speeds increase by 20ft, and all damage rolls deal an additional PB Fire damage.""",
         "echo of ascendance": """Emberstrike.
@@ -598,7 +627,8 @@ WILD_SURGES = {
             In place of one of your attacks, when you take the Attack action on your turn, you can release a burst of flame from your mouth or body in a 5 x PB foot cone.
             Creatures in that area must succeed on a DC 12 + PB Dexterity Saving Throw, taking PBd12 Fire damage on a failed save or half as much on a success. (Recharge 6)."""
     },
-    "Wild Surge Of Scorching Relay": {
+    "30": {
+        "name": "Wild Surge Of Scorching Relay",
         "description": """Wild Magic crackles unpredictably, leaping from one creature to the next like a chain of living sparks.
             At the start of the first creature's turn in Initiative order, that creature rolls 2d12. If any die shows a 1, it erupts in flames and the creature takes
             Fire damage equal to the total of all dice rolled. Otherwise, that creature chooses another creature within 120ft that has not yet rolled to avoid exploding.
@@ -619,7 +649,8 @@ WILD_SURGES = {
             If any of the results on any of the dice rolled are a 1, all creatures that rolled take Fire damage equal to the result of this creature's roll,
             as everyone bursts into flame."""
     },
-    "Wild Surge Of Shattered Winter": {
+    "31": {
+        "name": "Wild Surge Of Shattered Winter",
         "description": """A brutal wave of unnatural winter sweeps across the battlefield, as if the season itself has been torn open and spilled into the moment.
             Bitter winds claw at exposed skin, and crystalline frost creeps across armor, stone and soil alike. Creatures not immune to Cold damage:
             Cannot regain Hit Points.
@@ -643,7 +674,8 @@ WILD_SURGES = {
             When a creature you can see within 30ft of you takes Cold damage, you can use your Reaction to reduce its movement Speed by 5 x PB ft until the end of its next turn.
             A creature whose movement Speed is reduced to 0 by this effect must succeed on a DC12 + PB Constitution Saving Throw or be Stunned until the end of its next turn."""
     },
-    "Wild Surge Of Aelith's Tempest": {
+    "32": {
+        "name": "Wild Surge Of Aelith's Tempest",
         "description": """Jagged arcs of raw lightning tear across the battlefield, crackling with untamed energy.
             On Initiative count 20 each turn, each creature must succeed on a DC12 + PB Dexterity Saving Throw or take PBd4 Lightning damage.
             Creatures made of metal, or wearing armor made of metal, make this save at Disadvantage.""",
@@ -663,7 +695,8 @@ WILD_SURGES = {
             On a failed save, a creature takes PBd6 Thunder damage and is Deafened until the end of its next turn. If a creature fails this save by 5 or more,
             it is also Stunned until the end of its next turn. On a successful save, a creature takes half damage. (Recharge 6)"""
     },
-    "Wild Surge Of Slimebound": {
+    "33": {
+        "name": "Wild Surge Of Slimebound",
         "description": """The battlefield becomes saturated with pulsating, sticky ooze.
             The ground is Difficult Terrain for all creatures except Oozes. Whenever a non-ooze creature dies, the slime absorbs the corpse, transforming it into a Gray Ooze.
             When this Wild Surge ends, transformed corpses return to normal.""",
@@ -686,7 +719,8 @@ WILD_SURGES = {
             If a creature touches or is touched by the ooze, it takes PBd4 Acid damage.
             It has Advantage on Saving Throws against spells and effects that would alter its form."""
     },
-    "Wild Surge Of Spiraling Cognition": {
+    "34": {
+        "name": "Wild Surge Of Spiraling Cognition",
         "description": """A whirl of hyperactive mental energy floods the battlefield, turning every thought into a crackling spark.
             Ideas ricochet through the minds of all creatures, accelerating into a manic, disorienting storm of creativity and overload.
             Creatures with an Intelligence score of 18 or lower are Poisoned, overcome by the reeling pace of their increasingly addled minds.""",
@@ -706,7 +740,8 @@ WILD_SURGES = {
             It learns two spells from the Wizard spell list of spell level PB or lower (at GM discretion) and can cast those spells once each without a spell slot or components.
             It can concentrate on two spells at once."""
     },
-    "Wild Surge Of Thorned Wrath": {
+    "35": {
+        "name": "Wild Surge Of Thorned Wrath",
         "description": """Spiraling, barbed vines erupt from the soil, twisting into a dense and perilous undergrowth. The battlefield becomes a tangled maze of thorns and brambles.
             The ground is consumed by 10ft spiky plants that form a dense, hazardous jungle. The area they cover is Difficult Terrain, and creatures that move through it
             take PB-1 Piercing damage for every 5ft they move.""",
@@ -725,7 +760,8 @@ WILD_SURGES = {
             It can Burrow through unworked earth and stone. While Burrowing in this way, it doesn't disturb the material it moves through.
             Once per turn, when it hits a creature with an Attack Roll, that creature is pushed PB x 5ft directly away from it."""
     },
-    "Wild Surge Of Torrential Wrath": {
+    "36": {
+        "name": "Wild Surge Of Torrential Wrath",
         "description": """A relentless downpour lashes the battlefield, turning the terrain into a torrent of chaos.
             All creatures resist Fire damage, nonmagical flames are extinguished and the ground becomes Difficult Terrain for any creature without a Swim Speed.
             In addition, Attack Rolls that deal Lightning damage on a hit have Advantage and creatures have Disadvantage on Saving Throws to avoid Lightning damage.""",
@@ -745,7 +781,8 @@ WILD_SURGES = {
             Its Attack Rolls and spells deal an additional 1d6 Lightning damage.
             Once per turn, when it deals Lightning damage to a creature, all other creatures within 10ft of that creature take PB x 2 Lightning damage."""
     },
-    "Wild Surge Of Tumbling Horde": {
+    "37": {
+        "name": "Wild Surge Of Tumbling Horde",
         "description": """At the top of the battlefield, a chaotic swarm of small creatures plummets from above, smashing into the fray.
             On Initiative count 20, each creature below must succeed on a DC 12 + PB Dexterity Saving Throw or take PBd4 Bludgeoning damage and be knocked Prone
             as one of the falling creatures collides with them.""",
@@ -762,7 +799,8 @@ WILD_SURGES = {
             If a creature within 30ft of it died or fell to 0 Hit Points since the start of its previous turn, it has Advantage on all Attack Rolls and its movement Speed
             increases by PB x 5ft."""
     },
-    "Wild Surge Of Umbral Silence": {
+    "38": {
+        "name": "Wild Surge Of Umbral Silence",
         "description": """A dense, spellborn shadow oozes outward and clings to every surface. Light collapses into it, swallowed whole,
             until the battlefield becomes a void of soft,pulsing black.
             All nonmagical illumination is extinguished, and no form of Darkvision can pierce this shade. Only creatures with senses beyond sight can reliably navigate the gloom.""",
@@ -784,7 +822,8 @@ WILD_SURGES = {
             It can use a Bonus Action to teleport up to 60ft and then immediately take the Hide action. It can use this trait PB times per Long Rest.
             It has Disadvantage on Attack Rolls and Saving Throws while not in Dim Light or Darkness."""
     },
-    "Wild Surge Of Unbridled Power": {
+    "39": {
+        "name": "Wild Surge Of Unbridled Power",
         "description": """Raw Wild Magic surges across the battlefield, striking with unstoppable kinetic force.
             All damage rolls deal an additional PB Force damage. The first time a creature is dealt Force damage on a turn,
             it must succeed on a DC12 + PB Strength Saving Throw or be pushed 10ft directly away from the source of the damage.""",
@@ -801,7 +840,8 @@ WILD_SURGES = {
             Immune to Force damage.
             AC increases by 2 if it has dealt Force damage to a creature since the start of its last turn."""
     },
-    "Wild Surge Of Undying Might": {
+    "40": {
+        "name": "Wild Surge Of Undying Might",
         "description": """Wild Magic of decay and unlife seeps across the battlefield, animating the fallen and twisting living flesh.
             All living creatures become Undead, resist Necrotic and Poison damage and cannot regain Hit Points until the Surge ends.""",
         "echo of ascendance": """Necrotic Command.

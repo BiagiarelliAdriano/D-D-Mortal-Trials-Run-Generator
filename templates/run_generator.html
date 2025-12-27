@@ -88,6 +88,34 @@
             <p><strong>Gold:</strong> {{ encounter.gold }}</p>
             {% endif %}
 
+            {% if encounter.wild_surge %}
+            <div class="section wild_surge">
+                <button class="wild-surge-toggle"
+                        type="button"
+                        aria-expanded="false">
+                    {{ encounter.wild_surge.name }}    
+                </button>
+
+                <div class="wild-surge-content hidden">
+                    <p><strong>Description</strong><br>
+                        {{ encounter.wild_surge.description }}
+                    </p>
+
+                    <p><strong>Echo Of Ascendance</strong><br>
+                        {{ encounter.wild_surge["echo of ascendance"] }}
+                    </p>
+
+                    <p><strong>Echo Of Ruin</strong><br>
+                        {{ encounter.wild_surge["echo of ruin"] }}
+                    </p>
+
+                    <p><strong>Worldshift Trait</strong><br>
+                        {{ encounter.wild_surge["worldshift trait"] }}
+                    </p>
+                </div>
+            </div>
+            {% endif %}
+
             {% if encounter.monsters %}
             <div class="section">
                 <h3>Monsters</h3>
@@ -133,6 +161,7 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script src="{{ url_for('static', filename='html2pdf.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/run_generator.js') }}"></script>
 </body>
 
 </html>

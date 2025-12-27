@@ -2,6 +2,7 @@ import random
 from fractions import Fraction
 from encounter_generator.data.items import MAGIC_ITEMS
 from encounter_generator.data.monsters import MONSTERS, MONSTERS_BY_TYPE, filtered_monsters
+from encounter_generator.data.wildsurges import WILD_SURGES
 from encounter_generator.generator import (
     generate_enspell_armor,
     generate_enspell_staff,
@@ -112,6 +113,7 @@ ENCOUNTER_DEFINITIONS = {
         "monsters": [("5", 1), ("3", 1), ("1", 2)],
         "magic_loot_count": 4,
         "is_combat": True,
+        "has_wild_surge": True,
     },
     12: {
         "allowed_rarities": ["uncommon", "rare"],
@@ -122,6 +124,7 @@ ENCOUNTER_DEFINITIONS = {
         "monsters": [("4", 2), ("2", 1), ("1", 2)],
         "magic_loot_count": 4,
         "is_combat": True,
+        "has_wild_surge": True,
     },
     13: {
         "allowed_rarities": ["uncommon", "rare"],
@@ -132,6 +135,7 @@ ENCOUNTER_DEFINITIONS = {
         "monsters": [("5", 1), ("4", 1), ("2", 2)],
         "magic_loot_count": 4,
         "is_combat": True,
+        "has_wild_surge": True,
     },
     14: {
         "allowed_rarities": ["uncommon", "rare"],
@@ -142,6 +146,7 @@ ENCOUNTER_DEFINITIONS = {
         "monsters": [("5", 1), ("4", 1), ("3", 1), ("2", 1)],
         "magic_loot_count": 4,
         "is_combat": True,
+        "has_wild_surge": True,
     },
     15: {
         "allowed_rarities": ["uncommon", "rare"],
@@ -152,6 +157,7 @@ ENCOUNTER_DEFINITIONS = {
         "monsters": [("6", 1), ("4", 1), ("3", 1), ("2", 1)],
         "magic_loot_count": 4,
         "is_combat": True,
+        "has_wild_surge": True,
     },
     16: {
         "shop": ("rare", "very rare"),
@@ -167,6 +173,7 @@ ENCOUNTER_DEFINITIONS = {
         "monsters": [("6", 1), ("4", 1), ("3", 2)],
         "magic_loot_count": 4,
         "is_combat": True,
+        "has_wild_surge": True,
     },
     18: {
         "allowed_rarities": ["rare"],
@@ -177,6 +184,7 @@ ENCOUNTER_DEFINITIONS = {
         "monsters": [("7", 1), ("5", 1), ("3", 1), ("1", 2)],
         "magic_loot_count": 4,
         "is_combat": True,
+        "has_wild_surge": True,
     },
     19: {
         "allowed_rarities": ["rare"],
@@ -187,6 +195,7 @@ ENCOUNTER_DEFINITIONS = {
         "monsters": [("7", 1), ("5", 1), ("3", 1), ("2", 2)],
         "magic_loot_count": 4,
         "is_combat": True,
+        "has_wild_surge": True,
     },
     20: {
         "allowed_rarities": ["rare"],
@@ -197,6 +206,7 @@ ENCOUNTER_DEFINITIONS = {
         "monsters": [("8", 1), ("4", 2), ("2", 2)],
         "magic_loot_count": 4,
         "is_combat": True,
+        "has_wild_surge": True,
     },
     21: {
         "total_gold": 3000,
@@ -212,6 +222,7 @@ ENCOUNTER_DEFINITIONS = {
         "monsters": [("10", 1), ("3", 3)],
         "magic_loot_count": 8,
         "is_combat": True,
+        "has_wild_surge": True,
     },
     23: {
         "allowed_rarities": ["rare", "very rare"],
@@ -222,6 +233,7 @@ ENCOUNTER_DEFINITIONS = {
         "monsters": [("9", 1), ("4", 1), ("2", 1), ("1", 2)],
         "magic_loot_count": 4,
         "is_combat": True,
+        "has_wild_surge": True,
     },
     24: {
         "allowed_rarities": ["rare", "very rare"],
@@ -232,6 +244,7 @@ ENCOUNTER_DEFINITIONS = {
         "monsters": [("9", 1), ("5", 1), ("2", 1), ("1", 2)],
         "magic_loot_count": 4,
         "is_combat": True,
+        "has_wild_surge": True,
     },
     25: {
         "allowed_rarities": ["rare", "very rare"],
@@ -242,6 +255,7 @@ ENCOUNTER_DEFINITIONS = {
         "monsters": [("10", 1), ("6", 1), ("4", 1), ("3", 1)],
         "magic_loot_count": 4,
         "is_combat": True,
+        "has_wild_surge": True,
     },
     26: {
         "allowed_rarities": ["rare", "very rare"],
@@ -252,6 +266,7 @@ ENCOUNTER_DEFINITIONS = {
         "monsters": [("11", 1), ("7", 1), ("3", 2)],
         "magic_loot_count": 4,
         "is_combat": True,
+        "has_wild_surge": True,
     },
     27: {
         "shop": ("very rare", "legendary"),
@@ -267,6 +282,7 @@ ENCOUNTER_DEFINITIONS = {
         "monsters": [("12", 1), ("8", 1), ("4", 1)],
         "magic_loot_count": 4,
         "is_combat": True,
+        "has_wild_surge": True,
     },
     29: {
         "allowed_rarities": ["very rare"],
@@ -277,6 +293,7 @@ ENCOUNTER_DEFINITIONS = {
         "monsters": [("12", 1), ("8", 1), ("3", 2)],
         "magic_loot_count": 4,
         "is_combat": True,
+        "has_wild_surge": True,
     },
     30: {
         "allowed_rarities": ["very rare"],
@@ -287,6 +304,7 @@ ENCOUNTER_DEFINITIONS = {
         "monsters": [("13", 1), ("9", 1), ("2", 2)],
         "magic_loot_count": 4,
         "is_combat": True,
+        "has_wild_surge": True,
     },
     31: {
         "allowed_rarities": ["very rare"],
@@ -297,6 +315,7 @@ ENCOUNTER_DEFINITIONS = {
         "monsters": [("14", 1), ("6", 2), ("4", 1)],
         "magic_loot_count": 4,
         "is_combat": True,
+        "has_wild_surge": True,
     },
     32: {
         "total_gold": 26000,
@@ -312,6 +331,7 @@ ENCOUNTER_DEFINITIONS = {
         "monsters": [("16", 1), ("6", 1), ("4", 1), ("3", 2)],
         "magic_loot_count": 4,
         "is_combat": True,
+        "has_wild_surge": True,
     },
     34: {
         "allowed_rarities": ["very rare", "legendary"],
@@ -322,6 +342,7 @@ ENCOUNTER_DEFINITIONS = {
         "monsters": [("15", 1), ("14", 1), ("9", 2)],
         "magic_loot_count": 4,
         "is_combat": True,
+        "has_wild_surge": True,
     },
     35: {
         "allowed_rarities": ["very rare", "legendary"],
@@ -332,6 +353,7 @@ ENCOUNTER_DEFINITIONS = {
         "monsters": [("16", 1), ("13", 1), ("10", 1), ("8", 1)],
         "magic_loot_count": 4,
         "is_combat": True,
+        "has_wild_surge": True,
     },
     36: {
         "allowed_rarities": ["legendary"],
@@ -342,6 +364,7 @@ ENCOUNTER_DEFINITIONS = {
         "monsters": [("17", 1), ("14", 1), ("11", 1), ("10", 1)],
         "magic_loot_count": 4,
         "is_combat": True,
+        "has_wild_surge": True,
     },
     37: {
         "allowed_rarities": ["legendary"],
@@ -350,6 +373,7 @@ ENCOUNTER_DEFINITIONS = {
         "random_cr_choices": ["17", "18", "19"],
         "magic_loot_count": 4,
         "is_combat": True,
+        "has_wild_surge": True,
     },
     38: {
         "shop": ("legendary", "legendary"),
@@ -359,8 +383,14 @@ ENCOUNTER_DEFINITIONS = {
     39: {
         "monsters": [("20", 1), ("15", 1), ("10", 2)],
         "random_cr_choices": ["20", "21", "22", "23", "24"],
+        "has_wild_surge": True,
     }
 }
+
+def initialize_run_state():
+    return {
+        "remaining_wild_surges": list(WILD_SURGES.keys())
+    }
 
 def generate_shop_encounter(rarity1, rarity2):
     shop_inventory = {}
@@ -444,7 +474,7 @@ def generate_shop_encounter(rarity1, rarity2):
         "items_by_category": shop_inventory
     }
 
-def generate_encounter(encounter_number):
+def generate_encounter(encounter_number, run_state):
     data = ENCOUNTER_DEFINITIONS.get(encounter_number)
     if not data:
         return {"error": "Encounter not found."}
@@ -503,6 +533,23 @@ def generate_encounter(encounter_number):
     # Only include rations if this is NOT the final encounter
     if encounter_number != 39:
         encounter["rations"] = data.get("rations", get_rations())
+    
+    if data.get("has_wild_surge"):
+        if "remaining_wild_surges" not in run_state:
+            run_state["remaining_wild_surges"] = list(WILD_SURGES.keys())
+
+        remaining = run_state["remaining_wild_surges"]
+
+        if not remaining:
+            raise RuntimeError("No Wild Surges left to assign in this run")
+
+        chosen_id = random.choice(remaining)
+        remaining.remove(chosen_id)
+
+        encounter["wild_surge"] = {
+            "id": chosen_id,
+            **WILD_SURGES[chosen_id]
+    }
 
     return encounter
 
@@ -573,9 +620,10 @@ def generate_filtered_encounter(encounter_number):
     return encounter
 
 def generate_all_encounters(total_encounters):
+    run_state = {}
     all_encounters = []
     for i in range(1, total_encounters + 1):
-        encounter = generate_encounter(i)
+        encounter = generate_encounter(i, run_state)
         all_encounters.append(encounter)
     return all_encounters
 

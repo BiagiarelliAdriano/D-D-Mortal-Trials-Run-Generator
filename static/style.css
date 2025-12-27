@@ -405,6 +405,31 @@ ul {
     margin-left: 1.5rem;
 }
 
+.wild-surge {
+    margin-top: 20px;
+    border-left: 4px solid #7b2cbf;
+    padding-left: 15px;
+}
+
+.wild-surge-toggle {
+    background: none;
+    border: none;
+    color: #7b2cbf;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 0;
+}
+
+.wild-surge-toggle:hover {
+    text-decoration: underline;
+}
+
+.wild-surge-content {
+    margin-top: 10px;
+    line-height: 1.5;
+}
+
 /* runs.html */
 h1 {
     font-size: 2rem;
