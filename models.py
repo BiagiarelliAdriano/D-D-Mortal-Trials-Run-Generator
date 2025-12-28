@@ -23,12 +23,12 @@ DEFAULT_CHARACTER_DATA = {
     "level": 1,
     
     "abilities": {
-        "strength": 10,
-        "dexterity": 10,
-        "constitution": 10,
-        "intelligence": 10,
-        "wisdom": 10,
-        "charisma": 10
+        "strength": 16,
+        "dexterity": 14,
+        "constitution": 12,
+        "intelligence": 18,
+        "wisdom": 20,
+        "charisma": 8
     }
 }
 

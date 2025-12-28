@@ -3,6 +3,7 @@ from flask_migrate import Migrate
 from flask_cors import CORS
 from encounter_generator.encounter_logic import generate_all_encounters
 from encounter_generator.generator import generate_divine_blessing
+from encounter_generator.data.rules.classes import BARBARIAN
 from models import db, Run, Character
 import json
 import os
@@ -24,6 +25,25 @@ migrate = Migrate(app, db)
 @app.route('/')
 def home():
     return render_template('index.html')
+
+@app.route('/api/classes/<classname>')
+def get_class(classname):
+    if classname.lower() == "barbarian":
+        return jsonify(BARBARIAN)
+    return jsonify({"error": "Class not found"}), 404
+
+@app.route('/api/characters')
+def api_get_all_characters():
+    characters = Character.query.all()
+    return jsonify([
+        {
+            "id": c.id,
+            "name": c.name,
+            "level": c.get_data().get("level", 1),
+            "class": c.get_data().get("class_name", ""),
+            "subclass": c.get_data().get("subclass", "")
+        } for c in characters
+    ])
 
 @app.route('/characters-hub')
 def characters_hub():
