@@ -1,0 +1,184 @@
+/* CharacterForm.css */
+
+.character-form-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.step-container {
+    margin-bottom: 20px;
+}
+
+.button-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.selection-button {
+    padding: 10px 15px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: white;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background-color 0.2s;
+}
+
+.selection-button:hover {
+    background-color: #f0f0f0;
+}
+
+.selection-button.selected {
+    background-color: lightgreen;
+    border-color: #4c8b4c;
+    font-weight: bold;
+}
+
+.navigation-buttons {
+    margin-top: 20px;
+    display: flex;
+    gap: 10px;
+}
+
+.nav-button {
+    padding: 8px 16px;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+/* Step 1: Rolling Stats */
+.roll-section {
+    margin-bottom: 20px;
+}
+
+.stat-display {
+    display: block;
+    width: 100%;
+    margin: 5px 0;
+    text-align: left;
+}
+
+.stat-button {
+    margin: 5px;
+    padding: 10px;
+    font-size: 1.2em;
+    cursor: grab;
+    background-color: white;
+    border: 1px solid #ccc;
+    transition: opacity 0.2s, transform 0.2s;
+}
+
+.stat-button:active {
+    cursor: grabbing;
+}
+
+.stat-button.selected {
+    background-color: gold;
+    border-color: #b59f00;
+}
+
+.stat-button.dragging {
+    opacity: 0.5;
+    cursor: grabbing;
+}
+
+.assigned-stat-button {
+    display: block;
+    width: 200px;
+    margin: 5px 0;
+    padding: 8px;
+    cursor: pointer;
+    text-align: left;
+    background-color: lightgray;
+    border: 1px solid #999;
+    transition: background-color 0.2s, border-color 0.2s, transform 0.2s;
+}
+
+.assigned-stat-button.assigned {
+    background-color: lightgreen;
+}
+
+.assigned-stat-button.drag-over {
+    background-color: #e3f2fd;
+    border-color: #2196f3;
+    border-width: 2px;
+    transform: scale(1.05);
+    box-shadow: 0 0 10px rgba(33, 150, 243, 0.5);
+}
+
+/* Step 3: Background selection */
+.background-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.background-button {
+    padding: 10px;
+    border: 1px solid #ccc;
+    cursor: pointer;
+    background-color: white;
+    text-align: center;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.background-button.selected {
+    background-color: lightgreen;
+    font-weight: bold;
+}
+
+.equipment-choice-container {
+    margin-bottom: 20px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: #fff;
+}
+
+.equipment-options {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+}
+
+.equipment-label {
+    cursor: pointer;
+    display: flex;
+    align-items: flex-start;
+}
+
+.equipment-radio {
+    margin-top: 6px;
+}
+
+.equipment-details {
+    margin-left: 8px;
+}
+
+.equipment-list-container {
+    font-size: 0.9em;
+    color: #444;
+    margin-top: 4px;
+    background-color: #f9f9f9;
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid #eee;
+}
+
+.equipment-list-scroll {
+    margin: 2px 0 0 0;
+    padding-left: 20px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.gold-option-text {
+    font-size: 0.9em;
+    color: #666;
+}

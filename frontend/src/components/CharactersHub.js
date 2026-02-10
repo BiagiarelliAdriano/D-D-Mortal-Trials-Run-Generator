@@ -26,7 +26,7 @@ function CharactersHub() {
             method: "DELETE"
         }).then(() => {
             // Remove deleted character from state
-            setCharacters(characters.filter(char => char.id !== id));
+            setCharacters(prev => prev.filter(char => char.id !== id));
         });
     };
 
@@ -40,7 +40,7 @@ function CharactersHub() {
                 {characters.map(char => (
                     <li key={char.id} style={{ marginBottom: "10px" }}>
                         <strong>{char.name}</strong> - {char.class_name} (Level {char.level})
-                        <div style={{ display: "inline-block", marginLeft: "10px" }}>
+                        <div style={{ display: "inline-block", marginLeft: "10px"}}>
                             <button onClick={() => window.open(`/characters/${char.id}`, "_blank")}>
                                 View
                             </button>

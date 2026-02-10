@@ -5,7 +5,19 @@ BACKGROUNDS = [
         "feat": "Magic Initiate (Cleric)",
         "skills": ["Insight", "Religion"],
         "tools": "Calligrapher's Supplies",
-        "equipment": ["Calligrapher's Supplies, Book (prayers), Holy Symbol, Parchment (10 sheets), Robe, 8GP", "50GP"],
+        "starting_equipment": {
+            "standard": {
+                "items": [
+                    {"name": "Calligrapher's Supplies", "category": "Tools", "quantity": 1},
+                    {"name": "Book (prayers)", "category": "Other", "quantity": 1},
+                    {"name": "Holy Symbol", "category": "Other", "quantity": 1},
+                    {"name": "Parchment", "category": "Other", "quantity": 10},
+                    {"name": "Robe", "category": "Other", "quantity": 1}
+                ],
+                "gold": 8
+            },
+            "gold_option": 50
+        }
     },
     {
         "name": "Artisan",
@@ -13,7 +25,17 @@ BACKGROUNDS = [
         "feat": "Crafter",
         "skills": ["Investigation", "Persuasion"],
         "tools": "Choose one kind of Artisan's Tools",
-        "equipment": ["Artisan's Tools (same as tools), 2 Pouches, Traveler's Clothes, 32GP", "50GP"],
+        "starting_equipment": {
+            "standard": {
+                "items": [
+                    {"name": "Artisan's Tools", "category": "Tools", "quantity": 1},
+                    {"name": "Pouch", "category": "Other", "quantity": 2},
+                    {"name": "Traveler's Clothes", "category": "Other", "quantity": 1}
+                ],
+                "gold": 32
+            },
+            "gold_option": 50
+        }
     },
     {
         "name": "Charlatan",
@@ -21,7 +43,17 @@ BACKGROUNDS = [
         "feat": "Skilled",
         "skills": ["Deception", "Sleight of Hand"],
         "tools": "Forgery Kit",
-        "equipment": ["Forgery Kit, Costume, Fine Clothes, 15GP", "50GP"],
+        "starting_equipment": {
+            "standard": {
+                "items": [
+                    {"name": "Forgery Kit", "category": "Tools", "quantity": 1},
+                    {"name": "Costume", "category": "Other", "quantity": 1},
+                    {"name": "Fine Clothes", "category": "Other", "quantity": 1}
+                ],
+                "gold": 15
+            },
+            "gold_option": 50
+        }
     },
     {
         "name": "Criminal",
@@ -29,7 +61,19 @@ BACKGROUNDS = [
         "feat": "Alert",
         "skills": ["Sleight of Hand", "Stealth"],
         "tools": "Thieves' Tools",
-        "equipment": ["2 Daggers, Thieves' Tools, Crowbar, 2 Pouches, Traveler's Clothes, 16GP", "50GP"],
+        "starting_equipment": {
+            "standard": {
+                "items": [
+                    {"name": "Dagger", "category": "Weapon", "quantity": 2},
+                    {"name": "Thieves' Tools", "category": "Tools", "quantity": 1},
+                    {"name": "Crowbar", "category": "Other", "quantity": 1},
+                    {"name": "Pouch", "category": "Other", "quantity": 2},
+                    {"name": "Traveler's Clothes", "category": "Other", "quantity": 1}
+                ],
+                "gold": 16
+            },
+            "gold_option": 50
+        }
     },
     {
         "name": "Entertainer",
@@ -37,7 +81,19 @@ BACKGROUNDS = [
         "feat": "Musician",
         "skills": ["Acrobatics", "Performance"],
         "tools": "Choose one kind of Musical Instrument",
-        "equipment": ["Musical Instrument (same as tools), 2 Costumes, Mirror, Perfume, Traveler's Clothes, 11GP", "50GP"],
+        "starting_equipment": {
+            "standard": {
+                "items": [
+                    {"name": "Musical Instrument", "category": "Tools", "quantity": 1},
+                    {"name": "Costume", "category": "Other", "quantity": 2},
+                    {"name": "Mirror", "category": "Other", "quantity": 1},
+                    {"name": "Perfume", "category": "Other", "quantity": 1},
+                    {"name": "Traveler's Clothes", "category": "Other", "quantity": 1}
+                ],
+                "gold": 11
+            },
+            "gold_option": 50
+        }
     },
     {
         "name": "Farmer",
@@ -45,7 +101,20 @@ BACKGROUNDS = [
         "feat": "Tough",
         "skills": ["Animal Handling", "Nature"],
         "tools": "Carpenter's Tools",
-        "equipment": ["Sickle, Carpenter's Tools, Healer's Kit, Iron Pot, Shovel, Traveler's Clothes, 30GP", "50GP"],
+        "starting_equipment": {
+            "standard": {
+                "items": [
+                    {"name": "Sickle", "category": "Weapon", "quantity": 1},
+                    {"name": "Carpenter's Tools", "category": "Tools", "quantity": 1},
+                    {"name": "Healer's Kit", "category": "Other", "quantity": 1},
+                    {"name": "Iron Pot", "category": "Other", "quantity": 1},
+                    {"name": "Shovel", "category": "Other", "quantity": 1},
+                    {"name": "Traveler's Clothes", "category": "Other", "quantity": 1}
+                ],
+                "gold": 30
+            },
+            "gold_option": 50
+        }
     },
     {
         "name": "Guard",
@@ -53,7 +122,22 @@ BACKGROUNDS = [
         "feat": "Alert",
         "skills": ["Athletics", "Perception"],
         "tools": "Choose one kind of Gaming Set",
-        "equipment": ["Spear, Light Crossbow, 20 Bolts, Gaming Set (same as tools), Hooded Lantern, Manacles, Quiver, Traveler's Clothes, 12GP", "50GP"],
+        "starting_equipment": {
+            "standard": {
+                "items": [
+                    {"name": "Spear", "category": "Weapon", "quantity": 1},
+                    {"name": "Light Crossbow", "category": "Weapon", "quantity": 1},
+                    {"name": "Bolt", "category": "Other", "quantity": 20},
+                    {"name": "Gaming Set", "category": "Tools", "quantity": 1},
+                    {"name": "Hooded Lantern", "category": "Other", "quantity": 1},
+                    {"name": "Manacles", "category": "Other", "quantity": 1},
+                    {"name": "Quiver", "category": "Other", "quantity": 1},
+                    {"name": "Traveler's Clothes", "category": "Other", "quantity": 1}
+                ],
+                "gold": 12
+            },
+            "gold_option": 50
+        }
     },
     {
         "name": "Guide",
@@ -61,7 +145,21 @@ BACKGROUNDS = [
         "feat": "Magic Initiate (Druid)",
         "skills": ["Stealth", "Survival"],
         "tools": "Cartographer's Tools",
-        "equipment": ["Shortbow, 20 Arrows, Cartographer's Tools, Bedroll, Quiver, Tent, Traveler's Clothes, 3GP", "50GP"],
+        "starting_equipment": {
+            "standard": {
+                "items": [
+                    {"name": "Shortbow", "category": "Weapon", "quantity": 1},
+                    {"name": "Arrow", "category": "Other", "quantity": 20},
+                    {"name": "Cartographer's Tools", "category": "Tools", "quantity": 1},
+                    {"name": "Bedroll", "category": "Other", "quantity": 1},
+                    {"name": "Quiver", "category": "Other", "quantity": 1},
+                    {"name": "Tent", "category": "Other", "quantity": 1},
+                    {"name": "Traveler's Clothes", "category": "Other", "quantity": 1}
+                ],
+                "gold": 3
+            },
+            "gold_option": 50
+        }
     },
     {
         "name": "Hermit",
@@ -69,7 +167,21 @@ BACKGROUNDS = [
         "feat": "Healer",
         "skills": ["Medicine", "Religion"],
         "tools": "Herbalism Kit",
-        "equipment": ["Quarterstaff, Herbalism Kit, Bedroll, Book (philosophy), Lamp, Oil 3 Flasks, Traveler's Clothes, 16GP", "50GP"],
+        "starting_equipment": {
+            "standard": {
+                "items": [
+                    {"name": "Quarterstaff", "category": "Weapon", "quantity": 1},
+                    {"name": "Herbalism Kit", "category": "Tools", "quantity": 1},
+                    {"name": "Bedroll", "category": "Other", "quantity": 1},
+                    {"name": "Book (philosophy)", "category": "Other", "quantity": 1},
+                    {"name": "Lamp", "category": "Other", "quantity": 1},
+                    {"name": "Oil (flask)", "category": "Other", "quantity": 3},
+                    {"name": "Traveler's Clothes", "category": "Other", "quantity": 1}
+                ],
+                "gold": 16
+            },
+            "gold_option": 50
+        }
     },
     {
         "name": "Merchant",
@@ -77,7 +189,17 @@ BACKGROUNDS = [
         "feat": "Lucky",
         "skills": ["Animal Handling", "Persuasion"],
         "tools": "Navigator's Tools",
-        "equipment": ["Navigator's Tools, 2 Pouches, Traveler's Clothes, 22GP", "50GP"],
+        "starting_equipment": {
+            "standard": {
+                "items": [
+                    {"name": "Navigator's Tools", "category": "Tools", "quantity": 1},
+                    {"name": "Pouch", "category": "Other", "quantity": 2},
+                    {"name": "Traveler's Clothes", "category": "Other", "quantity": 1}
+                ],
+                "gold": 22
+            },
+            "gold_option": 50
+        }
     },
     {
         "name": "Noble",
@@ -85,7 +207,17 @@ BACKGROUNDS = [
         "feat": "Skilled",
         "skills": ["History", "Persuasion"],
         "tools": "Choose one kind of Gaming Set",
-        "equipment": ["Gaming set (same as tools), Fine Clothes, Perfume, 29GP", "50GP"],
+        "starting_equipment": {
+            "standard": {
+                "items": [
+                    {"name": "Gaming Set", "category": "Tools", "quantity": 1},
+                    {"name": "Fine Clothes", "category": "Other", "quantity": 1},
+                    {"name": "Perfume", "category": "Other", "quantity": 1}
+                ],
+                "gold": 29
+            },
+            "gold_option": 50
+        }
     },
     {
         "name": "Sage",
@@ -93,7 +225,19 @@ BACKGROUNDS = [
         "feat": "Magic Initiate (Wizard)",
         "skills": ["Arcana", "History"],
         "tools": "Calligrapher's Supplies",
-        "equipment": ["Quarterstaff, Calligrapher's Supplies, Book (history), Parchment (8 sheets), Robe, 8GP", "50GP"],
+        "starting_equipment": {
+            "standard": {
+                "items": [
+                    {"name": "Quarterstaff", "category": "Weapon", "quantity": 1},
+                    {"name": "Calligrapher's Supplies", "category": "Tools", "quantity": 1},
+                    {"name": "Book (history)", "category": "Other", "quantity": 1},
+                    {"name": "Parchment", "category": "Other", "quantity": 8},
+                    {"name": "Robe", "category": "Other", "quantity": 1}
+                ],
+                "gold": 8
+            },
+            "gold_option": 50
+        }
     },
     {
         "name": "Sailor",
@@ -101,7 +245,18 @@ BACKGROUNDS = [
         "feat": "Tavern Brawler",
         "skills": ["Acrobatics", "Perception"],
         "tools": "Navigator's Tools",
-        "equipment": ["Dagger, Navigator's Tools, Rope, Traveler's Clothes, 20GP", "50GP"],
+        "starting_equipment": {
+            "standard": {
+                "items": [
+                    {"name": "Dagger", "category": "Weapon", "quantity": 1},
+                    {"name": "Navigator's Tools", "category": "Tools", "quantity": 1},
+                    {"name": "Rope (hempon)", "category": "Other", "quantity": 1},
+                    {"name": "Traveler's Clothes", "category": "Other", "quantity": 1}
+                ],
+                "gold": 20
+            },
+            "gold_option": 50
+        }
     },
     {
         "name": "Scribe",
@@ -109,7 +264,19 @@ BACKGROUNDS = [
         "feat": "Skilled",
         "skills": ["Investigation", "Perception"],
         "tools": "Calligrapher's Supplies",
-        "equipment": ["Calligrapher's Supplies, Fine Clothes, Lamp, Oil (3 Flasks), Parchment (12 sheets), 23GP", "50GP"],
+        "starting_equipment": {
+            "standard": {
+                "items": [
+                    {"name": "Calligrapher's Supplies", "category": "Tools", "quantity": 1},
+                    {"name": "Fine Clothes", "category": "Other", "quantity": 1},
+                    {"name": "Lamp", "category": "Other", "quantity": 1},
+                    {"name": "Oil (flask)", "category": "Other", "quantity": 3},
+                    {"name": "Parchment", "category": "Other", "quantity": 12}
+                ],
+                "gold": 23
+            },
+            "gold_option": 50
+        }
     },
     {
         "name": "Soldier",
@@ -117,7 +284,21 @@ BACKGROUNDS = [
         "feat": "Savage Attacker",
         "skills": ["Athletics", "Intimidation"],
         "tools": "Choose one kind of Gaming Set",
-        "equipment": ["Spear, Shortbow, 20 Arrows, Gaming Set (same as tools), Healer's Kit, Quiver, Traveler's Clothes, 14GP", "50GP"],
+        "starting_equipment": {
+            "standard": {
+                "items": [
+                    {"name": "Spear", "category": "Weapon", "quantity": 1},
+                    {"name": "Shortbow", "category": "Weapon", "quantity": 1},
+                    {"name": "Arrow", "category": "Other", "quantity": 20},
+                    {"name": "Gaming Set", "category": "Tools", "quantity": 1},
+                    {"name": "Healer's Kit", "category": "Other", "quantity": 1},
+                    {"name": "Quiver", "category": "Other", "quantity": 1},
+                    {"name": "Traveler's Clothes", "category": "Other", "quantity": 1}
+                ],
+                "gold": 14
+            },
+            "gold_option": 50
+        }
     },
     {
         "name": "Wayfarer",
@@ -125,6 +306,19 @@ BACKGROUNDS = [
         "feat": "Lucky",
         "skills": ["Insight", "Stealth"],
         "tools": "Thieves' Tools",
-        "equipment": ["2 Daggers, Thieves' Tools, Gaming Set (any), Bedroll, 2 Pouches, Traveler's Clothes, 16GP", "50GP"],
+        "starting_equipment": {
+            "standard": {
+                "items": [
+                    {"name": "Dagger", "category": "Weapon", "quantity": 2},
+                    {"name": "Thieves' Tools", "category": "Tools", "quantity": 1},
+                    {"name": "Gaming Set", "category": "Tools", "quantity": 1},
+                    {"name": "Bedroll", "category": "Other", "quantity": 1},
+                    {"name": "Pouch", "category": "Other", "quantity": 2},
+                    {"name": "Traveler's Clothes", "category": "Other", "quantity": 1}
+                ],
+                "gold": 16
+            },
+            "gold_option": 50
+        }
     },
 ]

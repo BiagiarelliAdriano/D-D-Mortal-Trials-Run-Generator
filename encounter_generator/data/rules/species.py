@@ -43,6 +43,7 @@ SPECIES = [
             glistening in hues of fire and frost, horns curling from their brows, eyes bright with inner flame.
             Their breath holds echoes of the elements, and their presence carries the weight of ancient power.
             Though they share the blood of dragons, their destiny is their own to forge.""",
+        "variations": ["Black", "Blue", "Brass", "Bronze", "Copper", "Gold", "Green", "Red", "Silver", "White"],
         "creature_type": "Humanoid",
         "size": "Medium",
         "speed": "30ft",
@@ -316,18 +317,28 @@ SPECIES = [
             Their presence commands attention, a living reminder of the price of ambition and the fire that fuesl it.
             Fierce and proud, they walk the line between destruction and discipline, shaping their fate through will
             as much""",
+        "variations": ["Abyssal", "Chthonic", "Infernal"],
         "creature_type": "Humanoid",
-        "size": "Medium",
+        "size": ["Medium", "Small"],
         "speed": "30ft",
         "traits": [
-            "As an Orc, you have these special traits.",
-            """Adrenaline Rush. You can take the Dash action as a Bonus Action. When you do so, you gain a number
-                of Temporary Hit Points equal to your Proficiency Bonus.
-                You can use this trait a number of times equal to your Proficiency Bonus, and you regain all
-                expended uses when you finish a Short or Long Rest.""",
-            """Darkvision. You have Darkvision with a range of 120ft.""",
-            """Relentless Endurance. When you are reduced to 0 Hit Points but not killed outright, you can drop to
-                1 Hit Point instead. Once you use this trait, you can't do so again until you finish a Long Rest.""",
+            "As a Tiefling, you have these special traits.",
+            """Darkvision. You have Darkivision with a range of 60ft.""",
+            """Fiendish Legacy. You are the recipient of a legacy that grants you supernatural abilities. Choose a legacy from the
+                following choices. You gain the level 1 benefit of the chosen legacy.""",
+            """When you reach character levels 3 and 5, you learn a higher-level spell, as shown on the next list. You always have
+                that spell prepared. You can cast it once without a spell slot, and you regain the ability to cast it in that way
+                when you finish a Long Rest. You can also cast the spell using any spell slots you have of the appropriate level.
+                Intelligence, Wisdom, or Charisma is your spellcasting ability for the spells you cast with this trait
+                (choose the ability when you select the legacy)."""
+            """Otherwordly Presence. You know the Thaumaturgy cantrip. When you cast it with this trait, the spell uses the same
+                spellcasting ability you use for your Fiendish Legacy trait."""
+            """Abyssal. You have Resistance to Poison damage. You also know the Poison Spray cantrip.
+                Level 3: Ray Of Sickness. Level 5: Hold Person.""",
+            """Chthonic. You have Resistance to Necrotic damage. You also know the Chill Touch cantrip.
+                Level 3: False Life. Level 5: Ray Of Enfeeblement.""",
+            """Infernal. You have Resistance to Fire damage. You also know the Fire Bolt cantrip.
+                Level 3: Hellish Rebuke. Level 5: Darkness.""",
         ]
     },
 ]
