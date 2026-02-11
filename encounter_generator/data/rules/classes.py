@@ -1,8 +1,10 @@
 from encounter_generator.data.rules.spell_tables import FULL_CASTER_SLOTS
+from encounter_generator.data.rules.subclasses.barbarian import BARBARIAN_SUBCLASSES
 
 BARBARIAN = {
     "id": "barbarian",
     "name": "Barbarian",
+    "subclasses": BARBARIAN_SUBCLASSES,
     "description": """Barbarians are relentless warriors empowered by primal forces surging from within. Their fury is not
         just rage, it's a physical manifestation of raw survival instinct, ancient spirit guidance, or the wrath
         of a world out of balance.""",
@@ -2328,6 +2330,358 @@ SORCERER = {
         ]
     }
 }
+
+WARLOCK = {
+    "id": "warlock",
+    "name": "Warlock",
+    "description": """Warlocks are seekers of knowledge that lie hidden in the fabric of the multiverse. 
+        Through pacts made with mysterious beings of great power, warlocks unlock magical effects, 
+        both subtle and spectacular.""",
+    "primary_ability": "Charisma",
+    "hit_die": "d8",
+    "proficiencies": {
+        "saving_throws": ["Wisdom", "Charisma"],
+        "armor": ["Light"],
+        "weapons": ["Simple"],
+        "tools": {
+            "granted": [],
+            "choose": 0,
+            "options": []
+        },
+        "skills": {
+            "granted": [],
+            "choose": 2,
+            "options": ["Arcana", "Deception", "History", "Intimidation", "Investigation", "Nature", "Religion"]
+        }
+    },
+    "starting_equipment": {
+        "option_a": {
+            "items": ["Leather Armor", "Sickle", "2 Daggers", "Arcane Focus (orb)", "Book (occult lore)", "Scholar's Pack"],
+            "gold": 15
+        },
+        "option_b": {
+            "gold": 100
+        }
+    },
+    "spellcasting": {
+        "ability": "Charisma",
+        "progression": "pact",
+        "preparation_mode": "learned",
+        "focus": ["Arcane Focus"],
+        "cantrips_known": {1: 2, 4: 3, 10: 4},
+        "spells_prepared": {
+            1: 2, 2: 3, 3: 4, 4: 5, 5: 6, 6: 7, 7: 8, 8: 9, 9: 10, 10: 10,
+            11: 11, 12: 11, 13: 12, 14: 12, 15: 13, 16: 13, 17: 14, 18: 14, 19: 15, 20: 15
+        }
+    },
+    "features": {
+        1: [
+            {
+                "id": "warlock_eldritch_invocations",
+                "name": "Eldritch Invocations",
+                "summary": "Gain fragments of forbidden knowledge that grant you magical abilities.",
+                "details": {
+                    "invocations_known": {
+                        "type": "level-based",
+                        "scaling": {
+                            "1": 1, "2": 3, "5": 5, "7": 6, "9": 7, "12": 8, "15": 9, "18": 10
+                        }
+                    }
+                }
+            },
+            {
+                "id": "warlock_pact_magic",
+                "name": "Pact Magic",
+                "summary": "Cast Warlock spells using Charisma and an Arcane Focus; slots recharge on a Short Rest."
+            }
+        ],
+        2: [
+            {
+                "id": "warlock_magical_cunning",
+                "name": "Magical Cunning",
+                "summary": "Once per Long Rest, spend 1 minute to regain half your Pact Magic spell slots (round up).",
+                "details": {
+                    "recharge": "Long Rest",
+                    "benefit": "Regain half Pact Magic slots (round up)"
+                }
+            }
+        ],
+        3: [
+            {
+                "id": "warlock_subclass",
+                "name": "Warlock Subclass",
+                "summary": "Choose a Otherworldly Patron: Archfey, Celestial, Fiend, or Great Old One.",
+                "details": {
+                    "choice": {
+                        "choose": 1,
+                        "options": ["Archfey Patron", "Celestial Patron", "Fiend Patron", "Great Old One Patron"]
+                    }
+                }
+            }
+        ],
+        4: [
+            {
+                "id": "feat_or_asi_4",
+                "name": "Feat or ASI",
+                "summary": "Choose a feat or increase ability scores."
+            }
+        ],
+        8: [
+            {
+                "id": "feat_or_asi_8",
+                "name": "Feat or ASI",
+                "summary": "Choose a feat or increase ability scores."
+            }
+        ],
+        9: [
+            {
+                "id": "warlock_contact_patron",
+                "name": "Contact Patron",
+                "summary": "Contact Other Plane is always prepared; cast it once for free with auto-success to contact your patron.",
+                "details": {
+                    "spells_granted": ["Contact Other Plane"],
+                    "free_cast_benefit": "Auto-success on saving throw",
+                    "recharge": "Long Rest"
+                }
+            }
+        ],
+        11: [
+            {
+                "id": "warlock_mystic_arcanum_6",
+                "name": "Mystic Arcanum (Level 6)",
+                "summary": "Choose a level 6 Warlock spell to cast once per Long Rest without a spell slot.",
+                "details": {
+                    "arcanum_level": 6,
+                    "recharge": "Long Rest"
+                }
+            }
+        ],
+        12: [
+            {
+                "id": "feat_or_asi_12",
+                "name": "Feat or ASI",
+                "summary": "Choose a feat or increase ability scores."
+            }
+        ],
+        13: [
+            {
+                "id": "warlock_mystic_arcanum_7",
+                "name": "Mystic Arcanum (Level 7)",
+                "summary": "Choose a level 7 Warlock spell to cast once per Long Rest without a spell slot.",
+                "details": {
+                    "arcanum_level": 7,
+                    "recharge": "Long Rest"
+                }
+            }
+        ],
+        15: [
+            {
+                "id": "warlock_mystic_arcanum_8",
+                "name": "Mystic Arcanum (Level 8)",
+                "summary": "Choose a level 8 Warlock spell to cast once per Long Rest without a spell slot.",
+                "details": {
+                    "arcanum_level": 8,
+                    "recharge": "Long Rest"
+                }
+            }
+        ],
+        16: [
+            {
+                "id": "feat_or_asi_16",
+                "name": "Feat or ASI",
+                "summary": "Choose a feat or increase ability scores."
+            }
+        ],
+        17: [
+            {
+                "id": "warlock_mystic_arcanum_9",
+                "name": "Mystic Arcanum (Level 9)",
+                "summary": "Choose a level 9 Warlock spell to cast once per Long Rest without a spell slot.",
+                "details": {
+                    "arcanum_level": 9,
+                    "recharge": "Long Rest"
+                }
+            }
+        ],
+        19: [
+            {
+                "id": "epic_boon_or_feat_19",
+                "name": "Epic Boon or Feat",
+                "summary": "Choose a powerful Epic Boon or another feat."
+            }
+        ],
+        20: [
+            {
+                "id": "warlock_eldritch_master",
+                "name": "Eldritch Master",
+                "summary": "Magical Cunning now regains all expended Pact Magic spell slots."
+            }
+        ]
+    }
+}
+
+WIZARD = {
+    "id": "wizard",
+    "name": "Wizard",
+    "description": """Wizards are supreme magic-users, defined and united as a class by the spells 
+        they cast. Drawing on the subtle weave of magic that permeates the cosmos, wizards cast 
+        spells of explosive fire, arcing lightning, subtle deception, and brute-force mind control.""",
+    "primary_ability": "Intelligence",
+    "hit_die": "d6",
+    "proficiencies": {
+        "saving_throws": ["Intelligence", "Wisdom"],
+        "armor": [],
+        "weapons": ["Simple"],
+        "tools": {
+            "granted": [],
+            "choose": 0,
+            "options": []
+        },
+        "skills": {
+            "granted": [],
+            "choose": 2,
+            "options": ["Arcana", "History", "Insight", "Investigation", "Medicine", "Nature", "Religion"]
+        }
+    },
+    "starting_equipment": {
+        "option_a": {
+            "items": ["2 Daggers", "Arcane Focus (Quarterstaff)", "Robe", "Spellbook", "Scholar's Pack"],
+            "gold": 5
+        },
+        "option_b": {
+            "gold": 55
+        }
+    },
+    "spellcasting": {
+        "ability": "Intelligence",
+        "progression": "full",
+        "preparation_mode": "prepared",
+        "focus": ["Arcane Focus", "Spellbook"],
+        "cantrips_known": {1: 3, 4: 4, 10: 5},
+        "spells_prepared": {
+            1: 4, 2: 5, 3: 6, 4: 7, 5: 8, 6: 9, 7: 10, 8: 11, 9: 12, 10: 13,
+            11: 16, 12: 16, 13: 17, 14: 18, 15: 19, 16: 20, 17: 21, 18: 22, 19: 23, 20: 25
+        },
+        "spellbook": {
+            "initial_spells": 6,
+            "spells_per_level": 2,
+            "weight": "3 lbs",
+            "pages": 100
+        }
+    },
+    "features": {
+        1: [
+            {
+                "id": "wizard_spellcasting",
+                "name": "Spellcasting",
+                "summary": "Cast Wizard spells using Intelligence; replace one cantrip after a Long Rest."
+            },
+            {
+                "id": "wizard_ritual_adept",
+                "name": "Ritual Adept",
+                "summary": "Cast any Wizard spell in your spellbook as a ritual if it has the Ritual tag, even if not prepared."
+            },
+            {
+                "id": "wizard_arcane_recovery",
+                "name": "Arcane Recovery",
+                "summary": "Regain spell slots on a Short Rest equal to half your Wizard level (max level 5 slots).",
+                "details": {
+                    "recharge": "Long Rest",
+                    "max_slot_level": 5,
+                    "recovery_amount": "Wizard Level / 2 (round up)"
+                }
+            }
+        ],
+        2: [
+            {
+                "id": "wizard_scholar",
+                "name": "Scholar",
+                "summary": "Gain Expertise in one proficient academic skill.",
+                "details": {
+                    "expertise_choice_options": ["Arcana", "History", "Investigation", "Medicine", "Nature", "Religion"]
+                }
+            }
+        ],
+        3: [
+            {
+                "id": "wizard_subclass",
+                "name": "Wizard Subclass",
+                "summary": "Choose an Arcane Tradition: Abjurer, Diviner, Evoker, or Illusionist.",
+                "details": {
+                    "choice": {
+                        "choose": 1,
+                        "options": ["Abjurer", "Diviner", "Evoker", "Illusionist"]
+                    }
+                }
+            }
+        ],
+        4: [
+            {
+                "id": "feat_or_asi_4",
+                "name": "Feat or ASI",
+                "summary": "Choose a feat or increase ability scores."
+            }
+        ],
+        5: [
+            {
+                "id": "wizard_memorize_spell",
+                "name": "Memorize Spell",
+                "summary": "After a Short Rest, swap one prepared level 1+ spell for another in your spellbook."
+            }
+        ],
+        8: [
+            {
+                "id": "feat_or_asi_8",
+                "name": "Feat or ASI",
+                "summary": "Choose a feat or increase ability scores."
+            }
+        ],
+        12: [
+            {
+                "id": "feat_or_asi_12",
+                "name": "Feat or ASI",
+                "summary": "Choose a feat or increase ability scores."
+            }
+        ],
+        16: [
+            {
+                "id": "feat_or_asi_16",
+                "name": "Feat or ASI",
+                "summary": "Choose a feat or increase ability scores."
+            }
+        ],
+        18: [
+            {
+                "id": "wizard_spell_mastery",
+                "name": "Spell Mastery",
+                "summary": "Cast a chosen level 1 and level 2 spell at will; can swap choices after a Long Rest.",
+                "details": {
+                    "at_will_levels": [1, 2]
+                }
+            }
+        ],
+        19: [
+            {
+                "id": "epic_boon_or_feat_19",
+                "name": "Epic Boon or Feat",
+                "summary": "Choose a powerful Epic Boon or another feat."
+            }
+        ],
+        20: [
+            {
+                "id": "wizard_signature_spell",
+                "name": "Signature Spell",
+                "summary": "Choose two level 3 spells to cast once each per Short/Long Rest without a spell slot.",
+                "details": {
+                    "signature_level": 3,
+                    "recharge": "Short or Long Rest"
+                }
+            }
+        ]
+    }
+}
+
+
 
 
 

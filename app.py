@@ -4,7 +4,7 @@ from flask_cors import CORS
 from models import db, Run, Character
 from encounter_generator.encounter_logic import generate_all_encounters
 from encounter_generator.generator import generate_divine_blessing
-from encounter_generator.data.rules.classes import BARBARIAN
+from encounter_generator.data.rules.classes import BARBARIAN, BARD, CLERIC, DRUID, FIGHTER, MONK, PALADIN, RANGER, ROGUE, SORCERER, WARLOCK, WIZARD
 from encounter_generator.data.rules.backgrounds import BACKGROUNDS
 import json
 import os
@@ -35,15 +35,31 @@ if os.environ.get("FLASK_ENV") != "production":
 def home():
     return render_template("index.html")
 
+CLASSES = {
+    "barbarian": BARBARIAN,
+    "bard": BARD,
+    "cleric": CLERIC,
+    "druid": DRUID,
+    "fighter": FIGHTER,
+    "monk": MONK,
+    "paladin": PALADIN,
+    "ranger": RANGER,
+    "rogue": ROGUE,
+    "sorcerer": SORCERER,
+    "warlock": WARLOCK,
+    "wizard": WIZARD
+}
+
 # ------------------------
 # Class & Background API
 # ------------------------
 
 @app.route("/api/classes/<classname>")
 def get_class(classname):
-    if classname.lower() == "barbarian":
-        return jsonify(BARBARIAN)
-    return jsonify({"error": "Class not found"}), 404
+    cls = CLASSES.get(classname.lower())
+    if cls:
+        return jsonify(cls)
+    return jsonify({"error": f"Class '{classname}' not found"}), 404
 
 @app.route("/api/backgrounds")
 def get_backgrounds():
