@@ -1,5 +1,8 @@
 from encounter_generator.data.rules.spell_tables import FULL_CASTER_SLOTS
 from encounter_generator.data.rules.subclasses.barbarian import BARBARIAN_SUBCLASSES
+from encounter_generator.data.rules.subclasses.bard import BARD_SUBCLASSES
+from encounter_generator.data.rules.subclasses.cleric import CLERIC_SUBCLASSES
+from encounter_generator.data.rules.subclasses.druid import DRUID_SUBCLASSES
 
 BARBARIAN = {
     "id": "barbarian",
@@ -222,6 +225,7 @@ BARBARIAN = {
 BARD = {
     "id": "bard",
     "name": "Bard",
+    "subclasses": BARD_SUBCLASSES,
     "description": """Bards weave magic through performance, turning memory, rhythm, and spoken word into tools of power.
         Driven by curiosity and the spark of creation, they collect fragments of history and myth, transforming
         them into magic and influence.""",
@@ -446,6 +450,7 @@ BARD = {
 CLERIC = {
     "id": "cleric",
     "name": "Cleric",
+    "subclasses": CLERIC_SUBCLASSES,
     "description": """Clerics are intermediaries between the mortal world and they were given powers resembling those of the gods. 
         Empowered by divine magic, they serve as healers, protectors, and harbingers of their deity's will. 
         Wielding both holy light and martial might, a Cleric is a pillar of strength for any adventuring party.""",
@@ -682,6 +687,7 @@ CLERIC = {
 DRUID = {
     "id": "druid",
     "name": "Druid",
+    "subclasses": DRUID_SUBCLASSES,
     "description": """Druids are conduits of the natural world's raw power, channeling the elements and assuming the 
         forms of beasts. They serve as guardians of the wilderness, balancing the cycles of life and death, 
         and drawing magic from the ancient rhythms of nature itself.""",
