@@ -184,5 +184,169 @@ DRUID_SUBCLASSES = {
                 }
             ]
         }
+    },
+    "sea": {
+        "id": "sea",
+        "name": "Circle of the Sea",
+        "description": "Druids of the Circle of the Sea draw their power from the depths of the ocean and the fury of the storm. They are as fluid as the tides and as relentless as a hurricane, capable of manifesting the crushing pressure and freezing cold of the abyss to sweep their enemies away.",
+        "features": {
+            3: [
+                {
+                    "id": "sea_circle_spells",
+                    "name": "Circle Of The Sea Spells",
+                    "summary": "Always prepared spells focused on water, ice, and storms.",
+                    "details": {
+                        "spells": {
+                            3: ["Fog Cloud", "Gust of Wind", "Ray Of Frost", "Shatter", "Thunderwave"],
+                            5: ["Lightning Bolt", "Water Breathing"],
+                            7: ["Control Water", "Ice Storm"],
+                            9: ["Conjure Elemental", "Hold Monster"]
+                        }
+                    }
+                },
+                {
+                    "id": "sea_wrath_of_the_sea",
+                    "name": "Wrath Of The Sea",
+                    "summary": "Bonus Action: expend Wild Shape to create a 5ft ocean spray Emanation (10 min). Use Bonus Action to deal Cold damage and push creatures 15ft.",
+                    "details": {
+                        "action": "Bonus Action",
+                        "cost": "One use of Wild Shape",
+                        "duration": "10 minutes",
+                        "area": "5ft Emanation (increases at Lvl 6)",
+                        "effect": {
+                            "trigger": "When manifested and as a subsequent Bonus Action",
+                            "damage": "Wisdom modifier d6 Cold damage",
+                            "forced_movement": "Push Large or smaller creatures up to 15ft away",
+                            "save": "Con save vs spell save DC"
+                        }
+                    }
+                }
+            ],
+            6: [
+                {
+                    "id": "sea_aquatic_affinity",
+                    "name": "Aquatic Affinity",
+                    "summary": "Wrath of the Sea Emanation grows to 10ft; gain Swim Speed equal to your Speed.",
+                    "details": {
+                        "emanation_size": "10ft",
+                        "swim_speed": "Equal to walking Speed"
+                    }
+                }
+            ],
+            10: [
+                {
+                    "id": "sea_stormborn",
+                    "name": "Stormborn",
+                    "summary": "While Wrath of the Sea is active, gain Fly Speed and Resistance to Cold, Lightning, and Thunder.",
+                    "details": {
+                        "fly_speed": "Equal to walking Speed",
+                        "resistances": ["Cold", "Lightning", "Thunder"]
+                    }
+                }
+            ],
+            14: [
+                {
+                    "id": "sea_oceanic_gift",
+                    "name": "Oceanic Gift",
+                    "summary": "Manifest Wrath of the Sea around others (60ft); expend two Wild Shapes to manifest it around both self and an ally.",
+                    "details": {
+                        "range": "60ft",
+                        "effect": "Manifest Emanation around a willing creature",
+                        "double_manifest": {
+                            "cost": "Two uses of Wild Shape",
+                            "targets": ["Self", "Willing creature within 60ft"]
+                        }
+                    }
+                }
+            ]
+        }
+    },
+    "stars": {
+        "id": "stars",
+        "name": "Circle of the Stars",
+        "description": "Druids of the Circle of the Stars have tracked the movements of celestial bodies and the patterns of the heavens for generations. They draw upon the starlight of the cosmos to empower their magic, using ancient star charts to navigate the mysteries of the multiverse.",
+        "features": {
+            3: [
+                {
+                    "id": "stars_star_map",
+                    "name": "Star Map",
+                    "summary": "Gain a Star Map Tiny object as a Focus; always have Guidance and Guiding Bolt prepared. Cast Guiding Bolt for free (Wisdom mod/day).",
+                    "details": {
+                        "object": "Tiny Star Map",
+                        "form_options": [
+                            "Scroll with constellations",
+                            "Stone tablet with holes",
+                            "Owlbear hide with stellar symbols",
+                            "Maps bound in ebony",
+                            "Crystal engraved with patterns",
+                            "Glass disk etched with constellations"
+                        ],
+                        "granted_spells": ["Guidance", "Guiding Bolt"],
+                        "free_casts": {
+                            "spell": "Guiding Bolt",
+                            "uses": "Wisdom modifier (minimum 1)",
+                            "recharge": "Long Rest"
+                        },
+                        "replacement": "1 hour ceremony during Rest"
+                    }
+                },
+                {
+                    "id": "stars_starry_form",
+                    "name": "Starry Form",
+                    "summary": "Bonus Action: expend Wild Shape to take a luminous form for 10 min. Choose a constellation (Archer, Chalice, or Dragon) for unique benefits.",
+                    "details": {
+                        "action": "Bonus Action",
+                        "cost": "One use of Wild Shape",
+                        "duration": "10 minutes",
+                        "light": "10ft Bright, 10ft Dim",
+                        "constellations": {
+                            "archer": "Bonus Action: make a ranged spell attack (60ft) for 1d8 + Wisdom mod Radiant damage.",
+                            "chalice": "When casting a healing spell with a slot: you or creature within 30ft regain 1d8 + Wisdom mod HP.",
+                            "dragon": "Intelligence/Wisdom checks and Concentration saves: treat 9 or lower as 10."
+                        }
+                    }
+                }
+            ],
+            6: [
+                {
+                    "id": "stars_cosmic_omen",
+                    "name": "Cosmic Omen",
+                    "summary": "Roll d20 after Long Rest. Use Reaction to add (Weal - even) or subtract (Woe - odd) 1d6 from a creature's d20 Test within 30ft.",
+                    "details": {
+                        "trigger": "Creature within 30ft makes a d20 Test",
+                        "action": "Reaction",
+                        "uses": "Wisdom modifier (minimum 1)",
+                        "recharge": "Long Rest",
+                        "effects": {
+                            "weal_even": "Add 1d6 to the total",
+                            "woe_odd": "Subtract 1d6 from the total"
+                        }
+                    }
+                }
+            ],
+            10: [
+                {
+                    "id": "stars_twinkling_constellation",
+                    "name": "Twinkling Constellation",
+                    "summary": "Starry Form improves: Archer/Chalice use 2d8; Dragon gains Fly speed (20ft, hover). Change constellation at start of turn.",
+                    "details": {
+                        "archer_upgrade": "2d8 + Wisdom mod",
+                        "chalice_upgrade": "2d8 + Wisdom mod",
+                        "dragon_upgrade": "Gain 20ft Fly Speed (hover)",
+                        "flexibility": "Can change current constellation at start of turn while in form"
+                    }
+                }
+            ],
+            14: [
+                {
+                    "id": "stars_full_of_stars",
+                    "name": "Full Of Stars",
+                    "summary": "While in Starry Form, gain Resistance to Bludgeoning, Piercing, and Slashing damage.",
+                    "details": {
+                        "effect": "Gain Resistance to physical damage (B/P/S) while transformed"
+                    }
+                }
+            ]
+        }
     }
 }

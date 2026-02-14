@@ -3,6 +3,8 @@ from encounter_generator.data.rules.subclasses.barbarian import BARBARIAN_SUBCLA
 from encounter_generator.data.rules.subclasses.bard import BARD_SUBCLASSES
 from encounter_generator.data.rules.subclasses.cleric import CLERIC_SUBCLASSES
 from encounter_generator.data.rules.subclasses.druid import DRUID_SUBCLASSES
+from encounter_generator.data.rules.subclasses.fighter import FIGHTER_SUBCLASSES
+from encounter_generator.data.rules.subclasses.monk import MONK_SUBCLASSES
 
 BARBARIAN = {
     "id": "barbarian",
@@ -924,6 +926,7 @@ DRUID = {
 FIGHTER = {
     "id": "fighter",
     "name": "Fighter",
+    "subclasses": FIGHTER_SUBCLASSES,
     "description": """Fighters are masters of martial combat, skilled with a variety of weapons and armor. 
         Whether a disciplined soldier, a rugged mercenary, or a knightly champion, a Fighter excels on the 
         front lines, using tactical expertise and physical prowess to dominate the battlefield.""",
@@ -1158,6 +1161,7 @@ FIGHTER = {
 MONK = {
     "id": "monk",
     "name": "Monk",
+    "subclasses": MONK_SUBCLASSES,
     "description": """Monks are masters of martial arts who harness the energy within their bodies to achieve 
         extraordinary physical and mental feats. They value discipline and focus, transforming their own 
         bodies into lethal weapons while moving with supernatural speed and grace.""",
