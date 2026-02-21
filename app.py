@@ -122,7 +122,9 @@ def api_characters():
             "name": c.name,
             "level": c.get_data().get("level", 1),
             "class_name": c.get_data().get("class_name", ""),
-            "subclass": c.get_data().get("subclass", "")
+            "subclass": c.get_data().get("subclass", ""),
+            "species": c.get_data().get("species", ""),
+            "species_variant": c.get_data().get("species_variant", "")
         }
         for c in characters
     ])

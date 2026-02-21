@@ -5,6 +5,32 @@ from encounter_generator.data.rules.subclasses.cleric import CLERIC_SUBCLASSES
 from encounter_generator.data.rules.subclasses.druid import DRUID_SUBCLASSES
 from encounter_generator.data.rules.subclasses.fighter import FIGHTER_SUBCLASSES
 from encounter_generator.data.rules.subclasses.monk import MONK_SUBCLASSES
+from encounter_generator.data.rules.subclasses.paladin import PALADIN_SUBCLASSES
+from encounter_generator.data.rules.subclasses.ranger import RANGER_SUBCLASSES
+from encounter_generator.data.rules.subclasses.rogue import ROGUE_SUBCLASSES
+from encounter_generator.data.rules.subclasses.sorcerer import SORCERER_SUBCLASSES
+from encounter_generator.data.rules.subclasses.warlock import WARLOCK_SUBCLASSES
+from encounter_generator.data.rules.subclasses.wizard import WIZARD_SUBCLASSES
+from encounter_generator.data.rules.feature_tables import SORCERER_METAMAGIC, WARLOCK_ELDRITCH_INVOCATIONS
+
+BRUTAL_STRIKE_OPTIONS = {
+    "forceful_blow": {
+        "name": "Forceful Blow",
+        "description": "The target is pushed 15ft straight away from you. You can then move up to half your Speed straight toward the target without provoking Opportunity Attacks."
+    },
+    "hamstring_blow": {
+        "name": "Hamstring Blow",
+        "description": "The target's Speed is reduced by 15ft until the start of your next turn. A target can be affected by only one Harmstring Blow at a time, the most recent one."
+    },
+    "staggering_blow": {
+        "name": "Staggering Blow",
+        "description": "The target has Disadvantage on the next saving throw it makes, and it can't make Opportunity Attacks until the start of your next turn."
+    },
+    "sundering_blow": {
+        "name": "Sundering Blow",
+        "description": "Before the start of your next turn, the next attack roll made by another creature against the target gains a +5 bonus to the roll. An attack roll can gain only one Sundering Blow bonus."
+    }
+}
 
 BARBARIAN = {
     "id": "barbarian",
@@ -108,11 +134,12 @@ BARBARIAN = {
             {
                 "id": "barbarian_subclass",
                 "name": "Barbarian Subclass",
+                "type": "subclass_choice",
                 "summary": "Choose a subclass: Path of the Berserker, Path of the Wild Heart, Path of the World Tree, or Path of the Zealot.",
                 "details": {
                     "choice": {
                         "choose": 1,
-                        "options": ["Path of the Berserker", "Path of the Wild Heart", "Path of the World Tree", "Path of the Zealot"]
+                        "options": ["berserker", "wild_heart", "world_tree", "zealot"]
                     },
                     "note": "Grants features at various levels."
                 }
@@ -137,12 +164,20 @@ BARBARIAN = {
             {
                 "id": "barbarian_extra_attack",
                 "name": "Extra Attack",
-                "summary": "Attack twice when taking the Attack action."
+                "summary": "Attack twice when taking the Attack action.",
             },
             {
                 "id": "barbarian_fast_movement",
                 "name": "Fast Movement",
                 "summary": "+10 ft movement while not wearing Heavy armor."
+            }
+        ],
+        6: [
+            {
+                "id": "barbarian_subclass_feature",
+                "name": "Subclass Feature",
+                "type": "subclass_feature",
+                "summary": "Gain a feature from your chosen Barbarian subclass."
             }
         ],
         7: [
@@ -164,8 +199,19 @@ BARBARIAN = {
                 "summary": "Add 1d10 damage and choose an extra effect when attacking recklessly.",
                 "details": {
                     "damage": "1d10",
-                    "effects": ["Forceful Blow", "Hamstring Blow"]
+                    "options": {
+                        "forceful_blow": BRUTAL_STRIKE_OPTIONS["forceful_blow"],
+                        "hamstring_blow": BRUTAL_STRIKE_OPTIONS["hamstring_blow"]
+                    }
                 }
+            }
+        ],
+        10: [
+            {
+                "id": "barbarian_subclass_feature",
+                "name": "Subclass Feature",
+                "type": "subclass_feature",
+                "summary": "Gain a feature from your chosen Barbarian subclass."
             }
         ],
         11: [
@@ -179,7 +225,21 @@ BARBARIAN = {
             {
                 "id": "barbarian_improved_brutal_strike",
                 "name": "Improved Brutal Strike",
-                "summary": "Add new options to Brutal Strike: Staggering Blow, Sundering Blow."
+                "summary": "Add new options to Brutal Strike: Staggering Blow, Sundering Blow.",
+                "details": {
+                    "added_options": {
+                        "staggering_blow": BRUTAL_STRIKE_OPTIONS["staggering_blow"],
+                        "sundering_blow": BRUTAL_STRIKE_OPTIONS["sundering_blow"]
+                    }
+                }
+            }
+        ],
+        14: [
+            {
+                "id": "barbarian_subclass_feature",
+                "name": "Subclass Feature",
+                "type": "subclass_feature",
+                "summary": "Gain a feature from your chosen Barbarian subclass."
             }
         ],
         15: [
@@ -332,11 +392,12 @@ BARD = {
             {
                 "id": "bard_subclass",
                 "name": "Bard Subclass",
+                "type": "subclass_choice",
                 "summary": "Choose a subclass: College Of Dance, College Of Glamour, College Of Lore, or College Of Valor.",
                 "details": {
                     "choice": {
                         "choose": 1,
-                        "options": ["College Of Dance", "College Of Glamour", "College Of Lore", "College Of Valor"]
+                        "options": ["dance", "glamour", "lore", "valor"]
                     },
                     "note": "Grants features at various levels."
                 }
@@ -358,6 +419,14 @@ BARD = {
                     "recharge": "Short or Long Rest",
                     "spell_slot_conversion": "Expend 1 slot to regain 1 use (no Action required)"
                 }
+            }
+        ],
+        6: [
+            {
+                "id": "bard_subclass_feature",
+                "name": "Subclass Feature",
+                "type": "subclass_feature",
+                "summary": "Gain a feature from your chosen Bard subclass."
             }
         ],
         7: [
@@ -408,6 +477,14 @@ BARD = {
                 "id": "feat_or_asi_12",
                 "name": "Feat or ASI",
                 "summary": "Choose a feat or increase ability scores."
+            }
+        ],
+        14: [
+            {
+                "id": "bard_subclass_feature",
+                "name": "Subclass Feature",
+                "type": "subclass_feature",
+                "summary": "Gain a feature from your chosen Bard subclass."
             }
         ],
         16: [
@@ -571,11 +648,12 @@ CLERIC = {
             {
                 "id": "cleric_subclass",
                 "name": "Cleric Subclass",
+                "type": "subclass_choice",
                 "summary": "Choose a divine domain: Life, Light, Trickery, or War.",
                 "details": {
                     "choice": {
                         "choose": 1,
-                        "options": ["Life Domain", "Light Domain", "Trickery Domain", "War Domain"]
+                        "options": ["life", "light", "trickery", "war"]
                     }
                 }
             }
@@ -597,6 +675,14 @@ CLERIC = {
                     "type": "Radiant",
                     "note": "Does not end the Turn Undead effect."
                 }
+            }
+        ],
+        6: [
+            {
+                "id": "cleric_subclass_feature",
+                "name": "Subclass Feature",
+                "type": "subclass_feature",
+                "summary": "Gain a feature from your chosen Cleric subclass."
             }
         ],
         7: [
@@ -663,6 +749,14 @@ CLERIC = {
                 "id": "feat_or_asi_16",
                 "name": "Feat or ASI",
                 "summary": "Choose a feat or increase ability scores."
+            }
+        ],
+        17: [
+            {
+                "id": "cleric_subclass_feature",
+                "name": "Subclass Feature",
+                "type": "subclass_feature",
+                "summary": "Gain a feature from your chosen Cleric subclass."
             }
         ],
         19: [
@@ -810,11 +904,12 @@ DRUID = {
             {
                 "id": "druid_subclass",
                 "name": "Druid Subclass",
+                "type": "subclass_choice",
                 "summary": "Choose a Druidic Circle: Land, Moon, Sea, or Stars.",
                 "details": {
                     "choice": {
                         "choose": 1,
-                        "options": ["Circle Of The Land", "Circle Of The Moon", "Circle Of The Sea", "Circle Of The Stars"]
+                        "options": ["land", "moon", "sea", "stars"]
                     }
                 }
             }
@@ -835,6 +930,14 @@ DRUID = {
                     "slot_to_wild_shape": "Expend spell slot to gain 1 use (if none left, 1/turn)",
                     "wild_shape_to_slot": "Expend 1 use to gain Level 1 slot (1/Long Rest)"
                 }
+            }
+        ],
+        6: [
+            {
+                "id": "druid_subclass_feature",
+                "name": "Subclass Feature",
+                "type": "subclass_feature",
+                "summary": "Gain a feature from your chosen Druid subclass."
             }
         ],
         7: [
@@ -866,11 +969,27 @@ DRUID = {
                 "summary": "Choose a feat or increase ability scores."
             }
         ],
+        10: [
+            {
+                "id": "druid_subclass_feature",
+                "name": "Subclass Feature",
+                "type": "subclass_feature",
+                "summary": "Gain a feature from your chosen Druid subclass."
+            }
+        ],
         12: [
             {
                 "id": "feat_or_asi_12",
                 "name": "Feat or ASI",
                 "summary": "Choose a feat or increase ability scores."
+            }
+        ],
+        14: [
+            {
+                "id": "druid_subclass_feature",
+                "name": "Subclass Feature",
+                "type": "subclass_feature",
+                "summary": "Gain a feature from your chosen Druid subclass."
             }
         ],
         15: [
@@ -1037,11 +1156,12 @@ FIGHTER = {
             {
                 "id": "fighter_subclass",
                 "name": "Fighter Subclass",
+                "type": "subclass_choice",
                 "summary": "Choose a martial archetype: Battle Master, Champion, Eldritch Knight, or Psi Warrior.",
                 "details": {
                     "choice": {
                         "choose": 1,
-                        "options": ["Battle Master", "Champion", "Eldritch Knight", "Psi Warrior"]
+                        "options": ["battle_master", "champion", "eldritch_knight", "psi_warrior"]
                     }
                 }
             }
@@ -1070,6 +1190,14 @@ FIGHTER = {
                 "id": "feat_or_asi_6",
                 "name": "Feat or ASI",
                 "summary": "Choose a feat or increase ability scores."
+            }
+        ],
+        7: [
+            {
+                "id": "fighter_subclass_feature",
+                "name": "Subclass Feature",
+                "type": "subclass_feature",
+                "summary": "Gain a feature from your chosen Fighter subclass."
             }
         ],
         8: [
@@ -1106,6 +1234,14 @@ FIGHTER = {
                 }
             }
         ],
+        10: [
+            {
+                "id": "fighter_subclass_feature",
+                "name": "Subclass Feature",
+                "type": "subclass_feature",
+                "summary": "Gain a feature from your chosen Fighter subclass."
+            }
+        ],
         11: [
             {
                 "id": "fighter_extra_attack_2",
@@ -1134,11 +1270,27 @@ FIGHTER = {
                 "summary": "Choose a feat or increase ability scores."
             }
         ],
+        15: [
+            {
+                "id": "fighter_subclass_feature",
+                "name": "Subclass Feature",
+                "type": "subclass_feature",
+                "summary": "Gain a feature from your chosen Fighter subclass."
+            }
+        ],
         16: [
             {
                 "id": "feat_or_asi_16",
                 "name": "Feat or ASI",
                 "summary": "Choose a feat or increase ability scores."
+            }
+        ],
+        18: [
+            {
+                "id": "fighter_subclass_feature",
+                "name": "Subclass Feature",
+                "type": "subclass_feature",
+                "summary": "Gain a feature from your chosen Fighter subclass."
             }
         ],
         19: [
@@ -1298,11 +1450,12 @@ MONK = {
             {
                 "id": "monk_subclass",
                 "name": "Monk Subclass",
+                "type": "subclass_choice",
                 "summary": "Choose a monastic tradition: Warrior of Mercy, Shadow, Elements, or Open Hand.",
                 "details": {
                     "choice": {
                         "choose": 1,
-                        "options": ["Warrior of Mercy", "Warrior of Shadow", "Warrior of the Elements", "Warrior of the Open Hand"]
+                        "options": ["mercy", "shadow", "elements", "open_hand"]
                     }
                 }
             }
@@ -1342,6 +1495,12 @@ MONK = {
                 "id": "monk_empowered_strikes",
                 "name": "Empowered Strikes",
                 "summary": "Unarmed strikes can deal Force damage instead of Bludgeoning."
+            },
+            {
+                "id": "monk_subclass_feature",
+                "name": "Subclass Feature",
+                "type": "subclass_feature",
+                "summary": "Gain a feature from your chosen Monk subclass."
             }
         ],
         7: [
@@ -1375,6 +1534,14 @@ MONK = {
                 "summary": "Remove Charmed, Frightened, or Poisoned at end of turn; no exhaustion from lack of food/drink."
             }
         ],
+        11: [
+            {
+                "id": "monk_subclass_feature",
+                "name": "Subclass Feature",
+                "type": "subclass_feature",
+                "summary": "Gain a feature from your chosen Monk subclass."
+            }
+        ],
         13: [
             {
                 "id": "monk_deflect_energy",
@@ -1398,6 +1565,14 @@ MONK = {
                 "id": "monk_perfect_focus",
                 "name": "Perfect Focus",
                 "summary": "Regain Focus Points up to 4 if you have 3 or fewer when rolling Initiative."
+            }
+        ],
+        17: [
+            {
+                "id": "monk_subclass_feature",
+                "name": "Subclass Feature",
+                "type": "subclass_feature",
+                "summary": "Gain a feature from your chosen Monk subclass."
             }
         ],
         18: [
@@ -1432,6 +1607,7 @@ MONK = {
 PALADIN = {
     "id": "paladin",
     "name": "Paladin",
+    "subclasses": PALADIN_SUBCLASSES,
     "description": """Paladins are holy warriors bound by sacred oaths to serve a higher power or cause. 
         They combine martial prowess with divine magic, using their power to heal the wounded, 
         smite the wicked, and protect their allies with powerful auras of grace and courage.""",
@@ -1549,11 +1725,12 @@ PALADIN = {
             {
                 "id": "paladin_subclass",
                 "name": "Paladin Subclass",
+                "type": "subclass_choice",
                 "summary": "Choose a Sacred Oath: Devotion, Glory, Ancients, or Vengeance.",
                 "details": {
                     "choice": {
                         "choose": 1,
-                        "options": ["Oath Of Devotion", "Oath Of Glory", "Oath Of The Ancients", "Oath Of Vengeance"]
+                        "options": ["devotion", "glory", "ancients", "vengeance"]
                     }
                 }
             }
@@ -1590,6 +1767,14 @@ PALADIN = {
                     "range": "10 ft",
                     "bonus": "Charisma modifier (min +1)"
                 }
+            }
+        ],
+        7: [
+            {
+                "id": "paladin_subclass_feature",
+                "name": "Subclass Feature",
+                "type": "subclass_feature",
+                "summary": "Gain a feature from your chosen Paladin subclass."
             }
         ],
         8: [
@@ -1653,6 +1838,14 @@ PALADIN = {
                 }
             }
         ],
+        15: [
+            {
+                "id": "paladin_subclass_feature",
+                "name": "Subclass Feature",
+                "type": "subclass_feature",
+                "summary": "Gain a feature from your chosen Paladin subclass."
+            }
+        ],
         16: [
             {
                 "id": "feat_or_asi_16",
@@ -1673,6 +1866,14 @@ PALADIN = {
                 "name": "Epic Boon or Feat",
                 "summary": "Choose a powerful Epic Boon or another feat."
             }
+        ],
+        20: [
+            {
+                "id": "paladin_subclass_feature",
+                "name": "Subclass Feature",
+                "type": "subclass_feature",
+                "summary": "Gain a feature from your chosen Paladin subclass."
+            }
         ]
     }
 }
@@ -1680,6 +1881,7 @@ PALADIN = {
 RANGER = {
     "id": "ranger",
     "name": "Ranger",
+    "subclasses": RANGER_SUBCLASSES,
     "description": """Rangers are masters of the wilderness, combining martial skill with primal magic. 
         They excel at tracking and hunting dangerous foes, using their deep connection to nature to 
         navigate treacherous terrain and strike with deadly precision.""",
@@ -1786,11 +1988,12 @@ RANGER = {
             {
                 "id": "ranger_subclass",
                 "name": "Ranger Subclass",
+                "type": "subclass_choice",
                 "summary": "Choose a Ranger Archetype: Beast Master, Fey Wanderer, Gloom Stalker, or Hunter.",
                 "details": {
                     "choice": {
                         "choose": 1,
-                        "options": ["Beast Master", "Fey Wanderer", "Gloom Stalker", "Hunter"]
+                        "options": ["beast_master", "fey_wanderer", "gloom_stalker", "hunter"]
                     }
                 }
             }
@@ -1819,6 +2022,14 @@ RANGER = {
                     "modes": ["Climb", "Swim"],
                     "restriction": "No Heavy Armor"
                 }
+            }
+        ],
+        7: [
+            {
+                "id": "ranger_subclass_feature",
+                "name": "Subclass Feature",
+                "type": "subclass_feature",
+                "summary": "Gain a feature from your chosen Ranger subclass."
             }
         ],
         8: [
@@ -1851,6 +2062,14 @@ RANGER = {
                 }
             }
         ],
+        11: [
+            {
+                "id": "ranger_subclass_feature",
+                "name": "Subclass Feature",
+                "type": "subclass_feature",
+                "summary": "Gain a feature from your chosen Ranger subclass."
+            }
+        ],
         12: [
             {
                 "id": "feat_or_asi_12",
@@ -1875,6 +2094,14 @@ RANGER = {
                     "uses": "Wisdom modifier (min 1)",
                     "recharge": "Long Rest"
                 }
+            }
+        ],
+        15: [
+            {
+                "id": "ranger_subclass_feature",
+                "name": "Subclass Feature",
+                "type": "subclass_feature",
+                "summary": "Gain a feature from your chosen Ranger subclass."
             }
         ],
         16: [
@@ -1921,6 +2148,7 @@ RANGER = {
 ROGUE = {
     "id": "rogue",
     "name": "Rogue",
+    "subclasses": ROGUE_SUBCLASSES,
     "description": """Rogues are masters of stealth, skill, and precision. They excel at exploiting 
         their enemies' weaknesses, striking with deadly accuracy when their foes are distracted, 
         and using a vast array of tools and talents to overcome any obstacle.""",
@@ -2004,11 +2232,12 @@ ROGUE = {
             {
                 "id": "rogue_subclass",
                 "name": "Rogue Subclass",
+                "type": "subclass_choice",
                 "summary": "Choose a Rogue Archetype: Arcane Trickster, Assassin, Soulknife, or Thief.",
                 "details": {
                     "choice": {
                         "choose": 1,
-                        "options": ["Arcane Trickster", "Assassin", "Soulknife", "Thief"]
+                        "options": ["arcane_trickster", "assassin", "soulknife", "thief"]
                     }
                 }
             },
@@ -2078,6 +2307,14 @@ ROGUE = {
                 "summary": "Choose a feat or increase ability scores."
             }
         ],
+        9: [
+            {
+                "id": "rogue_subclass_feature",
+                "name": "Subclass Feature",
+                "type": "subclass_feature",
+                "summary": "Gain a feature from your chosen Rogue subclass."
+            }
+        ],
         10: [
             {
                 "id": "feat_or_asi_10",
@@ -2097,6 +2334,14 @@ ROGUE = {
                 "id": "feat_or_asi_12",
                 "name": "Feat or ASI",
                 "summary": "Choose a feat or increase ability scores."
+            }
+        ],
+        13: [
+            {
+                "id": "rogue_subclass_feature",
+                "name": "Subclass Feature",
+                "type": "subclass_feature",
+                "summary": "Gain a feature from your chosen Rogue subclass."
             }
         ],
         14: [
@@ -2130,6 +2375,14 @@ ROGUE = {
                 "summary": "Choose a feat or increase ability scores."
             }
         ],
+        17: [
+            {
+                "id": "rogue_subclass_feature",
+                "name": "Subclass Feature",
+                "type": "subclass_feature",
+                "summary": "Gain a feature from your chosen Rogue subclass."
+            }
+        ],
         18: [
             {
                 "id": "rogue_elusive",
@@ -2160,6 +2413,7 @@ ROGUE = {
 SORCERER = {
     "id": "sorcerer",
     "name": "Sorcerer",
+    "subclasses": SORCERER_SUBCLASSES,
     "description": """Sorcerers carry a magical birthright conferred upon them by an exotic bloodline, 
         some otherworldly influence, or exposure to unknown cosmic forces. Their magic is not 
         studied but innate, flowing from a wellspring of power within.""",
@@ -2253,7 +2507,8 @@ SORCERER = {
                             "10-16": 4,
                             "17-20": 6
                         }
-                    }
+                    },
+                    "options": SORCERER_METAMAGIC
                 }
             }
         ],
@@ -2261,11 +2516,12 @@ SORCERER = {
             {
                 "id": "sorcerer_subclass",
                 "name": "Sorcerer Subclass",
+                "type": "subclass_choice",
                 "summary": "Choose a Sorcerous Origin: Aberrant, Clockwork, Draconic, or Wild Magic.",
                 "details": {
                     "choice": {
                         "choose": 1,
-                        "options": ["Aberrant Sorcery", "Clockwork Sorcery", "Draconic Sorcery", "Wild Magic Sorcery"]
+                        "options": ["aberrant_sorcery", "clockwork_sorcery", "draconic_sorcery", "wild_magic_sorcery"]
                     }
                 }
             }
@@ -2287,6 +2543,14 @@ SORCERER = {
                     "amount": "Level / 2 (round down)",
                     "recharge": "Long Rest"
                 }
+            }
+        ],
+        6: [
+            {
+                "id": "sorcerer_subclass_feature",
+                "name": "Subclass Feature",
+                "type": "subclass_feature",
+                "summary": "Gain a feature from your chosen Sorcerer subclass."
             }
         ],
         7: [
@@ -2314,11 +2578,27 @@ SORCERER = {
                 "summary": "Choose a feat or increase ability scores."
             }
         ],
+        14: [
+            {
+                "id": "sorcerer_subclass_feature",
+                "name": "Subclass Feature",
+                "type": "subclass_feature",
+                "summary": "Gain a feature from your chosen Sorcerer subclass."
+            }
+        ],
         16: [
             {
                 "id": "feat_or_asi_16",
                 "name": "Feat or ASI",
                 "summary": "Choose a feat or increase ability scores."
+            }
+        ],
+        18: [
+            {
+                "id": "sorcerer_subclass_feature",
+                "name": "Subclass Feature",
+                "type": "subclass_feature",
+                "summary": "Gain a feature from your chosen Sorcerer subclass."
             }
         ],
         19: [
@@ -2344,6 +2624,7 @@ SORCERER = {
 WARLOCK = {
     "id": "warlock",
     "name": "Warlock",
+    "subclasses": WARLOCK_SUBCLASSES,
     "description": """Warlocks are seekers of knowledge that lie hidden in the fabric of the multiverse. 
         Through pacts made with mysterious beings of great power, warlocks unlock magical effects, 
         both subtle and spectacular.""",
@@ -2396,7 +2677,8 @@ WARLOCK = {
                         "scaling": {
                             "1": 1, "2": 3, "5": 5, "7": 6, "9": 7, "12": 8, "15": 9, "18": 10
                         }
-                    }
+                    },
+                    "options": WARLOCK_ELDRITCH_INVOCATIONS
                 }
             },
             {
@@ -2420,11 +2702,12 @@ WARLOCK = {
             {
                 "id": "warlock_subclass",
                 "name": "Warlock Subclass",
+                "type": "subclass_choice",
                 "summary": "Choose a Otherworldly Patron: Archfey, Celestial, Fiend, or Great Old One.",
                 "details": {
                     "choice": {
                         "choose": 1,
-                        "options": ["Archfey Patron", "Celestial Patron", "Fiend Patron", "Great Old One Patron"]
+                        "options": ["archfey_patron", "celestial_patron", "fiend_patron", "great_old_one_patron"]
                     }
                 }
             }
@@ -2434,6 +2717,14 @@ WARLOCK = {
                 "id": "feat_or_asi_4",
                 "name": "Feat or ASI",
                 "summary": "Choose a feat or increase ability scores."
+            }
+        ],
+        6: [
+            {
+                "id": "warlock_subclass_feature",
+                "name": "Subclass Feature",
+                "type": "subclass_feature",
+                "summary": "Gain a feature from your chosen Warlock subclass."
             }
         ],
         8: [
@@ -2453,6 +2744,14 @@ WARLOCK = {
                     "free_cast_benefit": "Auto-success on saving throw",
                     "recharge": "Long Rest"
                 }
+            }
+        ],
+        10: [
+            {
+                "id": "warlock_subclass_feature",
+                "name": "Subclass Feature",
+                "type": "subclass_feature",
+                "summary": "Gain a feature from your chosen Warlock subclass."
             }
         ],
         11: [
@@ -2482,6 +2781,14 @@ WARLOCK = {
                     "arcanum_level": 7,
                     "recharge": "Long Rest"
                 }
+            }
+        ],
+        14: [
+            {
+                "id": "warlock_subclass_feature",
+                "name": "Subclass Feature",
+                "type": "subclass_feature",
+                "summary": "Gain a feature from your chosen Warlock subclass."
             }
         ],
         15: [
@@ -2533,6 +2840,7 @@ WARLOCK = {
 WIZARD = {
     "id": "wizard",
     "name": "Wizard",
+    "subclasses": WIZARD_SUBCLASSES,
     "description": """Wizards are supreme magic-users, defined and united as a class by the spells 
         they cast. Drawing on the subtle weave of magic that permeates the cosmos, wizards cast 
         spells of explosive fire, arcing lightning, subtle deception, and brute-force mind control.""",
@@ -2616,11 +2924,12 @@ WIZARD = {
             {
                 "id": "wizard_subclass",
                 "name": "Wizard Subclass",
+                "type": "subclass_choice",
                 "summary": "Choose an Arcane Tradition: Abjurer, Diviner, Evoker, or Illusionist.",
                 "details": {
                     "choice": {
                         "choose": 1,
-                        "options": ["Abjurer", "Diviner", "Evoker", "Illusionist"]
+                        "options": ["abjurer", "diviner", "evoker", "illusionist"]
                     }
                 }
             }
@@ -2639,6 +2948,14 @@ WIZARD = {
                 "summary": "After a Short Rest, swap one prepared level 1+ spell for another in your spellbook."
             }
         ],
+        6: [
+            {
+                "id": "wizard_subclass_feature",
+                "name": "Subclass Feature",
+                "type": "subclass_feature",
+                "summary": "Gain a feature from your chosen Wizard subclass."
+            }
+        ],
         8: [
             {
                 "id": "feat_or_asi_8",
@@ -2646,11 +2963,27 @@ WIZARD = {
                 "summary": "Choose a feat or increase ability scores."
             }
         ],
+        10: [
+            {
+                "id": "wizard_subclass_feature",
+                "name": "Subclass Feature",
+                "type": "subclass_feature",
+                "summary": "Gain a feature from your chosen Wizard subclass."
+            }
+        ],
         12: [
             {
                 "id": "feat_or_asi_12",
                 "name": "Feat or ASI",
                 "summary": "Choose a feat or increase ability scores."
+            }
+        ],
+        14: [
+            {
+                "id": "wizard_subclass_feature",
+                "name": "Subclass Feature",
+                "type": "subclass_feature",
+                "summary": "Gain a feature from your chosen Wizard subclass."
             }
         ],
         16: [
@@ -2690,9 +3023,3 @@ WIZARD = {
         ]
     }
 }
-
-
-
-
-
-

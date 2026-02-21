@@ -72,6 +72,12 @@ THIRD_CASTER_SLOTS = {
     20: {"1": 4, "2": 3, "3": 3, "4": 1}
 }
 
+# Number of spells prepared for third casters (Eldritch Knight, Arcane Trickster)
+THIRD_CASTER_PREPARED = {
+    3: 3, 4: 4, 7: 5, 8: 6, 10: 7, 11: 8,
+    13: 9, 14: 10, 16: 11, 19: 12, 20: 13
+}
+
 # Warlock uses Pact Magic (different from standard spell slots)
 PACT_MAGIC_SLOTS = {
     1: {"1": 1},

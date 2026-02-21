@@ -216,5 +216,66 @@ MONK_SUBCLASSES = {
                 }
             ]
         }
+    },
+    "open_hand": {
+        "id": "open_hand",
+        "name": "Warrior of the Open Hand",
+        "description": "Monks of the Way of the Open Hand are the ultimate masters of martial arts combat, whether armed or unarmed. They learn techniques to push and trip their opponents, manipulate focus to heal their bodies, and eventually master the technique of the Quivering Palm to deal lethal strikes with a single touch.",
+        "features": {
+            3: [
+                {
+                    "id": "open_hand_technique",
+                    "name": "Open Hand Technique",
+                    "summary": "Impose Addle (no reactions), Push (15ft), or Topple (Prone) when hitting with Flurry of Blows.",
+                    "details": {
+                        "trigger": "Hit with Flurry of Blows attack",
+                        "options": {
+                            "addle": "Target can't make Opportunity Attacks until start of its next turn",
+                            "push": "Strength save or pushed 15ft away",
+                            "topple": "Dexterity save or Prone condition"
+                        }
+                    }
+                }
+            ],
+            6: [
+                {
+                    "id": "open_hand_wholeness_of_body",
+                    "name": "Wholeness Of Body",
+                    "summary": "Bonus Action: heal 1 Martial Arts die + Wisdom mod HP (Wis mod/Long Rest).",
+                    "details": {
+                        "action": "Bonus Action",
+                        "healing": "1 Martial Arts die + Wisdom modifier",
+                        "uses": "Wisdom modifier (minimum 1)",
+                        "recharge": "Long Rest"
+                    }
+                }
+            ],
+            11: [
+                {
+                    "id": "open_hand_fleet_step",
+                    "name": "Fleet Step",
+                    "summary": "When taking a Bonus Action other than Step of the Wind, use Step of the Wind for free immediately after.",
+                    "details": {
+                        "trigger": "Any Bonus Action except Step of the Wind",
+                        "effect": "Use Step of the Wind immediately after"
+                    }
+                }
+            ],
+            17: [
+                {
+                    "id": "open_hand_quivering_palm",
+                    "name": "Quivering Palm",
+                    "summary": "Expend 4 Focus Points to set up lethal vibrations (10d12 Force damage when ended).",
+                    "details": {
+                        "activation_cost": "4 Focus Points",
+                        "trigger": "Hit with Unarmed Strike",
+                        "duration": "Days equal to Monk level",
+                        "execution": "Action (or forgo 1 Attack) while on same plane",
+                        "damage": "10d12 Force (Half on failed Con save)",
+                        "limit": "Only one creature at a time"
+                    }
+                }
+            ]
+        }
     }
 }

@@ -61,7 +61,7 @@ function CharacterForm() {
         Aasimar: [],
         Dragonborn: ["Black", "Blue", "Brass", "Bronze", "Copper", "Gold", "Green", "Red", "Silver", "White"],
         Dwarf: [],
-        Elf: ["Drow", "High Elf", "Wood Elf"],
+        Elf: ["Drow", "High", "Wood"],
         Gnome: ["Forest", "Rock"],
         Goliath: ["Cloud", "Fire", "Frost", "Hill", "Stone", "Storm"],
         Halfling: [],

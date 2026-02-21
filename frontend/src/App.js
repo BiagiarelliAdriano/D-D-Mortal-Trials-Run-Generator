@@ -3,6 +3,7 @@ import CharactersHub from "./components/CharactersHub";
 import CharacterSheet from "./components/CharacterSheet";
 import CharacterForm from "./components/CharacterForm";
 import "./App.css";
+import "./styles/theme.css";
 
 function App() {
   return (
