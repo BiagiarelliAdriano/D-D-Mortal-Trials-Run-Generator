@@ -21,6 +21,13 @@ const proficiencyBonus = (level) => {
     return 2;
 };
 
+const XP_THRESHOLDS = {
+    1: 0, 2: 300, 3: 900, 4: 2700, 5: 6500,
+    6: 14000, 7: 23000, 8: 34000, 9: 48000, 10: 64000,
+    11: 85000, 12: 100000, 13: 120000, 14: 140000, 15: 165000,
+    16: 195000, 17: 225000, 18: 265000, 19: 305000, 20: 355000
+};
+
 
 function CharacterSheet() {
     const { id } = useParams();
@@ -40,6 +47,9 @@ function CharacterSheet() {
     const [isLayoutLocked, setIsLayoutLocked] = useState(true);
     const [expandedFeatures, setExpandedFeatures] = useState({});
     const [featureFilter, setFeatureFilter] = useState("All");
+    const [xp, setXp] = useState(0);
+    const [tempXp, setTempXp] = useState("");
+    const [showXpEditor, setShowXpEditor] = useState(false);
 
     // New HP related states
     const [currentHp, setCurrentHp] = useState(0);
@@ -61,6 +71,8 @@ function CharacterSheet() {
                 setSkills(data.data.skillProficiencies || {}); // Use 'skills'
                 setInventoryItems(data.data.inventory || []); // Use 'inventoryItems'
                 setGold(data.data.gold || 0);
+                setXp(data.data.xp || 0);
+                setTempXp(data.data.xp || 0);
 
                 // Initialize HP states
                 const constitutionScore = data.data.abilities.constitution;
@@ -129,6 +141,85 @@ function CharacterSheet() {
         }
     }, [currentHp, effectiveMaxHp, saveCharacter, loading]);
 
+
+    useEffect(() => {
+        if (showXpEditor) {
+            setTempXp(xp.toString());
+        }
+    }, [showXpEditor, xp]);
+
+    const handleLevelUp = () => {
+        if (!character) return;
+        const nextLevel = character.level + 1;
+        const requiredXp = XP_THRESHOLDS[nextLevel] || 0;
+
+        if (xp < requiredXp) {
+            alert(`Not enough XP to level up to ${nextLevel}. Required: ${requiredXp}`);
+            return;
+        }
+
+        fetch(`http://localhost:5000/api/characters/${id}/levelup`, {
+            method: "POST"
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    // Update local state to reflect level up
+                    setCharacter(prev => ({ ...prev, level: data.new_level }));
+                    // Potentially re-fetch full data to update HP etc.
+                    window.location.reload(); // Simplest way to refresh all rules and HP
+                } else {
+                    alert(data.error || "Level up failed");
+                }
+            })
+            .catch(err => console.error("Error during level up:", err));
+    };
+
+    const handleLevelDown = () => {
+        if (!character) return;
+        if (!window.confirm("Are you sure you want to level down? This will reset your stats for the previous level.")) return;
+
+        fetch(`http://localhost:5000/api/characters/${id}/leveldown`, {
+            method: "POST"
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.reload();
+                } else {
+                    alert(data.error || "Level down failed");
+                }
+            })
+            .catch(err => console.error("Error during level down:", err));
+    };
+
+    const handleXpAdjust = (amount) => {
+        const currentThreshold = XP_THRESHOLDS[character.level] || 0;
+        const nextThreshold = XP_THRESHOLDS[character.level + 1] || Infinity;
+        const newXp = Math.max(currentThreshold, Math.min(nextThreshold, xp + amount));
+        setXp(newXp);
+        setTempXp(newXp.toString());
+        saveCharacter({ xp: newXp });
+    };
+
+    const handleXpBlur = () => {
+        let val = parseInt(tempXp) || 0;
+        const currentThreshold = XP_THRESHOLDS[character.level] || 0;
+        const nextThreshold = Math.min(999999, XP_THRESHOLDS[character.level + 1] || 999999);
+
+        // If lower than threshold, reset to minimum
+        if (val < currentThreshold) {
+            val = currentThreshold;
+        }
+        // If higher than next level requirement (or 999,999), cap it
+        if (val > nextThreshold) {
+            val = nextThreshold;
+        }
+
+        setXp(val);
+        setTempXp(val.toString());
+        saveCharacter({ xp: val });
+    };
 
     const ABILITY_SCORES = useMemo(() => [
         { name: "Strength", key: "strength" },
@@ -322,7 +413,31 @@ function CharacterSheet() {
                 <div key="header" className="widget card header-widget">
                     {!isLayoutLocked && <div className="widget-handle">⠿</div>}
                     <div className="header-content">
-                        <h2>{character.name} <span className="level-badge">Lvl {character.level}</span></h2>
+                        <div className="header-main">
+                            <div>
+                                <h2>{character.name} <span className="level-badge">Lvl {character.level}</span></h2>
+                                <div className="xp-bar-container" onClick={() => setShowXpEditor(true)} style={{ cursor: "pointer" }} title="Edit Experience">
+                                    <span className="xp-text">XP: {xp} / {XP_THRESHOLDS[character.level + 1] || "MAX"}</span>
+                                    {character.level < 20 && (
+                                        <div className="xp-progress-bg">
+                                            <div
+                                                className="xp-progress-fill"
+                                                style={{ width: `${Math.min(100, (xp / XP_THRESHOLDS[character.level + 1]) * 100)}%` }}
+                                            ></div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                            {character.level < 20 && (
+                                <button
+                                    className={`levelup-button ${xp >= (XP_THRESHOLDS[character.level + 1] || 0) ? "available" : "locked"}`}
+                                    onClick={handleLevelUp}
+                                    disabled={xp < (XP_THRESHOLDS[character.level + 1] || 0)}
+                                >
+                                    {xp >= (XP_THRESHOLDS[character.level + 1] || 0) ? "✧ LEVEL UP ✧" : "Level Up"}
+                                </button>
+                            )}
+                        </div>
                         <div className="header-details">
                             <span>{character.class.name}</span>
                             <span>{character.data.species}</span>
@@ -479,6 +594,68 @@ function CharacterSheet() {
                     </div>
                 </div>
             </ResponsiveGridLayout>
+
+            {showXpEditor && (
+                <div className="xp-editor-overlay" onClick={() => setShowXpEditor(false)}>
+                    <div className="xp-editor-panel" onClick={e => e.stopPropagation()}>
+                        <div className="xp-editor-header">
+                            <h3>✧ Experience Editor ✧</h3>
+                            <button className="close-btn" onClick={() => setShowXpEditor(false)}>×</button>
+                        </div>
+
+                        <div className="xp-editor-body">
+                            <div className="xp-status">
+                                <span>Current Level: <strong>{character.level}</strong></span>
+                                <span>Current XP: <strong>{xp}</strong></span>
+                            </div>
+
+                            <div className="xp-controls">
+                                <label>Adjust Experience</label>
+                                <div className="xp-adjust-row">
+                                    <button onClick={() => handleXpAdjust(-10)}>-10</button>
+                                    <button onClick={() => handleXpAdjust(-1)}>-1</button>
+                                    <input
+                                        type="text"
+                                        inputMode="numeric"
+                                        pattern="[0-9]*"
+                                        value={tempXp}
+                                        onChange={(e) => {
+                                            const rawVal = e.target.value.replace(/\D/g, "");
+                                            if (rawVal === "" || (parseInt(rawVal) <= 999999)) {
+                                                setTempXp(rawVal);
+                                            }
+                                        }}
+                                        onBlur={handleXpBlur}
+                                    />
+                                    <button onClick={() => handleXpAdjust(1)}>+1</button>
+                                    <button onClick={() => handleXpAdjust(10)}>+10</button>
+                                </div>
+                                <div className="xp-threshold-hint">
+                                    Next Level: {XP_THRESHOLDS[character.level + 1] || "None"} XP
+                                </div>
+                            </div>
+
+                            <div className="xp-actions">
+                                <button
+                                    className="action-btn levelup-btn"
+                                    onClick={handleLevelUp}
+                                    disabled={xp < (XP_THRESHOLDS[character.level + 1] || 0) || character.level >= 20}
+                                >
+                                    ✧ Level Up ✧
+                                </button>
+                                <button
+                                    className="action-btn leveldown-btn"
+                                    onClick={handleLevelDown}
+                                    disabled={character.level <= 1 || xp !== (XP_THRESHOLDS[character.level] || 0)}
+                                    title={xp !== (XP_THRESHOLDS[character.level] || 0) ? `Reset XP to ${XP_THRESHOLDS[character.level]} to Level Down` : ""}
+                                >
+                                    ⚠ Level Down
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

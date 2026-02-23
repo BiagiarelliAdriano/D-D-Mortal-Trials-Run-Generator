@@ -151,9 +151,89 @@ h3,
 
 .header-content h2 {
     margin: 0;
-    font-size: 2rem;
+    font-size: 2.2rem;
     color: var(--accent);
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.header-main {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.xp-bar-container {
+    margin-top: 5px;
+    width: 250px;
+}
+
+.xp-text {
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    display: block;
+    margin-bottom: 4px;
+    font-family: var(--font-serif);
+}
+
+.xp-progress-bg {
+    height: 6px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 3px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 215, 0, 0.1);
+}
+
+.xp-progress-fill {
+    height: 100%;
+    background: linear-gradient(to right, var(--primary), var(--accent));
+    box-shadow: 0 0 10px var(--primary-glow);
+    transition: width 0.5s ease-out;
+}
+
+.levelup-button {
+    padding: 10px 25px;
+    font-family: var(--font-serif);
+    font-size: 1rem;
+    font-weight: bold;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid transparent;
+}
+
+.levelup-button.available {
+    background: var(--accent);
+    color: #1e1e2f;
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.4);
+    animation: pulse-gold 2s infinite;
+}
+
+.levelup-button.available:hover {
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 0 30px rgba(255, 215, 0, 0.6);
+}
+
+.levelup-button.locked {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+@keyframes pulse-gold {
+    0% {
+        box-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
+    }
+
+    50% {
+        box-shadow: 0 0 25px rgba(255, 215, 0, 0.7);
+    }
+
+    100% {
+        box-shadow: 0 0 10px rgba(255, 215, 0, 0.4);
+    }
 }
 
 .level-badge {
@@ -163,6 +243,8 @@ h3,
     border-radius: 6px;
     font-size: 0.9rem;
     font-weight: bold;
+    vertical-align: middle;
+    margin-left: 10px;
 }
 
 .header-details {
@@ -367,4 +449,158 @@ h3,
     height: 8px;
     border-right: 2px solid var(--accent);
     border-bottom: 2px solid var(--accent);
+}
+
+/* XP Editor Sidebar */
+.xp-editor-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    z-index: 1000;
+    display: flex;
+    justify-content: flex-end;
+    /* Slide in from right effect */
+}
+
+.xp-editor-panel {
+    width: 400px;
+    height: 100%;
+    background: var(--bg-dark);
+    border-left: 2px solid var(--accent);
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: -10px 0 30px rgba(0, 0, 0, 0.5);
+    animation: slideInRight 0.3s ease-out;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+    }
+
+    to {
+        transform: translateX(0);
+    }
+}
+
+.xp-editor-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 15px;
+    margin-bottom: 25px;
+}
+
+.xp-editor-header h3 {
+    margin: 0;
+    color: var(--accent);
+}
+
+.close-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+
+.xp-status {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 25px;
+}
+
+.xp-controls {
+    margin-bottom: 30px;
+}
+
+.xp-controls label {
+    display: block;
+    margin-bottom: 10px;
+    color: var(--accent);
+    font-size: 0.9rem;
+}
+
+.xp-adjust-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.xp-adjust-row button {
+    padding: 8px 12px;
+    background: var(--primary);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: white;
+    cursor: pointer;
+}
+
+.xp-adjust-row input {
+    flex: 1;
+    background: black;
+    border: 1px solid var(--border);
+    color: var(--accent);
+    padding: 8px;
+    text-align: center;
+    border-radius: 4px;
+}
+
+.xp-threshold-hint {
+    margin-top: 8px;
+    font-size: 0.8rem;
+    color: var(--text-dim);
+}
+
+.xp-actions {
+    margin-top: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.xp-actions .action-btn {
+    width: 100%;
+    padding: 15px;
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.levelup-btn {
+    background: var(--accent);
+    color: black;
+    border: none;
+}
+
+.levelup-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.leveldown-btn {
+    background: transparent;
+    border: 1px solid #ff4444;
+    color: #ff4444;
+}
+
+.leveldown-btn:hover:not(:disabled) {
+    background: rgba(255, 68, 68, 0.1);
+}
+
+.leveldown-btn:disabled {
+    opacity: 0.2;
+    filter: grayscale(1);
+    cursor: not-allowed;
 }

@@ -22,6 +22,7 @@ DEFAULT_CHARACTER_DATA = {
     "class_name": "",
     "subclass": "",
     "level": 1,
+    "xp": 0,
     "background": "",
     
     "hp_current": 0,

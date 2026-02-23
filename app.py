@@ -9,6 +9,29 @@ from encounter_generator.data.rules.backgrounds import BACKGROUNDS
 import json
 import os
 
+XP_THRESHOLDS = {
+    1: 0,
+    2: 300,
+    3: 900,
+    4: 2700,
+    5: 6500,
+    6: 14000,
+    7: 23000,
+    8: 34000,
+    9: 48000,
+    10: 64000,
+    11: 85000,
+    12: 100000,
+    13: 120000,
+    14: 140000,
+    15: 165000,
+    16: 195000,
+    17: 225000,
+    18: 265000,
+    19: 305000,
+    20: 355000
+}
+
 app = Flask(__name__)
 CORS(app)
 
@@ -81,7 +104,8 @@ def api_characters():
             "abilities": json.loads(data.get("abilities", "{}")),
             "species": data.get("species"),
             "species_variant": data.get("species_variant"),
-            "background": data.get("background")
+            "background": data.get("background"),
+            "xp": XP_THRESHOLDS.get(int(data.get("level", 1)), 0)
         }
 
         # Initialize Inventory and Gold
@@ -176,6 +200,59 @@ def api_character_detail(char_id):
         },
         "data": data
     })
+
+@app.route("/api/characters/<int:char_id>/levelup", methods=["POST"])
+def api_character_levelup(char_id):
+    character = Character.query.get_or_404(char_id)
+    data = character.get_data()
+    
+    current_level = data.get("level", 1)
+    if current_level >= 20:
+        return jsonify({"error": "Character is already at max level"}), 400
+        
+    next_level = current_level + 1
+    xp_required = XP_THRESHOLDS.get(next_level, 0)
+    current_xp = data.get("xp", 0)
+    
+    if current_xp < xp_required:
+        return jsonify({"error": f"Insufficient XP. Need {xp_required}, have {current_xp}"}), 400
+        
+    # Level up logic
+    data["level"] = next_level
+    character.set_data(data)
+    
+    # Recalculate HP
+    con_score = data.get("abilities", {}).get("constitution", 10)
+    con_mod = (con_score - 10) // 2
+    character.update_hp(next_level, con_mod, data.get("class_name", "Barbarian"))
+    
+    db.session.commit()
+    return jsonify({"success": True, "new_level": next_level})
+
+@app.route("/api/characters/<int:char_id>/leveldown", methods=["POST"])
+def api_character_leveldown(char_id):
+    character = Character.query.get_or_404(char_id)
+    data = character.get_data()
+    
+    current_level = data.get("level", 1)
+    if current_level <= 1:
+        return jsonify({"error": "Character is already at level 1"}), 400
+        
+    next_level = current_level - 1
+    # Set XP to the threshold of the NEW level (or keep same, but usually leveling down resets to threshold)
+    # The user said "and a user can modify... with an option to level down"
+    # I'll set it to the threshold of the new level for a clean reset.
+    data["level"] = next_level
+    data["xp"] = XP_THRESHOLDS.get(next_level, 0)
+    character.set_data(data)
+    
+    # Recalculate HP (models.py handles the truncation of rolls)
+    con_score = data.get("abilities", {}).get("constitution", 10)
+    con_mod = (con_score - 10) // 2
+    character.update_hp(next_level, con_mod, data.get("class_name", "Barbarian"))
+    
+    db.session.commit()
+    return jsonify({"success": True, "new_level": next_level})
 
 # ------------------------
 # Legacy HTML Routes (safe to remove later)
