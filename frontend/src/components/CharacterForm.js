@@ -184,20 +184,24 @@ function CharacterForm() {
     };
 
     const handleDragEnter = (stat) => {
-        setDragOverAbility(stat);
+        if (dragOverAbility !== stat) {
+            setDragOverAbility(stat);
+        }
     };
 
-    const handleDragLeave = () => {
+    const handleDragLeave = (e) => {
+        // Only clear if we are leaving the button and NOT entering a child of that button
+        const related = e.relatedTarget;
+        if (related && e.currentTarget.contains(related)) return;
         setDragOverAbility(null);
     };
 
     const handleDrop = (e, stat) => {
         e.preventDefault();
+        setDragOverAbility(null);
         if (draggedRoll) {
-            // Directly assign without setting selectedRoll
             assignStat(stat, draggedRoll);
         }
-        setDragOverAbility(null);
     };
 
     const allStatsAssigned = Object.values(assignedStats).every(v => v !== null);
@@ -224,7 +228,7 @@ function CharacterForm() {
         payload.append("name", formData.name);
         payload.append("class_name", formData.class_name);
         payload.append("subclass", formData.subclass);
-        payload.append("level", formData.level);
+        payload.append("level", isEditMode ? formData.level : 1); // 🔥 Default to 1 for new, preserve for edit
         payload.append("species", formData.species);
         payload.append("species_variant", formData.species_variant);
         payload.append("background", formData.background);
@@ -240,7 +244,7 @@ function CharacterForm() {
         switch (step) {
             case 0:
                 return (
-                    <div className="step-container">
+                    <div className="step-container step-0">
                         <h2>Select a Class</h2>
                         <div className="button-group">
                             {classes.map(c => (
@@ -267,15 +271,25 @@ function CharacterForm() {
                     (rollCount === 2 && abilityTotal <= 69);
 
                 return (
-                    <>
+                    <div className="step-container step-1">
                         <h2>Roll & Assign Ability Scores</h2>
 
-                        {canRoll && <button onClick={rollAbilities}>Roll 4d6 Drop Lowest</button>}
+                        <div className="dice-rolling-section">
+                            {canRoll ? (
+                                <button className="dice-roll-button" onClick={rollAbilities}>
+                                    <span className="dice-icon">🎲</span> Roll 4d6 Drop Lowest
+                                </button>
+                            ) : (
+                                <div className="roll-limit-msg">Rolling complete or limit reached</div>
+                            )}
 
-                        <p>
-                            Rolls used: {rollCount} / 2
-                            {rollCount === 2 && abilityTotal <= 69 && " (+1 bonus reroll available)"}
-                        </p>
+                            <p className="roll-count-display">
+                                Rolls used: <strong>{rollCount} / 2</strong>
+                                {rollCount === 2 && abilityTotal <= 69 && (
+                                    <span className="bonus-reroll"> (+1 bonus reroll available)</span>
+                                )}
+                            </p>
+                        </div>
 
                         <h3>Rolled Numbers</h3>
                         <div className="button-group">
@@ -294,38 +308,43 @@ function CharacterForm() {
                         </div>
 
                         <h3>Assign Stats</h3>
-                        <div>
-                            {Object.entries(assignedStats).map(([stat, val]) => (
-                                <button
-                                    key={stat}
-                                    onClick={() => assignStat(stat)}
-                                    onDragOver={handleDragOver}
-                                    onDragEnter={() => handleDragEnter(stat)}
-                                    onDragLeave={handleDragLeave}
-                                    onDrop={(e) => handleDrop(e, stat)}
-                                    className={`assigned-stat-button ${val !== null ? "assigned" : ""
-                                        } ${dragOverAbility === stat ? "drag-over" : ""
-                                        }`}
-                                >
-                                    {stat.toUpperCase()}: {val ?? "-"}
-                                </button>
-                            ))}
+                        <div className="assigned-stats-grid">
+                            {["strength", "intelligence", "dexterity", "wisdom", "constitution", "charisma"].map(stat => {
+                                const val = assignedStats[stat];
+                                return (
+                                    <button
+                                        key={stat}
+                                        onClick={() => assignStat(stat)}
+                                        onDragOver={handleDragOver}
+                                        onDragEnter={() => handleDragEnter(stat)}
+                                        onDragLeave={(e) => handleDragLeave(e)}
+                                        onDrop={(e) => handleDrop(e, stat)}
+                                        className={`assigned-stat-button ${val !== null ? "assigned" : ""
+                                            } ${dragOverAbility === stat ? "drag-over" : ""
+                                            }`}
+                                    >
+                                        <span className="stat-label">{stat.toUpperCase()}</span>
+                                        <span className="stat-value">{val ?? "-"}</span>
+                                    </button>
+                                );
+                            })}
                         </div>
 
                         <p><strong>Total = {abilityTotal}</strong></p>
 
                         <div className="navigation-buttons">
+                            <button className="nav-button" onClick={() => setStep(0)}>Back</button>
                             {/* Reset button only for new character */}
                             {!isEditMode && initialRolledStats.length > 0 && (
                                 <button className="nav-button" onClick={resetStatAssignment}>
-                                    Reset Assigned Stats
+                                    Reset Stats
                                 </button>
                             )}
                             <button className="nav-button" disabled={!allStatsAssigned} onClick={() => setStep(2)}>
                                 Next
                             </button>
                         </div>
-                    </>
+                    </div>
                 );
 
             case 2:
@@ -333,7 +352,7 @@ function CharacterForm() {
                 const requiresVariant = variants.length > 0;
 
                 return (
-                    <div>
+                    <div className="step-container step-2">
                         <h2>Select a Species</h2>
 
                         <div className="button-group">
@@ -386,88 +405,97 @@ function CharacterForm() {
 
             case 3:
                 return (
-                    <div className="step-container">
-                        <h2>Select a Background</h2>
-                        <div className="background-grid">
-                            {backgrounds.map(bg => (
-                                <button
-                                    key={bg.name}
-                                    onClick={() => setFormData({ ...formData, background: bg.name })}
-                                    className={`background-button ${formData.background === bg.name ? "selected" : ""}`}
-                                >
-                                    <strong>{bg.name}</strong>
-                                </button>
-                            ))}
+                    <div className="step-container step-3">
+                        <div className="background-selection-header">
+                            <h2>Select a Background</h2>
+                        </div>
+                        <div className="background-equipment-layout">
+                            <div className="background-list-column">
+                                <div className="background-grid">
+                                    {backgrounds.map(bg => (
+                                        <button
+                                            key={bg.name}
+                                            onClick={() => setFormData({ ...formData, background: bg.name })}
+                                            className={`background-button ${formData.background === bg.name ? "selected" : ""}`}
+                                        >
+                                            <strong>{bg.name}</strong>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="equipment-details-column">
+                                {formData.background ? (
+                                    <div className="equipment-choice-container">
+                                        <h3>Starting Equipment Choice</h3>
+                                        {(() => {
+                                            const selectedBg = backgrounds.find(bg => bg.name === formData.background);
+                                            const standard = selectedBg?.starting_equipment?.standard;
+                                            const goldOption = selectedBg?.starting_equipment?.gold_option || 50;
+
+                                            return (
+                                                <div className="equipment-options">
+                                                    <label className="equipment-label">
+                                                        <input
+                                                            type="radio"
+                                                            name="equipment"
+                                                            value="standard"
+                                                            checked={formData.starting_equipment_choice === "standard"}
+                                                            onChange={() => setFormData({ ...formData, starting_equipment_choice: "standard" })}
+                                                            className="equipment-radio"
+                                                        />
+                                                        <span className="equipment-details">
+                                                            <strong>Standard Equipment</strong>
+                                                            {standard ? (
+                                                                <div className="equipment-list-container">
+                                                                    <div><strong>Gold:</strong> {standard.gold} GP</div>
+                                                                    <div style={{ marginTop: "4px" }}><strong>Items:</strong></div>
+                                                                    <ul className="equipment-list-scroll">
+                                                                        {standard.items.map((item, idx) => (
+                                                                            <li key={idx}>
+                                                                                {item.name} {item.quantity > 1 && `(x${item.quantity})`}
+                                                                            </li>
+                                                                        ))}
+                                                                    </ul>
+                                                                </div>
+                                                            ) : (
+                                                                <div className="gold-option-text">Class/Background items + small gold amount.</div>
+                                                            )}
+                                                        </span>
+                                                    </label>
+
+                                                    <label className="equipment-label">
+                                                        <input
+                                                            type="radio"
+                                                            name="equipment"
+                                                            value="gold"
+                                                            checked={formData.starting_equipment_choice === "gold"}
+                                                            onChange={() => setFormData({ ...formData, starting_equipment_choice: "gold" })}
+                                                            className="equipment-radio"
+                                                        />
+                                                        <span className="equipment-details">
+                                                            <strong>Gold Only</strong><br />
+                                                            <span className="gold-option-text">
+                                                                {goldOption} GP
+                                                            </span>
+                                                        </span>
+                                                    </label>
+                                                </div>
+                                            );
+                                        })()}
+                                    </div>
+                                ) : (
+                                    <div className="background-prompt">
+                                        <p>Select a background to see equipment options</p>
+                                    </div>
+                                )}
+                            </div>
                         </div>
 
                         {formData.background && (
-                            <div className="equipment-choice-container">
-                                <h3>Starting Equipment Choice</h3>
-                                <p>Choose how you want to start your journey:</p>
-                                {(() => {
-                                    const selectedBg = backgrounds.find(bg => bg.name === formData.background);
-                                    const standard = selectedBg?.starting_equipment?.standard;
-                                    const goldOption = selectedBg?.starting_equipment?.gold_option || 50;
-
-                                    return (
-                                        <div className="equipment-options">
-                                            <label className="equipment-label">
-                                                <input
-                                                    type="radio"
-                                                    name="equipment"
-                                                    value="standard"
-                                                    checked={formData.starting_equipment_choice === "standard"}
-                                                    onChange={() => setFormData({ ...formData, starting_equipment_choice: "standard" })}
-                                                    className="equipment-radio"
-                                                />
-                                                <span className="equipment-details">
-                                                    <strong>Standard Equipment</strong>
-                                                    {standard ? (
-                                                        <div className="equipment-list-container">
-                                                            <div><strong>Gold:</strong> {standard.gold} GP</div>
-                                                            <div style={{ marginTop: "4px" }}><strong>Items:</strong></div>
-                                                            <ul className="equipment-list-scroll">
-                                                                {standard.items.map((item, idx) => (
-                                                                    <li key={idx}>
-                                                                        {item.name} {item.quantity > 1 && `(x${item.quantity})`}
-                                                                    </li>
-                                                                ))}
-                                                            </ul>
-                                                        </div>
-                                                    ) : (
-                                                        <div className="gold-option-text">Class/Background items + small gold amount.</div>
-                                                    )}
-                                                </span>
-                                            </label>
-
-                                            <label className="equipment-label">
-                                                <input
-                                                    type="radio"
-                                                    name="equipment"
-                                                    value="gold"
-                                                    checked={formData.starting_equipment_choice === "gold"}
-                                                    onChange={() => setFormData({ ...formData, starting_equipment_choice: "gold" })}
-                                                    className="equipment-radio"
-                                                />
-                                                <span className="equipment-details">
-                                                    <strong>Gold Only</strong><br />
-                                                    <span className="gold-option-text">
-                                                        Start with <strong>{goldOption} GP</strong> and buy your own gear.
-                                                    </span>
-                                                </span>
-                                            </label>
-                                        </div>
-                                    );
-                                })()}
-                            </div>
-                        )}
-
-                        {formData.background && (
-                            <div className="navigation-buttons">
+                            <div className="navigation-buttons compact">
                                 <button className="nav-button" onClick={() => setStep(2)}>Back</button>
-                                <button className="nav-button" onClick={() => setStep(4)}>
-                                    Next
-                                </button>
+                                <button className="nav-button" onClick={() => setStep(4)}>Next</button>
                             </div>
                         )}
                     </div>
@@ -475,38 +503,30 @@ function CharacterForm() {
 
             case 4:
                 return (
-                    <div className="step-container">
-                        <h2>Character Info</h2>
+                    <div className="step-container step-4">
+                        <h2>Final Details</h2>
 
-                        <label>
-                            Name:
+                        <div className="form-group">
+                            <label>Character Name</label>
                             <input
                                 type="text"
+                                placeholder="Enter Ascendant name..."
                                 value={formData.name}
                                 onChange={(e) =>
                                     setFormData({ ...formData, name: e.target.value })
                                 }
                             />
-                        </label>
+                        </div>
 
-                        <br />
-
-                        <label>
-                            Level:
-                            <input
-                                type="number"
-                                min="1"
-                                max="20"
-                                value={formData.level}
-                                onChange={(e) =>
-                                    setFormData({ ...formData, level: parseInt(e.target.value) })
-                                }
-                            />
-                        </label>
+                        <div className="level-info-card">
+                            <span className="info-label">Start Level</span>
+                            <span className="info-value">1</span>
+                            <span className="info-desc">All new characters begin their journey at level 1.</span>
+                        </div>
 
                         <div className="navigation-buttons">
                             <button className="nav-button" onClick={() => setStep(3)}>Back</button>
-                            <button className="nav-button" onClick={handleSubmit}>
+                            <button className="nav-button" disabled={!formData.name} onClick={handleSubmit}>
                                 Save Character
                             </button>
                         </div>

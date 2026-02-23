@@ -620,10 +620,13 @@ function CharacterSheet() {
                                         pattern="[0-9]*"
                                         value={tempXp}
                                         onChange={(e) => {
-                                            const rawVal = e.target.value.replace(/\D/g, "");
-                                            if (rawVal === "" || (parseInt(rawVal) <= 999999)) {
-                                                setTempXp(rawVal);
+                                            let rawVal = e.target.value.replace(/\D/g, "");
+                                            if (rawVal.length > 6) rawVal = rawVal.slice(0, 6);
+                                            // Handle multiple zeros or leading zeros during typing
+                                            if (rawVal.length > 1 && rawVal.startsWith("0")) {
+                                                rawVal = rawVal.replace(/^0+/, "") || "0";
                                             }
+                                            setTempXp(rawVal);
                                         }}
                                         onBlur={handleXpBlur}
                                     />
