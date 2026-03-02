@@ -251,8 +251,252 @@
     border: 1px solid var(--border);
     display: flex;
     flex-direction: column;
+    justify-content: flex-start;
+    gap: 12px;
+}
+
+.bg-choices-container {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    padding-right: 5px;
+}
+
+.bg-details-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.bg-choice-section {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 12px;
+}
+
+.bg-choice-section h4 {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.section-header-toggle {
+    display: flex;
     justify-content: space-between;
-    /* Space out items and Nav if possible */
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+}
+
+.toggle-icon {
+    font-size: 0.7rem;
+    color: var(--text-dim);
+}
+
+.bg-choice-section:hover .toggle-icon {
+    color: var(--accent);
+}
+
+/* Stat Bonuses */
+.mode-toggle {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.mode-btn {
+    flex: 1;
+    padding: 6px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text-dim);
+    font-size: 0.8rem;
+    cursor: pointer;
+}
+
+.mode-btn.active {
+    background: var(--primary-dim);
+    border-color: var(--accent);
+    color: white;
+}
+
+.bonus-pickers {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.picker-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.picker-row span {
+    font-weight: bold;
+    color: var(--accent);
+    width: 25px;
+}
+
+.picker-row select {
+    flex: 1;
+    background: #1a1a2b;
+    border: 1px solid var(--border);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.85rem;
+}
+
+.bonus-pickers-111 {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.fixed-bonus {
+    padding: 4px 10px;
+    background: rgba(142, 68, 173, 0.1);
+    border: 1px solid var(--primary-dim);
+    border-radius: 20px;
+    font-size: 0.8rem;
+}
+
+/* Skill Proficiencies */
+.bg-skill-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.bg-skill-tag {
+    background: rgba(142, 68, 173, 0.15);
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+/* Feat Display */
+.feat-effects-list {
+    margin-top: 10px;
+    font-size: 0.85rem;
+    color: var(--text-main);
+    line-height: 1.4;
+    max-height: 400px;
+    /* Increased to avoid scrolling where possible */
+    overflow-y: auto;
+    padding-right: 5px;
+}
+
+.feat-effects-list p {
+    margin: 0 0 8px 0;
+    padding-bottom: 4px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.feat-effects-list p:last-child {
+    border-bottom: none;
+}
+
+/* Compact Equipment */
+.compact-equip-options {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.compact-option-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.compact-option-wrapper.selected {
+    border-color: var(--accent);
+    background: rgba(142, 68, 173, 0.1);
+}
+
+.compact-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+    border: 1px solid transparent;
+    border-radius: 8px;
+}
+
+.compact-option-wrapper .compact-label {
+    border: none;
+    background: transparent;
+}
+
+.compact-label:not(.compact-option-wrapper *) {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border);
+}
+
+.compact-label:hover {
+    border-color: var(--accent);
+}
+
+.compact-label.active {
+    background: rgba(142, 68, 173, 0.15);
+    border-color: var(--accent);
+}
+
+.expand-items-btn {
+    background: transparent;
+    border: none;
+    color: var(--accent);
+    font-size: 0.8rem;
+    text-align: left;
+    padding: 0 12px 10px 34px;
+    cursor: pointer;
+    text-decoration: underline;
+    opacity: 0.8;
+}
+
+.expand-items-btn:hover {
+    opacity: 1;
+}
+
+.equipment-items-dropdown {
+    padding: 0 12px 12px 34px;
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    background: rgba(0, 0, 0, 0.1);
+}
+
+.equipment-items-dropdown ul {
+    margin: 8px 0 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.equipment-items-dropdown li {
+    margin-bottom: 4px;
+}
+
+.compact-label input {
+    accent-color: var(--accent);
 }
 
 .background-grid {
@@ -433,4 +677,286 @@ input[type="number"]:focus {
 .nav-button:disabled {
     opacity: 0.3;
     cursor: not-allowed;
+}
+
+/* Class Selection (Step 0) - SIDE BY SIDE */
+.class-selection-layout {
+    display: flex;
+    gap: 20px;
+    height: 70vh;
+    /* Fixed height to keep everything in viewport */
+    margin-bottom: 5px;
+}
+
+.class-list-column {
+    flex: 0.8;
+    overflow-y: auto;
+    padding-right: 15px;
+    border-right: 1px solid var(--border-light);
+}
+
+/* Multi-column grid for classes */
+.class-list-column .button-group {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.class-details-column {
+    flex: 1.2;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 16px;
+    padding: 20px;
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    overflow-y: auto;
+}
+
+.class-details-header {
+    margin-bottom: 5px;
+}
+
+.class-details-header h3 {
+    font-size: 1.8rem;
+    color: var(--accent);
+    margin: 0 0 5px 0;
+}
+
+.class-details-header p {
+    font-style: italic;
+    color: var(--text-dim);
+    line-height: 1.4;
+}
+
+/* Quick Facts Grid */
+.class-facts-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.fact-item {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px;
+    text-align: center;
+}
+
+.fact-label {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 5px;
+}
+
+.value-bubble {
+    color: var(--accent);
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+/* Skill Picker */
+.skill-picker-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.skill-picker-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.skill-item-button {
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 5px 15px;
+    color: var(--text-dim);
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+}
+
+.skill-item-button:hover {
+    border-color: var(--accent);
+    color: var(--text-main);
+}
+
+.skill-item-button.selected {
+    background: var(--primary-dim);
+    border-color: var(--accent);
+    color: white;
+}
+
+.skill-count-hint {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    margin-bottom: 5px;
+}
+
+/* Starting Equipment */
+.equip-options-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+}
+
+.equip-option-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    width: calc(50% - 6px);
+    min-width: 250px;
+    display: flex;
+    flex-direction: column;
+}
+
+.equip-option-card:hover {
+    border-color: var(--accent);
+}
+
+.equip-option-card.selected {
+    background: rgba(142, 68, 173, 0.1);
+    border-color: var(--accent);
+    box-shadow: 0 0 10px rgba(100, 49, 115, 0.2);
+}
+
+.equip-option-card h5 {
+    margin: 0 0 5px 0;
+    color: var(--accent);
+}
+
+.option-items {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    line-height: 1.3;
+}
+
+/* Level Preview Section */
+.level-preview-section {
+    border-top: 1px solid var(--border);
+    padding-top: 15px;
+    margin-top: 10px;
+}
+
+.level-preview-nav {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    gap: 8px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 12px;
+    padding: 10px;
+    margin-bottom: 15px;
+}
+
+.level-dot {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: all 0.2s;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+    margin: 0 auto;
+}
+
+.level-dot:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.level-dot.active {
+    background: var(--accent);
+    color: #1e1e2f;
+    font-weight: bold;
+    transform: scale(1.2);
+    box-shadow: 0 0 10px var(--accent-dim);
+}
+
+.feature-preview-card {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 12px;
+    margin-bottom: 10px;
+}
+
+.feature-preview-card h6 {
+    margin: 0 0 5px 0;
+    font-size: 0.95rem;
+    color: var(--accent);
+}
+
+.feature-preview-card p {
+    margin: 0;
+    font-size: 0.85rem;
+    line-height: 1.4;
+    color: var(--text-main);
+}
+
+.feature-preview-card p {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    line-height: 1.4;
+}
+
+/* Proficiency Subsection Headers */
+.bg-choice-section h4 {
+    margin: 15px 0 8px 0;
+    font-size: 0.95rem;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid rgba(255, 215, 0, 0.1);
+    padding-bottom: 3px;
+}
+
+.bg-choice-section h4:first-child {
+    margin-top: 0;
+}
+
+.species-summary-text {
+    font-style: italic;
+    color: var(--text-dim);
+    line-height: 1.4;
+    margin: 5px 0;
+    border-left: 2px solid var(--accent-dim);
+    padding-left: 10px;
+}
+
+.feature-details-mini {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.detail-tag {
+    background: rgba(255, 215, 0, 0.05);
+    border: 1px solid var(--accent-dim);
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-size: 0.75rem;
+    color: var(--text-main);
+}
+
+.detail-tag strong {
+    color: var(--accent);
+    margin-right: 4px;
 }

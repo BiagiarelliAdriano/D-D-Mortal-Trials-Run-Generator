@@ -6,6 +6,9 @@ from encounter_generator.encounter_logic import generate_all_encounters
 from encounter_generator.generator import generate_divine_blessing
 from encounter_generator.data.rules.classes import BARBARIAN, BARD, CLERIC, DRUID, FIGHTER, MONK, PALADIN, RANGER, ROGUE, SORCERER, WARLOCK, WIZARD
 from encounter_generator.data.rules.backgrounds import BACKGROUNDS
+from encounter_generator.data.rules.species import SPECIES
+from encounter_generator.data.rules.feats import ORIGIN_FEATS, GENERAL_FEATS, FIGHTING_STYLE_FEATS, EPIC_BOONS
+from encounter_generator.data.items import WEAPONS_DATA
 import json
 import os
 
@@ -88,6 +91,23 @@ def get_class(classname):
 def get_backgrounds():
     return jsonify(BACKGROUNDS)
 
+@app.route("/api/species")
+def get_species():
+    return jsonify(SPECIES)
+
+@app.route("/api/feats")
+def get_feats():
+    return jsonify({
+        "origin": ORIGIN_FEATS,
+        "general": GENERAL_FEATS,
+        "fighting_style": FIGHTING_STYLE_FEATS,
+        "epic_boon": EPIC_BOONS
+    })
+
+@app.route("/api/rules/weapons")
+def get_weapons():
+    return jsonify(WEAPONS_DATA)
+
 # ------------------------
 # Character API (REST)
 # ------------------------
@@ -104,26 +124,46 @@ def api_characters():
             "abilities": json.loads(data.get("abilities", "{}")),
             "species": data.get("species"),
             "species_variant": data.get("species_variant"),
+            "size": data.get("size"),
             "background": data.get("background"),
+            "choices": json.loads(data.get("choices", "{}")),
             "xp": XP_THRESHOLDS.get(int(data.get("level", 1)), 0)
         }
 
-        # Initialize Inventory and Gold
-        equipment_choice = data.get("starting_equipment_choice", "standard") # 'standard' or 'gold'
+        # Add Skill Proficiencies (Class + Background)
+        prof_list = json.loads(data.get("proficiencies", "[]"))
+        if prof_list:
+            character_data["skillProficiencies"] = {s.lower().replace(" ", "_"): True for s in prof_list}
+
+        # Initialize Inventory and Gold (Class + Background)
+        # 1. Background Equipment
+        bg_equip_choice = data.get("starting_equipment_choice", "standard") # Background choice
         bg_name = character_data["background"]
         background = next((bg for bg in BACKGROUNDS if bg["name"] == bg_name), None)
+        
+        starting_gold = 0
+        starting_inventory = []
 
         if background and "starting_equipment" in background:
-            if equipment_choice == "gold":
-                character_data["gold"] = background["starting_equipment"].get("gold_option", 50)
-                character_data["inventory"] = []
+            if bg_equip_choice == "gold":
+                starting_gold += background["starting_equipment"].get("gold_option", 50)
             else:
-                character_data["gold"] = background["starting_equipment"]["standard"].get("gold", 0)
-                character_data["inventory"] = background["starting_equipment"]["standard"].get("items", [])
-        else:
-            # Fallback
-            character_data["gold"] = 0
-            character_data["inventory"] = []
+                starting_gold += background["starting_equipment"]["standard"].get("gold", 0)
+                starting_inventory.extend(background["starting_equipment"]["standard"].get("items", []))
+
+        # 2. Class Equipment
+        class_name = character_data["class_name"]
+        cls = CLASSES.get(class_name.lower())
+        class_equip_choice = data.get("class_starting_equipment_choice", "option_a")
+
+        if cls and "starting_equipment" in cls:
+            choice = cls["starting_equipment"].get(class_equip_choice)
+            if choice:
+                starting_gold += choice.get("gold", 0)
+                starting_inventory.extend(choice.get("items", []))
+
+        character_data["gold"] = starting_gold
+        character_data["inventory"] = starting_inventory
 
         character = Character(name=data.get("name"))
         character.set_data(character_data)

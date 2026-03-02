@@ -39,16 +39,52 @@ function CharacterForm() {
         species_variant: "",
         background: "",
         level: 1,
-        starting_equipment_choice: "standard"
+        starting_equipment_choice: "standard",
+        size: ""
     });
 
     const [backgrounds, setBackgrounds] = useState([]);
+    const [speciesData, setSpeciesData] = useState([]);
+    const [feats, setFeats] = useState({ origin: [], general: [], fighting_style: [], epic_boon: [] });
+
+    // Background Choice State
+    const [bgChoices, setBgChoices] = useState({
+        mode: "2_1", // '2_1' or '1_1_1'
+        plus2: "",
+        plus1: "",
+        plus1_a: "",
+        plus1_b: "",
+        plus1_c: ""
+    });
+
+    const [uiToggles, setUiToggles] = useState({
+        featExpanded: true,
+        equipExpanded: false,
+        classDetailsExpanded: true
+    });
+
+    // Class Choice State
+    const [classDetails, setClassDetails] = useState(null);
+    const [selectedSpeciesDetails, setSelectedSpeciesDetails] = useState(null);
+    const [classSkills, setClassSkills] = useState([]);
+    const [classEquipChoice, setClassEquipChoice] = useState("option_a");
+    const [previewLevel, setPreviewLevel] = useState(1);
 
     useEffect(() => {
         fetch("http://localhost:5000/api/backgrounds")
             .then(res => res.json())
             .then(data => setBackgrounds(data))
             .catch(err => console.error("Failed to load backgrounds", err));
+
+        fetch("http://localhost:5000/api/species")
+            .then(res => res.json())
+            .then(data => setSpeciesData(data))
+            .catch(err => console.error("Failed to load species", err));
+
+        fetch("http://localhost:5000/api/feats")
+            .then(res => res.json())
+            .then(data => setFeats(data))
+            .catch(err => console.error("Failed to load feats", err));
     }, []);
 
     const classes = [
@@ -57,18 +93,6 @@ function CharacterForm() {
         "Warlock", "Wizard"
     ];
 
-    const speciesOptions = {
-        Aasimar: [],
-        Dragonborn: ["Black", "Blue", "Brass", "Bronze", "Copper", "Gold", "Green", "Red", "Silver", "White"],
-        Dwarf: [],
-        Elf: ["Drow", "High", "Wood"],
-        Gnome: ["Forest", "Rock"],
-        Goliath: ["Cloud", "Fire", "Frost", "Hill", "Stone", "Storm"],
-        Halfling: [],
-        Human: [],
-        Orc: [],
-        Tiefling: ["Abyssal", "Chthonic", "Infernal"],
-    };
 
     useEffect(() => {
         if (!isEditMode) return;
@@ -90,10 +114,39 @@ function CharacterForm() {
                     setAssignedStats(data.data.abilities);
                 }
 
+                if (data.class.name) {
+                    fetch(`http://localhost:5000/api/classes/${data.class.name.toLowerCase()}`)
+                        .then(res => res.json())
+                        .then(classData => setClassDetails(classData))
+                        .catch(err => console.error("Failed to load class details during edit", err));
+                }
+
+                if (data.data.species) {
+                    fetch(`http://localhost:5000/api/species`)
+                        .then(res => res.json())
+                        .then(speciesList => {
+                            const found = speciesList.find(s => s.name === data.data.species);
+                            setSelectedSpeciesDetails(found);
+                        })
+                        .catch(err => console.error("Failed to load species details during edit", err));
+                }
+
                 setLoading(false);
             })
             .catch(() => setLoading(false));
     }, [id, isEditMode]);
+
+    const handleClassSelect = (className) => {
+        setFormData({ ...formData, class_name: className });
+        setClassSkills([]); // Reset skill choices
+        setPreviewLevel(1); // Reset preview level
+
+        // Fetch class details
+        fetch(`http://localhost:5000/api/classes/${className.toLowerCase()}`)
+            .then(res => res.json())
+            .then(data => setClassDetails(data))
+            .catch(err => console.error("Failed to load class details", err));
+    };
 
     if (loading) return <div>Loading character...</div>;
 
@@ -233,7 +286,69 @@ function CharacterForm() {
         payload.append("species_variant", formData.species_variant);
         payload.append("background", formData.background);
         payload.append("starting_equipment_choice", formData.starting_equipment_choice);
-        payload.append("abilities", JSON.stringify(assignedStats));
+
+        // Randomize size if species has options and none selected
+        let finalSize = formData.size;
+        if (!finalSize && selectedSpeciesDetails && Array.isArray(selectedSpeciesDetails.size)) {
+            const sizes = selectedSpeciesDetails.size;
+            finalSize = sizes[Math.floor(Math.random() * sizes.length)];
+        }
+        payload.append("size", finalSize || (selectedSpeciesDetails?.size || "Medium"));
+
+        // Calculate boosted stats
+        const boostedStats = { ...assignedStats };
+        if (bgChoices.mode === "2_1") {
+            if (bgChoices.plus2) boostedStats[bgChoices.plus2.toLowerCase()] += 2;
+            if (bgChoices.plus1) boostedStats[bgChoices.plus1.toLowerCase()] += 1;
+        } else {
+            if (bgChoices.plus1_a) boostedStats[bgChoices.plus1_a.toLowerCase()] += 1;
+            if (bgChoices.plus1_b) boostedStats[bgChoices.plus1_b.toLowerCase()] += 1;
+            if (bgChoices.plus1_c) boostedStats[bgChoices.plus1_c.toLowerCase()] += 1;
+        }
+
+        payload.append("abilities", JSON.stringify(boostedStats));
+
+        // Store background choices in a custom field for the sheet to see
+        const selectedBg = backgrounds.find(bg => bg.name === formData.background);
+        // Robust feat lookup
+        let featData = null;
+        if (selectedBg?.feat) {
+            featData = feats.origin.find(f => f.name === selectedBg.feat);
+            if (!featData) {
+                // Try to find by partial match for variation feats like "Magic Initiate (Cleric)"
+                featData = feats.origin.find(f => {
+                    const baseName = f.name.split(' {')[0];
+                    return selectedBg.feat.includes(baseName);
+                });
+
+                // If found, format description if it has variations
+                if (featData && featData.name.includes("{variation}")) {
+                    const variation = selectedBg.feat.match(/\(([^)]+)\)/)?.[1] || "";
+                    featData = {
+                        ...featData,
+                        name: selectedBg.feat,
+                        effects: featData.effects.map(e => e.replaceAll("{variation}", variation))
+                    };
+                }
+            }
+        }
+
+        const choices = {
+            background_bonus: bgChoices,
+            background_feat: featData,
+            background_skills: selectedBg?.skills || [],
+            class_skills: classSkills,
+            class_equipment_choice: classEquipChoice
+        };
+        payload.append("choices", JSON.stringify(choices));
+        payload.append("class_starting_equipment_choice", classEquipChoice);
+
+        // Ensure proficiencies include background skills AND class skills
+        const proficiencies = formData.proficiencies || [];
+        const bgSkills = (selectedBg?.skills || []).map(s => s.toLowerCase().replace(/\s+/g, '_'));
+        const clsSkills = classSkills.map(s => s.toLowerCase().replace(/\s+/g, '_'));
+        const combinedProficiencies = [...new Set([...proficiencies, ...bgSkills, ...clsSkills])];
+        payload.append("proficiencies", JSON.stringify(combinedProficiencies));
 
         fetch(url, { method: "POST", body: payload })
             .then(() => navigate("/"));
@@ -245,21 +360,170 @@ function CharacterForm() {
             case 0:
                 return (
                     <div className="step-container step-0">
-                        <h2>Select a Class</h2>
-                        <div className="button-group">
-                            {classes.map(c => (
-                                <button
-                                    key={c}
-                                    onClick={() => setFormData({ ...formData, class_name: c })}
-                                    className={`selection-button ${formData.class_name === c ? "selected" : ""}`}
-                                >
-                                    {c}
-                                </button>
-                            ))}
+                        <h2>Select your Class</h2>
+                        <div className="class-selection-layout">
+                            <div className="class-list-column">
+                                <div className="button-group">
+                                    {classes.map(c => (
+                                        <button
+                                            key={c}
+                                            onClick={() => handleClassSelect(c)}
+                                            className={`selection-button ${formData.class_name === c ? "selected" : ""}`}
+                                        >
+                                            {c}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="class-details-column">
+                                {classDetails ? (
+                                    <>
+                                        <div className="class-details-header">
+                                            <h3>{classDetails.name}</h3>
+                                            <p>{classDetails.description}</p>
+                                        </div>
+
+                                        <div className="class-facts-grid">
+                                            <div className="fact-item">
+                                                <span className="fact-label">Hit Die</span>
+                                                <span className="value-bubble">{classDetails.hit_die}</span>
+                                            </div>
+                                            <div className="fact-item">
+                                                <span className="fact-label">Primary Ability</span>
+                                                <span className="value-bubble">
+                                                    {Array.isArray(classDetails.primary_ability)
+                                                        ? classDetails.primary_ability.join(" & ")
+                                                        : classDetails.primary_ability}
+                                                </span>
+                                            </div>
+                                            <div className="fact-item">
+                                                <span className="fact-label">Saving Throws</span>
+                                                <span className="value-bubble">
+                                                    {Array.isArray(classDetails.proficiencies.saving_throws)
+                                                        ? classDetails.proficiencies.saving_throws.join(", ")
+                                                        : classDetails.proficiencies.saving_throws}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <div className="bg-choice-section">
+                                            <h4>Armor Proficiencies</h4>
+                                            <div className="bg-skill-list">
+                                                {(classDetails.proficiencies.armor || []).length > 0 ? (
+                                                    classDetails.proficiencies.armor.map(a => <span key={a} className="bg-skill-tag">{a}</span>)
+                                                ) : <span className="info-desc">None</span>}
+                                            </div>
+
+                                            <h4>Weapon Proficiencies</h4>
+                                            <div className="bg-skill-list">
+                                                {(classDetails.proficiencies.weapons || []).length > 0 ? (
+                                                    classDetails.proficiencies.weapons.map(w => <span key={w} className="bg-skill-tag">{w}</span>)
+                                                ) : <span className="info-desc">None</span>}
+                                            </div>
+
+                                            <h4>Tool Proficiencies</h4>
+                                            <div className="bg-skill-list">
+                                                {(classDetails.proficiencies.tools.granted || []).length > 0 ? (
+                                                    classDetails.proficiencies.tools.granted.map(t => <span key={t} className="bg-skill-tag">{t}</span>)
+                                                ) : <span className="info-desc">None</span>}
+                                            </div>
+                                        </div>
+
+                                        <div className="skill-picker-container">
+                                            <h4>Class Skills</h4>
+                                            <p className="skill-count-hint">Choose {classDetails.proficiencies.skills.choose} from the list below:</p>
+                                            <div className="skill-picker-grid">
+                                                {classDetails.proficiencies.skills.options.map(skill => {
+                                                    const isSelected = classSkills.includes(skill);
+                                                    const canSelect = isSelected || classSkills.length < classDetails.proficiencies.skills.choose;
+                                                    return (
+                                                        <button
+                                                            key={skill}
+                                                            className={`skill-item-button ${isSelected ? "selected" : ""}`}
+                                                            onClick={() => {
+                                                                if (isSelected) {
+                                                                    setClassSkills(classSkills.filter(s => s !== skill));
+                                                                } else if (canSelect) {
+                                                                    setClassSkills([...classSkills, skill]);
+                                                                }
+                                                            }}
+                                                        >
+                                                            {skill}
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+                                        </div>
+
+                                        <div className="equipment-choice-section">
+                                            <h4>Starting Equipment</h4>
+                                            <div className="equip-options-grid">
+                                                {Object.entries(classDetails.starting_equipment).map(([key, option], idx) => (
+                                                    <div
+                                                        key={key}
+                                                        className={`equip-option-card ${classEquipChoice === key ? "selected" : ""}`}
+                                                        onClick={() => setClassEquipChoice(key)}
+                                                    >
+                                                        <h5>Scenario {key.split("_")[1].toUpperCase()}</h5>
+                                                        <div className="option-items">
+                                                            {option.items && option.items.length > 0 ? (
+                                                                option.items.map((it, i) => (
+                                                                    <div key={i}>• {it}</div>
+                                                                ))
+                                                            ) : (
+                                                                <div>Pure Gold</div>
+                                                            )}
+                                                            {option.gold > 0 && (
+                                                                <div>• {option.gold} GP</div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        <div className="level-preview-section">
+                                            <h4>Feature Preview (Lvl {previewLevel})</h4>
+                                            <div className="level-preview-nav">
+                                                {Array.from({ length: 20 }, (_, i) => i + 1).map(lvl => (
+                                                    <div
+                                                        key={lvl}
+                                                        className={`level-dot ${previewLevel === lvl ? "active" : ""}`}
+                                                        onClick={() => setPreviewLevel(lvl)}
+                                                    >
+                                                        {lvl}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                            <div className="feature-preview-list">
+                                                {classDetails.features[previewLevel] && classDetails.features[previewLevel].length > 0 ? (
+                                                    classDetails.features[previewLevel].map((feat, idx) => (
+                                                        <div key={idx} className="feature-preview-card">
+                                                            <h6>{feat.name}</h6>
+                                                            <p>{feat.summary}</p>
+                                                        </div>
+                                                    ))
+                                                ) : (
+                                                    <p className="info-desc">No new base features at this level.</p>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <div className="background-prompt">Select a class to see details</div>
+                                )}
+                            </div>
                         </div>
                         {formData.class_name && (
-                            <div className="navigation-buttons">
-                                <button className="nav-button" onClick={() => setStep(1)}>Next</button>
+                            <div className="navigation-buttons compact">
+                                <button
+                                    className="nav-button"
+                                    onClick={() => setStep(1)}
+                                    disabled={!classDetails || classSkills.length !== classDetails.proficiencies.skills.choose}
+                                >
+                                    Next: Ability Scores
+                                </button>
                             </div>
                         )}
                     </div>
@@ -348,55 +612,127 @@ function CharacterForm() {
                 );
 
             case 2:
-                const variants = speciesOptions[formData.species] || [];
-                const requiresVariant = variants.length > 0;
+                const speciesOptions = speciesData.map(s => s.name);
+                const speciesVariants = selectedSpeciesDetails?.variations || [];
+                const requiresVariant = speciesVariants.length > 0;
 
                 return (
                     <div className="step-container step-2">
-                        <h2>Select a Species</h2>
-
-                        <div className="button-group">
-                            {Object.keys(speciesOptions).map(s => (
-                                <button
-                                    key={s}
-                                    onClick={() =>
-                                        setFormData({
-                                            ...formData,
-                                            species: s,
-                                            species_variant: ""
-                                        })
-                                    }
-                                    className={`selection-button ${formData.species === s ? "selected" : ""}`}
-                                >
-                                    {s}
-                                </button>
-                            ))}
-                        </div>
-
-                        {requiresVariant && (
-                            <>
-                                <h3>Choose Variant</h3>
+                        <h2>Select your Species</h2>
+                        <div className="class-selection-layout">
+                            <div className="class-list-column">
                                 <div className="button-group">
-                                    {variants.map(v => (
+                                    {speciesOptions.map(s => (
                                         <button
-                                            key={v}
-                                            onClick={() =>
-                                                setFormData({ ...formData, species_variant: v })
-                                            }
-                                            className={`selection-button ${formData.species_variant === v ? "selected" : ""}`}
+                                            key={s}
+                                            onClick={() => {
+                                                const details = speciesData.find(sd => sd.name === s);
+                                                setFormData({
+                                                    ...formData,
+                                                    species: s,
+                                                    species_variant: ""
+                                                });
+                                                setSelectedSpeciesDetails(details);
+                                            }}
+                                            className={`selection-button ${formData.species === s ? "selected" : ""}`}
                                         >
-                                            {v}
+                                            {s}
                                         </button>
                                     ))}
                                 </div>
-                            </>
-                        )}
+                            </div>
+
+                            <div className="class-details-column">
+                                {selectedSpeciesDetails ? (
+                                    <>
+                                        <div className="class-details-header">
+                                            <h3>{selectedSpeciesDetails.name}</h3>
+                                            <p className="species-summary-text">{selectedSpeciesDetails.summary}</p>
+                                        </div>
+
+                                        <div className="class-facts-grid">
+                                            <div className="fact-item">
+                                                <span className="fact-label">Creature Type</span>
+                                                <span className="value-bubble">{selectedSpeciesDetails.creature_type}</span>
+                                            </div>
+                                            <div className="fact-item">
+                                                <span className="fact-label">Size</span>
+                                                <span className="value-bubble">
+                                                    {Array.isArray(selectedSpeciesDetails.size)
+                                                        ? (formData.size || selectedSpeciesDetails.size.join(" / "))
+                                                        : selectedSpeciesDetails.size}
+                                                </span>
+                                            </div>
+                                            <div className="fact-item">
+                                                <span className="fact-label">Speed</span>
+                                                <span className="value-bubble">{selectedSpeciesDetails.speed}</span>
+                                            </div>
+                                        </div>
+
+                                        {Array.isArray(selectedSpeciesDetails.size) && (
+                                            <div className="bg-choice-section">
+                                                <h4>Select Size (Optional)</h4>
+                                                <div className="skill-picker-grid">
+                                                    {selectedSpeciesDetails.size.map(sz => (
+                                                        <button
+                                                            key={sz}
+                                                            onClick={() => setFormData({ ...formData, size: formData.size === sz ? "" : sz })}
+                                                            className={`skill-item-button ${formData.size === sz ? "selected" : ""}`}
+                                                        >
+                                                            {sz}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {requiresVariant && (
+                                            <div className="bg-choice-section">
+                                                <h4>Select Heritage / Kindred</h4>
+                                                <div className="skill-picker-grid">
+                                                    {speciesVariants.map(v => (
+                                                        <button
+                                                            key={v}
+                                                            onClick={() => setFormData({ ...formData, species_variant: v })}
+                                                            className={`skill-item-button ${formData.species_variant === v ? "selected" : ""}`}
+                                                        >
+                                                            {v}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        <div className="level-preview-section">
+                                            <h4>Species Traits</h4>
+                                            {selectedSpeciesDetails.features.map(feature => (
+                                                <div key={feature.id} className="feature-preview-card">
+                                                    <h6>{feature.name}</h6>
+                                                    <p>{feature.description}</p>
+                                                    {feature.details && (
+                                                        <div className="feature-details-mini">
+                                                            {Object.entries(feature.details).map(([key, val]) => (
+                                                                <span key={key} className="detail-tag">
+                                                                    <strong>{key}:</strong> {typeof val === 'object' ? JSON.stringify(val) : val}
+                                                                </span>
+                                                            ))}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </>
+                                ) : (
+                                    <div className="background-prompt">Select a species to see its traits and lore</div>
+                                )}
+                            </div>
+                        </div>
 
                         {formData.species && (!requiresVariant || formData.species_variant) && (
-                            <div className="navigation-buttons">
+                            <div className="navigation-buttons compact">
                                 <button className="nav-button" onClick={() => setStep(1)}>Back</button>
                                 <button className="nav-button" onClick={() => setStep(3)}>
-                                    Next
+                                    Next: Background
                                 </button>
                             </div>
                         )}
@@ -424,33 +760,141 @@ function CharacterForm() {
                                 </div>
                             </div>
 
-                            <div className="equipment-details-column">
+                            <div className="equipment-details-column bg-choices-expanded">
                                 {formData.background ? (
-                                    <div className="equipment-choice-container">
-                                        <h3>Starting Equipment Choice</h3>
+                                    <div className="bg-choices-container">
                                         {(() => {
                                             const selectedBg = backgrounds.find(bg => bg.name === formData.background);
                                             const standard = selectedBg?.starting_equipment?.standard;
                                             const goldOption = selectedBg?.starting_equipment?.gold_option || 50;
+                                            const bgAbilities = selectedBg?.ability_scores || [];
+
+                                            // Robust feat lookup for display
+                                            let featData = null;
+                                            if (selectedBg?.feat) {
+                                                featData = feats.origin.find(f => f.name === selectedBg.feat);
+                                                if (!featData) {
+                                                    featData = feats.origin.find(f => {
+                                                        const baseName = f.name.split(' {')[0];
+                                                        return selectedBg.feat.includes(baseName);
+                                                    });
+                                                    if (featData && featData.name.includes("{variation}")) {
+                                                        const variation = selectedBg.feat.match(/\(([^)]+)\)/)?.[1] || "";
+                                                        featData = {
+                                                            ...featData,
+                                                            effects: featData.effects.map(e => e.replaceAll("{variation}", variation))
+                                                        };
+                                                    }
+                                                }
+                                            }
 
                                             return (
-                                                <div className="equipment-options">
-                                                    <label className="equipment-label">
-                                                        <input
-                                                            type="radio"
-                                                            name="equipment"
-                                                            value="standard"
-                                                            checked={formData.starting_equipment_choice === "standard"}
-                                                            onChange={() => setFormData({ ...formData, starting_equipment_choice: "standard" })}
-                                                            className="equipment-radio"
-                                                        />
-                                                        <span className="equipment-details">
-                                                            <strong>Standard Equipment</strong>
-                                                            {standard ? (
-                                                                <div className="equipment-list-container">
-                                                                    <div><strong>Gold:</strong> {standard.gold} GP</div>
-                                                                    <div style={{ marginTop: "4px" }}><strong>Items:</strong></div>
-                                                                    <ul className="equipment-list-scroll">
+                                                <div className="bg-details-grid">
+                                                    {/* 1. Stat Bonuses Section */}
+                                                    <section className="bg-choice-section stat-bonuses">
+                                                        <h4>Ability Score Bonuses</h4>
+                                                        <div className="mode-toggle">
+                                                            <button
+                                                                className={`mode-btn ${bgChoices.mode === '2_1' ? 'active' : ''}`}
+                                                                onClick={() => setBgChoices({ ...bgChoices, mode: '2_1' })}
+                                                            >+2 / +1</button>
+                                                            <button
+                                                                className={`mode-btn ${bgChoices.mode === '1_1_1' ? 'active' : ''}`}
+                                                                onClick={() => setBgChoices({ ...bgChoices, mode: '1_1_1' })}
+                                                            >+1 / +1 / +1</button>
+                                                        </div>
+
+                                                        {bgChoices.mode === '2_1' ? (
+                                                            <div className="bonus-pickers">
+                                                                <div className="picker-row">
+                                                                    <span>+2</span>
+                                                                    <select value={bgChoices.plus2} onChange={(e) => setBgChoices({ ...bgChoices, plus2: e.target.value })}>
+                                                                        <option value="">Select Ability</option>
+                                                                        {bgAbilities.map(a => <option key={a} value={a} disabled={a === bgChoices.plus1}>{a}</option>)}
+                                                                    </select>
+                                                                </div>
+                                                                <div className="picker-row">
+                                                                    <span>+1</span>
+                                                                    <select value={bgChoices.plus1} onChange={(e) => setBgChoices({ ...bgChoices, plus1: e.target.value })}>
+                                                                        <option value="">Select Ability</option>
+                                                                        {bgAbilities.map(a => <option key={a} value={a} disabled={a === bgChoices.plus2}>{a}</option>)}
+                                                                    </select>
+                                                                </div>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="bonus-pickers-111">
+                                                                {bgAbilities.map(a => (
+                                                                    <div key={a} className="fixed-bonus">
+                                                                        <span>+1</span> <strong>{a}</strong>
+                                                                    </div>
+                                                                ))}
+                                                                {/* Automatically set these stats in the bgChoices? 
+                                                                    For 1_1_1 it's always the 3 listed stats. */}
+                                                                {(() => {
+                                                                    if (bgChoices.plus1_a !== bgAbilities[0]) {
+                                                                        setBgChoices(prev => ({ ...prev, plus1_a: bgAbilities[0], plus1_b: bgAbilities[1], plus1_c: bgAbilities[2] }));
+                                                                    }
+                                                                    return null;
+                                                                })()}
+                                                            </div>
+                                                        )}
+                                                    </section>
+                                                    <section className="bg-choice-section skill-proficiencies">
+                                                        <h4>Skill Proficiencies</h4>
+                                                        <div className="bg-skill-list">
+                                                            {selectedBg?.skills?.map(skill => (
+                                                                <span key={skill} className="bg-skill-tag">{skill}</span>
+                                                            ))}
+                                                        </div>
+                                                    </section>
+
+                                                    {/* 2. Origin Feat Section */}
+                                                    <section className={`bg-choice-section origin-feat ${uiToggles.featExpanded ? 'expanded' : 'collapsed'}`}>
+                                                        <div
+                                                            className="section-header-toggle"
+                                                            onClick={() => setUiToggles({ ...uiToggles, featExpanded: !uiToggles.featExpanded })}
+                                                        >
+                                                            <h4>Origin Feat: {selectedBg?.feat}</h4>
+                                                            <span className="toggle-icon">{uiToggles.featExpanded ? '▼' : '▶'}</span>
+                                                        </div>
+                                                        {uiToggles.featExpanded && (
+                                                            <div className="feat-effects-list">
+                                                                {featData?.effects.map((eff, i) => (
+                                                                    <p key={i}>{eff}</p>
+                                                                ))}
+                                                            </div>
+                                                        )}
+                                                    </section>
+
+                                                    {/* 3. Equipment Choice Section */}
+                                                    <section className="bg-choice-section equipment-select">
+                                                        <h4>Starting Equipment</h4>
+                                                        <div className="compact-equip-options">
+                                                            <div className={`compact-option-wrapper ${formData.starting_equipment_choice === 'standard' ? 'selected' : ''}`}>
+                                                                <label className="compact-label">
+                                                                    <input
+                                                                        type="radio"
+                                                                        name="equipment"
+                                                                        value="standard"
+                                                                        checked={formData.starting_equipment_choice === "standard"}
+                                                                        onChange={() => setFormData({ ...formData, starting_equipment_choice: "standard" })}
+                                                                    />
+                                                                    <span>Standard Package ({standard?.gold} GP + Items)</span>
+                                                                </label>
+                                                                <button
+                                                                    className="expand-items-btn"
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        setUiToggles({ ...uiToggles, equipExpanded: !uiToggles.equipExpanded });
+                                                                    }}
+                                                                >
+                                                                    {uiToggles.equipExpanded ? 'Hide Items' : 'View Items'}
+                                                                </button>
+                                                            </div>
+
+                                                            {uiToggles.equipExpanded && standard?.items && (
+                                                                <div className="equipment-items-dropdown">
+                                                                    <ul>
                                                                         {standard.items.map((item, idx) => (
                                                                             <li key={idx}>
                                                                                 {item.name} {item.quantity > 1 && `(x${item.quantity})`}
@@ -458,35 +902,27 @@ function CharacterForm() {
                                                                         ))}
                                                                     </ul>
                                                                 </div>
-                                                            ) : (
-                                                                <div className="gold-option-text">Class/Background items + small gold amount.</div>
                                                             )}
-                                                        </span>
-                                                    </label>
 
-                                                    <label className="equipment-label">
-                                                        <input
-                                                            type="radio"
-                                                            name="equipment"
-                                                            value="gold"
-                                                            checked={formData.starting_equipment_choice === "gold"}
-                                                            onChange={() => setFormData({ ...formData, starting_equipment_choice: "gold" })}
-                                                            className="equipment-radio"
-                                                        />
-                                                        <span className="equipment-details">
-                                                            <strong>Gold Only</strong><br />
-                                                            <span className="gold-option-text">
-                                                                {goldOption} GP
-                                                            </span>
-                                                        </span>
-                                                    </label>
+                                                            <label className={`compact-label ${formData.starting_equipment_choice === 'gold' ? 'active' : ''}`}>
+                                                                <input
+                                                                    type="radio"
+                                                                    name="equipment"
+                                                                    value="gold"
+                                                                    checked={formData.starting_equipment_choice === "gold"}
+                                                                    onChange={() => setFormData({ ...formData, starting_equipment_choice: "gold" })}
+                                                                />
+                                                                <span>Gold Only ({goldOption} GP)</span>
+                                                            </label>
+                                                        </div>
+                                                    </section>
                                                 </div>
                                             );
                                         })()}
                                     </div>
                                 ) : (
                                     <div className="background-prompt">
-                                        <p>Select a background to see equipment options</p>
+                                        <p>Choose a background to customize your potential</p>
                                     </div>
                                 )}
                             </div>
@@ -495,7 +931,15 @@ function CharacterForm() {
                         {formData.background && (
                             <div className="navigation-buttons compact">
                                 <button className="nav-button" onClick={() => setStep(2)}>Back</button>
-                                <button className="nav-button" onClick={() => setStep(4)}>Next</button>
+                                <button
+                                    className="nav-button"
+                                    disabled={
+                                        bgChoices.mode === '2_1'
+                                            ? (!bgChoices.plus2 || !bgChoices.plus1)
+                                            : false // Mode 1_1_1 is auto-selected
+                                    }
+                                    onClick={() => setStep(4)}
+                                >Next</button>
                             </div>
                         )}
                     </div>

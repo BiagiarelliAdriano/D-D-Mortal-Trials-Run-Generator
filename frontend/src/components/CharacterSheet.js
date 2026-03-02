@@ -28,6 +28,125 @@ const XP_THRESHOLDS = {
     16: 195000, 17: 225000, 18: 265000, 19: 305000, 20: 355000
 };
 
+// --- Helper Utilities ---
+
+/**
+ * Resolves a scaling value (like Rage Damage or Uses) based on character level.
+ * Handles range strings like "1-8", "9-15", or "16-20".
+ */
+const resolveScalingValue = (scalingData, level) => {
+    if (typeof scalingData !== 'object' || scalingData === null) return scalingData;
+
+    for (const [range, value] of Object.entries(scalingData)) {
+        // Handle "1-8" or single numbers
+        const parts = range.split('-');
+        if (parts.length === 2) {
+            const min = parseInt(parts[0]);
+            const max = parseInt(parts[1]);
+            if (level >= min && level <= max) return value;
+        } else if (parseInt(range) === level) {
+            return value;
+        }
+
+        // Handle "17+" style (though usually it's "17-20" in this data)
+        if (range.endsWith('+')) {
+            const min = parseInt(range);
+            if (level >= min) return value;
+        }
+    }
+    return null; // Fallback if no range match
+};
+
+/**
+ * Simple processor to handle **bold** or *bold* text in descriptions.
+ * Returns an array of React elements/strings.
+ */
+const processRichText = (text) => {
+    if (!text) return text;
+    const parts = text.split(/(\*\*.*?\*\*|\*.*?\*)/g);
+    return parts.map((part, i) => {
+        if ((part.startsWith('**') && part.endsWith('**')) || (part.startsWith('*') && part.endsWith('*'))) {
+            const clean = part.replace(/^\*\*?|\*\*?$/g, '');
+            return <strong key={i}>{clean}</strong>;
+        }
+        return part;
+    });
+};
+
+
+/**
+ * Calculates attack statistics for a weapon or unarmed strike.
+ */
+const calculateAttack = (name, abilities, profBonus, features = [], level = 1, weaponRules = {}) => {
+    const data = weaponRules[name] || { damage: "???", type: "Unknown", properties: [], reach: "5ft" };
+    const strMod = calculateModifier(abilities.strength || 10);
+    const dexMod = calculateModifier(abilities.dexterity || 10);
+
+    let toHitMod = strMod;
+    let damageMod = strMod;
+    let reach = data.reach || data.range || "5ft";
+
+    const isFinesse = data.properties.includes("Finesse");
+    const isRanged = data.properties.includes("Ammunition") || data.properties.includes("Range");
+
+    if (isRanged) {
+        toHitMod = dexMod;
+        damageMod = dexMod;
+    } else if (isFinesse) {
+        if (dexMod > strMod) {
+            toHitMod = dexMod;
+            damageMod = dexMod;
+        }
+    }
+
+    // Special case: Unarmed Strike
+    let damageDie = data.damage;
+    if (name === "Unarmed Strike") {
+        damageMod = Math.max(0, strMod); // Minimum 0 bonus to damage base
+        // Check for Monk Martial Arts (simple example for future expansion)
+        const hasMartialArts = features.some(f => f.id === "monk_martial_arts");
+        if (hasMartialArts) {
+            toHitMod = Math.max(strMod, dexMod);
+            damageMod = Math.max(strMod, dexMod);
+            // Martial arts die scales: 1-4: 1d6, 5-10: 1d8, 11-16: 1d10, 17-20: 1d12
+            if (level >= 17) damageDie = "1d12";
+            else if (level >= 11) damageDie = "1d10";
+            else if (level >= 5) damageDie = "1d8";
+            else damageDie = "1d6";
+        }
+    }
+
+    // Check for Rage
+    const isRaging = features.some(f => f.id === "barbarian_rage"); // Placeholder for "active" rage
+    let notes = data.properties.join(", ");
+    if (isRaging && !isRanged) {
+        const rageBonus = level >= 16 ? 4 : (level >= 9 ? 3 : 2);
+        damageMod += rageBonus;
+        notes += ` (+${rageBonus} Rage Damage)`;
+    }
+
+    return {
+        name,
+        reach,
+        toHit: toHitMod + profBonus,
+        damage: damageDie === "1" ? (1 + damageMod) : `${damageDie} ${damageMod >= 0 ? "+" : ""}${damageMod}`,
+        type: data.type,
+        notes
+    };
+};
+
+const LAYOUT_CONSTRAINTS = {
+    header: { minW: 6, maxW: 12, minH: 4, maxH: 6 },
+    hp: { minW: 3, maxW: 6, minH: 2, maxH: 5 },
+    abilities: { minW: 3, maxW: 4, minH: 5, maxH: 7 },
+    saves: { minW: 3, maxW: 6, minH: 5, maxH: 7 },
+    skills: { minW: 2, maxW: 4, minH: 11, maxH: 11 },
+    features: { minW: 4, maxW: 12, minH: 4, maxH: 20 },
+    species: { minW: 4, maxW: 12, minH: 7, maxH: 9 },
+    combat: { minW: 6, maxW: 12, minH: 5, maxH: 15 },
+    inventory: { minW: 12, maxW: 12, minH: 3, maxH: 20 },
+};
+
 
 function CharacterSheet() {
     const { id } = useParams();
@@ -50,6 +169,9 @@ function CharacterSheet() {
     const [xp, setXp] = useState(0);
     const [tempXp, setTempXp] = useState("");
     const [showXpEditor, setShowXpEditor] = useState(false);
+    const [speciesRules, setSpeciesRules] = useState(null);
+    const [backgroundRules, setBackgroundRules] = useState(null);
+    const [weaponRules, setWeaponRules] = useState({});
 
     // New HP related states
     const [currentHp, setCurrentHp] = useState(0);
@@ -90,15 +212,55 @@ function CharacterSheet() {
 
                 // Fetch class rules
                 if (data.class?.name) {
-                    fetch(`http://localhost:5000/api/classes/${data.class.name}`)
+                    fetch(`http://localhost:5000/api/classes/${data.class.name.toLowerCase()}`)
                         .then(res => res.json())
                         .then(rules => setClassRules(rules))
                         .catch(err => console.error("Failed to load class rules:", err));
                 }
 
+                if (data.data?.species) {
+                    fetch(`http://localhost:5000/api/species`)
+                        .then(res => res.json())
+                        .then(allSpecies => {
+                            const species = allSpecies.find(s => s.name.toLowerCase() === data.data.species.toLowerCase());
+                            if (species) setSpeciesRules(species);
+                        })
+                        .catch(err => console.error("Failed to load species rules:", err));
+                }
+
+                if (data.data?.background) {
+                    fetch(`http://localhost:5000/api/backgrounds`)
+                        .then(res => res.json())
+                        .then(allBackgrounds => {
+                            const bg = allBackgrounds.find(b => b.name.toLowerCase() === data.data.background.toLowerCase());
+                            if (bg) setBackgroundRules(bg);
+                        })
+                        .catch(err => console.error("Failed to load background rules:", err));
+                }
+
+                // Fetch weapon rules
+                fetch(`http://localhost:5000/api/rules/weapons`)
+                    .then(res => res.json())
+                    .then(rules => setWeaponRules(rules))
+                    .catch(err => console.error("Failed to load weapon rules:", err));
+
                 // Load layout from character data if it exists
                 if (data.data?.layout) {
-                    setLayout(data.data.layout);
+                    // Force the latest constraints onto the loaded layout
+                    const mergedLayout = { ...data.data.layout };
+                    if (mergedLayout.lg) {
+                        mergedLayout.lg = mergedLayout.lg.map(item => {
+                            const constraints = LAYOUT_CONSTRAINTS[item.i];
+                            if (constraints) {
+                                return {
+                                    ...item,
+                                    ...constraints
+                                };
+                            }
+                            return item;
+                        });
+                    }
+                    setLayout(mergedLayout);
                 }
             })
             .catch(err => {
@@ -302,45 +464,311 @@ function CharacterSheet() {
 
     const displayedItems = groupedInventory[inventoryFilter] || [];
 
+    // --- Rich Rendering Components ---
+    const ValueRenderer = ({ value, label, level }) => {
+        if (value === null || value === undefined) return null;
+
+        // 1. Detect and Resolve Scaling Dictionaries
+        const isScaling = typeof value === 'object' && !Array.isArray(value) && Object.keys(value).some(k => k.match(/^\d+(-?\d+)?$/));
+        if (isScaling) {
+            const currentVal = resolveScalingValue(value, level);
+            return <span className="resolved-scaling-value">{currentVal}</span>;
+        }
+
+        // 2. Custom Renderers for special categories
+        const category = label?.toLowerCase() || "";
+        const isBadgeCategory = ["resists", "resistances", "immunities", "advantages", "senses", "uses"].includes(category);
+
+        if (isBadgeCategory) {
+            const items = typeof value === 'string' ? value.split(', ') : (Array.isArray(value) ? value : [value]);
+            return (
+                <div className={`benefit-badges ${category}`}>
+                    {items.map((item, idx) => (
+                        <span key={idx} className="benefit-badge">{item}</span>
+                    ))}
+                </div>
+            );
+        }
+
+        if (Array.isArray(value)) {
+            return (
+                <div className="value-list">
+                    {value.map((item, idx) => (
+                        <div key={idx} className="value-list-item">
+                            {typeof item === 'object' ? <ValueRenderer value={item} level={level} /> : item}
+                        </div>
+                    ))}
+                </div>
+            );
+        }
+
+        if (typeof value === 'object') {
+            // Check if it's an options list
+            if (value.Options) {
+                return (
+                    <div className="options-list">
+                        {value.Options.map((opt, idx) => (
+                            <div key={idx} className="option-item">
+                                <span className="option-name">{opt.name}</span>
+                                <span className="option-desc">{opt.description}</span>
+                            </div>
+                        ))}
+                    </div>
+                );
+            }
+
+            // Regular key-value pairs
+            return (
+                <div className="detail-pairs">
+                    {Object.entries(value).map(([l, val]) => (
+                        <div key={l} className="detail-pair">
+                            <span className="detail-label">{l}:</span>
+                            <span className="detail-value">
+                                <ValueRenderer value={val} label={l} level={level} />
+                            </span>
+                        </div>
+                    ))}
+                </div>
+            );
+        }
+
+        return <span className="value-primitive">{processRichText(value)}</span>;
+    };
+
+    const AttackRow = ({ attack, onToggle, isExpanded }) => {
+        return (
+            <div className={`attack-row-wrapper ${isExpanded ? 'expanded' : ''}`}>
+                <div className="attack-row" onClick={onToggle}>
+                    <span className="attack-name">{attack.name}</span>
+                    <span className="attack-reach">{attack.reach}</span>
+                    <span className="attack-hit">+{attack.toHit}</span>
+                    <span className="attack-damage">{attack.damage}</span>
+                    <span className="attack-type-icon" title={attack.type}>{attack.type[0]}</span>
+                </div>
+                {isExpanded && (
+                    <div className="attack-details-expanded">
+                        <div className="attack-notes">{attack.notes}</div>
+                    </div>
+                )}
+            </div>
+        );
+    };
+
+    const CombatWidget = ({ character, inventory, features, profBonus, weaponRules }) => {
+        const [expandedAttack, setExpandedAttack] = useState(null);
+
+        const attacks = useMemo(() => {
+            const list = [];
+            // 1. Always add Unarmed Strike
+            list.push(calculateAttack("Unarmed Strike", character.data.abilities, profBonus, features, character.level, weaponRules));
+
+            // 2. Add weapons from inventory
+            inventory.forEach(item => {
+                if (weaponRules[item.name]) {
+                    list.push(calculateAttack(item.name, character.data.abilities, profBonus, features, character.level, weaponRules));
+                }
+            });
+            return list;
+        }, [character, inventory, features, profBonus, weaponRules]);
+
+        const combatActions = useMemo(() => {
+            const grouped = { Action: [], "Bonus Action": [], Reaction: [] };
+            features.forEach(f => {
+                const actionText = (f.details?.Action || f.details?.action || f.summary || f.description || "").toLowerCase();
+                if (actionText.includes("bonus action")) grouped["Bonus Action"].push(f);
+                else if (actionText.includes("reaction")) grouped["Reaction"].push(f);
+                else if (actionText.includes("action") && !actionText.includes("bonus action")) grouped["Action"].push(f);
+            });
+            return grouped;
+        }, [features]);
+
+        return (
+            <div className="combat-actions-content">
+                <section className="combat-section">
+                    <h4>Attacks</h4>
+                    <div className="attacks-table">
+                        <div className="attack-header">
+                            <span>Name</span>
+                            <span>Reach</span>
+                            <span>Hit</span>
+                            <span>Damage</span>
+                            <span></span>
+                        </div>
+                        {attacks.map((atk, idx) => (
+                            <AttackRow
+                                key={idx}
+                                attack={atk}
+                                isExpanded={expandedAttack === idx}
+                                onToggle={() => setExpandedAttack(expandedAttack === idx ? null : idx)}
+                            />
+                        ))}
+                    </div>
+                </section>
+
+                {Object.entries(combatActions).map(([type, list]) => (
+                    list.length > 0 && (
+                        <section key={type} className="combat-section">
+                            <h4>{type}s</h4>
+                            <div className="action-list-compact">
+                                {list.map(f => (
+                                    <div key={f.id} className="compact-action-item">
+                                        <span className="action-name">{f.name}</span>
+                                        <span className="action-summary-short">{f.summary}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </section>
+                    )
+                ))}
+            </div>
+        );
+    };
+
+    const RichFeature = ({ feature, isExpanded, onToggle, level }) => {
+        return (
+            <div className={`feature-card ${isExpanded ? "expanded" : "collapsed"} source-${feature.source || 'unknown'}`}>
+                <div className="feature-title" onClick={() => onToggle(feature.id)}>
+                    <div className="feature-title-left">
+                        <span className="feature-name">{feature.name}</span>
+                        <span className="feature-source-tag">{feature.source}</span>
+                    </div>
+                    <span className="feature-lvl">
+                        {feature.source === 'Class' || feature.source === 'Subclass' ? `Lvl ${feature.level}` : ''}
+                    </span>
+                </div>
+                {isExpanded && (
+                    <div className="feature-body">
+                        {feature.summary && <p className="feature-summary"><strong>Summary:</strong> {processRichText(feature.summary)}</p>}
+                        {feature.description && (
+                            <div className="feature-description">
+                                {feature.description.split('\n').map((para, i) => (
+                                    <p key={i}>{processRichText(para)}</p>
+                                ))}
+                            </div>
+                        )}
+                        {feature.details && (
+                            <div className="feature-details">
+                                <ValueRenderer value={feature.details} level={level} />
+                            </div>
+                        )}
+                    </div>
+                )}
+            </div>
+        );
+    };
+
     // --- Dynamic Feature Logic ---
     const availableFeatures = useMemo(() => {
-        if (!classRules || !character) return [];
+        if (!character) return [];
 
         const allFeatures = [];
         const currentLevel = character.level;
 
-        // Add Class Features
-        if (classRules.features) {
+        // 1. Add Class Features
+        if (classRules?.features) {
             Object.keys(classRules.features).forEach(lvl => {
                 if (parseInt(lvl) <= currentLevel) {
-                    allFeatures.push(...classRules.features[lvl]);
+                    allFeatures.push(...classRules.features[lvl].map(f => ({ ...f, source: 'Class', level: lvl })));
                 }
             });
         }
 
-        // Add Subclass Features
+        // 2. Add Subclass Features
         const subclassId = character.class?.subclass;
-        if (subclassId && classRules.subclasses?.[subclassId]?.features) {
+        if (subclassId && classRules?.subclasses?.[subclassId]?.features) {
             const scFeatures = classRules.subclasses[subclassId].features;
             Object.keys(scFeatures).forEach(lvl => {
                 if (parseInt(lvl) <= currentLevel) {
-                    allFeatures.push(...scFeatures[lvl]);
+                    allFeatures.push(...scFeatures[lvl].map(f => ({ ...f, source: 'Subclass', level: lvl })));
                 }
             });
         }
 
+        // 3. Add Species Features
+        if (speciesRules?.features) {
+            allFeatures.push(...speciesRules.features.map(f => ({ ...f, source: 'Species' })));
+        } else if (speciesRules?.traits) { // Backward compatibility for un-migrated species
+            allFeatures.push(...speciesRules.traits.map((t, idx) => ({
+                id: `species_trait_${idx}`,
+                name: t.split('.')[0],
+                description: t,
+                source: 'Species'
+            })));
+        }
+
+        // 4. Add Background & Origin Feat
+        if (backgroundRules) {
+            const choices = character.data?.choices;
+            const bgFeat = choices?.background_feat;
+            const bgBonus = choices?.background_bonus;
+
+            allFeatures.push({
+                id: 'background_feature',
+                name: `Background: ${backgroundRules.name}`,
+                description: backgroundRules.description || "No description available.",
+                source: 'Background',
+                details: {
+                    "Skills": backgroundRules.skills?.join(", "),
+                    "Tools": backgroundRules.tools,
+                    "Stat Bonuses": bgBonus ? (
+                        bgBonus.mode === '2_1'
+                            ? `+2 ${bgBonus.plus2}, +1 ${bgBonus.plus1}`
+                            : `+1 to ${backgroundRules.ability_scores?.join(", ")}`
+                    ) : "Included in Base Stats"
+                }
+            });
+
+            if (bgFeat) {
+                allFeatures.push({
+                    id: 'background_origin_feat',
+                    name: `Origin Feat: ${bgFeat.name}`,
+                    description: bgFeat.effects?.join("\n\n") || "No effects listed.",
+                    source: 'Background Feat'
+                });
+            } else if (backgroundRules.feat) {
+                allFeatures.push({
+                    id: 'background_origin_feat_placeholder',
+                    name: `Origin Feat: ${backgroundRules.feat}`,
+                    description: "Select feat effects in character creation for full details.",
+                    source: 'Background Feat'
+                });
+            }
+        }
+
         return allFeatures;
-    }, [classRules, character]);
+    }, [classRules, character, speciesRules, backgroundRules]);
+
+    // --- Dynamic Defenses Logic ---
+    const defenses = useMemo(() => {
+        const result = { resistances: [], immunities: [] };
+        if (!availableFeatures) return result;
+
+        availableFeatures.forEach(f => {
+            if (f.details?.Resistances) {
+                const res = typeof f.details.Resistances === 'string'
+                    ? f.details.Resistances.split(', ')
+                    : f.details.Resistances;
+                result.resistances = [...new Set([...result.resistances, ...res])];
+            }
+            if (f.details?.Immunities) {
+                const imm = typeof f.details.Immunities === 'string'
+                    ? f.details.Immunities.split(', ')
+                    : f.details.Immunities;
+                result.immunities = [...new Set([...result.immunities, ...imm])];
+            }
+        });
+        return result;
+    }, [availableFeatures]);
 
     const filteredFeatures = useMemo(() => {
         if (featureFilter === "All") return availableFeatures;
 
         return availableFeatures.filter(f => {
-            const actionText = (f.details?.action || f.summary || "").toLowerCase();
+            const actionText = (f.details?.Action || f.details?.action || f.summary || f.description || "").toLowerCase();
             if (featureFilter === "Action") return actionText.includes("action") && !actionText.includes("bonus action");
             if (featureFilter === "Bonus Action") return actionText.includes("bonus action");
             if (featureFilter === "Reaction") return actionText.includes("reaction");
-            if (featureFilter === "Passive") return !actionText.includes("action") && !actionText.includes("reaction");
+            if (featureFilter === "Passive") return !actionText.includes("action") && !actionText.includes("reaction") && !actionText.includes("bonus action");
             return true;
         });
     }, [availableFeatures, featureFilter]);
@@ -357,13 +785,15 @@ function CharacterSheet() {
 
     const defaultLayouts = {
         lg: [
-            { i: "header", x: 0, y: 0, w: 12, h: 2, static: isLayoutLocked, minW: 12, maxW: 12, minH: 2, maxH: 4 },
-            { i: "hp", x: 0, y: 2, w: 4, h: 3, static: isLayoutLocked, minW: 3, maxW: 6, minH: 2, maxH: 5 },
-            { i: "abilities", x: 4, y: 2, w: 4, h: 6, static: isLayoutLocked, minW: 3, maxW: 6, minH: 5, maxH: 10 },
-            { i: "saves", x: 8, y: 2, w: 4, h: 6, static: isLayoutLocked, minW: 3, maxW: 6, minH: 5, maxH: 10 },
-            { i: "skills", x: 0, y: 5, w: 4, h: 10, static: isLayoutLocked, minW: 2, maxW: 6, minH: 4, maxH: 20 },
-            { i: "features", x: 4, y: 8, w: 8, h: 10, static: isLayoutLocked, minW: 4, maxW: 12, minH: 4, maxH: 30 },
-            { i: "inventory", x: 0, y: 15, w: 12, h: 6, static: isLayoutLocked, minW: 4, maxW: 12, minH: 3, maxH: 20 },
+            { i: "header", x: 0, y: 0, w: 12, h: 5, static: isLayoutLocked, ...LAYOUT_CONSTRAINTS.header },
+            { i: "hp", x: 0, y: 5, w: 4, h: 3, static: isLayoutLocked, ...LAYOUT_CONSTRAINTS.hp },
+            { i: "abilities", x: 4, y: 5, w: 4, h: 6, static: isLayoutLocked, ...LAYOUT_CONSTRAINTS.abilities },
+            { i: "saves", x: 8, y: 5, w: 4, h: 6, static: isLayoutLocked, ...LAYOUT_CONSTRAINTS.saves },
+            { i: "skills", x: 0, y: 8, w: 4, h: 12, static: isLayoutLocked, ...LAYOUT_CONSTRAINTS.skills },
+            { i: "species", x: 4, y: 11, w: 8, h: 8, static: isLayoutLocked, ...LAYOUT_CONSTRAINTS.species },
+            { i: "features", x: 4, y: 19, w: 8, h: 10, static: isLayoutLocked, ...LAYOUT_CONSTRAINTS.features },
+            { i: "combat", x: 4, y: 29, w: 8, h: 10, static: isLayoutLocked, ...LAYOUT_CONSTRAINTS.combat },
+            { i: "inventory", x: 0, y: 39, w: 12, h: 6, static: isLayoutLocked, ...LAYOUT_CONSTRAINTS.inventory },
         ]
     };
 
@@ -439,10 +869,35 @@ function CharacterSheet() {
                             )}
                         </div>
                         <div className="header-details">
-                            <span>{character.class.name}</span>
-                            <span>{character.data.species}</span>
-                            <span>{character.data.background}</span>
+                            <span className="detail-pill class-pill">{character.class.name}</span>
+                            <span className="detail-pill species-pill">
+                                {character.data.species}
+                                {character.data.species_variant ? ` (${character.data.species_variant})` : ""} |
+                                {character.data.size || speciesRules?.size || "Medium"} |
+                                {speciesRules?.speed || "30 ft."}
+                            </span>
+                            <span className="detail-pill background-pill">{character.data.background}</span>
                         </div>
+                        {(defenses.resistances.length > 0 || defenses.immunities.length > 0) && (
+                            <div className="header-defenses">
+                                {defenses.resistances.length > 0 && (
+                                    <div className="defense-group">
+                                        <span className="defense-label">Resists:</span>
+                                        <div className="defense-tags">
+                                            {defenses.resistances.map(r => <span key={r} className="defense-tag">{r}</span>)}
+                                        </div>
+                                    </div>
+                                )}
+                                {defenses.immunities.length > 0 && (
+                                    <div className="defense-group">
+                                        <span className="defense-label">Immune:</span>
+                                        <div className="defense-tags">
+                                            {defenses.immunities.map(i => <span key={i} className="defense-tag immunity">{i}</span>)}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -519,12 +974,19 @@ function CharacterSheet() {
                             const abilityScore = character.data.abilities[skill.ability];
                             const mod = calculateModifier(abilityScore);
                             const bonus = mod + (isProficient ? currentProficiencyBonus : 0);
+
+                            // Check if this skill is from the background
+                            const bgSkills = (character.data?.choices?.background_skills || []).map(s => s.toLowerCase().replace(/\s+/g, '_'));
+                            const isFromBackground = bgSkills.includes(skill.key);
+
                             return (
-                                <div key={skill.key} className="skill-row">
+                                <div key={skill.key} className={`skill-row ${isFromBackground ? 'is-locked' : ''}`} title={isFromBackground ? `Gained from background (${character.data.background})` : ""}>
                                     <span
-                                        className={`prof-toggle ${isProficient ? "is-prof" : ""}`}
-                                        onClick={() => toggleSkillProficiency(skill.key)}
-                                    ></span>
+                                        className={`prof-toggle ${isProficient ? "is-prof" : ""} ${isFromBackground ? "locked" : ""}`}
+                                        onClick={() => !isFromBackground && toggleSkillProficiency(skill.key)}
+                                    >
+                                        {isFromBackground && <span className="lock-icon-tiny">🔒</span>}
+                                    </span>
                                     <span className="skill-name">{skill.name}</span>
                                     <span className="skill-bonus">{bonus >= 0 ? "+" : ""}{bonus}</span>
                                 </div>
@@ -551,19 +1013,47 @@ function CharacterSheet() {
                     </div>
                     <div className="features-container scrollable">
                         {filteredFeatures.map(f => (
-                            <div key={f.id} className={`feature-card ${expandedFeatures[f.id] ? "expanded" : "collapsed"}`}>
-                                <div className="feature-title" onClick={() => toggleFeature(f.id)}>
-                                    <span className="feature-name">{f.name}</span>
-                                    <span className="feature-lvl">Lvl {f.level || "??"}</span>
-                                </div>
-                                {expandedFeatures[f.id] && (
-                                    <div className="feature-body">
-                                        <p className="feature-summary">{f.summary}</p>
-                                        {f.details && <pre className="feature-details-raw">{JSON.stringify(f.details, null, 2)}</pre>}
-                                    </div>
-                                )}
-                            </div>
+                            <RichFeature
+                                key={f.id}
+                                feature={f}
+                                isExpanded={expandedFeatures[f.id]}
+                                onToggle={toggleFeature}
+                                level={character.level}
+                            />
                         ))}
+                    </div>
+                </div>
+
+                <div key="species" className="widget card species-widget">
+                    {!isLayoutLocked && <div className="widget-handle">⠿</div>}
+                    <h3>Species: {character.data.species}</h3>
+                    <div className="species-info-content scrollable">
+                        {speciesRules?.summary && <p className="species-lore-summary">{speciesRules.summary}</p>}
+                        <div className="species-traits-list">
+                            {availableFeatures.filter(f => f.source === 'Species').map(f => (
+                                <RichFeature
+                                    key={f.id}
+                                    feature={f}
+                                    isExpanded={expandedFeatures[f.id]}
+                                    onToggle={toggleFeature}
+                                    level={character.level}
+                                />
+                            ))}
+                        </div>
+                    </div>
+                </div>
+
+                <div key="combat" className="widget card combat-widget">
+                    {!isLayoutLocked && <div className="widget-handle">⠿</div>}
+                    <h3>Combat Actions</h3>
+                    <div className="scrollable">
+                        <CombatWidget
+                            character={character}
+                            inventory={inventoryItems}
+                            features={availableFeatures}
+                            profBonus={currentProficiencyBonus}
+                            weaponRules={weaponRules}
+                        />
                     </div>
                 </div>
 
