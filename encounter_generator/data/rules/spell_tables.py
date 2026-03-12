@@ -29,8 +29,9 @@ FULL_CASTER_SLOTS = {
 
 # Half casters: Paladin, Ranger
 HALF_CASTER_SLOTS = {
+    1: {"1": 2},
     2: {"1": 2},
-    3: {"1": 2},
+    3: {"1": 3},
     4: {"1": 3},
     5: {"1": 4, "2": 2},
     6: {"1": 4, "2": 2},

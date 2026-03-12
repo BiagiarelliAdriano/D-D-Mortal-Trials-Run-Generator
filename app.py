@@ -8,7 +8,9 @@ from encounter_generator.data.rules.classes import BARBARIAN, BARD, CLERIC, DRUI
 from encounter_generator.data.rules.backgrounds import BACKGROUNDS
 from encounter_generator.data.rules.species import SPECIES
 from encounter_generator.data.rules.feats import ORIGIN_FEATS, GENERAL_FEATS, FIGHTING_STYLE_FEATS, EPIC_BOONS
-from encounter_generator.data.items import WEAPONS_DATA
+from encounter_generator.data.items import WEAPONS_DATA, ARMOR_DATA
+from encounter_generator.data.spells import SPELLS
+from encounter_generator.data.rules.spell_tables import FULL_CASTER_SLOTS, HALF_CASTER_SLOTS, THIRD_CASTER_SLOTS, PACT_MAGIC_SLOTS
 import json
 import os
 
@@ -144,12 +146,46 @@ def api_characters():
         starting_gold = 0
         starting_inventory = []
 
+        def parse_equipment_string(item_input):
+            # Handles "4 Handaxes", "Dagger", etc. OR {"name": "Dagger", "quantity": 1, ...}
+            import re
+            
+            if isinstance(item_input, dict):
+                qty = item_input.get("quantity", 1)
+                name = item_input.get("name", "Unknown Item")
+            else:
+                match = re.match(r"^(\d+)\s+(.*)$", item_input.strip())
+                if match:
+                    qty = int(match.group(1))
+                    name = match.group(2)
+                else:
+                    qty = 1
+                    name = item_input.strip()
+            
+            # Simple category detection
+            category = "Other"
+            
+            # Check for exact or singular match in WEAPONS_DATA
+            check_name = name.strip()
+            if check_name in WEAPONS_DATA:
+                category = "Weapon"
+            elif check_name.endswith('s') and check_name[:-1] in WEAPONS_DATA:
+                category = "Weapon"
+                name = check_name[:-1] # Normalize to singular for combat action matching
+            elif any(k in name.lower() for k in ["armor", "leather", "mail", "plate"]):
+                category = "Armor"
+            elif any(k in name.lower() for k in ["pack", "kit", "rations", "torch", "rope"]):
+                category = "Gear"
+
+            return {"name": name, "quantity": qty, "category": category}
+
         if background and "starting_equipment" in background:
             if bg_equip_choice == "gold":
                 starting_gold += background["starting_equipment"].get("gold_option", 50)
             else:
                 starting_gold += background["starting_equipment"]["standard"].get("gold", 0)
-                starting_inventory.extend(background["starting_equipment"]["standard"].get("items", []))
+                items = background["starting_equipment"]["standard"].get("items", [])
+                starting_inventory.extend([parse_equipment_string(i) for i in items])
 
         # 2. Class Equipment
         class_name = character_data["class_name"]
@@ -160,7 +196,8 @@ def api_characters():
             choice = cls["starting_equipment"].get(class_equip_choice)
             if choice:
                 starting_gold += choice.get("gold", 0)
-                starting_inventory.extend(choice.get("items", []))
+                items = choice.get("items", [])
+                starting_inventory.extend([parse_equipment_string(i) for i in items])
 
         character_data["gold"] = starting_gold
         character_data["inventory"] = starting_inventory
@@ -173,10 +210,13 @@ def api_characters():
         con_mod = (con_score - 10) // 2
         character.update_hp(character_data["level"], con_mod, character_data["class_name"])
 
-        db.session.add(character)
-        db.session.commit()
-
-        return jsonify({"id": character.id}), 201
+        try:
+            db.session.add(character)
+            db.session.commit()
+            return jsonify({"id": character.id}), 201
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({"error": str(e)}), 500
 
     # GET all characters
     characters = Character.query.all()
@@ -387,6 +427,34 @@ def delete_run(run_id):
     db.session.delete(run)
     db.session.commit()
     return redirect(url_for("list_runs"))
+
+@app.route("/api/rules/armor")
+def api_rules_armor():
+    return jsonify(ARMOR_DATA)
+
+@app.route("/api/rules/spell_slots")
+def api_rules_spell_slots():
+    return jsonify({
+        "full": FULL_CASTER_SLOTS,
+        "half": HALF_CASTER_SLOTS,
+        "third": THIRD_CASTER_SLOTS,
+        "pact_magic": PACT_MAGIC_SLOTS
+    })
+
+@app.route("/api/spells/<classname>")
+def get_spells(classname):
+    class_spells = {}
+    for level, spells_list in SPELLS.items():
+        filtered_spells = []
+        for spell in spells_list:
+            if "classes" in spell and classname.capitalize() in spell["classes"]:
+                filtered_spells.append({
+                    "name": spell.get("name"),
+                    "school": spell.get("school")
+                })
+        if filtered_spells:
+            class_spells[level] = filtered_spells
+    return jsonify(class_spells)
 
 # ------------------------
 # Entry Point

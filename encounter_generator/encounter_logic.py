@@ -107,7 +107,7 @@ ENCOUNTER_DEFINITIONS = {
     11: {
         "allowed_rarities": ["very rare"],
         "xp": 4350,
-        "total_xp": 18225,
+        "total_xp": 18350,
         "is_levelup": False,
         "gold": 4000,
         "monsters": [("5", 1), ("3", 1), ("1", 2)],
