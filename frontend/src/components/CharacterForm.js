@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 function CharacterForm() {
     const { id } = useParams();
     const isEditMode = Boolean(id);
     const navigate = useNavigate();
+    const { token } = useAuth();
 
     // Import CSS
     require("../styles/CharacterForm.css");
@@ -97,7 +99,9 @@ function CharacterForm() {
     useEffect(() => {
         if (!isEditMode) return;
 
-        fetch(`http://localhost:5000/api/characters/${id}`)
+        fetch(`http://localhost:5000/api/characters/${id}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        })
             .then(res => res.json())
             .then(data => {
                 setFormData({
@@ -134,7 +138,7 @@ function CharacterForm() {
                 setLoading(false);
             })
             .catch(() => setLoading(false));
-    }, [id, isEditMode]);
+    }, [id, isEditMode, token]);
 
     const handleClassSelect = (className) => {
         setFormData({ ...formData, class_name: className });
@@ -350,8 +354,12 @@ function CharacterForm() {
         const combinedProficiencies = [...new Set([...proficiencies, ...bgSkills, ...clsSkills])];
         payload.append("proficiencies", JSON.stringify(combinedProficiencies));
 
-        fetch(url, { method: "POST", body: payload })
-            .then(() => navigate("/"));
+        fetch(url, { 
+            method: "POST", 
+            body: payload,
+            headers: { 'Authorization': `Bearer ${token}` }
+        })
+            .then(() => navigate("/characters"));
     };
 
     // Render steps
@@ -556,7 +564,7 @@ function CharacterForm() {
                         </div>
 
                         <h3>Rolled Numbers</h3>
-                        <div className="button-group">
+                        <div className="rolled-stats-group">
                             {rolledStats.map(r => (
                                 <button
                                     key={r.id}
@@ -573,11 +581,12 @@ function CharacterForm() {
 
                         <h3>Assign Stats</h3>
                         <div className="assigned-stats-grid">
-                            {["strength", "intelligence", "dexterity", "wisdom", "constitution", "charisma"].map(stat => {
+                            {["strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma"].map(stat => {
                                 const val = assignedStats[stat];
                                 return (
                                     <button
                                         key={stat}
+                                        title={stat.charAt(0).toUpperCase() + stat.slice(1)}
                                         onClick={() => assignStat(stat)}
                                         onDragOver={handleDragOver}
                                         onDragEnter={() => handleDragEnter(stat)}
@@ -587,7 +596,7 @@ function CharacterForm() {
                                             } ${dragOverAbility === stat ? "drag-over" : ""
                                             }`}
                                     >
-                                        <span className="stat-label">{stat.toUpperCase()}</span>
+                                        <span className="stat-label">{stat.substring(0, 3).toUpperCase()}</span>
                                         <span className="stat-value">{val ?? "-"}</span>
                                     </button>
                                 );
@@ -596,7 +605,7 @@ function CharacterForm() {
 
                         <p><strong>Total = {abilityTotal}</strong></p>
 
-                        <div className="navigation-buttons">
+                        <div className="navigation-buttons compact" style={{ marginTop: '15px' }}>
                             <button className="nav-button" onClick={() => setStep(0)}>Back</button>
                             {/* Reset button only for new character */}
                             {!isEditMode && initialRolledStats.length > 0 && (

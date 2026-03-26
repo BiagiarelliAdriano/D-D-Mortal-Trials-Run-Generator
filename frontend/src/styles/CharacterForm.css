@@ -135,6 +135,14 @@
     gap: 10px;
 }
 
+.rolled-stats-group {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
 .stat-button {
     padding: 10px;
     font-size: 1.6rem;
@@ -167,24 +175,26 @@
 }
 
 .assigned-stats-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
     gap: 10px;
-    margin-top: 15px;
+    margin-top: 10px;
 }
 
 .assigned-stat-button {
     display: flex;
-    justify-content: space-between;
+    flex-direction: column;
+    justify-content: center;
     align-items: center;
-    width: 100%;
-    padding: 10px 15px;
+    width: 70px;
+    height: 70px;
+    padding: 5px;
     background: rgba(255, 255, 255, 0.03);
     border: 1px dashed var(--border);
     border-radius: 12px;
     color: var(--text-main);
     font-family: var(--font-serif);
-    font-size: 1rem;
     cursor: pointer;
     transition: all 0.2s;
 }
@@ -683,8 +693,9 @@ input[type="number"]:focus {
 .class-selection-layout {
     display: flex;
     gap: 20px;
-    height: 70vh;
-    /* Fixed height to keep everything in viewport */
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
     margin-bottom: 5px;
 }
 
@@ -960,3 +971,76 @@ input[type="number"]:focus {
     color: var(--accent);
     margin-right: 4px;
 }
+
+/* Responsive Design for Character Form */
+@media (max-width: 900px) {
+    .character-form-container {
+        margin: 10px;
+        padding: 20px;
+        max-height: 95vh;
+    }
+
+    .class-selection-layout,
+    .background-equipment-layout {
+        flex-direction: column;
+        height: auto;
+        overflow-y: auto;
+    }
+
+    .class-list-column,
+    .background-list-column {
+        border-right: none;
+        border-bottom: 1px solid var(--border-light);
+        padding-right: 0;
+        padding-bottom: 15px;
+        flex: none;
+    }
+
+    .class-details-column,
+    .equipment-details-column {
+        flex: none;
+    }
+
+    .class-facts-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 600px) {
+    .button-group {
+        grid-template-columns: 1fr;
+    }
+
+    .assigned-stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .class-facts-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .navigation-buttons {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .nav-button {
+        width: 100%;
+    }
+
+    .character-form-container h1 {
+        font-size: 1.5rem;
+    }
+}
+
+@media (max-height: 700px) {
+    .character-form-container {
+        max-height: 100vh;
+        border-radius: 0;
+        margin: 0;
+    }
+    
+    .button-group {
+        max-height: 40vh;
+    }
+}

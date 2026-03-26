@@ -1,15 +1,22 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 import "../styles/CharactersHub.css";
+import UserProfilePill from "./UserProfilePill";
 
 function CharactersHub() {
     const [characters, setCharacters] = useState([]);
     const [loading, setLoading] = useState(true);
+    const { user, token } = useAuth();
     const navigate = useNavigate();
 
     // Fetch all characters from the API
     useEffect(() => {
-        fetch("http://localhost:5000/api/characters")
+        fetch("http://localhost:5000/api/characters", {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        })
             .then(res => res.json())
             .then(data => {
                 setCharacters(data);
@@ -19,7 +26,7 @@ function CharactersHub() {
                 console.error("Error fetching characters:", err);
                 setLoading(false);
             });
-    }, []);
+    }, [token]);
 
     // Delete a character
     const deleteCharacter = (id, e) => {
@@ -27,7 +34,10 @@ function CharactersHub() {
         if (!window.confirm("Are you sure you want to delete this character?")) return;
 
         fetch(`http://localhost:5000/api/characters/${id}`, {
-            method: "DELETE"
+            method: "DELETE",
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
         }).then(() => {
             // Remove deleted character from state
             setCharacters(prev => prev.filter(char => char.id !== id));
@@ -39,10 +49,22 @@ function CharactersHub() {
     return (
         <div className="hub-container">
             <header className="hub-header">
-                <h1>Characters Hub</h1>
-                <button className="create-button" onClick={() => navigate("/characters/create")}>
-                    ✧ Create New Ascendant
-                </button>
+                <div className="hub-titles">
+                    <h1>Characters Hub</h1>
+                    <button className="create-button" onClick={() => navigate("/characters/create")}>
+                        ✧ Create New Ascendant
+                    </button>
+                    <button className="create-button secondary-hub-btn" onClick={() => navigate("/")}>
+                        <i className="fa-solid fa-house"></i> Home
+                    </button>
+                    {user?.is_admin && (
+                        <button className="create-button admin-button" onClick={() => navigate("/admin")}>
+                            ♚ Admin Dashboard
+                        </button>
+                    )}
+                </div>
+
+                <UserProfilePill />
             </header>
 
             <div className="character-grid">
@@ -70,6 +92,11 @@ function CharactersHub() {
                                 </div>
                                 <span>{char.species_variant ? `${char.species_variant} ` : ""}{char.species || "Unknown Species"}</span>
                             </div>
+                            {char.active_run_title && (
+                                <div className="active-run-badge">
+                                    <i className="fa-solid fa-dungeon"></i> {char.active_run_title}
+                                </div>
+                            )}
                             <div className="card-actions">
                                 <button
                                     className="action-btn btn-view"

@@ -1,0 +1,143 @@
+.saved-runs-container {
+    min-height: 100vh;
+    padding: 2rem;
+    background: var(--bg-dark);
+    color: var(--text-main);
+}
+
+.saved-runs-header {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    margin-bottom: 3rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.saved-runs-header h1 {
+    margin: 0;
+    font-size: 2.5rem;
+}
+
+.runs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2rem;
+}
+
+.run-summary-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 15px;
+    padding: 1.5rem;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.run-summary-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--accent);
+    background: var(--bg-card-hover);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+}
+
+.run-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.run-card-header h3 {
+    margin: 0;
+    color: var(--accent);
+    font-size: 1.4rem;
+}
+
+.delete-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    cursor: pointer;
+    font-size: 1.1rem;
+    transition: color 0.2s;
+    padding: 0.5rem;
+    z-index: 5;
+}
+
+.delete-btn:hover {
+    color: var(--danger);
+}
+
+.run-card-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    color: var(--text-dim);
+}
+
+.run-card-meta i {
+    width: 20px;
+    color: var(--accent-dim);
+}
+
+.run-card-preview {
+    font-size: 0.95rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    padding-top: 1rem;
+}
+
+.blessing-preview {
+    color: var(--text-main);
+}
+
+.view-overlay {
+    position: absolute;
+    bottom: -40px;
+    left: 0;
+    right: 0;
+    background: var(--accent);
+    color: var(--bg-dark);
+    text-align: center;
+    padding: 0.5rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    transition: bottom 0.3s ease;
+}
+
+.run-summary-card:hover .view-overlay {
+    bottom: 0;
+}
+
+.loading-state, .empty-state {
+    text-align: center;
+    padding: 4rem;
+    color: var(--text-dim);
+}
+
+.loading-state i, .empty-state i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    color: var(--accent);
+}
+
+@media (max-width: 600px) {
+    .saved-runs-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    .saved-runs-header h1 {
+        font-size: 1.8rem;
+    }
+    .runs-grid {
+        grid-template-columns: 1fr;
+    }
+}

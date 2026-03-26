@@ -1,5 +1,9 @@
 /* theme.css - Shared Design Tokens */
 
+* {
+    box-sizing: border-box;
+}
+
 :root {
     --bg-dark: #1e1e2f;
     --bg-card: rgba(100, 49, 115, 0.4);

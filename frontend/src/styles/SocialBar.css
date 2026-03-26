@@ -1,0 +1,62 @@
+.global-social-bar {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    z-index: 1000;
+}
+
+.social-icon {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    color: white;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    text-decoration: none;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.social-icon:hover {
+    transform: translateY(-5px) scale(1.1);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.4);
+}
+
+.social-icon.discord:hover {
+    background: #5865F2;
+    color: white;
+}
+
+.social-icon.patreon:hover {
+    background: #FF424D;
+    color: white;
+}
+
+@media (max-width: 768px) {
+    .global-social-bar {
+        bottom: 15px;
+        left: 15px;
+        gap: 8px;
+    }
+    .social-icon {
+        width: 38px;
+        height: 38px;
+        font-size: 1rem;
+    }
+}
+
+@media print {
+    .global-social-bar {
+        display: none !important;
+    }
+}

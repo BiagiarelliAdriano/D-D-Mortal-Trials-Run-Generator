@@ -2,21 +2,51 @@ from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 import json
 from sqlalchemy.sql import func
+from werkzeug.security import generate_password_hash, check_password_hash
 from encounter_generator.data.rules.game_rules import CLASS_HIT_DICE
 
 db = SQLAlchemy()
 
 class Run(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    title_run = db.Column(db.String(100), unique=True, nullable=False)  # Name should be more descriptive
-    created_at = db.Column(db.DateTime, default=func.now(), nullable=False)  # Use func.now() for timestamp
+    title_run = db.Column(db.String(100), nullable=False) 
+    created_at = db.Column(db.DateTime, default=func.now(), nullable=False)
     data = db.Column(db.Text, nullable=False)  # Stores the run as JSON
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
     
     def set_data(self, encounters):
         self.data = json.dumps(encounters)
     
     def get_data(self):
         return json.loads(self.data)
+
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), unique=True, nullable=False)
+    password_hash = db.Column(db.String(255), nullable=False)
+    avatar = db.Column(db.String(255), nullable=False, default="fighter") # D&D class inspired avatar names or file path
+    security_question = db.Column(db.String(255), nullable=True)
+    security_answer_hash = db.Column(db.String(255), nullable=False)
+    is_admin = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=func.now(), nullable=False)
+    
+    # Relationship: A user can have many characters
+    characters = db.relationship('Character', backref='owner', lazy=True, cascade="all, delete-orphan")
+
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
+        
+    def set_security_answer(self, answer):
+        # Lowercase and strip to make it slightly more forgiving
+        clean_answer = answer.strip().lower()
+        self.security_answer_hash = generate_password_hash(clean_answer)
+        
+    def check_security_answer(self, answer):
+        clean_answer = answer.strip().lower()
+        return check_password_hash(self.security_answer_hash, clean_answer)
 
 DEFAULT_CHARACTER_DATA = {
     "class_name": "",
@@ -71,6 +101,7 @@ class Character(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     data = db.Column(db.Text, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
 
     def set_data(self, char_data):
         """
@@ -146,5 +177,32 @@ class Character(db.Model):
             elif isinstance(value, dict):
                 for subkey, subvalue in value.items():
                     data[key].setdefault(subkey, subvalue)
-        
         return data
+
+class HostedRun(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    invite_code = db.Column(db.String(6), unique=True, nullable=False)
+    dm_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    run_id = db.Column(db.Integer, db.ForeignKey('run.id'), nullable=False)
+    party_inventory = db.Column(db.Text, default='[]')
+    completed_encounters = db.Column(db.Text, default='[]')
+    is_active = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=func.now(), nullable=False)
+
+    # Relationships
+    dm = db.relationship('User', foreign_keys=[dm_id], backref='hosted_runs_as_dm')
+    run = db.relationship('Run', backref='hosted_session', uselist=False)
+    # Changed backref to avoid collision if necessary, but participants seems unique
+    participants = db.relationship('SessionParticipant', backref='hosted_run', cascade="all, delete-orphan")
+
+class SessionParticipant(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    hosted_run_id = db.Column(db.Integer, db.ForeignKey('hosted_run.id'), nullable=False)
+    character_id = db.Column(db.Integer, db.ForeignKey('character.id'), nullable=True)
+    role = db.Column(db.String(20), default='Ascendant') # 'DM' or 'Ascendant'
+    joined_at = db.Column(db.DateTime, default=func.now(), nullable=False)
+
+    # Relationships
+    user = db.relationship('User', backref='session_participations')
+    character = db.relationship('Character', backref='session_links')

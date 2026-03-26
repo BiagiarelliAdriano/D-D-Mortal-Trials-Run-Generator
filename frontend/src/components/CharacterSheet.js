@@ -1,10 +1,12 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Responsive, WidthProvider } from "react-grid-layout/legacy";
+import { useAuth } from "../context/AuthContext";
 
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 import "../styles/CharacterSheet.css";
+import LevelUpOverlay from "./LevelUpOverlay";
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
@@ -37,24 +39,68 @@ const XP_THRESHOLDS = {
 const resolveScalingValue = (scalingData, level) => {
     if (typeof scalingData !== 'object' || scalingData === null) return scalingData;
 
+    let bestValue = null;
+    let highestLevelFound = -1;
+
     for (const [range, value] of Object.entries(scalingData)) {
-        // Handle "1-8" or single numbers
+        // Handle "1-8" range strings
         const parts = range.split('-');
         if (parts.length === 2) {
             const min = parseInt(parts[0]);
             const max = parseInt(parts[1]);
             if (level >= min && level <= max) return value;
-        } else if (parseInt(range) === level) {
-            return value;
-        }
-
-        // Handle "17+" style (though usually it's "17-20" in this data)
-        if (range.endsWith('+')) {
+        } 
+        
+        // Handle "17+" style
+        else if (range.endsWith('+')) {
             const min = parseInt(range);
-            if (level >= min) return value;
+            if (level >= min) {
+                // For milestone style, we want the highest min that is <= level
+                if (min > highestLevelFound) {
+                    highestLevelFound = min;
+                    bestValue = value;
+                }
+            }
+        }
+        
+        // Handle single level milestones or specific levels
+        else {
+            const milestone = parseInt(range);
+            if (!isNaN(milestone) && level >= milestone) {
+                if (milestone > highestLevelFound) {
+                    highestLevelFound = milestone;
+                    bestValue = value;
+                }
+            }
         }
     }
-    return null; // Fallback if no range match
+    
+    return bestValue;
+};
+
+const getChoiceLimitForFeature = (feature, level) => {
+    if (!feature || !feature.details) return 1;
+    const details = feature.details;
+
+    // 1. Explicit choice limit
+    if (details.choice?.choose) return details.choice.choose;
+
+    // 2. Weapon Mastery Scaling (generic or class-specific)
+    const wmScaling = details.weapons_mastered?.scaling || details.Scaling;
+    if (wmScaling) {
+        const val = resolveScalingValue(wmScaling, level);
+        if (typeof val === 'number') return val;
+        if (typeof val === 'string') {
+            const match = val.match(/(\d+)/);
+            if (match) return parseInt(match[1]);
+        }
+    }
+
+    // 3. Simple numeric limits
+    if (typeof details.masteries === 'number') return details.masteries;
+    if (typeof details.number_to_choose === 'number') return details.number_to_choose;
+
+    return 1;
 };
 
 /**
@@ -62,7 +108,7 @@ const resolveScalingValue = (scalingData, level) => {
  * Returns an array of React elements/strings.
  */
 const processRichText = (text) => {
-    if (!text) return text;
+    if (typeof text !== 'string' || !text) return text;
     const parts = text.split(/(\*\*.*?\*\*|\*.*?\*)/g);
     return parts.map((part, i) => {
         if ((part.startsWith('**') && part.endsWith('**')) || (part.startsWith('*') && part.endsWith('*'))) {
@@ -314,20 +360,50 @@ const CombatWidget = ({ character, inventory, features, profBonus, weaponRules, 
     );
 };
 
-const RichFeature = ({ feature, isExpanded, onToggle, level, isActive, onActivate, currentUses }) => {
+const RichFeature = ({ 
+    feature, isExpanded, onToggle, level, isActive, onActivate, currentUses,
+    characterData, classRules, ruleOptions, featureChoices, onUpdateChoice, availableSpells 
+}) => {
     const maxUsesData = feature.details?.Uses;
     const maxUses = maxUsesData ? resolveScalingValue(maxUsesData, level) : null;
     const hasUses = maxUses !== null;
+
+    const rawChoice = featureChoices?.[feature.id];
+    const currentChoices = Array.isArray(rawChoice) ? rawChoice : (rawChoice ? [rawChoice] : []);
+    const options = resolveOptionsForFeature(feature, characterData, classRules, ruleOptions, availableSpells);
+    const hasOptions = options.length > 0;
+    const choiceLimit = getChoiceLimitForFeature(feature, level);
+    const hasChoices = hasOptions && choiceLimit > 0;
+
+    // Resolve the chosen options details
+    const chosenOptionsDetails = currentChoices.map(choice => {
+        const found = options.find(o => (typeof o === 'string' ? o : (o.id || o.name)) === choice);
+        return found ? (typeof found === 'string' ? { name: found } : found) : { name: choice };
+    });
 
     return (
         <div className={`feature-card ${isExpanded ? "expanded" : "collapsed"} source-${feature.source || 'unknown'} ${isActive ? 'is-active' : ''}`}>
             <div className="feature-title" onClick={() => onToggle(feature.id)}>
                 <div className="feature-title-left">
                     <span className="feature-name">{feature.name}</span>
+                    {chosenOptionsDetails.map((opt, idx) => (
+                        <span key={idx} className="feature-choice-badge">{opt.name}</span>
+                    ))}
                     <span className="feature-source-tag">{feature.source}</span>
                     {isActive && <span className="active-tag">ACTIVE</span>}
                 </div>
                 <div className="feature-title-right">
+                    {hasChoices && (
+                        <button 
+                            className="feature-choice-btn" 
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                onUpdateChoice(feature, options);
+                            }}
+                        >
+                            {currentChoices.length > 0 ? (currentChoices.length < choiceLimit ? 'Complete' : 'Change') : 'Choose'}
+                        </button>
+                    )}
                     {hasUses && (
                         <span className="feature-uses">
                             Uses: {currentUses !== undefined ? currentUses : maxUses} / {maxUses}
@@ -360,6 +436,25 @@ const RichFeature = ({ feature, isExpanded, onToggle, level, isActive, onActivat
                             ))}
                         </div>
                     )}
+                    
+                    {chosenOptionsDetails.length > 0 && (
+                        <div className="chosen-options-list">
+                            {chosenOptionsDetails.map((opt, idx) => (
+                                <div key={idx} className="chosen-option-block">
+                                    <h4>Selected: {opt.name}</h4>
+                                    {opt.description && <p>{processRichText(opt.description)}</p>}
+                                    {opt.benefit && <p>{processRichText(opt.benefit)}</p>}
+                                    {opt.summary && <p className="option-summary-line">{processRichText(opt.summary)}</p>}
+                                    {opt.details && (
+                                        <div className="option-details">
+                                            <ValueRenderer value={opt.details} level={level} />
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
                     {feature.details && (
                         <div className="feature-details">
                             <ValueRenderer value={feature.details} level={level} />
@@ -381,7 +476,7 @@ const LAYOUT_CONSTRAINTS = {
     species: { minW: 4, maxW: 12, minH: 7, maxH: 9 },
     combat: { minW: 6, maxW: 12, minH: 5, maxH: 15 },
     inventory: { minW: 12, maxW: 12, minH: 3, maxH: 20 },
-    spellcasting: { minW: 6, maxW: 12, minH: 12, maxH: 30 },
+    spellcasting: { minW: 6, maxW: 12, minH: 12, maxH: 15 },
 };
 
 const DEFAULT_LAYOUTS = {
@@ -447,19 +542,161 @@ const DEFAULT_LAYOUTS = {
     ],
 };
 
-const SpellcastingWidget = ({ 
-    hasSpellcasting, 
-    classRules, 
-    spellSlotsRules, 
-    character, 
-    availableSpells, 
-    isLayoutLocked, 
-    currentProficiencyBonus, 
-    onOpenOverlay 
-}) => {
-    if (!hasSpellcasting || !classRules?.spellcasting || !spellSlotsRules || !character) return null;
+const resolveOptionsForFeature = (feature, characterData, classRules, ruleOptions, availableSpells) => {
+    if (!feature) return [];
+    const id = feature.id;
+    const details = feature.details || {};
+    
+    // 1. Static Options from Details or details.choice
+    if (details.choice?.options) return details.choice.options;
+    if (details.expertise_choice_options) return details.expertise_choice_options;
+    if (details.skills_affected) return details.skills_affected;
 
-    const spellcasting = classRules.spellcasting;
+    // 2. Global Rule Options
+    if (id.includes('weapon_mastery')) return Object.values(ruleOptions.weapon_mastery || {});
+    if (id.includes('fighting_style')) return ruleOptions.fighting_style || [];
+    if (id === 'sorcerer_metamagic') return Object.values(ruleOptions.metamagic || {});
+    if (id === 'warlock_eldritch_invocations') return Object.values(ruleOptions.invocations || {});
+
+    // 3. Subclasses
+    if (id.endsWith('_subclass')) {
+        const subclasses = classRules?.subclasses || {};
+        return Object.keys(subclasses).map(key => ({
+            id: key,
+            name: subclasses[key].name,
+            description: subclasses[key].description || subclasses[key].summary
+        }));
+    }
+
+    // 4. Feats/Boons
+    if (id.includes('feat_or_asi') || id.includes('epic_boon')) {
+        let pool = [...(ruleOptions.origin || []), ...(ruleOptions.general || [])];
+        if (id.includes('epic_boon')) pool = [...pool, ...(ruleOptions.epic_boon || [])];
+        return pool;
+    }
+
+    // 5. Dynamic Lists (Expertise, Spells)
+    // Map internal proficiency keys to display names
+    const getProfName = (key) => key.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+    
+    // Character proficiencies (true/false map)
+    const profMap = characterData.data?.skillProficiencies || {};
+    const expertiseMap = characterData.data?.skillExpertise || {};
+    
+    const proficiencies = Object.keys(profMap).filter(k => profMap[k]);
+    const expertise = Object.keys(expertiseMap).filter(k => expertiseMap[k]);
+
+    if (id.includes('expertise') || id.includes('deft_explorer')) {
+        const available = proficiencies.filter(p => !expertise.includes(p));
+        return available.map(getProfName);
+    }
+    
+    if (id.includes('mystic_arcanum')) {
+        const level = id.split('_').pop();
+        return (availableSpells?.[level] || []).map(s => s.name);
+    }
+
+    if (id === 'wizard_spell_mastery') {
+        // Level 1 and 2 chosen spells
+        // const selected = characterData.data?.spellSelection?.leaded || []; // Re-check selection path
+        // For now, return a prompt if we can't find them easily
+        return ["Level 1 and 2 chosen spells will appear here"];
+    }
+
+    return [];
+};
+
+const FeatureChoiceOverlay = ({ isOpen, onClose, feature, options, onSelect, currentChoice, level }) => {
+    const [tempChoices, setTempChoices] = useState([]);
+    const limit = getChoiceLimitForFeature(feature, level);
+    const isMulti = limit > 1;
+
+    // Initialize temp choices from currentChoice
+    useEffect(() => {
+        if (isOpen) {
+            const initial = Array.isArray(currentChoice) ? currentChoice : (currentChoice ? [currentChoice] : []);
+            setTempChoices(initial);
+        }
+    }, [isOpen, currentChoice]);
+
+    if (!isOpen || !feature) return null;
+
+    const handleToggleOption = (optKey) => {
+        if (isMulti) {
+            setTempChoices(prev => {
+                if (prev.includes(optKey)) return prev.filter(k => k !== optKey);
+                if (prev.length < limit) return [...prev, optKey];
+                return prev;
+            });
+        } else {
+            onSelect(feature.id, optKey);
+            onClose();
+        }
+    };
+
+    const handleSaveMulti = () => {
+        onSelect(feature.id, tempChoices);
+        onClose();
+    };
+
+    return (
+        <div className="choice-overlay-backdrop" onClick={onClose}>
+            <div className="choice-overlay-card" onClick={(e) => e.stopPropagation()}>
+                <div className="choice-overlay-header">
+                    <div className="header-titles">
+                        <h3>Choose for {feature.name}</h3>
+                        <span className="choice-limit-hint">
+                            Select {isMulti ? `up to ${limit}` : 'one'} ({tempChoices.length}/{limit})
+                        </span>
+                    </div>
+                    <button className="close-btn" onClick={onClose}>✕</button>
+                </div>
+                <div className="choice-options-container">
+                    {options.length === 0 && <p className="no-options">No options available at this time.</p>}
+                    {options.map((opt, idx) => {
+                        const optKey = typeof opt === 'string' ? opt : (opt.id || opt.name);
+                        const isSelected = tempChoices.includes(optKey);
+                        const optName = typeof opt === 'string' ? opt : opt.name;
+                        const optDescRaw = typeof opt === 'string' ? null : (opt.description || opt.summary || opt.benefit || (opt.effects && opt.effects.join(' ')));
+
+                        return (
+                            <div 
+                                key={idx} 
+                                className={`choice-option-card ${isSelected ? 'selected' : ''}`}
+                                onClick={() => handleToggleOption(optKey)}
+                            >
+                                <div className="option-name">{optName}</div>
+                                {optDescRaw && <div className="option-desc">{processRichText(optDescRaw)}</div>}
+                                {isSelected && <div className="selected-tag">SELECTED</div>}
+                            </div>
+                        );
+                    })}
+                </div>
+                {isMulti && (
+                    <div className="choice-overlay-footer">
+                        <button className="save-choice-btn" onClick={handleSaveMulti}>
+                            Save {tempChoices.length} Selections
+                        </button>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
+
+const SpellcastingWidget = ({
+    hasSpellcasting,
+    spellcastingRules,
+    spellSlotsRules,
+    character,
+    availableSpells,
+    isLayoutLocked,
+    currentProficiencyBonus,
+    onOpenOverlay
+}) => {
+    if (!hasSpellcasting || !spellcastingRules || !spellSlotsRules || !character) return null;
+
+    const spellcasting = spellcastingRules;
     const ability = spellcasting.ability || "intelligence";
     const abilityScore = character.data.abilities[ability.toLowerCase()] || 10;
     const mod = calculateModifier(abilityScore);
@@ -481,6 +718,17 @@ const SpellcastingWidget = ({
     }
 
     const selectedSpells = character.data.spells || [];
+    const cantripsKnownLimit = resolveScalingValue(spellcasting.cantrips_known, character.level) || 0;
+    const spellsPreparedLimit = resolveScalingValue(spellcasting.spells_prepared, character.level) || 0;
+
+    const cantripsCount = selectedSpells.filter(name => {
+        for (const lvl in availableSpells) {
+            if (availableSpells[lvl].some(s => s.name === name && lvl === "0")) return true;
+        }
+        return false;
+    }).length;
+
+    const preparedCount = selectedSpells.length - cantripsCount;
 
     return (
         <div className="spellcasting-content">
@@ -490,6 +738,15 @@ const SpellcastingWidget = ({
                 <button className="manage-spells-btn" onClick={onOpenOverlay}>
                     📖 Manage Spells
                 </button>
+            </div>
+
+            <div className="spell-limits-summary">
+                <span className={`limit-tag ${cantripsCount > cantripsKnownLimit ? 'over' : ''}`}>
+                    Cantrips: {cantripsCount}/{cantripsKnownLimit}
+                </span>
+                <span className={`limit-tag ${preparedCount > spellsPreparedLimit ? 'over' : ''}`}>
+                    Prepared: {preparedCount}/{spellsPreparedLimit}
+                </span>
             </div>
 
             <div className="spell-stats-row">
@@ -542,22 +799,22 @@ const SpellcastingWidget = ({
     );
 };
 
-const SpellOverlay = ({ 
-    show, 
-    minimized, 
-    onClose, 
-    onMinimize, 
-    onRestore, 
-    availableSpells, 
-    character, 
-    classRules, 
+const SpellOverlay = ({
+    show,
+    minimized,
+    onClose,
+    onMinimize,
+    onRestore,
+    availableSpells,
+    character,
+    spellcastingRules,
     spellSlotsRules,
-    onToggleSpell 
+    onToggleSpell
 }) => {
     if (!show || !availableSpells) return null;
 
     const selectedSpells = character.data.spells || [];
-    const spellcasting = classRules?.spellcasting;
+    const spellcasting = spellcastingRules;
     const progression = spellcasting?.progression;
     const progressionKey = progression === "pact" ? "pact_magic" : progression;
     const slotsTable = progressionKey ? spellSlotsRules?.[progressionKey] : null;
@@ -573,6 +830,22 @@ const SpellOverlay = ({
     }
 
     const hasCantrips = !!(availableSpells?.["0"]?.length);
+    
+    const cantripsKnownLimit = resolveScalingValue(spellcasting?.cantrips_known, character.level) || 0;
+    const spellsPreparedLimit = resolveScalingValue(spellcasting?.spells_prepared, character.level) || 0;
+
+    const cantripsCount = selectedSpells.filter(name => {
+        for (const lvl in availableSpells) {
+            if (availableSpells[lvl].some(s => s.name === name && lvl === "0")) return true;
+        }
+        return false;
+    }).length;
+
+    const preparedCount = selectedSpells.length - cantripsCount;
+
+    const cantripsAtLimit = cantripsCount >= cantripsKnownLimit;
+    const spellsAtLimit = preparedCount >= spellsPreparedLimit;
+
     const hintText = hasCantrips
         ? `Filtering by your max available spell slot level (Cantrips to Level ${maxAvailableSlot}). Spells chosen are saved automatically.`
         : `Filtering by your max available spell slot level (Level 1 to Level ${maxAvailableSlot}). Spells chosen are saved automatically.`;
@@ -597,6 +870,14 @@ const SpellOverlay = ({
                         <button className="close-btn" onClick={onClose}>✕</button>
                     </div>
                 </div>
+                <div className="overlay-stats-bar">
+                    <div className={`stat-pill ${cantripsAtLimit ? 'at-limit' : ''}`}>
+                        Cantrips: <strong>{cantripsCount} / {cantripsKnownLimit}</strong>
+                    </div>
+                    <div className={`stat-pill ${spellsAtLimit ? 'at-limit' : ''}`}>
+                        Prepared Spells: <strong>{preparedCount} / {spellsPreparedLimit}</strong>
+                    </div>
+                </div>
                 <p className="overlay-hint">{hintText}</p>
                 <div className="spell-overlay-list">
                     {Object.keys(availableSpells).map(level => {
@@ -609,11 +890,14 @@ const SpellOverlay = ({
                                 <div className="spell-selection-grid">
                                     {spellsAtLevel.map(spell => {
                                         const isSelected = selectedSpells.includes(spell.name);
+                                        const isCantrip = level === "0";
+                                        const canSelect = isSelected || (isCantrip ? !cantripsAtLimit : !spellsAtLimit);
+
                                         return (
                                             <div
                                                 key={spell.name}
-                                                className={`spell-select-card ${isSelected ? 'selected' : ''}`}
-                                                onClick={() => onToggleSpell(spell.name)}
+                                                className={`spell-select-card ${isSelected ? 'selected' : ''} ${!canSelect ? 'disabled' : ''}`}
+                                                onClick={() => canSelect && onToggleSpell(spell.name)}
                                             >
                                                 <div className="spell-name">{spell.name}</div>
                                                 <div className="spell-school">{spell.school}</div>
@@ -635,10 +919,14 @@ const SpellOverlay = ({
 function CharacterSheet() {
     const { id } = useParams();
     const navigate = useNavigate();
+    const { token } = useAuth();
 
     const [character, setCharacter] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [ruleOptions, setRuleOptions] = useState({});
+    const [choiceOverlay, setChoiceOverlay] = useState({ isOpen: false, feature: null });
+
     const [skills, setSkills] = useState({}); // Renamed from skillProficiencies
     const [showMaxHpModifiers, setShowMaxHpModifiers] = useState(false); // Renamed from showModifierInput
     const [maxHpModifier, setMaxHpModifier] = useState(0); // Renamed from damageModInput
@@ -663,7 +951,12 @@ function CharacterSheet() {
     const [availableSpells, setAvailableSpells] = useState(null);
     const [showSpellOverlay, setShowSpellOverlay] = useState(false);
     const [spellOverlayMinimized, setSpellOverlayMinimized] = useState(false);
+    const [featureChoices, setFeatureChoices] = useState({});
 
+    // Level Up Overlay State
+    const [showLevelUpOverlay, setShowLevelUpOverlay] = useState(false);
+    const [levelUpMinimized, setLevelUpMinimized] = useState(false);
+    const [previousLevel, setPreviousLevel] = useState(0);
 
     // Drag and Drop state for Inventory
     const [draggedItemIndex, setDraggedItemIndex] = useState(null);
@@ -678,7 +971,7 @@ function CharacterSheet() {
     useEffect(() => {
         const loadAllData = async () => {
             try {
-                
+
                 // 1. Fetch Global Rules first (Optional but good to have ready)
                 const [weaponRes, armorRes, spellSlotsRes] = await Promise.all([
                     fetch(`http://localhost:5000/api/rules/weapons`),
@@ -695,13 +988,15 @@ function CharacterSheet() {
                 setSpellSlotsRules(sSlotsRules);
 
                 // 2. Fetch Character Data
-                const charRes = await fetch(`http://localhost:5000/api/characters/${id}`);
+                const charRes = await fetch(`http://localhost:5000/api/characters/${id}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
                 if (!charRes.ok) {
                     if (charRes.status === 404) throw new Error("Character not found");
                     throw new Error("Failed to load character");
                 }
                 const data = await charRes.json();
-                
+
                 // Set immediate basic state
                 setCharacter(data);
                 setSkills(data.data.skillProficiencies || {});
@@ -710,6 +1005,7 @@ function CharacterSheet() {
                 setTempXp(data.data.xp || 0);
                 setActiveFeatures(data.data.activeFeatures || []);
                 setFeatureUses(data.data.featureUses || {});
+                setFeatureChoices(data.data.featureChoices || {});
 
                 // Initialize HP
                 const initialBaseMaxHp = data.data.hp_max_base || 0;
@@ -757,7 +1053,7 @@ function CharacterSheet() {
                     setClassRules(resolvedClassRules);
                     setAvailableSpells(ruleResults[resultIdx++]);
                 }
-                
+
                 if (data.data?.species) {
                     const speciesList = ruleResults[resultIdx++];
                     const species = speciesList.find(s => s.name.toLowerCase() === data.data.species.toLowerCase());
@@ -768,6 +1064,16 @@ function CharacterSheet() {
                     const bgList = ruleResults[resultIdx++];
                     const bg = bgList.find(b => b.name.toLowerCase() === data.data.background.toLowerCase());
                     if (bg) setBackgroundRules(bg);
+                }
+                 
+                // 4b. Fetch Global Rule Options (Weapon Mastery, Metamagic, Invocations)
+                const optionsRes = await fetch("http://localhost:5000/api/rules/options");
+                const featsRes = await fetch("http://localhost:5000/api/feats");
+                
+                if (optionsRes.ok && featsRes.ok) {
+                    const optionsData = await optionsRes.json();
+                    const featsData = await featsRes.json();
+                    setRuleOptions({ ...optionsData, ...featsData });
                 }
 
                 // 5. Final Step: Layout Initialization
@@ -796,6 +1102,11 @@ function CharacterSheet() {
                     setLayout(mergedLayout);
                 }
 
+                if (data.data?.level_up_pending) {
+                    setShowLevelUpOverlay(true);
+                    setPreviousLevel(data.data.level > 1 ? data.data.level - 1 : 0);
+                }
+
                 setLoading(false);
 
             } catch (err) {
@@ -806,7 +1117,7 @@ function CharacterSheet() {
         };
 
         loadAllData();
-    }, [id]);
+    }, [id, token]);
 
     // Effect to update effectiveMaxHp when baseMaxHp or maxHpModifier changes
     useEffect(() => {
@@ -818,6 +1129,7 @@ function CharacterSheet() {
             method: "PUT",
             headers: {
                 "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
             },
             body: JSON.stringify({
                 data: updates
@@ -830,7 +1142,7 @@ function CharacterSheet() {
                 }
             })
             .catch(err => console.error("Error saving character:", err));
-    }, [id]);
+    }, [id, token]);
 
     // Effect to ensure currentHp doesn't exceed effectiveMaxHp
     useEffect(() => {
@@ -848,6 +1160,14 @@ function CharacterSheet() {
         }
     }, [showXpEditor, xp]);
 
+    const handleFeatureChoice = useCallback((featureId, choice) => {
+        setFeatureChoices(prev => {
+            const next = { ...prev, [featureId]: choice };
+            saveCharacter({ featureChoices: next });
+            return next;
+        });
+    }, [saveCharacter]);
+
     const handleLevelUp = () => {
         if (!character) return;
         const nextLevel = character.level + 1;
@@ -859,7 +1179,8 @@ function CharacterSheet() {
         }
 
         fetch(`http://localhost:5000/api/characters/${id}/levelup`, {
-            method: "POST"
+            method: "POST",
+            headers: { "Authorization": `Bearer ${token}` }
         })
             .then(res => res.json())
             .then(data => {
@@ -880,7 +1201,8 @@ function CharacterSheet() {
         if (!window.confirm("Are you sure you want to level down? This will reset your stats for the previous level.")) return;
 
         fetch(`http://localhost:5000/api/characters/${id}/leveldown`, {
-            method: "POST"
+            method: "POST",
+            headers: { "Authorization": `Bearer ${token}` }
         })
             .then(res => res.json())
             .then(data => {
@@ -1117,6 +1439,11 @@ function CharacterSheet() {
         setDragOverItemIndex(null);
     };
 
+    const handleDismissLevelUp = () => {
+        setShowLevelUpOverlay(false);
+        saveCharacter({ level_up_pending: false });
+    };
+
     // --- Rich Rendering Components ---
 
     // --- Dynamic Feature Logic ---
@@ -1304,6 +1631,7 @@ function CharacterSheet() {
     const toggleSpellSelection = (name) => {
         const selectedSpells = character.data.spells || [];
         const current = [...selectedSpells];
+
         if (current.includes(name)) {
             // Remove
             const updated = current.filter(n => n !== name);
@@ -1311,15 +1639,83 @@ function CharacterSheet() {
             setCharacter(prev => ({ ...prev, data: { ...prev.data, spells: updated } }));
         } else {
             // Add
+            // Re-calculate counts for enforcement
+            const spellcasting = spellcastingRules;
+            if (!spellcasting) return;
+
+            const cantripsKnownLimit = resolveScalingValue(spellcasting.cantrips_known, character.level) || 0;
+            const spellsPreparedLimit = resolveScalingValue(spellcasting.spells_prepared, character.level) || 0;
+
+            const cantripsCount = current.filter(n => {
+                for (const lvl in availableSpells) {
+                    if (availableSpells[lvl].some(s => s.name === n && lvl === "0")) return true;
+                }
+                return false;
+            }).length;
+
+            const preparedCount = current.length - cantripsCount;
+
+            // Determine if the new spell is a cantrip
+            let isNewCantrip = false;
+            if (availableSpells["0"]?.some(s => s.name === name)) {
+                isNewCantrip = true;
+            }
+
+            if (isNewCantrip) {
+                if (cantripsCount >= cantripsKnownLimit) return;
+            } else {
+                if (preparedCount >= spellsPreparedLimit) return;
+            }
+
             current.push(name);
             saveCharacter({ spells: current });
             setCharacter(prev => ({ ...prev, data: { ...prev.data, spells: current } }));
         }
     };
 
+    // --- Dynamic Spellcasting Rule Resolution ---
+    const spellcastingRules = useMemo(() => {
+        if (!classRules || !character) return null;
+
+        let rules = null;
+        let source = 'Class';
+
+        // 1. Check for Subclass Spellcasting (e.g., Eldritch Knight, Arcane Trickster)
+        const subclassId = character.class?.subclass;
+        if (subclassId && classRules.subclasses?.[subclassId]?.features) {
+            const scFeatures = classRules.subclasses[subclassId].features;
+            // Iterate over levels (keys are strings like "1", "3", etc.)
+            for (const lvlKey in scFeatures) {
+                const feature = scFeatures[lvlKey].find(f => 
+                    f.name === "Spellcasting" || f.id?.includes("spellcasting")
+                );
+                if (feature?.details) {
+                    rules = {
+                        ...feature.details,
+                        // Normalize the fields we need
+                        cantrips_known: feature.details.cantrips_known,
+                        spells_prepared: feature.details.spells_prepared || 
+                                         feature.details.spells_known_count || 
+                                         feature.details.spells_prepared_scaling
+                    };
+                    source = 'Subclass';
+                    break;
+                }
+            }
+        }
+
+        // 2. Fallback to Base Class Spellcasting (e.g., Bard, Cleric, Wizard)
+        if (!rules && classRules.spellcasting) {
+            rules = classRules.spellcasting;
+            source = 'Class';
+        }
+
+        return rules ? { ...rules, source } : null;
+    }, [classRules, character]);
+
     const hasSpellcasting = useMemo(() => {
-        return availableFeatures.some(f => f.name === "Spellcasting" || f.name === "Pact Magic");
-    }, [availableFeatures]);
+        return !!spellcastingRules;
+    }, [spellcastingRules]);
 
     if (loading) return <div className="loading-screen">Invoking the Character Sheet...</div>;
 
@@ -1562,6 +1958,12 @@ function CharacterSheet() {
                                 isActive={activeFeatures.includes(f.id)}
                                 onActivate={toggleFeatureActive}
                                 currentUses={featureUses[f.id]}
+                                characterData={character}
+                                classRules={classRules}
+                                ruleOptions={ruleOptions}
+                                featureChoices={featureChoices}
+                                onUpdateChoice={(feature, options) => setChoiceOverlay({ isOpen: true, feature, options })}
+                                availableSpells={availableSpells}
                             />
                         ))}
                     </div>
@@ -1583,6 +1985,12 @@ function CharacterSheet() {
                                     isActive={activeFeatures.includes(f.id)}
                                     onActivate={toggleFeatureActive}
                                     currentUses={featureUses[f.id]}
+                                    characterData={character}
+                                    classRules={classRules}
+                                    ruleOptions={ruleOptions}
+                                    featureChoices={featureChoices}
+                                    onUpdateChoice={(feature, options) => setChoiceOverlay({ isOpen: true, feature, options })}
+                                    availableSpells={availableSpells}
                                 />
                             ))}
                         </div>
@@ -1661,9 +2069,9 @@ function CharacterSheet() {
                 </div>
                 {hasSpellcasting && (
                     <div key="spellcasting" className="widget card spellcasting-widget">
-                        <SpellcastingWidget 
+                        <SpellcastingWidget
                             hasSpellcasting={hasSpellcasting}
-                            classRules={classRules}
+                            spellcastingRules={spellcastingRules}
                             spellSlotsRules={spellSlotsRules}
                             character={character}
                             availableSpells={availableSpells}
@@ -1675,7 +2083,29 @@ function CharacterSheet() {
                 )}
             </ResponsiveGridLayout>
 
-            <SpellOverlay 
+            <LevelUpOverlay
+                show={showLevelUpOverlay}
+                minimized={levelUpMinimized}
+                character={character}
+                previousLevel={previousLevel}
+                availableFeatures={availableFeatures}
+                onClose={handleDismissLevelUp}
+                onMinimize={() => setLevelUpMinimized(true)}
+                onRestore={() => setLevelUpMinimized(false)}
+                onOpenSpells={() => setShowSpellOverlay(true)}
+                spellcastingRules={classRules?.spellcasting}
+                featureUses={featureUses}
+                activeFeatures={activeFeatures}
+                onToggleFeature={toggleFeatureActive}
+                featureChoices={featureChoices}
+                onUpdateChoice={(feat, options) => {
+                    if (levelUpMinimized) setLevelUpMinimized(false);
+                    setChoiceOverlay({ isOpen: true, feature: feat, options });
+                }}
+                resolveOptionsForFeature={(feat) => resolveOptionsForFeature(feat, character, classRules, ruleOptions, availableSpells)}
+            />
+
+            <SpellOverlay
                 show={showSpellOverlay}
                 minimized={spellOverlayMinimized}
                 onClose={() => setShowSpellOverlay(false)}
@@ -1683,7 +2113,7 @@ function CharacterSheet() {
                 onRestore={() => setSpellOverlayMinimized(false)}
                 availableSpells={availableSpells}
                 character={character}
-                classRules={classRules}
+                spellcastingRules={spellcastingRules}
                 spellSlotsRules={spellSlotsRules}
                 onToggleSpell={toggleSpellSelection}
             />
@@ -1754,6 +2184,16 @@ function CharacterSheet() {
                     </div>
                 </div>
             )}
+
+            <FeatureChoiceOverlay
+                isOpen={choiceOverlay.isOpen}
+                feature={choiceOverlay.feature}
+                options={choiceOverlay.options || []}
+                onSelect={handleFeatureChoice}
+                currentChoice={choiceOverlay.feature ? featureChoices[choiceOverlay.feature.id] : null}
+                onClose={() => setChoiceOverlay({ isOpen: false, feature: null })}
+                level={character.level}
+            />
         </div>
     );
 }
