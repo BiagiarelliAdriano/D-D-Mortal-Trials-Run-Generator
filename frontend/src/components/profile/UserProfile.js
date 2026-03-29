@@ -23,7 +23,7 @@ const UserProfile = () => {
     const fetchProfile = useCallback(async () => {
         setLoading(true);
         try {
-            const response = await fetch(`http://127.0.0.1:5000/api/users/${id}`, {
+            const response = await fetch(`/api/users/${id}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (!response.ok) throw new Error('Failed to fetch profile');
@@ -62,7 +62,7 @@ const UserProfile = () => {
         if (avatarFile) formData.append('avatar_file', avatarFile);
 
         try {
-            const response = await fetch(`http://127.0.0.1:5000/api/users/${id}`, {
+            const response = await fetch(`/api/users/${id}`, {
                 method: 'PUT',
                 headers: { 'Authorization': `Bearer ${token}` },
                 body: formData
@@ -99,7 +99,7 @@ const UserProfile = () => {
     const getAvatarDisplay = () => {
         const avatar = avatarPreview || profileData.avatar;
         if (avatar.startsWith('/') || avatar.startsWith('data:')) {
-            return <img src={avatar.startsWith('/') ? `http://127.0.0.1:5000${avatar}` : avatar} alt="Profile" className="profile-avatar" />;
+            return <img src={avatar.startsWith('/') ? `${avatar}` : avatar} alt="Profile" className="profile-avatar" />;
         }
         return <div className="profile-avatar">{profileData.username.substring(0, 2).toUpperCase()}</div>;
     };

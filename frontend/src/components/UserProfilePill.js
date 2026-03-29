@@ -7,7 +7,23 @@ const UserProfilePill = () => {
     const { user, logout } = useAuth();
     const navigate = useNavigate();
 
-    if (!user) return null;
+    if (!user) {
+        return (
+            <div className="user-profile-pill guest" onClick={() => navigate('/login')}>
+                <div className="user-avatar-small guest">
+                    <i className="fa-solid fa-user-secret"></i>
+                </div>
+                <div className="guest-text">
+                    <span className="welcome">Welcome, Ascendant</span>
+                    <div className="auth-links">
+                        <span className="auth-link">Log In</span>
+                        <span className="separator">|</span>
+                        <span className="auth-link" onClick={(e) => { e.stopPropagation(); navigate('/register'); }}>Register</span>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div
@@ -17,7 +33,7 @@ const UserProfilePill = () => {
         >
             <div className="user-avatar-small">
                 {user?.avatar && (user.avatar.startsWith('/') || user.avatar.startsWith('data:')) ? (
-                    <img src={user.avatar.startsWith('/') ? `http://127.0.0.1:5000${user.avatar}` : user.avatar} alt="P" className="user-avatar-img" />
+                    <img src={user.avatar.startsWith('/') ? `${user.avatar}` : user.avatar} alt="P" className="user-avatar-img" />
                 ) : (
                     user?.username?.substring(0, 2).toUpperCase()
                 )}

@@ -102,6 +102,7 @@ class Character(db.Model):
     name = db.Column(db.String(100), nullable=False)
     data = db.Column(db.Text, nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    is_private = db.Column(db.Boolean, default=False)
 
     def set_data(self, char_data):
         """
@@ -185,7 +186,9 @@ class HostedRun(db.Model):
     dm_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     run_id = db.Column(db.Integer, db.ForeignKey('run.id'), nullable=False)
     party_inventory = db.Column(db.Text, default='[]')
+    claimed_items = db.Column(db.Text, default='[]')
     completed_encounters = db.Column(db.Text, default='[]')
+    vault_gold = db.Column(db.Text, default='[]')
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=func.now(), nullable=False)
 

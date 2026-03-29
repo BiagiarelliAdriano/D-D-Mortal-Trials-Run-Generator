@@ -17,6 +17,7 @@ from encounter_generator.data.rules.feature_tables import SORCERER_METAMAGIC, WA
 import json
 import os
 import uuid
+from sqlalchemy.exc import IntegrityError
 from PIL import Image
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash
@@ -465,7 +466,15 @@ def api_characters():
             return jsonify({"error": str(e)}), 500
 
     # GET all characters
-    characters = Character.query.filter_by(user_id=current_user_id).all()
+    # Admins see everything. 
+    # Regular users see their own (public/private) + others' public characters.
+    user = User.query.get(current_user_id)
+    if user.is_admin:
+        characters = Character.query.all()
+    else:
+        characters = Character.query.filter(
+            (Character.user_id == current_user_id) | (Character.is_private == False)
+        ).all()
     
     result = []
     for c in characters:
@@ -483,7 +492,10 @@ def api_characters():
             "subclass": c.get_data().get("subclass", ""),
             "species": c.get_data().get("species", ""),
             "species_variant": c.get_data().get("species_variant", ""),
-            "active_run_title": active_run_title
+            "active_run_title": active_run_title,
+            "owner_username": c.owner.username,
+            "user_id": c.user_id,
+            "is_private": c.is_private
         })
         
     return jsonify(result)
@@ -495,9 +507,15 @@ def api_character_detail(char_id):
     user = User.query.get(current_user_id)
     character = Character.query.get_or_404(char_id)
     
-    # Ownership Check (Bypass for Admin)
-    if str(character.user_id) != str(current_user_id) and not user.is_admin:
-        return jsonify({"error": "Unauthorized"}), 403
+    # Ownership/Privacy Check
+    is_owner = str(character.user_id) == str(current_user_id)
+    if not is_owner and not user.is_admin:
+        if character.is_private:
+            return jsonify({"error": "This character is private"}), 403
+        
+        # If public but not owner/admin, only GET is allowed
+        if request.method in ["PUT", "DELETE"]:
+            return jsonify({"error": "Unauthorized"}), 403
 
     if request.method == "DELETE":
         db.session.delete(character)
@@ -535,12 +553,33 @@ def api_character_detail(char_id):
     return jsonify({
         "id": character.id,
         "name": character.name,
+        "user_id": character.user_id,
+        "is_private": character.is_private,
         "level": data.get("level", 1),
         "class": {
             "name": data.get("class_name"),
             "subclass": data.get("subclass")
         },
         "data": data
+    })
+
+@app.route("/api/characters/<int:char_id>/toggle-privacy", methods=["POST"])
+@jwt_required()
+def api_toggle_character_privacy(char_id):
+    current_user_id = get_jwt_identity()
+    user = User.query.get(current_user_id)
+    character = Character.query.get_or_404(char_id)
+    
+    if str(character.user_id) != str(current_user_id) and not user.is_admin:
+        return jsonify({"error": "Unauthorized"}), 403
+        
+    character.is_private = not character.is_private
+    db.session.commit()
+    
+    return jsonify({
+        "success": True, 
+        "is_private": character.is_private,
+        "message": f"Character is now {'private' if character.is_private else 'public'}"
     })
 
 @app.route("/api/characters/<int:char_id>/levelup", methods=["POST"])
@@ -758,9 +797,13 @@ def api_save_run():
         data=json.dumps(data["data"]),
         user_id=current_user_id
     )
-    db.session.add(run)
-    db.session.commit()
-    
+    try:
+        db.session.add(run)
+        db.session.commit()
+    except IntegrityError:
+        db.session.rollback()
+        return jsonify({"error": "A trial with this name already exists. Please choose a unique title."}), 400
+        
     return jsonify({
         "message": "Run saved successfully",
         "id": run.id
@@ -927,30 +970,35 @@ def api_join_hosted_run():
 @jwt_required()
 def api_list_active_hosted_runs():
     current_user_id = get_jwt_identity()
+    user = User.query.get(current_user_id)
     
-    # Get all active sessions where the user is a participant
-    participations = SessionParticipant.query.filter_by(user_id=current_user_id).all()
-    session_ids = [p.hosted_run_id for p in participations]
+    # Get all active sessions
+    all_active_sessions = HostedRun.query.filter_by(is_active=True).all()
     
-    sessions = HostedRun.query.filter(HostedRun.id.in_(session_ids), HostedRun.is_active == True).all()
+    # Get all participations for the current user to check roles
+    user_participations = SessionParticipant.query.filter_by(user_id=current_user_id).all()
+    user_session_ids = {p.hosted_run_id: p.role for p in user_participations}
     
     result = []
-    for s in sessions:
-        # Determine user role in this session
-        role = next((p.role for p in participations if p.hosted_run_id == s.id), 'Ascendant')
+    for s in all_active_sessions:
+        is_participant = s.id in user_session_ids
+        is_admin = user.is_admin
+        role = user_session_ids.get(s.id, 'Visitor')
+        can_enter = is_participant or is_admin
         
         result.append({
             "id": s.id,
-            "invite_code": s.invite_code,
+            "invite_code": s.invite_code if can_enter else None,
             "dm_name": s.dm.username,
             "run_title": s.run.title_run,
             "role": role,
+            "can_enter": can_enter,
             "created_at": s.created_at.isoformat(),
             "participant_count": len(s.participants)
         })
     
-    # Sort: Own DM games first
-    result.sort(key=lambda x: x['role'] != 'DM')
+    # Sort: Own DM games first, then by DM name
+    result.sort(key=lambda x: (x['role'] != 'DM', x['dm_name']))
     
     return jsonify(result), 200
 
@@ -993,6 +1041,8 @@ def api_get_hosted_run_details(session_id):
         },
         "participants": participants_info,
         "party_inventory": json.loads(session.party_inventory),
+        "vault_gold": json.loads(session.vault_gold or "[]"),
+        "claimed_items": json.loads(session.claimed_items) if session.claimed_items else [],
         "completed_encounters": json.loads(session.completed_encounters),
         "is_active": session.is_active
     }), 200
@@ -1036,9 +1086,13 @@ def api_rename_hosted_run(session_id):
     if not new_title:
         return jsonify({"error": "Missing title"}), 400
         
-    session.run.title_run = new_title[:24].strip()
-    db.session.commit()
-    
+    try:
+        session.run.title_run = new_title[:24].strip()
+        db.session.commit()
+    except IntegrityError:
+        db.session.rollback()
+        return jsonify({"error": "A trial with this name already exists. Please choose a unique title."}), 400
+        
     return jsonify({"message": "Run renamed successfully", "title": session.run.title_run}), 200
 
 @app.route("/api/host/<int:session_id>/complete-encounter", methods=["POST"])
@@ -1069,15 +1123,39 @@ def api_complete_encounter(session_id):
     
     # Logic to update party inventory if items/gold were found
     current_inv = json.loads(session.party_inventory)
+    vault_gold = json.loads(session.vault_gold or "[]")
     
     if "gold" in target_enc:
-        current_inv.append(f"{target_enc['gold']} Gold")
-    
+        gold_total = target_enc['gold']
+        party_size = run_data.get("settings", {}).get("party_size", 4)
+        gold_per_share = gold_total // party_size
+        
+        # Count connected characters
+        connected_participants = [p for p in session.participants if p.role == 'Ascendant' and p.character_id]
+        
+        # Distribute to connected
+        for p in connected_participants:
+            character = Character.query.get(p.character_id)
+            if character:
+                char_data = character.get_data()
+                char_data["gold"] = char_data.get("gold", 0) + gold_per_share
+                character.set_data(char_data)
+        
+        # Surplus to vault
+        surplus_shares = party_size - len(connected_participants)
+        if surplus_shares > 0:
+            vault_gold.append({
+                "amount": gold_per_share,
+                "count": surplus_shares,
+                "source": f"Encounter {enc_num}"
+            })
+            
     if "magic_items" in target_enc:
         for item in target_enc["magic_items"]:
             current_inv.append(item)
             
     session.party_inventory = json.dumps(current_inv)
+    session.vault_gold = json.dumps(vault_gold)
     
     # Update completed encounters
     completed = json.loads(session.completed_encounters)
@@ -1108,21 +1186,150 @@ def api_claim_item(session_id):
     
     if not participant:
         return jsonify({"error": "Access denied"}), 403
+        
+    if participant.role == 'DM':
+        return jsonify({"error": "Dungeon Masters cannot claim items from the Vault"}), 403
+    
+    if not participant.character_id:
+        return jsonify({"error": "You must select an Ascendant character before claiming items from the Vault"}), 400
+        
+    character = Character.query.get(participant.character_id)
+    if not character:
+        return jsonify({"error": "Associated character not found"}), 404
     
     inventory = json.loads(session.party_inventory)
+    claimed = json.loads(session.claimed_items or "[]")
     idx = data["item_index"]
     
     if idx < 0 or idx >= len(inventory):
         return jsonify({"error": "Item not found in vault"}), 404
     
     item = inventory.pop(idx)
+    
+    # Update Character Inventory
+    char_data = character.get_data()
+    if "inventory" not in char_data:
+        char_data["inventory"] = []
+    # Prepend the item (user requested items at the top)
+    char_data["inventory"].insert(0, item)
+    character.set_data(char_data)
+    
+    # Update Session Claimed Items
+    claimed.append({
+        "item": item,
+        "character_name": character.name,
+        "character_id": character.id
+    })
+    
     session.party_inventory = json.dumps(inventory)
+    session.claimed_items = json.dumps(claimed)
     db.session.commit()
     
     return jsonify({
         "message": f"Claimed {item}",
-        "party_inventory": inventory
+        "party_inventory": inventory,
+        "claimed_items": claimed
     }), 200
+
+@app.route("/api/host/<int:session_id>/claim-gold", methods=["POST"])
+@jwt_required()
+def api_claim_gold(session_id):
+    current_user_id = get_jwt_identity()
+    session = HostedRun.query.get_or_404(session_id)
+    participant = SessionParticipant.query.filter_by(user_id=current_user_id, hosted_run_id=session_id).first()
+    
+    if not participant or participant.role == 'DM':
+        return jsonify({"error": "Dungeon Masters cannot claim gold from the Vault"}), 403
+    
+    if not participant.character_id:
+        return jsonify({"error": "You must select an Ascendant character before claiming gold"}), 400
+
+    data = request.json
+    share_index = data.get("share_index")
+    if share_index is None:
+        return jsonify({"error": "Missing share_index"}), 400
+
+    vault_gold = json.loads(session.vault_gold or "[]")
+    if share_index < 0 or share_index >= len(vault_gold):
+        return jsonify({"error": "Gold share not found"}), 404
+
+    character = Character.query.get(participant.character_id)
+    if not character:
+        return jsonify({"error": "Character not found"}), 404
+
+    # Claim one share
+    share = vault_gold[share_index]
+    amount = share["amount"]
+    
+    char_data = character.get_data()
+    char_data["gold"] = char_data.get("gold", 0) + amount
+    character.set_data(char_data)
+
+    share["count"] -= 1
+    if share["count"] <= 0:
+        vault_gold.pop(share_index)
+    
+    session.vault_gold = json.dumps(vault_gold)
+    
+    # Also log in claimed_items for history if we want (optional but good)
+    claimed = json.loads(session.claimed_items or "[]")
+    claimed.append({
+        "item": f"{amount} Gold (1x Share)",
+        "character_name": character.name,
+        "character_id": character.id
+    })
+    session.claimed_items = json.dumps(claimed)
+    
+    db.session.commit()
+    
+    return jsonify({
+        "message": f"Claimed {amount} gold",
+        "vault_gold": vault_gold,
+        "claimed_items": claimed
+    }), 200
+
+@app.route("/api/host/<int:session_id>", methods=["DELETE"])
+@jwt_required()
+def api_delete_hosted_run(session_id):
+    current_user_id = get_jwt_identity()
+    session = HostedRun.query.get_or_404(session_id)
+    
+    if str(session.dm_id) != str(current_user_id):
+        return jsonify({"error": "Only the Dungeon Master can delete this session"}), 403
+    
+    # Participants will be deleted by cascade delete-orphan in HostedRun model
+    db.session.delete(session)
+    db.session.commit()
+    
+    return jsonify({"message": "Session deleted successfully"}), 200
+
+@app.route("/api/admin/users/<int:user_id>", methods=["DELETE"])
+@jwt_required()
+def api_admin_delete_user(user_id):
+    admin_id = get_jwt_identity()
+    admin_user = User.query.get(admin_id)
+    
+    if not admin_user or not admin_user.is_admin:
+        return jsonify({"error": "Unauthorized"}), 403
+        
+    user_to_delete = User.query.get_or_404(user_id)
+    
+    if str(user_to_delete.id) == str(admin_id):
+        return jsonify({"error": "You cannot delete your own account"}), 400
+        
+    # Manual cleanup for sessions where this user is DM
+    hosted_runs = HostedRun.query.filter_by(dm_id=user_to_delete.id).all()
+    for hr in hosted_runs:
+        db.session.delete(hr)
+        
+    # Manual cleanup for participations in other sessions
+    SessionParticipant.query.filter_by(user_id=user_to_delete.id).delete()
+    
+    # Character deletion will handle characters via cascade
+    db.session.delete(user_to_delete)
+    db.session.commit()
+    
+    return jsonify({"message": f"User {user_to_delete.username} and all associated data deleted successfully"}), 200
 
 # ------------------------
 # Entry Point

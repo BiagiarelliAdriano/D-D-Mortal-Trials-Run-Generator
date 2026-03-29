@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import BackToTop from '../common/BackToTop';
 import '../../styles/HostedRunPage.css';
 
 const HostedRunPage = () => {
@@ -18,10 +19,11 @@ const HostedRunPage = () => {
     const [runTitleInput, setRunTitleInput] = useState('');
     const [expandedEncounters, setExpandedEncounters] = useState({});
     const [wildSurgeVisible, setWildSurgeVisible] = useState({});
+    const [notice, setNotice] = useState(null);
 
     const fetchSessionDetails = useCallback(async () => {
         try {
-            const response = await fetch(`http://127.0.0.1:5000/api/host/details/${id}`, {
+            const response = await fetch(`/api/host/details/${id}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (!response.ok) throw new Error('Failed to fetch session details');
@@ -36,7 +38,7 @@ const HostedRunPage = () => {
 
     const fetchUserCharacters = useCallback(async () => {
         try {
-            const response = await fetch('http://127.0.0.1:5000/api/characters', {
+            const response = await fetch('/api/characters', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (response.ok) {
@@ -57,7 +59,7 @@ const HostedRunPage = () => {
 
     const handleLinkCharacter = async (charId) => {
         try {
-            const response = await fetch(`http://127.0.0.1:5000/api/host/${id}/link-character`, {
+            const response = await fetch(`/api/host/${id}/link-character`, {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json',
@@ -84,7 +86,7 @@ const HostedRunPage = () => {
             return;
         }
         try {
-            const response = await fetch(`http://127.0.0.1:5000/api/host/${id}/rename`, {
+            const response = await fetch(`/api/host/${id}/rename`, {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json',
@@ -92,7 +94,10 @@ const HostedRunPage = () => {
                 },
                 body: JSON.stringify({ title: runTitleInput.trim() })
             });
-            if (!response.ok) throw new Error('Failed to rename run');
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to rename run');
+            }
             setIsEditingTitle(false);
             fetchSessionDetails();
         } catch (err) {
@@ -102,7 +107,7 @@ const HostedRunPage = () => {
 
     const handleCompleteEncounter = async (num) => {
         try {
-            const response = await fetch(`http://127.0.0.1:5000/api/host/${id}/complete-encounter`, {
+            const response = await fetch(`/api/host/${id}/complete-encounter`, {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json',
@@ -110,7 +115,11 @@ const HostedRunPage = () => {
                 },
                 body: JSON.stringify({ encounter_num: num })
             });
-            if (response.ok) fetchSessionDetails();
+            if (response.ok) {
+                fetchSessionDetails();
+                setNotice({ message: `Encounter #${num} marked as complete!`, type: 'success' });
+                setTimeout(() => setNotice(null), 3000);
+            }
         } catch (err) {
             alert(err.message);
         }
@@ -118,7 +127,7 @@ const HostedRunPage = () => {
 
     const handleClaimItem = async (index) => {
         try {
-            const response = await fetch(`http://127.0.0.1:5000/api/host/${id}/claim-item`, {
+            const response = await fetch(`/api/host/${id}/claim-item`, {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json',
@@ -126,7 +135,54 @@ const HostedRunPage = () => {
                 },
                 body: JSON.stringify({ item_index: index })
             });
-            if (response.ok) fetchSessionDetails();
+            const data = await response.json();
+            if (response.ok) {
+                fetchSessionDetails();
+            } else {
+                alert(data.error || "Failed to claim item");
+            }
+        } catch (err) {
+            alert("An error occurred while claiming the item.");
+        }
+    };
+
+    const handleClaimGold = async (shareIndex) => {
+        try {
+            const response = await fetch(`/api/host/${id}/claim-gold`, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ share_index: shareIndex })
+            });
+            const data = await response.json();
+            if (response.ok) {
+                fetchSessionDetails();
+            } else {
+                alert(data.error || "Failed to claim gold");
+            }
+        } catch (err) {
+            alert("An error occurred while claiming the gold.");
+        }
+    };
+
+    const handleDeleteSession = async () => {
+        if (!window.confirm("WARNING: This will permanently delete this session and all its progress. This action cannot be undone. Are you sure?")) return;
+        
+        try {
+            const response = await fetch(`/api/host/${id}`, {
+                method: 'DELETE',
+                headers: { 
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            if (response.ok) {
+                navigate('/hosting');
+            } else {
+                const data = await response.json();
+                alert(data.error || "Failed to delete session");
+            }
         } catch (err) {
             alert(err.message);
         }
@@ -235,6 +291,12 @@ const HostedRunPage = () => {
 
     return (
         <div className="hosted-page-container">
+            {notice && (
+                <div className={`global-notice ${notice.type}`}>
+                    <i className="fa-solid fa-circle-check"></i>
+                    {notice.message}
+                </div>
+            )}
             <header className="session-header">
                 <div className="session-info">
                     <button className="back-link" onClick={() => navigate('/hosting')}>
@@ -260,9 +322,14 @@ const HostedRunPage = () => {
                         <h1 className="editable-title">
                             {session.run.title}
                             {isDM && (
-                                <button className="edit-title-btn" onClick={startEditingTitle} title="Rename Run">
-                                    <i className="fa-solid fa-pen-to-square"></i>
-                                </button>
+                                <div className="dm-actions">
+                                    <button className="edit-title-btn" onClick={startEditingTitle} title="Rename Run">
+                                        <i className="fa-solid fa-pen-to-square"></i>
+                                    </button>
+                                    <button className="delete-session-btn" onClick={handleDeleteSession} title="Delete Run">
+                                        <i className="fa-solid fa-trash-can"></i>
+                                    </button>
+                                </div>
                             )}
                         </h1>
                     )}
@@ -356,10 +423,10 @@ const HostedRunPage = () => {
                                         </div>
                                     ) : (
                                         <div className="p-char-missing">
-                                            {p.user_id === currentUser.id ? (
+                                            {(p.user_id === currentUser.id && !isDM) ? (
                                                 <button className="pick-char-btn" onClick={() => setShowCharPicker(true)}>Pick Character</button>
                                             ) : (
-                                                <p>Choosing character...</p>
+                                                <p>{p.role === 'DM' ? 'Overseeing the Trial' : 'Choosing character...'}</p>
                                             )}
                                         </div>
                                     )}
@@ -371,21 +438,65 @@ const HostedRunPage = () => {
 
                 {activeTab === 'inventory' && (
                     <div className="inventory-view">
-                        <h3>Party Vault</h3>
-                        <div className="vault-grid">
-                            {session.party_inventory.length > 0 ? (
-                                session.party_inventory.map((item, idx) => (
-                                    <div key={idx} className="vault-item">
-                                        <span>{item}</span>
-                                        <button className="claim-btn" onClick={() => handleClaimItem(idx)}>Claim</button>
+                        <section className="vault-section">
+                            <h3><i className="fa-solid fa-box-open"></i> Available Spoils</h3>
+                            <div className="vault-grid">
+                                {session.vault_gold && session.vault_gold.length > 0 && 
+                                    session.vault_gold.map((share, idx) => (
+                                        <div key={`gold-${idx}`} className="vault-item gold-share">
+                                            <div className="item-info">
+                                                <i className="fa-solid fa-coins" style={{color: '#ffd700'}}></i>
+                                                <span className="item-name">{share.count}x {share.amount} Gold Shares</span>
+                                                <small style={{display: 'block', color: 'var(--text-dim)', fontSize: '0.7rem'}}>Source: {share.source}</small>
+                                            </div>
+                                            {!isDM && (
+                                                <button className="claim-btn gold" onClick={() => handleClaimGold(idx)}>
+                                                    Claim 1x
+                                                </button>
+                                            )}
+                                        </div>
+                                    ))
+                                }
+                                {session.party_inventory.length > 0 ? (
+                                    session.party_inventory.map((item, idx) => (
+                                        <div key={`item-${idx}`} className="vault-item">
+                                            <span className="item-name">{item}</span>
+                                            {!isDM && (
+                                                <button className="claim-btn" onClick={() => handleClaimItem(idx)}>
+                                                    <i className="fa-solid fa-hand-holding-dollar"></i> Claim
+                                                </button>
+                                            )}
+                                        </div>
+                                    ))
+                                ) : (
+                                    (!session.vault_gold || session.vault_gold.length === 0) && (
+                                        <div className="empty-vault">
+                                            <p>No available items in the vault.</p>
+                                        </div>
+                                    )
+                                )}
+                            </div>
+                        </section>
+
+                        <section className="vault-section claimed">
+                            <h3><i className="fa-solid fa-circle-check"></i> Claimed Rewards</h3>
+                            <div className="vault-grid">
+                                {(session.claimed_items && session.claimed_items.length > 0) ? (
+                                    session.claimed_items.map((entry, idx) => (
+                                        <div key={idx} className="vault-item claimed">
+                                            <span className="item-name">{entry.item}</span>
+                                            <div className="claimed-by">
+                                                <i className="fa-solid fa-user-tag"></i> {entry.character_name}
+                                            </div>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="empty-vault">
+                                        <p>No items have been claimed yet.</p>
                                     </div>
-                                ))
-                            ) : (
-                                <div className="empty-vault">
-                                    <p>The vault is empty. Complete encounters to find rewards.</p>
-                                </div>
-                            )}
-                        </div>
+                                )}
+                            </div>
+                        </section>
                     </div>
                 )}
             </main>
@@ -395,7 +506,7 @@ const HostedRunPage = () => {
                     <div className="char-picker-modal">
                         <h2>Select Your Champion</h2>
                         <div className="char-list">
-                            {userCharacters.map(char => (
+                             {userCharacters.filter(char => char.user_id === currentUser.id).map(char => (
                                 <div key={char.id} className="char-option" onClick={() => handleLinkCharacter(char.id)}>
                                     <strong>{char.name}</strong>
                                     <span>Level {char.level} {char.class_name}</span>
@@ -407,6 +518,7 @@ const HostedRunPage = () => {
                     </div>
                 </div>
             )}
+            <BackToTop />
         </div>
     );
 };

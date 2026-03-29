@@ -1,0 +1,51 @@
+.back-to-top-btn {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 60px;
+    height: 60px;
+    background: var(--primary);
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark, #8e44ad) 100%);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4), 0 0 15px rgba(142, 68, 173, 0.3);
+    z-index: 1000;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(20px) scale(0.8);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.back-to-top-btn.visible {
+    opacity: 0.8;
+    pointer-events: all;
+    transform: translateY(0) scale(1);
+}
+
+.back-to-top-btn.visible:hover {
+    opacity: 1;
+    transform: translateY(-5px) scale(1.1);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.6), 0 0 25px rgba(142, 68, 173, 0.5);
+    background: var(--primary-light, #9b59b6);
+}
+
+.back-to-top-btn:active {
+    transform: scale(0.9);
+}
+
+/* Ensure it doesn't overlap important elements on mobile */
+@media (max-width: 768px) {
+    .back-to-top-btn {
+        bottom: 20px;
+        right: 20px;
+        width: 50px;
+        height: 50px;
+        font-size: 1.2rem;
+    }
+}

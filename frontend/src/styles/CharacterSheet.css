@@ -71,7 +71,9 @@ h3,
 }
 
 .back-button,
-.lock-button {
+.lock-button,
+.mode-toggle-btn,
+.privacy-toggle-btn {
     background: var(--primary);
     color: white;
     border: 1px solid var(--border);
@@ -81,12 +83,39 @@ h3,
     font-weight: 600;
     transition: all 0.2s;
     font-family: 'Georgia', serif;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
 }
 
 .back-button:hover,
-.lock-button:hover {
+.lock-button:hover,
+.mode-toggle-btn:hover,
+.privacy-toggle-btn:hover {
     background: #8e44ad;
     box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
+    transform: translateY(-1px);
+}
+
+.privacy-toggle-btn.is-public {
+    background: rgba(46, 204, 113, 0.15);
+    border-color: #2ecc71;
+    color: #2ecc71;
+}
+
+.privacy-toggle-btn.is-public:hover {
+    background: rgba(46, 204, 113, 0.25);
+}
+
+.privacy-toggle-btn.is-private {
+    background: rgba(231, 76, 60, 0.15);
+    border-color: #e74c3c;
+    color: #e74c3c;
+}
+
+.privacy-toggle-btn.is-private:hover {
+    background: rgba(231, 76, 60, 0.25);
 }
 
 .lock-button.unlocked {

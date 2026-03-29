@@ -6,7 +6,7 @@ import '../styles/LandingPage.css';
 
 const LandingPage = () => {
     const navigate = useNavigate();
-    const { token } = useAuth();
+    const { token, user } = useAuth();
 
     const handleCharacterManagerClick = () => {
         if (token) {
@@ -20,12 +20,16 @@ const LandingPage = () => {
         <div className="landing-container">
             <div className="landing-overlay"></div>
 
+            <div className="header-top-nav">
+                {user?.is_admin && (
+                    <button className="admin-link-btn" onClick={() => navigate('/admin')}>
+                        <i className="fa-solid fa-crown"></i> Creator's Hub
+                    </button>
+                )}
+                <UserProfilePill />
+            </div>
+
             <header className="landing-header">
-                <div className="header-top-nav">
-                    {token && (
-                        <UserProfilePill />
-                    )}
-                </div>
                 <img
                     src="/static/assets/images/themortaltrialslogo.webp"
                     alt="The Mortal Trials Logo"
@@ -70,10 +74,6 @@ const LandingPage = () => {
                     </button>
                 </div>
             </main>
-
-            <footer className="landing-footer">
-                <p className="copyright-text">© {new Date().getFullYear()} The Mortal Trials. All rights reserved.</p>
-            </footer>
         </div>
     );
 };

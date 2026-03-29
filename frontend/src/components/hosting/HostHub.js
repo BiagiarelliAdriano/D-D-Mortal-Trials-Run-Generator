@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import BackToTop from '../common/BackToTop';
 import '../../styles/HostHub.css';
 
 const HostHub = () => {
@@ -10,24 +11,37 @@ const HostHub = () => {
     const [joinCode, setJoinCode] = useState('');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [copiedCode, setCopiedCode] = useState(null);
+
+    const fetchGames = useCallback(async () => {
+        try {
+            const response = await fetch('/api/host/active', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!response.ok) throw new Error('Failed to fetch trials');
+            const data = await response.json();
+            setActiveGames(data);
+        } catch (err) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    }, [token]);
 
     useEffect(() => {
-        const fetchGames = async () => {
-            try {
-                const response = await fetch('http://127.0.0.1:5000/api/host/active', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                if (!response.ok) throw new Error('Failed to fetch trials');
-                const data = await response.json();
-                setActiveGames(data);
-            } catch (err) {
-                setError(err.message);
-            } finally {
-                setLoading(false);
-            }
-        };
         fetchGames();
-    }, [token]);
+    }, [fetchGames]);
+
+    // Partition and Sort trials
+    const { myTrials, communityTrials } = useMemo(() => {
+        const mine = activeGames.filter(g => g.role !== 'Visitor');
+        const community = activeGames.filter(g => g.role === 'Visitor');
+
+        // community already sorted by dm_name from backend, but ensuring here
+        community.sort((a, b) => a.dm_name.localeCompare(b.dm_name));
+
+        return { myTrials: mine, communityTrials: community };
+    }, [activeGames]);
 
     const handleJoin = async () => {
         if (joinCode.length !== 6) {
@@ -36,7 +50,7 @@ const HostHub = () => {
         }
         setError('');
         try {
-            const response = await fetch('http://127.0.0.1:5000/api/host/join', {
+            const response = await fetch('/api/host/join', {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json',
@@ -53,9 +67,79 @@ const HostHub = () => {
         }
     };
 
+    const handleCopyCode = (e, code) => {
+        e.stopPropagation();
+        navigator.clipboard.writeText(code);
+        setCopiedCode(code);
+        setTimeout(() => setCopiedCode(null), 2000);
+    };
+
+    const renderTrialCard = (game) => (
+        <div 
+            key={game.id} 
+            className={`trial-card ${!game.can_enter ? 'visitor-card' : ''}`} 
+            onClick={() => game.can_enter && navigate(`/hosting/${game.id}`)}
+        >
+            <div className="card-top">
+                <div className="role-icon">
+                    {game.role === 'DM' ? 
+                        <i className="fa-solid fa-crown" title="Dungeon Master"></i> : 
+                        game.role === 'Visitor' ?
+                        <i className="fa-solid fa-eye" title="Visitor"></i> :
+                        <i className="fa-solid fa-shield-halved" title="Player"></i>
+                    }
+                </div>
+                <div className="trial-title">
+                    <h3>{game.run_title}</h3>
+                    <span className="owner-name">Hosted by: {game.dm_name}</span>
+                </div>
+            </div>
+            
+            <div className="card-middle">
+                <div className="participant-stats">
+                    <div className="stat-label">
+                        <span><i className="fa-solid fa-users"></i> Party Size</span>
+                        <span>{game.participant_count} / 5</span>
+                    </div>
+                    <div className="party-progress-bar">
+                        <div 
+                            className="party-progress-fill" 
+                            style={{ width: `${(game.participant_count / 5) * 100}%` }}
+                        ></div>
+                    </div>
+                </div>
+            </div>
+
+            <div className="card-bottom">
+                {game.can_enter ? (
+                    <>
+                        <div 
+                            className={`invite-code-pill ${copiedCode === game.invite_code ? 'copied' : ''}`}
+                            onClick={(e) => handleCopyCode(e, game.invite_code)}
+                            title="Click to copy code"
+                        >
+                            <small>{copiedCode === game.invite_code ? 'COPIED!' : 'CODE'}</small>
+                            <strong>{game.invite_code}</strong>
+                        </div>
+                        <button className="enter-trial-btn">
+                            Enter Spire <i className="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </>
+                ) : (
+                    <div className="card-visitor-badge">
+                        <i className="fa-solid fa-lock"></i> Requires Participant Code
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+
     return (
         <div className="host-hub-container">
             <div className="host-hub-card">
+                <button className="spire-back-btn" onClick={() => navigate('/')}>
+                    <i className="fa-solid fa-house"></i> Home Spire
+                </button>
                 <div className="host-header">
                     <h1>The Hosting Spire</h1>
                     <p>Manage your trials or join an existing ascent.</p>
@@ -69,7 +153,7 @@ const HostHub = () => {
                     <div className="join-code-section">
                         <input 
                             type="text" 
-                            placeholder="Enter 6-Digit Code" 
+                            placeholder="6-Digit Invite Code" 
                             maxLength="6" 
                             value={joinCode}
                             onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
@@ -79,39 +163,41 @@ const HostHub = () => {
                     {error && <p className="error-text">{error}</p>}
                 </div>
 
-                <div className="games-list-section">
-                    <h2>Your Active Trials</h2>
-                    {loading ? (
-                        <div className="loading-mini">Seeking your path...</div>
-                    ) : activeGames.length > 0 ? (
-                        <div className="active-trials-grid">
-                            {activeGames.map(game => (
-                                <div key={game.id} className="trial-item" onClick={() => navigate(`/hosting/${game.id}`)}>
-                                    <div className="trial-info">
-                                        <h3>{game.run_title}</h3>
-                                        <p>Hosted by {game.dm_name}</p>
-                                    </div>
-                                    <div className="trial-meta">
-                                        <span className={`role-badge ${game.role.toLowerCase()}`}>{game.role}</span>
-                                        <span className="participants-count">
-                                            <i className="fa-solid fa-users"></i> {game.participant_count}/5
-                                        </span>
-                                        <span className="invite-code-display">{game.invite_code}</span>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    ) : (
-                        <div className="empty-state">
-                            <p>No active trials found. Be the first to host one!</p>
-                        </div>
-                    )}
+                <div className="host-sections">
+                    {/* Section 1: Your Active Trials */}
+                    <section className="hub-section">
+                        <h2 className="hub-section-title">✧ Your Active Trials ✧</h2>
+                        {loading ? (
+                            <div className="loading-mini">Seeking your path...</div>
+                        ) : myTrials.length > 0 ? (
+                            <div className="active-trials-grid">
+                                {myTrials.map(game => renderTrialCard(game))}
+                            </div>
+                        ) : (
+                            <div className="empty-state">
+                                <p>You are not currently participating in any active trials.</p>
+                            </div>
+                        )}
+                    </section>
+
+                    {/* Section 2: The Ethereal Spire (Community) */}
+                    <section className="hub-section community-section">
+                        <h2 className="hub-section-title">✧ The Ethereal Spire ✧</h2>
+                        {loading ? (
+                            <div className="loading-mini">Seeking others' paths...</div>
+                        ) : communityTrials.length > 0 ? (
+                            <div className="active-trials-grid">
+                                {communityTrials.map(game => renderTrialCard(game))}
+                            </div>
+                        ) : (
+                            <div className="empty-state">
+                                <p>No other active trials found in the spire.</p>
+                            </div>
+                        )}
+                    </section>
                 </div>
-                
-                <button className="back-btn" onClick={() => navigate('/')}>
-                    <i className="fa-solid fa-arrow-left"></i> Back to Home
-                </button>
             </div>
+            <BackToTop />
         </div>
     );
 };

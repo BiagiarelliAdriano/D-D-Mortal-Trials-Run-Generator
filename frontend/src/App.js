@@ -58,7 +58,7 @@ function App() {
           <Route path="/characters" element={<ProtectedRoute><CharactersHub /></ProtectedRoute>} />
           <Route path="/characters/:id" element={<ProtectedRoute><CharacterSheet /></ProtectedRoute>} />
           <Route path="/characters/create" element={<ProtectedRoute><CharacterForm /></ProtectedRoute>} />
-          <Route path="/characters/:id/edit" element={<ProtectedRoute><CharacterForm /></ProtectedRoute>} />
+          <Route path="/characters/:id/edit" element={<ProtectedRoute><CharacterSheet /></ProtectedRoute>} />
         </Routes>
         <SocialBar />
       </BrowserRouter>

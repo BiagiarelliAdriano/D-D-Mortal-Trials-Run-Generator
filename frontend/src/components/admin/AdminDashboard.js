@@ -17,7 +17,7 @@ const AdminDashboard = () => {
 
     const fetchStats = useCallback(() => {
         setLoading(true);
-        fetch('http://127.0.0.1:5000/api/admin/system', {
+        fetch('/api/admin/system', {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
@@ -48,7 +48,7 @@ const AdminDashboard = () => {
         e.stopPropagation();
         if (!window.confirm("Are you sure you want to PERMANENTLY delete this character? This action cannot be undone.")) return;
 
-        fetch(`http://127.0.0.1:5000/api/characters/${charId}`, {
+        fetch(`/api/characters/${charId}`, {
             method: 'DELETE',
             headers: {
                 'Authorization': `Bearer ${token}`
@@ -95,7 +95,7 @@ const AdminDashboard = () => {
         if (editData.avatar_file) formData.append('avatar_file', editData.avatar_file);
 
         try {
-            const res = await fetch(`http://127.0.0.1:5000/api/users/${userId}`, {
+            const res = await fetch(`/api/users/${userId}`, {
                 method: 'PUT',
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -114,6 +114,30 @@ const AdminDashboard = () => {
         } catch (err) {
             alert(err.message);
             setUpdatingUser(null);
+        }
+    };
+
+    const handleDeleteUser = async (userId, username) => {
+        if (!window.confirm(`DANGER: You are about to PERMANENTLY delete the account of "${username}" and ALL their characters and runs. This action is irreversible. Proceed?`)) return;
+
+        try {
+            const res = await fetch(`/api/admin/users/${userId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (!res.ok) {
+                const data = await res.json();
+                throw new Error(data.error || 'Failed to delete user');
+            }
+
+            setExpandedUser(null);
+            fetchStats(); // Refresh list
+            alert("User deleted successfully.");
+        } catch (err) {
+            alert(err.message);
         }
     };
 
@@ -159,7 +183,7 @@ const AdminDashboard = () => {
                                         <td className="center">
                                             {u.avatar.startsWith('static/') || u.avatar.startsWith('/') ? (
                                                 <img 
-                                                    src={`http://127.0.0.1:5000${u.avatar}`} 
+                                                    src={`${u.avatar}`} 
                                                     alt="Avatar" 
                                                     className="admin-avatar-mini"
                                                     onError={(e) => {
@@ -195,7 +219,7 @@ const AdminDashboard = () => {
                                                     <div className="management-header">
                                                         <div className="user-profile-preview">
                                                             {u.avatar.startsWith('/') ? (
-                                                                <img src={`http://127.0.0.1:5000${u.avatar}`} alt="Avatar Large" className="admin-avatar-large" />
+                                                                <img src={`${u.avatar}`} alt="Avatar Large" className="admin-avatar-large" />
                                                             ) : (
                                                                 <div className="admin-avatar-large">{u.username.substring(0, 2).toUpperCase()}</div>
                                                             )}
@@ -230,6 +254,14 @@ const AdminDashboard = () => {
                                                             disabled={updatingUser === u.id}
                                                         >
                                                             {updatingUser === u.id ? 'Saving Changes...' : 'Save Profile Changes'}
+                                                        </button>
+                                                        <hr className="admin-hr" />
+                                                        <button 
+                                                            className="delete-user-btn"
+                                                            onClick={() => handleDeleteUser(u.id, u.username)}
+                                                            disabled={updatingUser === u.id}
+                                                        >
+                                                            Delete Ascendant Account
                                                         </button>
                                                     </div>
                                                 </div>

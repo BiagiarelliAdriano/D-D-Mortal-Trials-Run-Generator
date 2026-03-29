@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import BackToTop from './common/BackToTop';
 import '../styles/RunGenerator.css';
 
 const RunGenerator = () => {
@@ -167,9 +168,13 @@ const RunGenerator = () => {
                 alert("Run name must be 24 characters or less. Truncating to 24 characters.");
                 title = title.substring(0, 24);
             }
-            if (!title.trim()) title = `Hosted Trial - ${new Date().toLocaleDateString()}`.substring(0, 24);
+            const now = new Date();
+            if (!title.trim()) {
+                title = `Trial ${now.toLocaleDateString()} ${now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
+            }
         } else {
-            title = `Hosted Trial - ${new Date().toLocaleDateString()}`.substring(0, 24);
+            const now = new Date();
+            title = `Trial ${now.toLocaleDateString()} ${now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
         }
 
         try {
@@ -313,6 +318,7 @@ const RunGenerator = () => {
                     </div>
                 </main>
             )}
+            <BackToTop />
         </div>
     );
 };

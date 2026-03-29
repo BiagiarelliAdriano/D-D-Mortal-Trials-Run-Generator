@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Responsive, WidthProvider } from "react-grid-layout/legacy";
 import { useAuth } from "../context/AuthContext";
 
@@ -7,6 +7,7 @@ import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 import "../styles/CharacterSheet.css";
 import LevelUpOverlay from "./LevelUpOverlay";
+import BackToTop from "./common/BackToTop";
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
@@ -287,7 +288,7 @@ const AttackRow = ({ attack, onToggle, isExpanded }) => {
     );
 };
 
-const CombatWidget = ({ character, inventory, features, profBonus, weaponRules, activeFeatures }) => {
+const CombatWidget = ({ character, inventory, features, profBonus, weaponRules, activeFeatures, viewOnly }) => {
     const [expandedAttack, setExpandedAttack] = useState(null);
 
     const attacks = useMemo(() => {
@@ -362,7 +363,8 @@ const CombatWidget = ({ character, inventory, features, profBonus, weaponRules, 
 
 const RichFeature = ({ 
     feature, isExpanded, onToggle, level, isActive, onActivate, currentUses,
-    characterData, classRules, ruleOptions, featureChoices, onUpdateChoice, availableSpells 
+    characterData, classRules, ruleOptions, featureChoices, onUpdateChoice, availableSpells,
+    viewOnly
 }) => {
     const maxUsesData = feature.details?.Uses;
     const maxUses = maxUsesData ? resolveScalingValue(maxUsesData, level) : null;
@@ -393,7 +395,7 @@ const RichFeature = ({
                     {isActive && <span className="active-tag">ACTIVE</span>}
                 </div>
                 <div className="feature-title-right">
-                    {hasChoices && (
+                    {!viewOnly && hasChoices && (
                         <button 
                             className="feature-choice-btn" 
                             onClick={(e) => {
@@ -416,7 +418,7 @@ const RichFeature = ({
             </div>
             {isExpanded && (
                 <div className="feature-body">
-                    {feature.id === "barbarian_rage" && (
+                    {!viewOnly && feature.id === "barbarian_rage" && (
                         <button
                             className={`activate-btn ${isActive ? 'active' : ''} ${(currentUses === 0 || (!isActive && currentUses === 0)) ? 'disabled' : ''}`}
                             onClick={(e) => {
@@ -457,7 +459,7 @@ const RichFeature = ({
 
                     {feature.details && (
                         <div className="feature-details">
-                            <ValueRenderer value={feature.details} level={level} />
+                            <ValueRenderer value={feature.details} level={level} themeRole="view_only" />
                         </div>
                     )}
                 </div>
@@ -692,7 +694,8 @@ const SpellcastingWidget = ({
     availableSpells,
     isLayoutLocked,
     currentProficiencyBonus,
-    onOpenOverlay
+    onOpenOverlay,
+    viewOnly
 }) => {
     if (!hasSpellcasting || !spellcastingRules || !spellSlotsRules || !character) return null;
 
@@ -735,9 +738,11 @@ const SpellcastingWidget = ({
             {!isLayoutLocked && <div className="widget-handle">⠿</div>}
             <div className="spellcasting-header">
                 <h3>Spellcasting</h3>
-                <button className="manage-spells-btn" onClick={onOpenOverlay}>
-                    📖 Manage Spells
-                </button>
+                {!viewOnly && (
+                    <button className="manage-spells-btn" onClick={onOpenOverlay}>
+                        📖 Manage Spells
+                    </button>
+                )}
             </div>
 
             <div className="spell-limits-summary">
@@ -919,9 +924,16 @@ const SpellOverlay = ({
 function CharacterSheet() {
     const { id } = useParams();
     const navigate = useNavigate();
-    const { token } = useAuth();
+    const { token, user } = useAuth();
+    const location = useLocation();
 
+    const isEditMode = location.pathname.endsWith('/edit');
     const [character, setCharacter] = useState(null);
+
+    const isOwner = character?.user_id === user?.id;
+    const isAdmin = user?.is_admin;
+    const canEdit = isEditMode && (isOwner || isAdmin);
+    const viewOnly = !canEdit;
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [ruleOptions, setRuleOptions] = useState({});
@@ -1394,6 +1406,28 @@ function CharacterSheet() {
     const displayedItems = groupedInventory[inventoryFilter] || [];
 
     // --- Drag and Drop Handlers for Inventory ---
+    const togglePrivacy = () => {
+        if (!isOwner && !isAdmin) return;
+        
+        fetch(`http://localhost:5000/api/characters/${id}/toggle-privacy`, {
+            method: "POST",
+            headers: { "Authorization": `Bearer ${token}` }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                setCharacter(prev => ({ ...prev, is_private: data.is_private }));
+            }
+        })
+        .catch(err => console.error("Error toggling privacy:", err));
+    };
+
+    const handleSaveLayout = (current, all) => {
+        if (viewOnly || isLayoutLocked || loading) return;
+        setLayout(all);
+        saveCharacter({ layout: all });
+    };
+
     const handleDragStart = (e, index) => {
         setDraggedItemIndex(index);
         e.dataTransfer.effectAllowed = "move";
@@ -1736,15 +1770,40 @@ function CharacterSheet() {
     if (!character) return <div className="loading-screen">Character not found...</div>;
 
     return (
-        <div className={`character-sheet-container premium-theme ${!isLayoutLocked ? "layout-unlocked" : ""}`}>
+        <div className={`character-sheet-container premium-theme ${!isLayoutLocked ? "layout-unlocked" : ""} ${viewOnly ? "view-only-mode" : "edit-mode"}`}>
             <div className="sheet-top-bar">
-                <button onClick={() => navigate("/")} className="back-button">Back to Hub</button>
-                <button
-                    onClick={() => setIsLayoutLocked(!isLayoutLocked)}
-                    className={`lock-button ${isLayoutLocked ? "locked" : "unlocked"}`}
-                >
-                    {isLayoutLocked ? "🔒 Unlock Layout" : "🔓 Lock & Save Layout"}
-                </button>
+                <div className="top-bar-left">
+                    <button onClick={() => navigate("/")} className="back-button">Back to Hub</button>
+                    {(isOwner || isAdmin) && (
+                        <button 
+                            className="mode-toggle-btn"
+                            onClick={() => navigate(isEditMode ? `/characters/${id}` : `/characters/${id}/edit`)}
+                        >
+                            {isEditMode ? "👁 Swich to View Mode" : "✎ Switch to Edit Mode"}
+                        </button>
+                    )}
+                </div>
+
+                <div className="top-bar-right">
+                    {(isOwner || isAdmin) && (
+                        <button 
+                            className={`privacy-toggle-btn ${character.is_private ? 'is-private' : 'is-public'}`}
+                            onClick={togglePrivacy}
+                            title={character.is_private ? "Character is Private" : "Character is Public"}
+                        >
+                            {character.is_private ? "🔒 Private" : "🔓 Public"}
+                        </button>
+                    )}
+                    
+                    {!viewOnly && (
+                        <button
+                            onClick={() => setIsLayoutLocked(!isLayoutLocked)}
+                            className={`lock-button ${isLayoutLocked ? "locked" : "unlocked"}`}
+                        >
+                            {isLayoutLocked ? "🔒 Unlock Layout" : "🔓 Lock & Save Layout"}
+                        </button>
+                    )}
+                </div>
             </div>
 
             <ResponsiveGridLayout
@@ -1756,13 +1815,9 @@ function CharacterSheet() {
                 margin={[40, 40]}
                 compactType="vertical"
                 preventCollision={false}
-                isDraggable={!isLayoutLocked}
-                isResizable={!isLayoutLocked}
-                onLayoutChange={(current, all) => {
-                    if (isLayoutLocked || loading) return;
-                    setLayout(all);
-                    saveCharacter({ layout: all });
-                }}
+                isDraggable={!isLayoutLocked && !viewOnly}
+                isResizable={!isLayoutLocked && !viewOnly}
+                onLayoutChange={handleSaveLayout}
             >
                 <div key="header" className="widget card header-widget">
                     {!isLayoutLocked && <div className="widget-handle">⠿</div>}
@@ -1770,7 +1825,12 @@ function CharacterSheet() {
                         <div className="header-main">
                             <div>
                                 <h2>{character.name} <span className="level-badge">Lvl {character.level}</span></h2>
-                                <div className="xp-bar-container" onClick={() => setShowXpEditor(true)} style={{ cursor: "pointer" }} title="Edit Experience">
+                                <div 
+                                    className="xp-bar-container" 
+                                    onClick={() => !viewOnly && setShowXpEditor(true)} 
+                                    style={{ cursor: viewOnly ? "default" : "pointer" }} 
+                                    title={viewOnly ? "" : "Edit Experience"}
+                                >
                                     <span className="xp-text">XP: {xp} / {XP_THRESHOLDS[character.level + 1] || "MAX"}</span>
                                     {character.level < 20 && (
                                         <div className="xp-progress-bg">
@@ -1782,7 +1842,7 @@ function CharacterSheet() {
                                     )}
                                 </div>
                             </div>
-                            {character.level < 20 && (
+                            {!viewOnly && character.level < 20 && (
                                 <button
                                     className={`levelup-button ${xp >= (XP_THRESHOLDS[character.level + 1] || 0) ? "available" : "locked"}`}
                                     onClick={handleLevelUp}
@@ -1830,14 +1890,18 @@ function CharacterSheet() {
                     <div className="hp-content">
                         <h3>Hit Points</h3>
                         <div className="hp-main">
-                            <input
-                                type="number"
-                                value={currentHp}
-                                onChange={(e) => updateCurrentHp(e.target.value)}
-                                className="hp-current-input"
-                            />
+                            {viewOnly ? (
+                                <span className="hp-current-view">{currentHp}</span>
+                            ) : (
+                                <input
+                                    type="number"
+                                    value={currentHp}
+                                    onChange={(e) => updateCurrentHp(e.target.value)}
+                                    className="hp-current-input"
+                                />
+                            )}
                             <span className="hp-sep">/</span>
-                            <span className="hp-max" onClick={() => setShowMaxHpModifiers(!showMaxHpModifiers)}>
+                            <span className="hp-max" onClick={() => !viewOnly && setShowMaxHpModifiers(!showMaxHpModifiers)}>
                                 {effectiveMaxHp}
                             </span>
                             <div className="ac-display" title="Armor Class">
@@ -1916,12 +1980,12 @@ function CharacterSheet() {
                             const isFromBackground = bgSkills.includes(skill.key);
 
                             return (
-                                <div key={skill.key} className={`skill-row ${isFromBackground ? 'is-locked' : ''}`} title={isFromBackground ? `Gained from background (${character.data.background})` : ""}>
+                                <div key={skill.key} className={`skill-row ${isFromBackground || viewOnly ? 'is-locked' : ''}`} title={isFromBackground ? `Gained from background (${character.data.background})` : ""}>
                                     <span
-                                        className={`prof-toggle ${isProficient ? "is-prof" : ""} ${isFromBackground ? "locked" : ""}`}
-                                        onClick={() => !isFromBackground && toggleSkillProficiency(skill.key)}
+                                        className={`prof-toggle ${isProficient ? "is-prof" : ""} ${isFromBackground || viewOnly ? "locked" : ""}`}
+                                        onClick={() => !isFromBackground && !viewOnly && toggleSkillProficiency(skill.key)}
                                     >
-                                        {isFromBackground && <span className="lock-icon-tiny">🔒</span>}
+                                        {(isFromBackground || viewOnly) && <span className="lock-icon-tiny">🔒</span>}
                                     </span>
                                     <span className="skill-name">{skill.name}</span>
                                     <span className="skill-bonus">{bonus >= 0 ? "+" : ""}{bonus}</span>
@@ -1964,6 +2028,7 @@ function CharacterSheet() {
                                 featureChoices={featureChoices}
                                 onUpdateChoice={(feature, options) => setChoiceOverlay({ isOpen: true, feature, options })}
                                 availableSpells={availableSpells}
+                                viewOnly={viewOnly}
                             />
                         ))}
                     </div>
@@ -1991,6 +2056,7 @@ function CharacterSheet() {
                                     featureChoices={featureChoices}
                                     onUpdateChoice={(feature, options) => setChoiceOverlay({ isOpen: true, feature, options })}
                                     availableSpells={availableSpells}
+                                    viewOnly={viewOnly}
                                 />
                             ))}
                         </div>
@@ -2008,6 +2074,7 @@ function CharacterSheet() {
                             profBonus={currentProficiencyBonus}
                             weaponRules={weaponRules}
                             activeFeatures={activeFeatures}
+                            viewOnly={viewOnly}
                         />
                     </div>
                 </div>
@@ -2048,7 +2115,7 @@ function CharacterSheet() {
                                     {item.equipped && <span className="equipped-tag">E</span>}
                                 </div>
                                 <div className="inv-item-actions">
-                                    {item.category === "Armor" && (
+                                    {!viewOnly && item.category === "Armor" && (
                                         <button
                                             className={`equip-btn ${item.equipped ? 'equipped' : ''}`}
                                             onClick={() => toggleEquip(item)}
@@ -2056,7 +2123,7 @@ function CharacterSheet() {
                                             {item.equipped ? "Unequip" : "Equip"}
                                         </button>
                                     )}
-                                    <button className="del-btn" onClick={() => removeItem(item)}>✕</button>
+                                    {!viewOnly && <button className="del-btn" onClick={() => removeItem(item)}>✕</button>}
                                 </div>
                             </div>
                         ))}
@@ -2078,6 +2145,7 @@ function CharacterSheet() {
                             isLayoutLocked={isLayoutLocked}
                             currentProficiencyBonus={currentProficiencyBonus}
                             onOpenOverlay={() => { setShowSpellOverlay(true); setSpellOverlayMinimized(false); }}
+                            viewOnly={viewOnly}
                         />
                     </div>
                 )}
@@ -2194,6 +2262,7 @@ function CharacterSheet() {
                 onClose={() => setChoiceOverlay({ isOpen: false, feature: null })}
                 level={character.level}
             />
+            <BackToTop />
         </div>
     );
 }

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import BackToTop from './common/BackToTop';
 import '../styles/SavedRuns.css';
 
 const SavedRuns = () => {
@@ -15,7 +16,7 @@ const SavedRuns = () => {
     const fetchRuns = async () => {
         setLoading(true);
         try {
-            const token = localStorage.getItem('token');
+            const token = sessionStorage.getItem('token');
             const response = await fetch('/api/runs', {
                 headers: {
                     'Authorization': token ? `Bearer ${token}` : ''
@@ -36,7 +37,7 @@ const SavedRuns = () => {
         if (!window.confirm('Are you sure you want to delete this run?')) return;
 
         try {
-            const token = localStorage.getItem('token');
+            const token = sessionStorage.getItem('token');
             const response = await fetch(`/api/runs/${id}`, {
                 method: 'DELETE',
                 headers: {
@@ -109,6 +110,7 @@ const SavedRuns = () => {
                     </div>
                 ))}
             </div>
+            <BackToTop />
         </div>
     );
 };

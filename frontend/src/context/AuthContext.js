@@ -6,18 +6,18 @@ export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
-    const [token, setToken] = useState(localStorage.getItem('token') || null);
+    const [token, setToken] = useState(sessionStorage.getItem('token') || null);
     const [loading, setLoading] = useState(true);
 
     const logout = useCallback(() => {
         setToken(null);
         setUser(null);
-        localStorage.removeItem('token');
+        sessionStorage.removeItem('token');
     }, []);
 
     const verifyToken = useCallback(async (currentToken) => {
         try {
-            const response = await fetch('http://127.0.0.1:5000/api/auth/verify', {
+            const response = await fetch('/api/auth/verify', {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${currentToken}`
@@ -49,7 +49,7 @@ export const AuthProvider = ({ children }) => {
     const login = (newToken, userData) => {
         setToken(newToken);
         setUser(userData);
-        localStorage.setItem('token', newToken);
+        sessionStorage.setItem('token', newToken);
     };
 
     const value = {

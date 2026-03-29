@@ -64,3 +64,60 @@
 .logout-button:hover {
     color: var(--danger);
 }
+
+/* Guest Pill Styling */
+.user-profile-pill.guest {
+    cursor: pointer;
+    background: rgba(46, 204, 113, 0.05);
+    border-color: rgba(46, 204, 113, 0.2);
+    padding: 8px 20px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.user-profile-pill.guest:hover {
+    background: rgba(46, 204, 113, 0.1);
+    border-color: #2ecc71;
+    box-shadow: 0 0 20px rgba(46, 204, 113, 0.2);
+    transform: translateY(-2px);
+}
+
+.user-avatar-small.guest {
+    background: rgba(46, 204, 113, 0.1);
+    color: #2ecc71;
+    border-color: #2ecc71;
+}
+
+.guest-text {
+    display: flex;
+    flex-direction: column;
+}
+
+.guest-text .welcome {
+    font-size: 0.75rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 700;
+}
+
+.auth-links {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.auth-link {
+    font-size: 0.95rem;
+    font-weight: bold;
+    color: white;
+}
+
+.auth-link:hover {
+    color: #2ecc71;
+    text-decoration: underline;
+}
+
+.separator {
+    color: rgba(255, 255, 255, 0.2);
+    font-size: 0.8rem;
+}
