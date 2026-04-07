@@ -38,7 +38,7 @@
 }
 
 .action-btn {
-    padding: 0.8rem 1.5rem;
+    padding: 0.6rem 0.8rem;
     border-radius: 8px;
     font-weight: 600;
     cursor: pointer;
@@ -99,7 +99,10 @@
 .blessing-card::before {
     content: '';
     position: absolute;
-    top: 0; left: 0; width: 4px; height: 100%;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
     background: var(--primary-light);
 }
 
@@ -239,11 +242,35 @@
     border: 1px solid transparent;
 }
 
-.rarity-tag.common { background: rgba(170, 170, 170, 0.2); color: #aaa; border-color: #555; }
-.rarity-tag.uncommon { background: rgba(50, 205, 117, 0.2); color: var(--success); border-color: var(--success); }
-.rarity-tag.rare { background: rgba(0, 112, 221, 0.2); color: #0070dd; border-color: #0070dd; }
-.rarity-tag.very-rare { background: rgba(163, 53, 238, 0.2); color: #a335ee; border-color: #a335ee; }
-.rarity-tag.legendary { background: rgba(255, 128, 0, 0.2); color: #ff8000; border-color: #ff8000; }
+.rarity-tag.common {
+    background: rgba(170, 170, 170, 0.2);
+    color: #aaa;
+    border-color: #555;
+}
+
+.rarity-tag.uncommon {
+    background: rgba(50, 205, 117, 0.2);
+    color: var(--success);
+    border-color: var(--success);
+}
+
+.rarity-tag.rare {
+    background: rgba(0, 112, 221, 0.2);
+    color: #0070dd;
+    border-color: #0070dd;
+}
+
+.rarity-tag.very-rare {
+    background: rgba(163, 53, 238, 0.2);
+    color: #a335ee;
+    border-color: #a335ee;
+}
+
+.rarity-tag.legendary {
+    background: rgba(255, 128, 0, 0.2);
+    color: #ff8000;
+    border-color: #ff8000;
+}
 
 .wild-surge-box {
     margin-top: 1.5rem;
@@ -279,17 +306,34 @@
     margin-bottom: 1rem;
 }
 
-.echo-asc { color: var(--success); }
-.echo-ruin { color: var(--danger); }
-.worldshift { color: var(--accent); }
+.echo-asc {
+    color: var(--success);
+}
+
+.echo-ruin {
+    color: var(--danger);
+}
+
+.worldshift {
+    color: var(--accent);
+}
 
 @keyframes slideDown {
-    from { opacity: 0; transform: translateY(-10px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 @media print {
-    body, html {
+
+    body,
+    html {
         background-color: #1e1e2f !important;
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
@@ -303,11 +347,14 @@
         max-width: none;
     }
 
-    .nav-group, .header-actions, .back-btn {
+    .nav-group,
+    .header-actions,
+    .back-btn {
         display: none !important;
     }
 
-    .blessing-card, .encounter-card {
+    .blessing-card,
+    .encounter-card {
         break-inside: avoid;
         border: 1px solid rgba(255, 215, 0, 0.2) !important;
         background: rgba(100, 49, 115, 0.4) !important;
@@ -333,10 +380,25 @@
 }
 
 @media (max-width: 768px) {
-    .generator-header { flex-direction: column; align-items: stretch; }
-    .header-actions { flex-direction: column; }
-    .nav-group { justify-content: space-between; width: 100%; }
-    .blessing-card { flex-direction: column; align-items: center; text-align: center; }
+    .generator-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .header-actions {
+        flex-direction: column;
+    }
+
+    .nav-group {
+        justify-content: space-between;
+        width: 100%;
+    }
+
+    .blessing-card {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
 }
 
 .nav-group {
@@ -382,4 +444,3 @@
     font-size: 0.95rem;
     backdrop-filter: blur(5px);
 }
-

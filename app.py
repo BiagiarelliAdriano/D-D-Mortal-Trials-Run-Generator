@@ -1,4 +1,5 @@
 from flask import Flask, request, render_template, redirect, url_for, jsonify
+from datetime import datetime
 from flask_migrate import Migrate
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
@@ -598,6 +599,29 @@ def api_character_levelup(char_id):
         return jsonify({"error": "Character is already at max level"}), 400
         
     next_level = current_level + 1
+    
+    data["level"] = next_level
+    character.set_data(data)
+    db.session.commit()
+    return jsonify({"success": True, "new_level": next_level})
+
+@app.route("/api/characters/<int:char_id>/acknowledge-gold-gift", methods=["POST"])
+@jwt_required()
+def api_acknowledge_gold_gift(char_id):
+    current_user_id = get_jwt_identity()
+    user = User.query.get(current_user_id)
+    character = Character.query.get_or_404(char_id)
+    
+    if str(character.user_id) != str(current_user_id) and not user.is_admin:
+        return jsonify({"error": "Unauthorized"}), 403
+        
+    char_data = character.get_data()
+    char_data["gold_gifts"] = []
+    
+    character.set_data(char_data)
+    db.session.commit()
+    
+    return jsonify({"success": True})
     xp_required = XP_THRESHOLDS.get(next_level, 0)
     current_xp = data.get("xp", 0)
     
@@ -648,6 +672,36 @@ def api_character_leveldown(char_id):
     
     db.session.commit()
     return jsonify({"success": True, "new_level": next_level})
+
+@app.route("/api/characters/<int:char_id>/acknowledge-item", methods=["POST"])
+@jwt_required()
+def api_acknowledge_item(char_id):
+    current_user_id = get_jwt_identity()
+    user = User.query.get(current_user_id)
+    character = Character.query.get_or_404(char_id)
+    
+    if str(character.user_id) != str(current_user_id) and not user.is_admin:
+        return jsonify({"error": "Unauthorized"}), 403
+        
+    data = request.json
+    if not data or "item_index" not in data:
+        return jsonify({"error": "Missing item index"}), 400
+        
+    idx = data["item_index"]
+    char_data = character.get_data()
+    inventory = char_data.get("inventory", [])
+    
+    if idx < 0 or idx >= len(inventory):
+        return jsonify({"error": "Item not found"}), 404
+        
+    # Clear gift flags
+    if isinstance(inventory[idx], dict):
+        inventory[idx]["is_new_gift"] = False
+        
+    character.set_data(char_data)
+    db.session.commit()
+    
+    return jsonify({"success": True})
 
 # ------------------------
 # Legacy HTML Routes (safe to remove later)
@@ -1008,13 +1062,14 @@ def api_get_hosted_run_details(session_id):
     current_user_id = get_jwt_identity()
     session = HostedRun.query.get_or_404(session_id)
     
-    # Verify participant
+    # Verify participant or Admin
     participant = SessionParticipant.query.filter_by(
         user_id=current_user_id, 
         hosted_run_id=session.id
     ).first()
     
-    if not participant:
+    user = User.query.get(current_user_id)
+    if not participant and not (user and user.is_admin):
         return jsonify({"error": "Access denied. You are not a participant in this session."}), 403
     
     participants_info = []
@@ -1127,8 +1182,9 @@ def api_complete_encounter(session_id):
     
     if "gold" in target_enc:
         gold_total = target_enc['gold']
-        party_size = run_data.get("settings", {}).get("party_size", 4)
-        gold_per_share = gold_total // party_size
+        # The user requested that EVERY character receives the FULL amount noted in the encounter, 
+        # not a shared portion.
+        gold_per_share = gold_total 
         
         # Count connected characters
         connected_participants = [p for p in session.participants if p.role == 'Ascendant' and p.character_id]
@@ -1141,7 +1197,8 @@ def api_complete_encounter(session_id):
                 char_data["gold"] = char_data.get("gold", 0) + gold_per_share
                 character.set_data(char_data)
         
-        # Surplus to vault
+        # Surplus to vault (for empty slots based on party size)
+        party_size = run_data.get("settings", {}).get("party_size", 4)
         surplus_shares = party_size - len(connected_participants)
         if surplus_shares > 0:
             vault_gold.append({
@@ -1303,6 +1360,80 @@ def api_delete_hosted_run(session_id):
     
     return jsonify({"message": "Session deleted successfully"}), 200
 
+@app.route("/api/host/<int:session_id>/transfer-item", methods=["POST"])
+@jwt_required()
+def api_transfer_item(session_id):
+    current_user_id = get_jwt_identity()
+    data = request.json
+    
+    if not data or not data.get("sender_char_id") or not data.get("receiver_char_id") or "item_index" not in data:
+        return jsonify({"error": "Missing required transfer data"}), 400
+        
+    session = HostedRun.query.get_or_404(session_id)
+    if not session.is_active:
+        return jsonify({"error": "This session is no longer active"}), 400
+        
+    sender_id = data["sender_char_id"]
+    receiver_id = data["receiver_char_id"]
+    item_idx = data["item_index"]
+    
+    # 1. Validate Participants
+    sender_participant = SessionParticipant.query.filter_by(hosted_run_id=session.id, character_id=sender_id).first()
+    receiver_participant = SessionParticipant.query.filter_by(hosted_run_id=session.id, character_id=receiver_id).first()
+    
+    if not sender_participant or not receiver_participant:
+        return jsonify({"error": "One or both characters are not in this session"}), 400
+        
+    # 2. Authorization Check: Owner of sender, DM of session, or Admin
+    requesting_user = User.query.get(current_user_id)
+    sender_char = Character.query.get(sender_id)
+    
+    is_owner = str(sender_char.user_id) == str(current_user_id)
+    is_dm = str(session.dm_id) == str(current_user_id)
+    is_admin = requesting_user.is_admin if requesting_user else False
+    
+    if not (is_owner or is_dm or is_admin):
+        return jsonify({"error": "Unauthorized to transfer items from this character"}), 403
+        
+    # 3. Perform Transfer
+    receiver_char = Character.query.get(receiver_id)
+    
+    sender_data = sender_char.get_data()
+    receiver_data = receiver_char.get_data()
+    
+    sender_inv = sender_data.get("inventory", [])
+    if item_idx < 0 or item_idx >= len(sender_inv):
+        return jsonify({"error": "Item not found in sender's inventory"}), 404
+        
+    # Extract item
+    item = sender_inv.pop(item_idx)
+    
+    # Add to receiver (at the top)
+    if "inventory" not in receiver_data:
+        receiver_data["inventory"] = []
+    
+    # Add Gift Metadata
+    if isinstance(item, str):
+        item = {"name": item, "quantity": 1, "category": "Other"}
+    
+    item["is_new_gift"] = True
+    item["from_character_name"] = sender_char.name
+    item["from_user_name"] = requesting_user.username
+    
+    receiver_data["inventory"].insert(0, item)
+    
+    # Save both
+    sender_char.set_data(sender_data)
+    receiver_char.set_data(receiver_data)
+    
+    db.session.commit()
+    
+    return jsonify({
+        "success": True, 
+        "message": f"Transferred {item.get('name', 'item')} to {receiver_char.name}",
+        "sender_inventory": sender_inv
+    }), 200
+
 @app.route("/api/admin/users/<int:user_id>", methods=["DELETE"])
 @jwt_required()
 def api_admin_delete_user(user_id):
@@ -1330,6 +1461,84 @@ def api_admin_delete_user(user_id):
     db.session.commit()
     
     return jsonify({"message": f"User {user_to_delete.username} and all associated data deleted successfully"}), 200
+
+@app.route("/api/host/<int:session_id>/transfer-gold", methods=["POST"])
+@jwt_required()
+def api_transfer_gold(session_id):
+    current_user_id = get_jwt_identity()
+    data = request.json
+    
+    if not data or not data.get("sender_char_id") or not data.get("receiver_char_id") or "amount" not in data:
+        return jsonify({"error": "Missing required transfer data"}), 400
+        
+    session = HostedRun.query.get_or_404(session_id)
+    if not session.is_active:
+        return jsonify({"error": "This session is no longer active"}), 400
+        
+    sender_id = data["sender_char_id"]
+    receiver_id = data["receiver_char_id"]
+    try:
+        amount = int(data["amount"])
+    except (ValueError, TypeError):
+        return jsonify({"error": "Invalid amount"}), 400
+        
+    if amount <= 0:
+        return jsonify({"error": "Amount must be positive"}), 400
+        
+    # 1. Validate Participants
+    sender_participant = SessionParticipant.query.filter_by(hosted_run_id=session.id, character_id=sender_id).first()
+    receiver_participant = SessionParticipant.query.filter_by(hosted_run_id=session.id, character_id=receiver_id).first()
+    
+    if not sender_participant or not receiver_participant:
+        return jsonify({"error": "One or both characters are not in this session"}), 400
+        
+    # 2. Authorization Check: Owner of sender, DM of session, or Admin
+    requesting_user = User.query.get(current_user_id)
+    sender_char = Character.query.get(sender_id)
+    
+    is_owner = str(sender_char.user_id) == str(current_user_id)
+    is_dm = str(session.dm_id) == str(current_user_id)
+    is_admin = requesting_user.is_admin if requesting_user else False
+    
+    if not (is_owner or is_dm or is_admin):
+        return jsonify({"error": "Unauthorized to transfer gold from this character"}), 403
+        
+    # 3. Perform Transfer
+    receiver_char = Character.query.get(receiver_id)
+    
+    sender_data = sender_char.get_data()
+    receiver_data = receiver_char.get_data()
+    
+    sender_gold = int(sender_data.get("gold", 0))
+    if sender_gold < amount:
+        return jsonify({"error": "Insufficient gold"}), 400
+        
+    # Deduct sender, Add receiver
+    sender_data["gold"] = sender_gold - amount
+    receiver_data["gold"] = int(receiver_data.get("gold", 0)) + amount
+    
+    # Add gold gift notification to receiver
+    if "gold_gifts" not in receiver_data:
+        receiver_data["gold_gifts"] = []
+    
+    # Limit number of pending notifications to avoid data bloat
+    receiver_data["gold_gifts"] = receiver_data["gold_gifts"][-9:] 
+    receiver_data["gold_gifts"].append({
+        "amount": amount,
+        "from_character_name": sender_char.name,
+        "timestamp": datetime.now().isoformat()
+    })
+    
+    sender_char.set_data(sender_data)
+    receiver_char.set_data(receiver_data)
+    
+    db.session.commit()
+    
+    return jsonify({
+        "success": True, 
+        "message": f"Transferred {amount} GP to {receiver_char.name}",
+        "new_gold": sender_data["gold"]
+    }), 200
 
 # ------------------------
 # Entry Point

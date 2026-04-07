@@ -932,8 +932,20 @@ function CharacterSheet() {
 
     const isOwner = character?.user_id === user?.id;
     const isAdmin = user?.is_admin;
-    const canEdit = isEditMode && (isOwner || isAdmin);
+    const [activeSession, setActiveSession] = useState(null);
+    const [sessionParticipants, setSessionParticipants] = useState([]);
+    const [showTransferModal, setShowTransferModal] = useState(false);
+    const [itemToTransfer, setItemToTransfer] = useState(null);
+    const [transferNotice, setTransferNotice] = useState(null);
+    const [showGoldTransferModal, setShowGoldTransferModal] = useState(false);
+    const [goldTransferAmount, setGoldTransferAmount] = useState(1);
+    const [goldTransferRecipient, setGoldTransferRecipient] = useState(null);
+
+    const isDM = activeSession && activeSession.dm_id === user?.id;
+    const isAuthorized = isOwner || isAdmin || isDM;
+    const canEdit = isEditMode && (isOwner || isAdmin || isDM);
     const viewOnly = !canEdit;
+
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [ruleOptions, setRuleOptions] = useState({});
@@ -1088,7 +1100,34 @@ function CharacterSheet() {
                     setRuleOptions({ ...optionsData, ...featsData });
                 }
 
-                // 5. Final Step: Layout Initialization
+                // 5. Check for Active Session Participation
+                const sessionRes = await fetch(`http://localhost:5000/api/host/active`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (sessionRes.ok) {
+                    const activeSessions = await sessionRes.json();
+                    // Find if any active session contains this character
+                    // We need to fetch details for each active session we're in to find our character
+                    // OR we can just check all participants in session details.
+                    // For now, let's fetch details for each session the user is in.
+                    for (const s of activeSessions) {
+                        if (!s.can_enter) continue;
+                        const detailRes = await fetch(`http://localhost:5000/api/host/details/${s.id}`, {
+                            headers: { 'Authorization': `Bearer ${token}` }
+                        });
+                        if (detailRes.ok) {
+                            const details = await detailRes.json();
+                            const me = details.participants.find(p => p.character && p.character.id === parseInt(id));
+                            if (me) {
+                                setActiveSession(details);
+                                setSessionParticipants(details.participants.filter(p => p.character && p.character.id !== parseInt(id)));
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                // 6. Final Step: Layout Initialization
                 // Now that we have all rules, checks like hasSpellcasting will be accurate
                 if (data.data?.layout) {
                     const mergedLayout = { ...data.data.layout };
@@ -1420,6 +1459,126 @@ function CharacterSheet() {
             }
         })
         .catch(err => console.error("Error toggling privacy:", err));
+    };
+
+    const handleSendItem = async (recipientId) => {
+        if (!itemToTransfer || !activeSession) return;
+        
+        if (!window.confirm(`Are you sure you want to send ${itemToTransfer.name} to this character?`)) return;
+
+        try {
+            const res = await fetch(`http://localhost:5000/api/host/${activeSession.id}/transfer-item`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    sender_char_id: parseInt(id),
+                    receiver_char_id: recipientId,
+                    item_index: itemToTransfer.originalIndex
+                })
+            });
+
+            const data = await res.json();
+            if (res.ok) {
+                // Update local inventory
+                const newInventory = inventoryItems.filter((_, idx) => idx !== itemToTransfer.originalIndex);
+                setInventoryItems(newInventory);
+                
+                // Show notification
+                setTransferNotice(data.message);
+                setTimeout(() => setTransferNotice(null), 4000);
+                
+                setShowTransferModal(false);
+                setItemToTransfer(null);
+            } else {
+                alert(data.error || "Transfer failed");
+            }
+        } catch (err) {
+            alert("An error occurred during transfer");
+        }
+    };
+
+    const handleTransferGold = async () => {
+        if (!goldTransferRecipient || !activeSession || goldTransferAmount <= 0) return;
+        
+        if (!window.confirm(`Are you sure you want to send ${goldTransferAmount} GP to this character?`)) return;
+
+        try {
+            const res = await fetch(`http://localhost:5000/api/host/${activeSession.id}/transfer-gold`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    sender_char_id: parseInt(id),
+                    receiver_char_id: goldTransferRecipient,
+                    amount: goldTransferAmount
+                })
+            });
+
+            const data = await res.json();
+            if (res.ok) {
+                setGold(data.new_gold);
+                setTransferNotice(data.message);
+                setTimeout(() => setTransferNotice(null), 4000);
+                setShowGoldTransferModal(false);
+                setGoldTransferAmount(1);
+            } else {
+                alert(data.error || "Transfer failed");
+            }
+        } catch (err) {
+            alert("An error occurred during gold transfer");
+        }
+    };
+
+    const handleAcknowledgeGold = async () => {
+        try {
+            const res = await fetch(`http://localhost:5000/api/characters/${id}/acknowledge-gold-gift`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (res.ok) {
+                setCharacter(prev => ({
+                    ...prev,
+                    data: { ...prev.data, gold_gifts: [] }
+                }));
+            }
+        } catch (err) {
+            console.error("Failed to acknowledge gold gift:", err);
+        }
+    };
+
+    const handleAcknowledgeItem = async (itemIndex) => {
+        try {
+            const res = await fetch(`http://localhost:5000/api/characters/${id}/acknowledge-item`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ item_index: itemIndex })
+            });
+
+            if (res.ok) {
+                // Update local inventory
+                const newInventory = inventoryItems.map((item, idx) => {
+                    if (idx === itemIndex) {
+                        return { ...item, is_new_gift: false };
+                    }
+                    return item;
+                });
+                setInventoryItems(newInventory);
+            }
+        } catch (err) {
+            console.error("Failed to acknowledge item:", err);
+        }
     };
 
     const handleSaveLayout = (current, all) => {
@@ -1771,15 +1930,54 @@ function CharacterSheet() {
 
     return (
         <div className={`character-sheet-container premium-theme ${!isLayoutLocked ? "layout-unlocked" : ""} ${viewOnly ? "view-only-mode" : "edit-mode"}`}>
+            {showTransferModal && (
+                <div className="modal-overlay transfer-modal-overlay" onClick={() => setShowTransferModal(false)}>
+                    <div className="transfer-modal card premium-theme" onClick={e => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <h3><i className="fa-solid fa-gift"></i> Send Item</h3>
+                            <button className="close-btn" onClick={() => setShowTransferModal(false)}>✕</button>
+                        </div>
+                        <div className="transfer-target-list">
+                            <p className="notice">Select a recipient in <strong>{activeSession.run.title}</strong>:</p>
+                            {sessionParticipants.map(participant => (
+                                <div 
+                                    key={participant.character.id} 
+                                    className="recipient-option"
+                                    onClick={() => handleSendItem(participant.character.id)}
+                                >
+                                    <div className="recipient-info">
+                                        <span className="char-name">{participant.character.name}</span>
+                                        <span className="owner-name">Owner: {participant.username}</span>
+                                    </div>
+                                    <i className="fa-solid fa-chevron-right"></i>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {transferNotice && (
+                <div className="transfer-notice-overlay">
+                    <div className="transfer-notice">
+                        <i className="fa-solid fa-circle-check"></i>
+                        {transferNotice}
+                    </div>
+                </div>
+            )}
+
+            <BackToTop />
             <div className="sheet-top-bar">
                 <div className="top-bar-left">
-                    <button onClick={() => navigate("/")} className="back-button">Back to Hub</button>
-                    {(isOwner || isAdmin) && (
+                    <button onClick={() => navigate(-1)} className="back-button">
+                        <i className="fa-solid fa-arrow-left"></i> Back
+                    </button>
+                    {(isOwner || isAdmin || isDM) && (
                         <button 
                             className="mode-toggle-btn"
-                            onClick={() => navigate(isEditMode ? `/characters/${id}` : `/characters/${id}/edit`)}
+                            onClick={() => navigate(isEditMode ? `/characters/${id}` : `/characters/${id}/edit`, { replace: true })}
                         >
-                            {isEditMode ? "👁 Swich to View Mode" : "✎ Switch to Edit Mode"}
+                            {isEditMode ? "👁 Switch to View Mode" : "✎ Switch to Edit Mode"}
                         </button>
                     )}
                 </div>
@@ -2083,7 +2281,10 @@ function CharacterSheet() {
                     {!isLayoutLocked && <div className="widget-handle">⠿</div>}
                     <div className="inventory-header-row">
                         <h3>Inventory</h3>
-                        <div className="gold-box">Gold: {gold} GP</div>
+                        <div className="gold-box" onClick={() => isAuthorized && activeSession && setShowGoldTransferModal(true)}>
+                            <i className="fa-solid fa-coins"></i> Gold: {gold} GP
+                            {isAuthorized && activeSession && <i className="fa-solid fa-right-left transfer-hint-icon"></i>}
+                        </div>
                         <div className="inv-tabs">
                             {Object.keys(groupedInventory).map(cat => (
                                 <button
@@ -2100,7 +2301,7 @@ function CharacterSheet() {
                         {displayedItems.map((item, idx) => (
                             <div
                                 key={idx}
-                                className={`inventory-row ${dragOverItemIndex === idx ? 'drag-over' : ''} ${draggedItemIndex === idx ? 'is-dragging' : ''}`}
+                                className={`inventory-row ${item.is_new_gift ? 'is-gift' : ''} ${dragOverItemIndex === idx ? 'drag-over' : ''} ${draggedItemIndex === idx ? 'is-dragging' : ''}`}
                                 draggable={inventoryFilter === "All"}
                                 onDragStart={(e) => handleDragStart(e, idx)}
                                 onDragOver={(e) => handleDragOver(e, idx)}
@@ -2109,18 +2310,46 @@ function CharacterSheet() {
                             >
                                 <div className="inv-item-info">
                                     <span className="drag-handle">⠿</span>
-                                    <span className="item-name">{item.name}</span>
+                                    <div className="item-name-stack">
+                                        <div className="name-row">
+                                            <span className="item-name">{item.name}</span>
+                                            {item.is_new_gift && <span className="gift-badge">🎁 GIFT</span>}
+                                        </div>
+                                        {item.is_new_gift && (
+                                            <span className="gift-source">From {item.from_character_name}</span>
+                                        )}
+                                    </div>
                                     {item.quantity > 1 && <span className="item-qty">x{item.quantity}</span>}
                                     <span className="item-cat-tag">{item.category}</span>
                                     {item.equipped && <span className="equipped-tag">E</span>}
                                 </div>
                                 <div className="inv-item-actions">
+                                    {item.is_new_gift && isOwner && (
+                                        <button 
+                                            className="acknowledge-btn"
+                                            onClick={() => handleAcknowledgeItem(item.originalIndex)}
+                                        >
+                                            Accept
+                                        </button>
+                                    )}
                                     {!viewOnly && item.category === "Armor" && (
                                         <button
                                             className={`equip-btn ${item.equipped ? 'equipped' : ''}`}
                                             onClick={() => toggleEquip(item)}
                                         >
                                             {item.equipped ? "Unequip" : "Equip"}
+                                        </button>
+                                    )}
+                                    {isAuthorized && activeSession && sessionParticipants.length > 0 && (
+                                        <button 
+                                            className="send-item-btn" 
+                                            title="Send to another character"
+                                            onClick={() => {
+                                                setItemToTransfer({ ...item, originalIndex: item.originalIndex });
+                                                setShowTransferModal(true);
+                                            }}
+                                        >
+                                            <i className="fa-solid fa-paper-plane"></i>
                                         </button>
                                     )}
                                     {!viewOnly && <button className="del-btn" onClick={() => removeItem(item)}>✕</button>}
@@ -2262,6 +2491,82 @@ function CharacterSheet() {
                 onClose={() => setChoiceOverlay({ isOpen: false, feature: null })}
                 level={character.level}
             />
+
+            {showGoldTransferModal && (
+                <div className="modal-overlay gold-transfer-overlay" onClick={() => setShowGoldTransferModal(false)}>
+                    <div className="transfer-modal card premium-theme gold-modal" onClick={e => e.stopPropagation()}>
+                        <div className="modal-header">
+                            <h3><i className="fa-solid fa-money-bill-transfer"></i> Transfer Gold</h3>
+                            <button className="close-btn" onClick={() => setShowGoldTransferModal(false)}>✕</button>
+                        </div>
+                        <div className="gold-transfer-content">
+                            <div className="gold-stats">
+                                <div className="stat-item">
+                                    <span className="label">Current Balance:</span>
+                                    <span className="value">{gold} GP</span>
+                                </div>
+                                <div className="stat-item highlight">
+                                    <span className="label">New Balance:</span>
+                                    <span className="value">{gold - (parseInt(goldTransferAmount) || 0)} GP</span>
+                                </div>
+                            </div>
+
+                            <div className="amount-input-group">
+                                <label>Amount to Send:</label>
+                                <div className="input-with-unit">
+                                    <input 
+                                        type="number" 
+                                        min="1" 
+                                        max={gold} 
+                                        value={goldTransferAmount}
+                                        onChange={(e) => setGoldTransferAmount(Math.max(1, Math.min(gold, parseInt(e.target.value) || 0)))}
+                                    />
+                                    <span>GP</span>
+                                </div>
+                            </div>
+
+                            <div className="transfer-target-list">
+                                <p className="notice">Select a recipient:</p>
+                                {sessionParticipants.map(participant => (
+                                    <div 
+                                        key={participant.character.id} 
+                                        className={`recipient-option ${goldTransferRecipient === participant.character.id ? 'selected' : ''}`}
+                                        onClick={() => setGoldTransferRecipient(participant.character.id)}
+                                    >
+                                        <div className="recipient-info">
+                                            <span className="char-name">{participant.character.name}</span>
+                                            <span className="owner-name">Owner: {participant.username}</span>
+                                        </div>
+                                        {goldTransferRecipient === participant.character.id && <i className="fa-solid fa-circle-check"></i>}
+                                    </div>
+                                ))}
+                            </div>
+
+                            <button 
+                                className="confirm-transfer-btn"
+                                disabled={!goldTransferRecipient || goldTransferAmount <= 0 || goldTransferAmount > gold}
+                                onClick={handleTransferGold}
+                            >
+                                <i className="fa-solid fa-paper-plane"></i> Confirm Gold Transfer
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {(isOwner || isAdmin) && character?.data?.gold_gifts && character.data.gold_gifts.length > 0 && (
+                <div className="gold-gifts-notice-container">
+                    {character.data.gold_gifts.map((gift, idx) => (
+                        <div key={idx} className="gold-gift-notice">
+                            <div className="gift-text">
+                                <i className="fa-solid fa-coins"></i>
+                                <span>You received <strong>{gift.amount} GP</strong> from <strong>{gift.from_character_name}</strong>!</span>
+                            </div>
+                            <button className="gold-accept-btn" onClick={handleAcknowledgeGold}>Accept</button>
+                        </div>
+                    ))}
+                </div>
+            )}
             <BackToTop />
         </div>
     );

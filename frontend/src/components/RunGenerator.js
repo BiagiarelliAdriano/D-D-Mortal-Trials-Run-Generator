@@ -108,7 +108,7 @@ const RunGenerator = () => {
 
                 {encounter.wild_surge && (
                     <div className="wild-surge-box">
-                        <button 
+                        <button
                             className={`wild-surge-toggle ${wildSurgeVisible[id] ? 'active' : ''}`}
                             onClick={(e) => toggleWildSurge(e, id)}
                         >
@@ -170,11 +170,11 @@ const RunGenerator = () => {
             }
             const now = new Date();
             if (!title.trim()) {
-                title = `Trial ${now.toLocaleDateString()} ${now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
+                title = `Trial ${now.toLocaleDateString()} ${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
             }
         } else {
             const now = new Date();
-            title = `Trial ${now.toLocaleDateString()} ${now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
+            title = `Trial ${now.toLocaleDateString()} ${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
         }
 
         try {
@@ -264,7 +264,7 @@ const RunGenerator = () => {
                                 )
                             )}
                             <button className="action-btn secondary" onClick={handlePrint}>
-                                <i className="fa-solid fa-print"></i> Print Run
+                                <i className="fa-solid fa-print"></i> Print / Download Run
                             </button>
                         </>
                     )}
@@ -300,8 +300,8 @@ const RunGenerator = () => {
 
                     <div className="encounters-list">
                         {runData.encounters.map(([num, encounter]) => (
-                            <div 
-                                key={num} 
+                            <div
+                                key={num}
                                 className={`encounter-card ${expandedEncounters[num] ? 'expanded' : ''} ${encounter.type === "Shop Encounter" ? 'shop' : 'combat'}`}
                                 onClick={() => toggleEncounter(num)}
                             >

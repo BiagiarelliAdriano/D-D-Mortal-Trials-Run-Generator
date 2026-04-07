@@ -91,8 +91,8 @@ ENCOUNTER_DEFINITIONS = {
     },
     9: {
         "allowed_rarities": ["uncommon"],
-        "xp": 3300,
-        "total_xp": 13875,
+        "xp": 3425,
+        "total_xp": 14000,
         "is_levelup": True,
         "gold": 400,
         "monsters": [("3", 1), ("2", 2), ("1/2", 3)],
@@ -117,8 +117,8 @@ ENCOUNTER_DEFINITIONS = {
     },
     12: {
         "allowed_rarities": ["uncommon", "rare"],
-        "xp": 4575,
-        "total_xp": 22800,
+        "xp": 4650,
+        "total_xp": 23000,
         "is_levelup": True,
         "gold": 500,
         "monsters": [("4", 2), ("2", 1), ("1", 2)],
@@ -129,7 +129,7 @@ ENCOUNTER_DEFINITIONS = {
     13: {
         "allowed_rarities": ["uncommon", "rare"],
         "xp": 5700,
-        "total_xp": 28500,
+        "total_xp": 28700,
         "is_levelup": False,
         "gold": 500,
         "monsters": [("5", 1), ("4", 1), ("2", 2)],
@@ -140,7 +140,7 @@ ENCOUNTER_DEFINITIONS = {
     14: {
         "allowed_rarities": ["uncommon", "rare"],
         "xp": 6075,
-        "total_xp": 34575,
+        "total_xp": 34775,
         "is_levelup": True,
         "gold": 600,
         "monsters": [("5", 1), ("4", 1), ("3", 1), ("2", 1)],
@@ -151,7 +151,7 @@ ENCOUNTER_DEFINITIONS = {
     15: {
         "allowed_rarities": ["uncommon", "rare"],
         "xp": 6825,
-        "total_xp": 41400,
+        "total_xp": 41600,
         "is_levelup": False,
         "gold": 600,
         "monsters": [("6", 1), ("4", 1), ("3", 1), ("2", 1)],
@@ -167,7 +167,7 @@ ENCOUNTER_DEFINITIONS = {
     17: {
         "allowed_rarities": ["rare"],
         "xp": 7200,
-        "total_xp": 48600,
+        "total_xp": 48800,
         "is_levelup": True,
         "gold": 700,
         "monsters": [("7", 1), ("5", 1), ("4", 2)],
@@ -178,7 +178,7 @@ ENCOUNTER_DEFINITIONS = {
     18: {
         "allowed_rarities": ["rare"],
         "xp": 8700,
-        "total_xp": 57300,
+        "total_xp": 57500,
         "is_levelup": False,
         "gold": 700,
         "monsters": [("8", 1), ("6", 1), ("4", 1), ("2", 2)],
@@ -189,7 +189,7 @@ ENCOUNTER_DEFINITIONS = {
     19: {
         "allowed_rarities": ["rare"],
         "xp": 9450,
-        "total_xp": 66750,
+        "total_xp": 66950,
         "is_levelup": True,
         "gold": 800,
         "monsters": [("8", 1), ("6", 1), ("4", 1), ("3", 2)],
@@ -200,7 +200,7 @@ ENCOUNTER_DEFINITIONS = {
     20: {
         "allowed_rarities": ["rare"],
         "xp": 10500,
-        "total_xp": 77250,
+        "total_xp": 77450,
         "is_levelup": False,
         "gold": 800,
         "monsters": [("9", 1), ("5", 2), ("3", 2)],
@@ -216,7 +216,7 @@ ENCOUNTER_DEFINITIONS = {
     22: {
         "allowed_rarities": ["very rare"],
         "xp": 12000,
-        "total_xp": 89250,
+        "total_xp": 89450,
         "is_levelup": True,
         "gold": 40000,
         "monsters": [("11", 1), ("4", 3)],
@@ -227,7 +227,7 @@ ENCOUNTER_DEFINITIONS = {
     23: {
         "allowed_rarities": ["rare", "very rare"],
         "xp": 10425,
-        "total_xp": 99765,
+        "total_xp": 99875,
         "is_levelup": False,
         "gold": 4000,
         "monsters": [("10", 1), ("5", 1), ("3", 1), ("2", 2)],
@@ -238,7 +238,7 @@ ENCOUNTER_DEFINITIONS = {
     24: {
         "allowed_rarities": ["rare", "very rare"],
         "xp": 11475,
-        "total_xp": 111150,
+        "total_xp": 111350,
         "is_levelup": True,
         "gold": 4000,
         "monsters": [("10", 1), ("6", 1), ("3", 1), ("2", 2)],
@@ -249,7 +249,7 @@ ENCOUNTER_DEFINITIONS = {
     25: {
         "allowed_rarities": ["rare", "very rare"],
         "xp": 15000,
-        "total_xp": 126150,
+        "total_xp": 126350,
         "is_levelup": True,
         "gold": 5000,
         "monsters": [("11", 1), ("7", 1), ("5", 1), ("4", 1)],
@@ -260,7 +260,7 @@ ENCOUNTER_DEFINITIONS = {
     26: {
         "allowed_rarities": ["rare", "very rare"],
         "xp": 17250,
-        "total_xp": 143400,
+        "total_xp": 143600,
         "is_levelup": True,
         "gold": 5000,
         "monsters": [("12", 1), ("8", 1), ("4", 2)],
@@ -276,7 +276,7 @@ ENCOUNTER_DEFINITIONS = {
     28: {
         "allowed_rarities": ["very rare"],
         "xp": 20100,
-        "total_xp": 163500,
+        "total_xp": 163700,
         "is_levelup": False,
         "gold": 6000,
         "monsters": [("13", 1), ("9", 1), ("5", 1)],
@@ -287,7 +287,7 @@ ENCOUNTER_DEFINITIONS = {
     29: {
         "allowed_rarities": ["very rare"],
         "xp": 20550,
-        "total_xp": 184050,
+        "total_xp": 184250,
         "is_levelup": True,
         "gold": 6000,
         "monsters": [("13", 1), ("9", 1), ("4", 2)],
@@ -298,7 +298,7 @@ ENCOUNTER_DEFINITIONS = {
     30: {
         "allowed_rarities": ["very rare"],
         "xp": 23850,
-        "total_xp": 207900,
+        "total_xp": 208100,
         "is_levelup": True,
         "gold": 7000,
         "monsters": [("14", 1), ("10", 1), ("3", 2)],
@@ -309,7 +309,7 @@ ENCOUNTER_DEFINITIONS = {
     31: {
         "allowed_rarities": ["very rare"],
         "xp": 25200,
-        "total_xp": 233100,
+        "total_xp": 233300,
         "is_levelup": True,
         "gold": 7000,
         "monsters": [("15", 1), ("7", 2), ("5", 1)],
@@ -324,8 +324,8 @@ ENCOUNTER_DEFINITIONS = {
     },
     33: {
         "allowed_rarities": ["legendary"],
-        "xp": 29700,
-        "total_xp": 262800,
+        "xp": 29900,
+        "total_xp": 265000,
         "is_levelup": True,
         "gold": 200000,
         "monsters": [("17", 1), ("7", 1), ("5", 1), ("4", 2)],
@@ -336,7 +336,7 @@ ENCOUNTER_DEFINITIONS = {
     34: {
         "allowed_rarities": ["very rare", "legendary"],
         "xp": 34500,
-        "total_xp": 297300,
+        "total_xp": 299500,
         "is_levelup": False,
         "gold": 50000,
         "monsters": [("16", 1), ("15", 1), ("10", 2)],
@@ -347,7 +347,7 @@ ENCOUNTER_DEFINITIONS = {
     35: {
         "allowed_rarities": ["very rare", "legendary"],
         "xp": 34800,
-        "total_xp": 332100,
+        "total_xp": 334300,
         "is_levelup": True,
         "gold": 50000,
         "monsters": [("17", 1), ("14", 1), ("11", 1), ("9", 1)],
@@ -358,7 +358,7 @@ ENCOUNTER_DEFINITIONS = {
     36: {
         "allowed_rarities": ["legendary"],
         "xp": 42600,
-        "total_xp": 374700,
+        "total_xp": 376900,
         "is_levelup": True,
         "gold": 100000,
         "monsters": [("18", 1), ("15", 1), ("12", 1), ("11", 1)],

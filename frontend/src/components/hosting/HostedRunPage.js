@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import BackToTop from '../common/BackToTop';
+import UserProfilePill from '../UserProfilePill';
 import '../../styles/HostedRunPage.css';
 
 const HostedRunPage = () => {
@@ -338,6 +339,8 @@ const HostedRunPage = () => {
                     </div>
                 </div>
                 
+                <UserProfilePill />
+
                 <nav className="session-tabs">
                     <button className={activeTab === 'trial' ? 'active' : ''} onClick={() => setActiveTab('trial')}>Trial</button>
                     <button className={activeTab === 'party' ? 'active' : ''} onClick={() => setActiveTab('party')}>Party</button>
@@ -518,7 +521,7 @@ const HostedRunPage = () => {
                     </div>
                 </div>
             )}
-            <BackToTop />
+            <BackToTop containerSelector=".session-content" />
         </div>
     );
 };
