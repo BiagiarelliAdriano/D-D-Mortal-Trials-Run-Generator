@@ -12,6 +12,7 @@ const HostHub = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [copiedCode, setCopiedCode] = useState(null);
+    const [searchTerm, setSearchTerm] = useState("");
 
     const fetchGames = useCallback(async () => {
         try {
@@ -32,16 +33,22 @@ const HostHub = () => {
         fetchGames();
     }, [fetchGames]);
 
-    // Partition and Sort trials
+    // Partition and Sort trials with search filtering
     const { myTrials, communityTrials } = useMemo(() => {
-        const mine = activeGames.filter(g => g.role !== 'Visitor');
-        const community = activeGames.filter(g => g.role === 'Visitor');
+        const term = searchTerm.toLowerCase();
+        const filtered = activeGames.filter(g =>
+            (g.run_title?.toLowerCase() || "").includes(term) ||
+            (g.dm_name?.toLowerCase() || "").includes(term)
+        );
+
+        const mine = filtered.filter(g => g.role !== 'Visitor');
+        const community = filtered.filter(g => g.role === 'Visitor');
 
         // community already sorted by dm_name from backend, but ensuring here
         community.sort((a, b) => a.dm_name.localeCompare(b.dm_name));
 
         return { myTrials: mine, communityTrials: community };
-    }, [activeGames]);
+    }, [activeGames, searchTerm]);
 
     const handleJoin = async () => {
         if (joinCode.length !== 6) {
@@ -52,7 +59,7 @@ const HostHub = () => {
         try {
             const response = await fetch('/api/host/join', {
                 method: 'POST',
-                headers: { 
+                headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
@@ -60,7 +67,7 @@ const HostHub = () => {
             });
             const data = await response.json();
             if (!response.ok) throw new Error(data.error || 'Failed to join trial');
-            
+
             navigate(`/hosting/${data.session_id}`);
         } catch (err) {
             setError(err.message);
@@ -75,18 +82,18 @@ const HostHub = () => {
     };
 
     const renderTrialCard = (game) => (
-        <div 
-            key={game.id} 
-            className={`trial-card ${!game.can_enter ? 'visitor-card' : ''}`} 
+        <div
+            key={game.id}
+            className={`trial-card ${!game.can_enter ? 'visitor-card' : ''}`}
             onClick={() => game.can_enter && navigate(`/hosting/${game.id}`)}
         >
             <div className="card-top">
                 <div className="role-icon">
-                    {game.role === 'DM' ? 
-                        <i className="fa-solid fa-crown" title="Dungeon Master"></i> : 
+                    {game.role === 'DM' ?
+                        <i className="fa-solid fa-crown" title="Dungeon Master"></i> :
                         game.role === 'Visitor' ?
-                        <i className="fa-solid fa-eye" title="Visitor"></i> :
-                        <i className="fa-solid fa-shield-halved" title="Player"></i>
+                            <i className="fa-solid fa-eye" title="Visitor"></i> :
+                            <i className="fa-solid fa-shield-halved" title="Player"></i>
                     }
                 </div>
                 <div className="trial-title">
@@ -94,7 +101,7 @@ const HostHub = () => {
                     <span className="owner-name">Hosted by: {game.dm_name}</span>
                 </div>
             </div>
-            
+
             <div className="card-middle">
                 <div className="participant-stats">
                     <div className="stat-label">
@@ -102,8 +109,8 @@ const HostHub = () => {
                         <span>{game.participant_count} / 5</span>
                     </div>
                     <div className="party-progress-bar">
-                        <div 
-                            className="party-progress-fill" 
+                        <div
+                            className="party-progress-fill"
                             style={{ width: `${(game.participant_count / 5) * 100}%` }}
                         ></div>
                     </div>
@@ -113,7 +120,7 @@ const HostHub = () => {
             <div className="card-bottom">
                 {game.can_enter ? (
                     <>
-                        <div 
+                        <div
                             className={`invite-code-pill ${copiedCode === game.invite_code ? 'copied' : ''}`}
                             onClick={(e) => handleCopyCode(e, game.invite_code)}
                             title="Click to copy code"
@@ -143,18 +150,28 @@ const HostHub = () => {
                 <div className="host-header">
                     <h1>The Hosting Spire</h1>
                     <p>Manage your trials or join an existing ascent.</p>
+                    <div className="search-wrapper" style={{ margin: '20px auto' }}>
+                        <input
+                            type="text"
+                            className="search-input"
+                            placeholder="Look for a Run within the Tower..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                        <i className="fa-solid fa-magnifying-glass"></i>
+                    </div>
                 </div>
 
                 <div className="host-actions">
                     <button className="host-primary-btn" onClick={() => navigate('/run-generator?host=true')}>
                         <i className="fa-solid fa-plus-circle"></i> Host New Run
                     </button>
-                    
+
                     <div className="join-code-section">
-                        <input 
-                            type="text" 
-                            placeholder="6-Digit Invite Code" 
-                            maxLength="6" 
+                        <input
+                            type="text"
+                            placeholder="6-Digit Invite Code"
+                            maxLength="6"
                             value={joinCode}
                             onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
                         />

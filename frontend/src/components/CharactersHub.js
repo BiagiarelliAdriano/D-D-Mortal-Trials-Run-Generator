@@ -1,6 +1,7 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useNotification } from "../context/NotificationContext";
 import "../styles/CharactersHub.css";
 import UserProfilePill from "./UserProfilePill";
 import BackToTop from "./common/BackToTop";
@@ -8,8 +9,10 @@ import BackToTop from "./common/BackToTop";
 function CharactersHub() {
     const [characters, setCharacters] = useState([]);
     const [loading, setLoading] = useState(true);
-    const { token, user } = useAuth();
+    const { user, token } = useAuth();
+    const { addAlert, confirm } = useNotification();
     const navigate = useNavigate();
+    const [searchTerm, setSearchTerm] = useState("");
 
     // Fetch function for polling
     const fetchCharacters = useCallback(() => {
@@ -34,10 +37,17 @@ function CharactersHub() {
         return () => clearInterval(interval);
     }, [fetchCharacters]);
 
-    // Partition and Sort characters
+    // Partition and Sort characters with search filtering
     const { myCharacters, communityCharacters } = useMemo(() => {
-        const mine = characters.filter(c => c.user_id === user?.id);
-        const community = characters.filter(c => c.user_id !== user?.id);
+        const term = searchTerm.toLowerCase();
+        const filtered = characters.filter(c => 
+            (c.name?.toLowerCase() || "").includes(term) ||
+            (c.class_name?.toLowerCase() || "").includes(term) ||
+            (c.species?.toLowerCase() || "").includes(term)
+        );
+
+        const mine = filtered.filter(c => c.user_id === user?.id);
+        const community = filtered.filter(c => c.user_id !== user?.id);
 
         // Sort community characters by owner_username then name
         community.sort((a, b) => {
@@ -47,21 +57,31 @@ function CharactersHub() {
         });
 
         return { myCharacters: mine, communityCharacters: community };
-    }, [characters, user]);
+    }, [characters, user, searchTerm]);
 
     // Delete a character
-    const deleteCharacter = (id, e) => {
-        e.stopPropagation();
-        if (!window.confirm("Are you sure you want to delete this character?")) return;
+    const deleteCharacter = async (id, e) => {
+        if (e) e.stopPropagation();
+        if (!(await confirm("Are you sure you want to delete this character?"))) return;
 
-        fetch(`http://localhost:5000/api/characters/${id}`, {
-            method: "DELETE",
-            headers: {
-                'Authorization': `Bearer ${token}`
+        try {
+            const response = await fetch(`http://localhost:5000/api/characters/${id}`, {
+                method: "DELETE",
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                }
+            });
+
+            if (response.ok) {
+                setCharacters(characters.filter(char => char.id !== id));
+                addAlert("Character deleted successfully", "success");
+            } else {
+                addAlert("Failed to delete character", "error");
             }
-        }).then(() => {
-            fetchCharacters();
-        });
+        } catch (error) {
+            console.error("Error deleting character:", error);
+            addAlert("An error occurred while deleting the character", "error");
+        }
     };
 
     const renderCharacterCard = (char, showAttribution) => (
@@ -144,6 +164,16 @@ function CharactersHub() {
             <header className="hub-header">
                 <div className="hub-titles">
                     <h1>Characters Hub</h1>
+                    <div className="search-wrapper">
+                        <input 
+                            type="text" 
+                            className="search-input" 
+                            placeholder="Locate an ascendant..." 
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                        <i className="fa-solid fa-magnifying-glass"></i>
+                    </div>
                     <button className="create-button" onClick={() => navigate("/characters/create")}>
                         ✧ Create New Ascendant
                     </button>

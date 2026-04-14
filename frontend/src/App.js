@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
+import { NotificationProvider } from "./context/NotificationContext";
 import Login from "./components/auth/Login";
 import Register from "./components/auth/Register";
 import AdminDashboard from "./components/admin/AdminDashboard";
@@ -44,24 +45,26 @@ const AdminProtectedRoute = ({ children }) => {
 function App() {
   return (
     <AuthProvider>
-      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/run-generator" element={<RunGenerator />} />
-          <Route path="/saved-runs" element={<ProtectedRoute><SavedRuns /></ProtectedRoute>} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/admin" element={<AdminProtectedRoute><AdminDashboard /></AdminProtectedRoute>} />
-          <Route path="/profile/:id" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
-          <Route path="/hosting" element={<ProtectedRoute><HostHub /></ProtectedRoute>} />
-          <Route path="/hosting/:id" element={<ProtectedRoute><HostedRunPage /></ProtectedRoute>} />
-          <Route path="/characters" element={<ProtectedRoute><CharactersHub /></ProtectedRoute>} />
-          <Route path="/characters/:id" element={<ProtectedRoute><CharacterSheet /></ProtectedRoute>} />
-          <Route path="/characters/create" element={<ProtectedRoute><CharacterForm /></ProtectedRoute>} />
-          <Route path="/characters/:id/edit" element={<ProtectedRoute><CharacterSheet /></ProtectedRoute>} />
-        </Routes>
-        <SocialBar />
-      </BrowserRouter>
+      <NotificationProvider>
+        <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+          <Routes>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/run-generator" element={<RunGenerator />} />
+            <Route path="/saved-runs" element={<ProtectedRoute><SavedRuns /></ProtectedRoute>} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/admin" element={<AdminProtectedRoute><AdminDashboard /></AdminProtectedRoute>} />
+            <Route path="/profile/:id" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
+            <Route path="/hosting" element={<ProtectedRoute><HostHub /></ProtectedRoute>} />
+            <Route path="/hosting/:id" element={<ProtectedRoute><HostedRunPage /></ProtectedRoute>} />
+            <Route path="/characters" element={<ProtectedRoute><CharactersHub /></ProtectedRoute>} />
+            <Route path="/characters/:id" element={<ProtectedRoute><CharacterSheet /></ProtectedRoute>} />
+            <Route path="/characters/create" element={<ProtectedRoute><CharacterForm /></ProtectedRoute>} />
+            <Route path="/characters/:id/edit" element={<ProtectedRoute><CharacterSheet /></ProtectedRoute>} />
+          </Routes>
+          <SocialBar />
+        </BrowserRouter>
+      </NotificationProvider>
     </AuthProvider>
   );
 }

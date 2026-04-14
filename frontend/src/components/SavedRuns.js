@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from "../context/AuthContext";
+import { useNotification } from "../context/NotificationContext";
 import BackToTop from './common/BackToTop';
 import '../styles/SavedRuns.css';
 
@@ -7,16 +9,14 @@ const SavedRuns = () => {
     const [runs, setRuns] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const { token } = useAuth();
+    const { addAlert, confirm } = useNotification();
     const navigate = useNavigate();
+    const [searchTerm, setSearchTerm] = useState("");
 
-    useEffect(() => {
-        fetchRuns();
-    }, []);
-
-    const fetchRuns = async () => {
+    const fetchRuns = useCallback(async () => {
         setLoading(true);
         try {
-            const token = sessionStorage.getItem('token');
             const response = await fetch('/api/runs', {
                 headers: {
                     'Authorization': token ? `Bearer ${token}` : ''
@@ -30,14 +30,17 @@ const SavedRuns = () => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [token]);
+
+    useEffect(() => {
+        fetchRuns();
+    }, [fetchRuns]);
 
     const deleteRun = async (e, id) => {
         e.stopPropagation();
-        if (!window.confirm('Are you sure you want to delete this run?')) return;
+        if (!(await confirm('Are you sure you want to delete this run?'))) return;
 
         try {
-            const token = sessionStorage.getItem('token');
             const response = await fetch(`/api/runs/${id}`, {
                 method: 'DELETE',
                 headers: {
@@ -46,8 +49,9 @@ const SavedRuns = () => {
             });
             if (!response.ok) throw new Error('Failed to delete run');
             setRuns(runs.filter(r => r.id !== id));
+            addAlert('Run deleted successfully', 'success');
         } catch (err) {
-            alert('Error deleting run: ' + err.message);
+            addAlert('Error deleting run: ' + err.message, 'error');
         }
     };
 
@@ -66,6 +70,16 @@ const SavedRuns = () => {
                     <i className="fa-solid fa-arrow-left"></i> Back to Generator
                 </button>
                 <h1 className="serif-text">My Saved Trials</h1>
+                <div className="search-wrapper" style={{ margin: '10px 0', maxWidth: '300px' }}>
+                    <input 
+                        type="text" 
+                        className="search-input" 
+                        placeholder="Recall a legend..." 
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                    <i className="fa-solid fa-magnifying-glass"></i>
+                </div>
             </header>
 
             {loading && (
@@ -85,7 +99,9 @@ const SavedRuns = () => {
             )}
 
             <div className="runs-grid">
-                {runs.map(run => (
+                {runs
+                    .filter(run => !searchTerm || run.title.toLowerCase().includes(searchTerm.toLowerCase()))
+                    .map(run => (
                     <div key={run.id} className="run-summary-card" onClick={() => viewRun(run)}>
                         <div className="run-card-header">
                             <h3>{run.title}</h3>

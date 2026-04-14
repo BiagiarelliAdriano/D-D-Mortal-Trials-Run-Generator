@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useNotification } from '../context/NotificationContext';
 import BackToTop from './common/BackToTop';
 import '../styles/RunGenerator.css';
 
 const RunGenerator = () => {
     const { token } = useAuth();
+    const { addAlert, prompt } = useNotification();
     const location = useLocation();
     const [runData, setRunData] = useState(location.state?.savedRunData || null);
     const [loading, setLoading] = useState(false);
@@ -162,10 +164,11 @@ const RunGenerator = () => {
     const saveRun = async (silent = false) => {
         let title = "";
         if (!silent) {
-            title = prompt("Enter a name for this Run (max 24 characters):");
-            if (title === null) return null; // Cancelled
+            title = await prompt("Enter a name for this Run (max 24 characters):");
+            if (!title) return null; // Cancelled or empty
+            
             if (title.length > 24) {
-                alert("Run name must be 24 characters or less. Truncating to 24 characters.");
+                addAlert("Run name must be 24 characters or less. Truncating to 24 characters.", "warning");
                 title = title.substring(0, 24);
             }
             const now = new Date();
@@ -190,12 +193,16 @@ const RunGenerator = () => {
                 })
             });
 
-            if (!response.ok) throw new Error('Failed to save run');
-            const result = await response.json();
-            if (!silent) alert('Run saved successfully!');
-            return result.id;
+            const data = await response.json();
+            if (response.ok) {
+                if (!silent) addAlert('Run saved successfully!', 'success');
+                return data.id;
+            } else {
+                addAlert('Error saving run: ' + (data.error || 'Unknown error'), 'error');
+                return null;
+            }
         } catch (err) {
-            alert('Error saving run: ' + err.message);
+            addAlert('Error saving run: ' + err.message, 'error');
             return null;
         }
     };

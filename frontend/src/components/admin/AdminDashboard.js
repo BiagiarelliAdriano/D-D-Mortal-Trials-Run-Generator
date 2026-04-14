@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useNotification } from '../../context/NotificationContext';
 import UserProfilePill from '../UserProfilePill';
 import '../../styles/Auth.css'; // Reuse some base auth styles
 import '../../styles/Admin.css';
@@ -13,6 +14,7 @@ const AdminDashboard = () => {
     const [editData, setEditData] = useState({});
     const [updatingUser, setUpdatingUser] = useState(null);
     const { token, user } = useAuth();
+    const { addAlert, confirm } = useNotification();
     const navigate = useNavigate();
 
     const fetchStats = useCallback(() => {
@@ -44,24 +46,26 @@ const AdminDashboard = () => {
         fetchStats();
     }, [user, navigate, fetchStats]);
 
-    const handleDeleteCharacter = (charId, e) => {
-        e.stopPropagation();
-        if (!window.confirm("Are you sure you want to PERMANENTLY delete this character? This action cannot be undone.")) return;
+    const handleDeleteCharacter = async (charId, e) => {
+        if (e) e.stopPropagation();
+        if (!await confirm("Are you sure you want to PERMANENTLY delete this character? This action cannot be undone.")) return;
 
-        fetch(`/api/characters/${charId}`, {
-            method: 'DELETE',
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        })
-            .then(res => {
-                if (res.ok) {
-                    fetchStats(); // Refresh data
-                } else {
-                    alert("Failed to delete character.");
+        try {
+            const res = await fetch(`/api/characters/${charId}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`
                 }
-            })
-            .catch(err => console.error("Error deleting character:", err));
+            });
+            if (res.ok) {
+                fetchStats();
+                addAlert("Character deleted successfully.", "success");
+            } else {
+                addAlert("Failed to delete character.", "error");
+            }
+        } catch (err) {
+            addAlert("Error deleting character: " + err.message, "error");
+        }
     };
 
     const toggleExpand = (u) => {
@@ -108,17 +112,17 @@ const AdminDashboard = () => {
                 throw new Error(data.error || 'Failed to update profile');
             }
 
-            fetchStats(); // Refresh list
-            setUpdatingUser(null);
-            alert("Profile updated successfully!");
+            fetchStats();
+            addAlert("Profile updated successfully!", "success");
         } catch (err) {
-            alert(err.message);
+            addAlert(err.message, "error");
+        } finally {
             setUpdatingUser(null);
         }
     };
 
     const handleDeleteUser = async (userId, username) => {
-        if (!window.confirm(`DANGER: You are about to PERMANENTLY delete the account of "${username}" and ALL their characters and runs. This action is irreversible. Proceed?`)) return;
+        if (!await confirm(`DANGER: You are about to PERMANENTLY delete the account of "${username}" and ALL their characters and runs. This action is irreversible. Proceed?`)) return;
 
         try {
             const res = await fetch(`/api/admin/users/${userId}`, {
@@ -134,10 +138,10 @@ const AdminDashboard = () => {
             }
 
             setExpandedUser(null);
-            fetchStats(); // Refresh list
-            alert("User deleted successfully.");
+            fetchStats();
+            addAlert("User deleted successfully.", "success");
         } catch (err) {
-            alert(err.message);
+            addAlert(err.message, "error");
         }
     };
 

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNotification } from "../context/NotificationContext";
 import '../styles/CharacterSheet.css'; // Assuming styles are added here
 
 /**
@@ -71,6 +72,7 @@ const LevelUpOverlay = ({
     onUpdateChoice, // Trigger choice modal
     resolveOptionsForFeature // Function passed down
 }) => {
+    const { confirm } = useNotification();
     const [expandedFeatures, setExpandedFeatures] = useState({});
 
     // We only show it if meant to be shown and we have a character
@@ -153,8 +155,8 @@ const LevelUpOverlay = ({
         setExpandedFeatures(prev => ({ ...prev, [id]: !prev[id] }));
     };
 
-    const handleConfirmClose = () => {
-        if (window.confirm("Are you sure you want to dismiss the level up summary? Make sure you have made all your choices!")) {
+    const handleConfirmClose = async () => {
+        if (await confirm("Are you sure you want to dismiss the level up summary? Make sure you have made all your choices!")) {
             onClose();
         }
     };

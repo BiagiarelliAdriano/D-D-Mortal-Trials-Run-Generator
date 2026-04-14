@@ -39,3 +39,46 @@ h3,
     font-family: var(--font-serif);
     color: var(--accent);
 }
+
+/* Common Search Component */
+.search-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 400px;
+    margin: 10px 0;
+}
+
+.search-input {
+    width: 100%;
+    padding: 12px 15px 12px 40px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text-main);
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    outline: none;
+}
+
+.search-input:focus {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--accent);
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.1);
+}
+
+.search-wrapper i {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--accent-dim);
+    pointer-events: none;
+    transition: color 0.3s ease;
+    z-index: 1;
+    font-size: 0.9rem;
+}
+
+.search-input:focus + i {
+    color: var(--accent);
+}

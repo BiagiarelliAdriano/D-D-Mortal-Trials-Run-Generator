@@ -46,6 +46,156 @@ XP_THRESHOLDS = {
     20: 355000
 }
 
+# ------------------------
+# Shop Pricing System
+# ------------------------
+
+SHOP_CATEGORIES = ["Armor", "Potion", "Ring", "Rod", "Scroll", "Staff", "Wand", "Weapon"]
+
+# Specific item prices (primarily common-tier items with individual costs)
+SHOP_ITEM_PRICES = {
+    # Common Armor
+    "Breastplate": 400,
+    "Chain Mail": 75,
+    "Chain Shirt": 50,
+    "Half Plate Armor": 750,
+    "Hide Armor": 10,
+    "Leather Armor": 10,
+    "Padded Armor": 5,
+    "Plate Armor": 1500,
+    "Ring Mail": 30,
+    "Scale Mail": 50,
+    "Shield": 10,
+    "Splint Armor": 200,
+    "Studded Leather Armor": 45,
+    # Common Potion
+    "Potion of Climbing": 50,
+    "Potion Of Climbing": 50,
+    "Potion of Healing": 50,
+    "Potion Of Healing": 50,
+    # Common Ring
+    "Ring Of Momentary Stillness": 50,
+    # Common Rod
+    "Rod Of Sudden Resistance": 50,
+    # Common Staff
+    "Staff Of Tactical Balance": 50,
+    # Common Wand
+    "Wand Of Minor Distortion": 50,
+    # Common Weapons
+    "Battleaxe": 10,
+    "Club": 1,
+    "Dagger": 2,
+    "Flail": 10,
+    "Glaive": 20,
+    "Greataxe": 30,
+    "Greatclub": 2,
+    "Greatsword": 50,
+    "Halberd": 20,
+    "Hand Crossbow": 75,
+    "Handaxe": 5,
+    "Heavy Crossbow": 50,
+    "Javelin": 5,
+    "Lance": 10,
+    "Light Crossbow": 25,
+    "Light Hammer": 2,
+    "Longbow": 50,
+    "Longsword": 15,
+    "Mace": 5,
+    "Maul": 10,
+    "Morningstar": 15,
+    "Musket": 500,
+    "Pike": 5,
+    "Pistol": 250,
+    "Quarterstaff": 2,
+    "Rapier": 25,
+    "Scimitar": 25,
+    "Shortbow": 25,
+    "Shortsword": 10,
+    "Sickle": 1,
+    "Sling": 1,
+    "Spear": 1,
+    "Trident": 5,
+    "War Pick": 5,
+    "Warhammer": 15,
+    "Whip": 2,
+}
+
+# Rarity + Category default prices (non-common items without specific prices)
+RARITY_CATEGORY_PRICES = {
+    "common": {
+        "Armor": 50, "Potion": 50, "Ring": 50, "Rod": 50,
+        "Scroll": 40, "Staff": 50, "Wand": 50, "Weapon": 10,
+    },
+    "uncommon": {
+        "Armor": 400, "Potion": 200, "Ring": 400, "Rod": 400,
+        "Scroll": 200, "Staff": 400, "Wand": 400, "Weapon": 400,
+    },
+    "rare": {
+        "Armor": 4000, "Potion": 2000, "Ring": 4000, "Rod": 4000,
+        "Scroll": 2000, "Staff": 4000, "Wand": 4000, "Weapon": 4000,
+    },
+    "very rare": {
+        "Armor": 40000, "Potion": 20000, "Ring": 40000, "Rod": 40000,
+        "Scroll": 20000, "Staff": 40000, "Wand": 40000, "Weapon": 40000,
+    },
+    "legendary": {
+        "Armor": 400000, "Potion": 200000, "Ring": 400000, "Rod": 400000,
+        "Scroll": 200000, "Staff": 400000, "Wand": 400000, "Weapon": 400000,
+    },
+}
+
+def get_item_price(item_name, rarity, category):
+    """Return the gold cost for a shop item."""
+    # Check specific item price first
+    if item_name in SHOP_ITEM_PRICES:
+        return SHOP_ITEM_PRICES[item_name]
+    # Pattern-match scrolls (format: "Spell Scroll Cantrip <spell>" or "Spell Scroll Level N <spell>")
+    if category == "Scroll" or (item_name.startswith("Spell Scroll")):
+        name_lower = item_name.lower()
+        if "cantrip" in name_lower:
+            return 30
+        if "level 1 " in name_lower or "1st" in name_lower:
+            return 50
+        # Higher spell-level scrolls → use rarity default
+    # Fall back to rarity + category default
+    return RARITY_CATEGORY_PRICES.get(rarity, {}).get(category, 100)
+
+def determine_item_rarity(item_name, category, possible_rarities):
+    """Detect which rarity pool an item belongs to by lookup."""
+    from encounter_generator.data.items import MAGIC_ITEMS as _MI
+    for r in possible_rarities:
+        cat_items = _MI.get(r, {}).get(category, [])
+        if item_name in cat_items:
+            return r
+    return possible_rarities[0]  # fallback to first rarity
+
+def generate_common_shop_items():
+    """Build the always-available common items list with prices."""
+    from encounter_generator.data.items import MAGIC_ITEMS as _MI
+    from encounter_generator.generator import generate_scroll_for_rarity
+    common = _MI.get("common", {})
+    result = {}
+    for category in SHOP_CATEGORIES:
+        raw_list = common.get(category, [])
+        priced = []
+        for item_name in raw_list:
+            if item_name == "generate":
+                # For scrolls, generate 3 representative options
+                generated = set()
+                attempts = 0
+                while len(generated) < 3 and attempts < 20:
+                    generated.add(generate_scroll_for_rarity("common"))
+                    attempts += 1
+                for scroll_name in sorted(generated):
+                    priced.append({"name": scroll_name, "cost": get_item_price(scroll_name, "common", "Scroll")})
+            elif item_name == "enspelled":
+                continue  # skip enspelled in common (safety)
+            else:
+                priced.append({"name": item_name, "cost": get_item_price(item_name, "common", category)})
+        if priced:
+            result[category] = priced
+    return result
+
 app = Flask(__name__)
 CORS(app)
 
@@ -174,7 +324,7 @@ def register():
 @app.route("/api/users/<int:user_id>", methods=["GET"])
 @jwt_required()
 def get_user_profile(user_id):
-    user = User.query.get_or_404(user_id)
+    user = db.get_or_404(User, user_id)
     
     # Return basic profile info + characters
     return jsonify({
@@ -195,13 +345,13 @@ def get_user_profile(user_id):
 @jwt_required()
 def update_user_profile(user_id):
     current_user_id = get_jwt_identity()
-    admin_user = User.query.get(current_user_id)
+    admin_user = db.session.get(User, current_user_id)
     
     # Check authorization: owner or admin
     if str(current_user_id) != str(user_id) and not admin_user.is_admin:
         return jsonify({"error": "Unauthorized"}), 403
         
-    user = User.query.get_or_404(user_id)
+    user = db.get_or_404(User, user_id)
     
     # Check if admin is trying to edit password/security answer of another user
     is_admin_editing_other = admin_user.is_admin and str(current_user_id) != str(user_id)
@@ -298,7 +448,7 @@ def login():
 @jwt_required()
 def verify_token():
     current_user_id = get_jwt_identity()
-    user = User.query.get(current_user_id)
+    user = db.session.get(User, current_user_id)
     
     if not user:
         return jsonify({"error": "User not found"}), 404
@@ -321,7 +471,7 @@ def verify_token():
 @jwt_required()
 def admin_system():
     current_user_id = get_jwt_identity()
-    user = User.query.get(current_user_id)
+    user = db.session.get(User, current_user_id)
     
     if not user or not user.is_admin:
         return jsonify({"error": "Unauthorized"}), 403
@@ -371,6 +521,7 @@ def api_characters():
             "subclass": data.get("subclass"),
             "level": int(data.get("level", 1)),
             "abilities": json.loads(data.get("abilities", "{}")),
+            "base_abilities": json.loads(data.get("abilities", "{}")),
             "species": data.get("species"),
             "species_variant": data.get("species_variant"),
             "size": data.get("size"),
@@ -469,7 +620,7 @@ def api_characters():
     # GET all characters
     # Admins see everything. 
     # Regular users see their own (public/private) + others' public characters.
-    user = User.query.get(current_user_id)
+    user = db.session.get(User, current_user_id)
     if user.is_admin:
         characters = Character.query.all()
     else:
@@ -505,8 +656,8 @@ def api_characters():
 @jwt_required()
 def api_character_detail(char_id):
     current_user_id = get_jwt_identity()
-    user = User.query.get(current_user_id)
-    character = Character.query.get_or_404(char_id)
+    user = db.session.get(User, current_user_id)
+    character = db.get_or_404(Character, char_id)
     
     # Ownership/Privacy Check
     is_owner = str(character.user_id) == str(current_user_id)
@@ -527,14 +678,20 @@ def api_character_detail(char_id):
         data = request.json or {}
 
         character.name = data.get("name", character.name)
-
         updated_data = character.get_data()
         
         # Check if we need to update HP (Level change)
         old_level = updated_data.get("level", 1)
         new_data = data.get("data", {})
         new_level = int(new_data.get("level", old_level))
-        
+
+        # Enforce subclass locking
+        old_subclass = updated_data.get("subclass")
+        new_subclass = new_data.get("subclass")
+        if old_subclass and new_subclass and old_subclass != new_subclass:
+            # Prevent overwriting existing subclass
+            new_data.pop("subclass", None)
+
         updated_data.update(new_data)
         character.set_data(updated_data) # Save basic updates first
         
@@ -568,8 +725,8 @@ def api_character_detail(char_id):
 @jwt_required()
 def api_toggle_character_privacy(char_id):
     current_user_id = get_jwt_identity()
-    user = User.query.get(current_user_id)
-    character = Character.query.get_or_404(char_id)
+    user = db.session.get(User, current_user_id)
+    character = db.get_or_404(Character, char_id)
     
     if str(character.user_id) != str(current_user_id) and not user.is_admin:
         return jsonify({"error": "Unauthorized"}), 403
@@ -588,7 +745,7 @@ def api_toggle_character_privacy(char_id):
 def api_character_levelup(char_id):
     current_user_id = get_jwt_identity()
     user = User.query.get(current_user_id)
-    character = Character.query.get_or_404(char_id)
+    character = db.get_or_404(Character, char_id)
     
     if str(character.user_id) != str(current_user_id) and not user.is_admin:
         return jsonify({"error": "Unauthorized to level up this character"}), 403
@@ -600,8 +757,20 @@ def api_character_levelup(char_id):
         
     next_level = current_level + 1
     
+    # Optional: You could check XP here if you want to enforce threshold
+    # But usually this endpoint is for manual overriding or confirmation.
+    # To be safe, we'll just allow it if called.
+    
     data["level"] = next_level
+    data["level_up_pending"] = True  # Trigger level up reveal
     character.set_data(data)
+    
+    # Recalculate HP
+    abilities = data.get("abilities", {})
+    con_score = abilities.get("constitution", 10)
+    con_mod = (con_score - 10) // 2
+    character.update_hp(next_level, con_mod, data.get("class_name", "Barbarian"))
+    
     db.session.commit()
     return jsonify({"success": True, "new_level": next_level})
 
@@ -610,7 +779,7 @@ def api_character_levelup(char_id):
 def api_acknowledge_gold_gift(char_id):
     current_user_id = get_jwt_identity()
     user = User.query.get(current_user_id)
-    character = Character.query.get_or_404(char_id)
+    character = db.get_or_404(Character, char_id)
     
     if str(character.user_id) != str(current_user_id) and not user.is_admin:
         return jsonify({"error": "Unauthorized"}), 403
@@ -622,31 +791,116 @@ def api_acknowledge_gold_gift(char_id):
     db.session.commit()
     
     return jsonify({"success": True})
-    xp_required = XP_THRESHOLDS.get(next_level, 0)
-    current_xp = data.get("xp", 0)
+
+@app.route("/api/characters/<int:char_id>/rest/short", methods=["POST"])
+@jwt_required()
+def api_character_short_rest(char_id):
+    current_user_id = get_jwt_identity()
+    user = db.session.get(User, current_user_id)
+    character = db.get_or_404(Character, char_id)
     
-    if current_xp < xp_required:
-        return jsonify({"error": f"Insufficient XP. Need {xp_required}, have {current_xp}"}), 400
+    if str(character.user_id) != str(current_user_id) and not user.is_admin:
+        return jsonify({"error": "Unauthorized"}), 403
         
-    # Level up logic
-    data["level"] = next_level
-    data["level_up_pending"] = True  # Trigger level up UI on frontend
+    data = character.get_data()
+    req_data = request.json or {}
+    
+    # Update HP
+    hp_regained = int(req_data.get("hp_regained", 0))
+    dice_spent = int(req_data.get("dice_spent", 0))
+    
+    max_hp = data.get("hp_max_base", 0) + data.get("hp_modifier", 0)
+    data["hp_current"] = min(max_hp, data.get("hp_current", 0) + hp_regained)
+    
+    # Update Hit Dice
+    data["hit_dice_remaining"] = max(0, data.get("hit_dice_remaining", 0) - dice_spent)
+    
+    # Feature recharging via smart text-matching is handled in the frontend 
+    # and sent back in the full state update or we can do it here if needed.
+    # For now, we'll assume the frontend sends the updated uses if it wants to be specific,
+    # or we can handle it generically.
+    if req_data.get("recharged_features"):
+        # The frontend passed a list of features to reset uses for
+        pass 
+
     character.set_data(data)
-    
-    # Recalculate HP
-    con_score = data.get("abilities", {}).get("constitution", 10)
-    con_mod = (con_score - 10) // 2
-    character.update_hp(next_level, con_mod, data.get("class_name", "Barbarian"))
-    
     db.session.commit()
-    return jsonify({"success": True, "new_level": next_level})
+    return jsonify({"success": True, "data": data})
+
+@app.route("/api/characters/<int:char_id>/rest/long", methods=["POST"])
+@jwt_required()
+def api_character_long_rest(char_id):
+    current_user_id = get_jwt_identity()
+    user = db.session.get(User, current_user_id)
+    character = db.get_or_404(Character, char_id)
+    
+    if str(character.user_id) != str(current_user_id) and not user.is_admin:
+        return jsonify({"error": "Unauthorized"}), 403
+        
+    data = character.get_data()
+    
+    # 1. Full HP restoration (Reset current HP to max base + modifier)
+    max_hp = data.get("hp_max_base", 0) + data.get("hp_modifier", 0)
+    data["hp_current"] = max_hp
+    
+    # 2. Full Hit Dice replenishment
+    data["hit_dice_remaining"] = data.get("level", 1)
+    
+    # 3. Reset modified Ability Scores to Base
+    if "base_abilities" in data:
+        data["abilities"] = json.loads(json.dumps(data["base_abilities"]))
+    
+    # 4. Reduce Exhaustion by 1
+    conditions = data.get("conditions", {})
+    exhaustion = conditions.get("exhaustion", 0)
+    if exhaustion > 0:
+        conditions["exhaustion"] = exhaustion - 1
+    data["conditions"] = conditions
+
+    character.set_data(data)
+    db.session.commit()
+    return jsonify({"success": True, "data": data})
+
+@app.route("/api/characters/<int:char_id>/mod-stats", methods=["POST"])
+@jwt_required()
+def api_character_mod_stats(char_id):
+    current_user_id = get_jwt_identity()
+    user = db.session.get(User, current_user_id)
+    character = db.get_or_404(Character, char_id)
+    
+    if str(character.user_id) != str(current_user_id) and not user.is_admin:
+        return jsonify({"error": "Unauthorized"}), 403
+        
+    data = character.get_data()
+    req_data = request.json or {}
+    
+    # Expected payload: {"type": "ability", "stat": "strength", "value": 18} 
+    # or {"type": "hp_max", "value": 10}
+    
+    update_type = req_data.get("type")
+    if update_type == "ability":
+        stat = req_data.get("stat")
+        value = int(req_data.get("value", 10))
+        if stat in data.get("abilities", {}):
+            data["abilities"][stat] = value
+    elif update_type == "hp_max":
+        value = int(req_data.get("value", 0))
+        data["hp_modifier"] = value
+        # Update current HP if it's now over max? 
+        max_hp = data.get("hp_max_base", 0) + value
+        if data.get("hp_current", 0) > max_hp:
+            data["hp_current"] = max_hp
+
+    character.set_data(data)
+    db.session.commit()
+    return jsonify({"success": True, "data": data})
 
 @app.route("/api/characters/<int:char_id>/leveldown", methods=["POST"])
 @jwt_required()
 def api_character_leveldown(char_id):
     current_user_id = get_jwt_identity()
     user = User.query.get(current_user_id)
-    character = Character.query.get_or_404(char_id)
+    character = db.get_or_404(Character, char_id)
     
     if str(character.user_id) != str(current_user_id) and not user.is_admin:
         return jsonify({"error": "Unauthorized to level down this character"}), 403
@@ -678,7 +932,7 @@ def api_character_leveldown(char_id):
 def api_acknowledge_item(char_id):
     current_user_id = get_jwt_identity()
     user = User.query.get(current_user_id)
-    character = Character.query.get_or_404(char_id)
+    character = db.get_or_404(Character, char_id)
     
     if str(character.user_id) != str(current_user_id) and not user.is_admin:
         return jsonify({"error": "Unauthorized"}), 403
@@ -714,7 +968,7 @@ def characters_hub():
 
 @app.route("/characters/<int:char_id>")
 def view_character(char_id):
-    character = Character.query.get_or_404(char_id)
+    character = db.get_or_404(Character, char_id)
     return render_template(
         "character_sheet.html",
         character=character,
@@ -724,7 +978,7 @@ def view_character(char_id):
 
 @app.route("/characters/<int:char_id>/edit", methods=["GET", "POST"])
 def edit_character(char_id):
-    character = Character.query.get_or_404(char_id)
+    character = db.get_or_404(Character, char_id)
 
     if request.method == "POST":
         character.name = request.form.get("name")
@@ -801,7 +1055,7 @@ def list_runs():
 
 @app.route("/runs/<int:run_id>")
 def view_run(run_id):
-    run = Run.query.get_or_404(run_id)
+    run = db.get_or_404(Run, run_id)
     parsed = json.loads(run.data)
     return render_template(
         "run_generator.html",
@@ -811,7 +1065,7 @@ def view_run(run_id):
 
 @app.route("/runs/<int:run_id>/delete", methods=["POST"])
 def delete_run(run_id):
-    run = Run.query.get_or_404(run_id)
+    run = db.get_or_404(Run, run_id)
     db.session.delete(run)
     db.session.commit()
     return redirect(url_for("list_runs"))
@@ -867,7 +1121,7 @@ def api_save_run():
 @jwt_required()
 def api_delete_run_json(run_id):
     current_user_id = get_jwt_identity()
-    run = Run.query.get_or_404(run_id)
+    run = db.get_or_404(Run, run_id)
     
     # Only the owner or an admin can delete
     is_admin = False
@@ -886,12 +1140,26 @@ def api_delete_run_json(run_id):
 def api_rules_armor():
     return jsonify(ARMOR_DATA)
 
+@app.route("/api/rules/weapons")
+def api_rules_weapons():
+    return jsonify(WEAPONS_DATA)
+
 @app.route("/api/rules/options")
 def api_rules_options():
     return jsonify({
         "weapon_mastery": WEAPON_MASTERY_OPTIONS,
+        "weapons": WEAPONS_DATA,
         "metamagic": SORCERER_METAMAGIC,
         "invocations": WARLOCK_ELDRITCH_INVOCATIONS
+    })
+
+@app.route("/api/feats")
+def api_feats():
+    return jsonify({
+        "origin": ORIGIN_FEATS,
+        "general": GENERAL_FEATS,
+        "fighting_style": FIGHTING_STYLE_FEATS,
+        "epic_boon": EPIC_BOONS
     })
 
 @app.route("/api/rules/spell_slots")
@@ -941,11 +1209,11 @@ def api_create_hosted_run():
         return jsonify({"error": "Missing run_id"}), 400
     
     current_user_id = get_jwt_identity()
-    user = User.query.get(current_user_id)
+    user = db.session.get(User, current_user_id)
     if not user:
         return jsonify({"error": "User not found"}), 404
 
-    run = Run.query.get(data["run_id"])
+    run = db.session.get(Run, data["run_id"])
     if not run:
         return jsonify({"error": "Run not found"}), 404
 
@@ -1024,7 +1292,7 @@ def api_join_hosted_run():
 @jwt_required()
 def api_list_active_hosted_runs():
     current_user_id = get_jwt_identity()
-    user = User.query.get(current_user_id)
+    user = db.session.get(User, current_user_id)
     
     # Get all active sessions
     all_active_sessions = HostedRun.query.filter_by(is_active=True).all()
@@ -1060,7 +1328,7 @@ def api_list_active_hosted_runs():
 @jwt_required()
 def api_get_hosted_run_details(session_id):
     current_user_id = get_jwt_identity()
-    session = HostedRun.query.get_or_404(session_id)
+    session = db.get_or_404(HostedRun, session_id)
     
     # Verify participant or Admin
     participant = SessionParticipant.query.filter_by(
@@ -1068,7 +1336,7 @@ def api_get_hosted_run_details(session_id):
         hosted_run_id=session.id
     ).first()
     
-    user = User.query.get(current_user_id)
+    user = db.session.get(User, current_user_id)
     if not participant and not (user and user.is_admin):
         return jsonify({"error": "Access denied. You are not a participant in this session."}), 403
     
@@ -1099,6 +1367,7 @@ def api_get_hosted_run_details(session_id):
         "vault_gold": json.loads(session.vault_gold or "[]"),
         "claimed_items": json.loads(session.claimed_items) if session.claimed_items else [],
         "completed_encounters": json.loads(session.completed_encounters),
+        "shop_state": json.loads(session.shop_state) if session.shop_state else None,
         "is_active": session.is_active
     }), 200
 
@@ -1118,7 +1387,7 @@ def api_link_character_to_session(session_id):
     if not participant:
         return jsonify({"error": "You are not a participant in this session"}), 403
     
-    character = Character.query.get(data["character_id"])
+    character = db.session.get(Character, data["character_id"])
     if not character or str(character.user_id) != str(current_user_id):
         return jsonify({"error": "Character not found or not yours"}), 404
     
@@ -1131,7 +1400,7 @@ def api_link_character_to_session(session_id):
 @jwt_required()
 def api_rename_hosted_run(session_id):
     current_user_id = get_jwt_identity()
-    session = HostedRun.query.get_or_404(session_id)
+    session = db.get_or_404(HostedRun, session_id)
     
     if str(session.dm_id) != str(current_user_id):
         return jsonify({"error": "Only the Dungeon Master can rename the run"}), 403
@@ -1154,7 +1423,7 @@ def api_rename_hosted_run(session_id):
 @jwt_required()
 def api_complete_encounter(session_id):
     current_user_id = get_jwt_identity()
-    session = HostedRun.query.get_or_404(session_id)
+    session = db.get_or_404(HostedRun, session_id)
     
     if str(session.dm_id) != str(current_user_id):
         return jsonify({"error": "Only the Dungeon Master can complete encounters"}), 403
@@ -1175,6 +1444,34 @@ def api_complete_encounter(session_id):
     
     if not target_enc:
         return jsonify({"error": "Encounter not found"}), 404
+
+    # ── Interactive Shop Encounter ──────────────────────────────────────────────
+    if target_enc.get("type") == "Shop Encounter" and target_enc.get("items_by_category"):
+        # Mark as completed first
+        completed = json.loads(session.completed_encounters)
+        if enc_num not in completed:
+            completed.append(enc_num)
+            session.completed_encounters = json.dumps(completed)
+
+        # Initialise shop_state for the category-selection phase
+        shop_state = {
+            "encounter_num": int(enc_num),
+            "phase": "selection",
+            "categories_available": list(SHOP_CATEGORIES),
+            "rarity_mix": target_enc.get("rarity_mix", {}),
+            "encounter_items": target_enc.get("items_by_category", {}),
+            "selections": {},   # char_id (str) -> chosen category
+            "items": {},        # populated when phase transitions to shopping
+            "common_items": {} # populated when phase transitions to shopping
+        }
+        session.shop_state = json.dumps(shop_state)
+        db.session.commit()
+
+        return jsonify({
+            "message": f"Shop Encounter {enc_num} opened — awaiting category selections",
+            "shop_started": True
+        }), 200
+    # ────────────────────────────────────────────────────────────────────────────
     
     # Logic to update party inventory if items/gold were found
     current_inv = json.loads(session.party_inventory)
@@ -1191,7 +1488,7 @@ def api_complete_encounter(session_id):
         
         # Distribute to connected
         for p in connected_participants:
-            character = Character.query.get(p.character_id)
+            character = db.session.get(Character, p.character_id)
             if character:
                 char_data = character.get_data()
                 char_data["gold"] = char_data.get("gold", 0) + gold_per_share
@@ -1211,6 +1508,44 @@ def api_complete_encounter(session_id):
         for item in target_enc["magic_items"]:
             current_inv.append(item)
             
+    # XP Distribution
+    leveled_up_chars = []
+    if "xp" in target_enc or "total_xp" in target_enc:
+        xp_gain = target_enc.get("xp") or target_enc.get("total_xp", 0)
+        connected_participants = [p for p in session.participants if p.role == 'Ascendant' and p.character_id]
+        
+        for p in connected_participants:
+            character = db.session.get(Character, p.character_id)
+            if character:
+                char_data = character.get_data()
+                current_xp = char_data.get("xp", 0)
+                new_xp = current_xp + xp_gain
+                char_data["xp"] = new_xp
+                
+                # Level up check
+                current_level = char_data.get("level", 1)
+                new_level = current_level
+                while new_level < 20: 
+                    next_threshold = XP_THRESHOLDS.get(new_level + 1, 999999)
+                    if new_xp >= next_threshold:
+                        new_level += 1
+                    else:
+                        break
+                
+                if new_level > current_level:
+                    char_data["level"] = new_level
+                    char_data["level_up_pending"] = True
+                    
+                    # Update HP
+                    abilities = char_data.get("abilities", {})
+                    con_score = abilities.get("constitution", 10)
+                    con_mod = (con_score - 10) // 2
+                    character.set_data(char_data) # Save XP/Level before update_hp
+                    character.update_hp(new_level, con_mod, char_data.get("class_name", "Barbarian"))
+                    leveled_up_chars.append(character.name)
+                else:
+                    character.set_data(char_data)
+
     session.party_inventory = json.dumps(current_inv)
     session.vault_gold = json.dumps(vault_gold)
     
@@ -1222,9 +1557,228 @@ def api_complete_encounter(session_id):
             
     db.session.commit()
     
-    return jsonify({
+    res_data = {
         "message": f"Encounter {enc_num} completed",
         "party_inventory": current_inv
+    }
+    if leveled_up_chars:
+        res_data["leveled_up"] = leveled_up_chars
+        res_data["message"] += f". {', '.join(leveled_up_chars)} reached a new level!"
+        
+    return jsonify(res_data), 200
+
+
+# ------------------------
+# Shop Interaction API
+# ------------------------
+
+@app.route("/api/host/<int:session_id>/shop/select-category", methods=["POST"])
+@jwt_required()
+def api_shop_select_category(session_id):
+    """Player selects a category to add to the shop during the selection phase."""
+    current_user_id = get_jwt_identity()
+    data = request.json
+    category = data.get("category") if data else None
+
+    if not category or category not in SHOP_CATEGORIES:
+        return jsonify({"error": "Invalid or missing category"}), 400
+
+    session = db.get_or_404(HostedRun, session_id)
+    participant = SessionParticipant.query.filter_by(
+        user_id=current_user_id,
+        hosted_run_id=session_id
+    ).first()
+
+    if not participant:
+        return jsonify({"error": "Access denied"}), 403
+    if participant.role == 'DM':
+        return jsonify({"error": "Dungeon Masters cannot select shop categories"}), 403
+    if not participant.character_id:
+        return jsonify({"error": "You must link a character before selecting a category"}), 400
+
+    if not session.shop_state:
+        return jsonify({"error": "No active shop phase"}), 400
+
+    shop_state = json.loads(session.shop_state)
+
+    if shop_state.get("locked"):
+        return jsonify({"error": "The shop is currently locked by the Dungeon Master"}), 403
+
+    if shop_state.get("phase") != "selection":
+        return jsonify({"error": "Category selection phase is over"}), 400
+
+    char_id = str(participant.character_id)
+
+    if char_id in shop_state["selections"]:
+        return jsonify({"error": "You have already made your selection"}), 400
+
+    if category in shop_state["selections"].values():
+        return jsonify({"error": "Another party member already chose this category"}), 400
+
+    # Record the selection
+    shop_state["selections"][char_id] = category
+
+    # Count eligible ascendants (those with a linked character)
+    ascendant_count = sum(
+        1 for p in session.participants
+        if p.role == 'Ascendant' and p.character_id is not None
+    )
+    needed = min(4, ascendant_count)
+    selections_made = len(shop_state["selections"])
+
+    # Transition to shopping phase when all needed selections are in
+    if selections_made >= needed:
+        encounter_items = shop_state.get("encounter_items", {})
+        rarity_mix = shop_state.get("rarity_mix", {})
+        possible_rarities = list(rarity_mix.keys())
+
+        # Build priced item list for each chosen category
+        items = {}
+        seen_categories = set()
+        for _char_id, chosen_cat in shop_state["selections"].items():
+            if chosen_cat in seen_categories:
+                continue
+            seen_categories.add(chosen_cat)
+            raw_items = encounter_items.get(chosen_cat, [])
+            priced = []
+            for item_name in raw_items:
+                rarity = determine_item_rarity(item_name, chosen_cat, possible_rarities) if possible_rarities else "common"
+                cost = get_item_price(item_name, rarity, chosen_cat)
+                priced.append({"name": item_name, "rarity": rarity, "cost": cost, "sold_to": None})
+            items[chosen_cat] = priced
+
+        shop_state["items"] = items
+        shop_state["common_items"] = generate_common_shop_items()
+        shop_state["phase"] = "shopping"
+
+    session.shop_state = json.dumps(shop_state)
+    db.session.commit()
+
+    return jsonify({"shop_state": shop_state}), 200
+
+
+@app.route("/api/host/<int:session_id>/shop/buy-item", methods=["POST"])
+@jwt_required()
+def api_shop_buy_item(session_id):
+    """Player purchases an item from the active shop."""
+    current_user_id = get_jwt_identity()
+    data = request.json
+
+    if not data or "category" not in data or "item_index" not in data:
+        return jsonify({"error": "Missing category or item_index"}), 400
+
+    category = data["category"]
+    item_index = data["item_index"]
+    is_common = data.get("is_common", False)  # True = buying from the always-available common section
+
+    session = db.get_or_404(HostedRun, session_id)
+    participant = SessionParticipant.query.filter_by(
+        user_id=current_user_id,
+        hosted_run_id=session_id
+    ).first()
+
+    if not participant:
+        return jsonify({"error": "Access denied"}), 403
+    if participant.role == 'DM':
+        return jsonify({"error": "Dungeon Masters cannot buy from the shop"}), 403
+    if not participant.character_id:
+        return jsonify({"error": "You must link a character before shopping"}), 400
+
+    if not session.shop_state:
+        return jsonify({"error": "No active shop"}), 400
+
+    shop_state = json.loads(session.shop_state)
+
+    if shop_state.get("locked"):
+        return jsonify({"error": "The shop is currently locked by the Dungeon Master"}), 403
+
+    if shop_state.get("phase") != "shopping":
+        return jsonify({"error": "The shop is not open yet"}), 400
+    if is_common:
+        item_list = shop_state.get("common_items", {}).get(category, [])
+    else:
+        item_list = shop_state.get("items", {}).get(category, [])
+
+    if item_index < 0 or item_index >= len(item_list):
+        return jsonify({"error": "Item not found"}), 404
+
+    item = item_list[item_index]
+
+    # Regular items can only be bought once
+    if not is_common and item.get("sold_to") is not None:
+        return jsonify({"error": "This item has already been purchased"}), 400
+
+    cost = item.get("cost", 0)
+
+    # Check buyer's gold
+    character = db.session.get(Character, participant.character_id)
+    if not character:
+        return jsonify({"error": "Character not found"}), 404
+
+    char_data = character.get_data()
+    current_gold = int(char_data.get("gold", 0))
+
+    if current_gold < cost:
+        return jsonify({"error": "Insufficient gold"}), 400
+
+    # Deduct gold
+    char_data["gold"] = current_gold - cost
+
+    # Add item to character inventory (top)
+    inv_item = {
+        "name": item["name"],
+        "quantity": 1,
+        "category": category,
+        "rarity": item.get("rarity", "common"),
+        "shop_purchase": True
+    }
+    if "inventory" not in char_data:
+        char_data["inventory"] = []
+    char_data["inventory"].insert(0, inv_item)
+    character.set_data(char_data)
+
+    # Mark item as sold in shop_state (regular items only)
+    if not is_common:
+        shop_state["items"][category][item_index]["sold_to"] = {
+            "char_id": participant.character_id,
+            "char_name": character.name
+        }
+        session.shop_state = json.dumps(shop_state)
+
+    db.session.commit()
+
+    return jsonify({
+        "message": f"{character.name} purchased {item['name']} for {cost} gp",
+        "new_gold": char_data["gold"],
+        "shop_state": shop_state
+    }), 200
+
+@app.route("/api/host/<int:session_id>/shop/toggle-lock", methods=["POST"])
+@jwt_required()
+def api_shop_toggle_lock(session_id):
+    """DM or Admin toggles the locked state of the shop."""
+    current_user_id = get_jwt_identity()
+    user = db.session.get(User, current_user_id)
+    session = db.get_or_404(HostedRun, session_id)
+
+    # Authorization Check: DM of session or Admin
+    if str(session.dm_id) != str(current_user_id) and not user.is_admin:
+        return jsonify({"error": "Unauthorized: Only the Dungeon Master or an Admin can lock/unlock the shop"}), 403
+
+    if not session.shop_state:
+        return jsonify({"error": "No active shop to lock"}), 400
+
+    shop_state = json.loads(session.shop_state)
+    is_locked = shop_state.get("locked", False)
+    shop_state["locked"] = not is_locked
+
+    session.shop_state = json.dumps(shop_state)
+    db.session.commit()
+
+    return jsonify({
+        "success": True,
+        "locked": shop_state["locked"],
+        "message": f"Shop {'locked' if shop_state['locked'] else 'unlocked'} successfully"
     }), 200
 
 @app.route("/api/host/<int:session_id>/claim-item", methods=["POST"])
@@ -1235,7 +1789,7 @@ def api_claim_item(session_id):
     if not data or "item_index" not in data:
         return jsonify({"error": "Missing item index"}), 400
     
-    session = HostedRun.query.get_or_404(session_id)
+    session = db.get_or_404(HostedRun, session_id)
     participant = SessionParticipant.query.filter_by(
         user_id=current_user_id, 
         hosted_run_id=session.id
@@ -1250,7 +1804,7 @@ def api_claim_item(session_id):
     if not participant.character_id:
         return jsonify({"error": "You must select an Ascendant character before claiming items from the Vault"}), 400
         
-    character = Character.query.get(participant.character_id)
+    character = db.session.get(Character, participant.character_id)
     if not character:
         return jsonify({"error": "Associated character not found"}), 404
     
@@ -1292,7 +1846,7 @@ def api_claim_item(session_id):
 @jwt_required()
 def api_claim_gold(session_id):
     current_user_id = get_jwt_identity()
-    session = HostedRun.query.get_or_404(session_id)
+    session = db.get_or_404(HostedRun, session_id)
     participant = SessionParticipant.query.filter_by(user_id=current_user_id, hosted_run_id=session_id).first()
     
     if not participant or participant.role == 'DM':
@@ -1310,7 +1864,7 @@ def api_claim_gold(session_id):
     if share_index < 0 or share_index >= len(vault_gold):
         return jsonify({"error": "Gold share not found"}), 404
 
-    character = Character.query.get(participant.character_id)
+    character = db.session.get(Character, participant.character_id)
     if not character:
         return jsonify({"error": "Character not found"}), 404
 
@@ -1349,7 +1903,7 @@ def api_claim_gold(session_id):
 @jwt_required()
 def api_delete_hosted_run(session_id):
     current_user_id = get_jwt_identity()
-    session = HostedRun.query.get_or_404(session_id)
+    session = db.get_or_404(HostedRun, session_id)
     
     if str(session.dm_id) != str(current_user_id):
         return jsonify({"error": "Only the Dungeon Master can delete this session"}), 403
@@ -1369,7 +1923,7 @@ def api_transfer_item(session_id):
     if not data or not data.get("sender_char_id") or not data.get("receiver_char_id") or "item_index" not in data:
         return jsonify({"error": "Missing required transfer data"}), 400
         
-    session = HostedRun.query.get_or_404(session_id)
+    session = db.get_or_404(HostedRun, session_id)
     if not session.is_active:
         return jsonify({"error": "This session is no longer active"}), 400
         
@@ -1385,8 +1939,8 @@ def api_transfer_item(session_id):
         return jsonify({"error": "One or both characters are not in this session"}), 400
         
     # 2. Authorization Check: Owner of sender, DM of session, or Admin
-    requesting_user = User.query.get(current_user_id)
-    sender_char = Character.query.get(sender_id)
+    requesting_user = db.session.get(User, current_user_id)
+    sender_char = db.session.get(Character, sender_id)
     
     is_owner = str(sender_char.user_id) == str(current_user_id)
     is_dm = str(session.dm_id) == str(current_user_id)
@@ -1396,7 +1950,7 @@ def api_transfer_item(session_id):
         return jsonify({"error": "Unauthorized to transfer items from this character"}), 403
         
     # 3. Perform Transfer
-    receiver_char = Character.query.get(receiver_id)
+    receiver_char = db.session.get(Character, receiver_id)
     
     sender_data = sender_char.get_data()
     receiver_data = receiver_char.get_data()
@@ -1438,12 +1992,12 @@ def api_transfer_item(session_id):
 @jwt_required()
 def api_admin_delete_user(user_id):
     admin_id = get_jwt_identity()
-    admin_user = User.query.get(admin_id)
+    admin_user = db.session.get(User, admin_id)
     
     if not admin_user or not admin_user.is_admin:
         return jsonify({"error": "Unauthorized"}), 403
         
-    user_to_delete = User.query.get_or_404(user_id)
+    user_to_delete = db.get_or_404(User, user_id)
     
     if str(user_to_delete.id) == str(admin_id):
         return jsonify({"error": "You cannot delete your own account"}), 400
@@ -1471,7 +2025,7 @@ def api_transfer_gold(session_id):
     if not data or not data.get("sender_char_id") or not data.get("receiver_char_id") or "amount" not in data:
         return jsonify({"error": "Missing required transfer data"}), 400
         
-    session = HostedRun.query.get_or_404(session_id)
+    session = db.get_or_404(HostedRun, session_id)
     if not session.is_active:
         return jsonify({"error": "This session is no longer active"}), 400
         
@@ -1493,8 +2047,8 @@ def api_transfer_gold(session_id):
         return jsonify({"error": "One or both characters are not in this session"}), 400
         
     # 2. Authorization Check: Owner of sender, DM of session, or Admin
-    requesting_user = User.query.get(current_user_id)
-    sender_char = Character.query.get(sender_id)
+    requesting_user = db.session.get(User, current_user_id)
+    sender_char = db.session.get(Character, sender_id)
     
     is_owner = str(sender_char.user_id) == str(current_user_id)
     is_dm = str(session.dm_id) == str(current_user_id)
@@ -1504,7 +2058,7 @@ def api_transfer_gold(session_id):
         return jsonify({"error": "Unauthorized to transfer gold from this character"}), 403
         
     # 3. Perform Transfer
-    receiver_char = Character.query.get(receiver_id)
+    receiver_char = db.session.get(Character, receiver_id)
     
     sender_data = sender_char.get_data()
     receiver_data = receiver_char.get_data()

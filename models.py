@@ -72,6 +72,17 @@ DEFAULT_CHARACTER_DATA = {
         "wisdom": 20,
         "charisma": 8
     },
+    "base_abilities": {
+        "strength": 16,
+        "dexterity": 14,
+        "constitution": 12,
+        "intelligence": 18,
+        "wisdom": 20,
+        "charisma": 8
+    },
+    "conditions": {
+        "exhaustion": 0
+    },
     
     "skillProficiencies": {
         "acrobatics": False,
@@ -165,6 +176,9 @@ class Character(db.Model):
             modifier = data.get("hp_modifier", 0)
             data["hp_current"] = hp_max_base + modifier
         
+        # Reset/Initialize Hit Dice remaining to Max (level)
+        data["hit_dice_remaining"] = new_level
+        
         self.set_data(data)
 
     def get_data(self):
@@ -189,6 +203,7 @@ class HostedRun(db.Model):
     claimed_items = db.Column(db.Text, default='[]')
     completed_encounters = db.Column(db.Text, default='[]')
     vault_gold = db.Column(db.Text, default='[]')
+    shop_state = db.Column(db.Text, nullable=True)
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=func.now(), nullable=False)
 

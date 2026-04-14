@@ -2,10 +2,13 @@ import { useEffect, useState, useCallback, useMemo } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Responsive, WidthProvider } from "react-grid-layout/legacy";
 import { useAuth } from "../context/AuthContext";
+import { useNotification } from "../context/NotificationContext";
 
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 import "../styles/CharacterSheet.css";
+import RestOverlay from './RestOverlay';
+import StatModifierOverlay from './StatModifierOverlay';
 import LevelUpOverlay from "./LevelUpOverlay";
 import BackToTop from "./common/BackToTop";
 
@@ -179,6 +182,10 @@ const calculateAttack = (name, abilities, profBonus, features = [], level = 1, w
     const activeFeatureIds = features.activeIds || [];
     const isCurrentlyRaging = activeFeatureIds.includes("barbarian_rage");
     let notes = data.properties.join(", ");
+    
+    if (data.mastery && data.mastery.length > 0) {
+        notes += (notes ? ", " : "") + `Mastery: ${data.mastery[0]}`;
+    }
 
     if (isCurrentlyRaging && usedStrForDamage) {
         const rageBonus = level >= 16 ? 4 : (level >= 9 ? 3 : 2);
@@ -364,7 +371,7 @@ const CombatWidget = ({ character, inventory, features, profBonus, weaponRules, 
 const RichFeature = ({ 
     feature, isExpanded, onToggle, level, isActive, onActivate, currentUses,
     characterData, classRules, ruleOptions, featureChoices, onUpdateChoice, availableSpells,
-    viewOnly
+    viewOnly, isAuthorized
 }) => {
     const maxUsesData = feature.details?.Uses;
     const maxUses = maxUsesData ? resolveScalingValue(maxUsesData, level) : null;
@@ -395,15 +402,18 @@ const RichFeature = ({
                     {isActive && <span className="active-tag">ACTIVE</span>}
                 </div>
                 <div className="feature-title-right">
-                    {!viewOnly && hasChoices && (
+                    {/* Allow Weapon Mastery choices even in View Mode for owners (Long Rest rule) */}
+                    {((!viewOnly || (feature.id.includes('weapon_mastery') && isAuthorized)) && hasChoices) && (
                         <button 
-                            className="feature-choice-btn" 
+                            className={`feature-choice-btn ${feature.type === 'subclass_choice' && currentChoices.length > 0 ? 'locked' : ''}`}
                             onClick={(e) => {
                                 e.stopPropagation();
                                 onUpdateChoice(feature, options);
                             }}
                         >
-                            {currentChoices.length > 0 ? (currentChoices.length < choiceLimit ? 'Complete' : 'Change') : 'Choose'}
+                            {feature.type === 'subclass_choice' && currentChoices.length > 0 
+                                ? 'Locked' 
+                                : (currentChoices.length > 0 ? (currentChoices.length < choiceLimit ? 'Complete' : 'Change') : 'Choose')}
                         </button>
                     )}
                     {hasUses && (
@@ -550,12 +560,40 @@ const resolveOptionsForFeature = (feature, characterData, classRules, ruleOption
     const details = feature.details || {};
     
     // 1. Static Options from Details or details.choice
-    if (details.choice?.options) return details.choice.options;
+    // Note: Skip fast-path for subclasses so they can be prettified below
+    if (details.choice?.options && !id.toLowerCase().includes('subclass')) return details.choice.options;
     if (details.expertise_choice_options) return details.expertise_choice_options;
     if (details.skills_affected) return details.skills_affected;
 
     // 2. Global Rule Options
-    if (id.includes('weapon_mastery')) return Object.values(ruleOptions.weapon_mastery || {});
+    if (id.toLowerCase().includes('weapon_mastery')) {
+        const weapons = ruleOptions.weapons || {};
+        const masteries = ruleOptions.weapon_mastery || {};
+        
+        const weaponOptions = Object.entries(weapons)
+            .filter(([_, data]) => data.mastery && (Array.isArray(data.mastery) ? data.mastery.length > 0 : true))
+            .map(([name, data]) => {
+                const masteryKey = Array.isArray(data.mastery) ? data.mastery[0] : data.mastery;
+                const masteryData = masteries[masteryKey] || {};
+                
+                // Construct detailed description
+                let desc = `**Stats:** ${data.damage || '1d4'} ${data.type || 'Physical'}. `;
+                if (data.properties?.length > 0) desc += `${data.properties.join(', ')}. `;
+                if (data.range) desc += `Range: ${data.range}. `;
+                if (data.reach) desc += `Reach: ${data.reach}. `;
+                
+                desc += `\n\n**Mastery: ${masteryKey}**\n${masteryData.description || 'No description available.'}`;
+                
+                return {
+                    id: name,
+                    name: name,
+                    description: desc
+                };
+            })
+            .sort((a, b) => a.name.localeCompare(b.name));
+
+        return weaponOptions;
+    }
     if (id.includes('fighting_style')) return ruleOptions.fighting_style || [];
     if (id === 'sorcerer_metamagic') return Object.values(ruleOptions.metamagic || {});
     if (id === 'warlock_eldritch_invocations') return Object.values(ruleOptions.invocations || {});
@@ -563,11 +601,18 @@ const resolveOptionsForFeature = (feature, characterData, classRules, ruleOption
     // 3. Subclasses
     if (id.endsWith('_subclass')) {
         const subclasses = classRules?.subclasses || {};
-        return Object.keys(subclasses).map(key => ({
-            id: key,
-            name: subclasses[key].name,
-            description: subclasses[key].description || subclasses[key].summary
-        }));
+        return Object.keys(subclasses).map(key => {
+            let prettyName = subclasses[key].name || key;
+            // Shorten "Path Of The X" to "X" and capitalize properly
+            prettyName = prettyName.replace(/^Path Of The /i, '');
+            prettyName = prettyName.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+            
+            return {
+                id: key,
+                name: prettyName,
+                description: subclasses[key].description || subclasses[key].summary
+            };
+        });
     }
 
     // 4. Feats/Boons
@@ -613,6 +658,10 @@ const FeatureChoiceOverlay = ({ isOpen, onClose, feature, options, onSelect, cur
     const limit = getChoiceLimitForFeature(feature, level);
     const isMulti = limit > 1;
 
+    const isSubclassChoice = feature?.type === 'subclass_choice';
+    // Logic to check if choice is already made (locked)
+    const isLocked = isSubclassChoice && currentChoice && currentChoice !== "";
+
     // Initialize temp choices from currentChoice
     useEffect(() => {
         if (isOpen) {
@@ -624,6 +673,8 @@ const FeatureChoiceOverlay = ({ isOpen, onClose, feature, options, onSelect, cur
     if (!isOpen || !feature) return null;
 
     const handleToggleOption = (optKey) => {
+        if (isLocked) return; // Prevent interaction if locked
+
         if (isMulti) {
             setTempChoices(prev => {
                 if (prev.includes(optKey)) return prev.filter(k => k !== optKey);
@@ -637,6 +688,7 @@ const FeatureChoiceOverlay = ({ isOpen, onClose, feature, options, onSelect, cur
     };
 
     const handleSaveMulti = () => {
+        if (isLocked) return;
         onSelect(feature.id, tempChoices);
         onClose();
     };
@@ -650,6 +702,16 @@ const FeatureChoiceOverlay = ({ isOpen, onClose, feature, options, onSelect, cur
                         <span className="choice-limit-hint">
                             Select {isMulti ? `up to ${limit}` : 'one'} ({tempChoices.length}/{limit})
                         </span>
+                        {isSubclassChoice && !isLocked && (
+                            <p className="subclass-warning" style={{ color: '#ff4444', fontWeight: 'bold', marginTop: '5px', fontSize: '0.85rem' }}>
+                                Warning: This choice cannot be changed later.
+                            </p>
+                        )}
+                        {isLocked && (
+                            <p className="subclass-locked-msg" style={{ color: '#f1c40f', fontWeight: 'bold', marginTop: '5px', fontSize: '0.85rem' }}>
+                                This choice is locked.
+                            </p>
+                        )}
                     </div>
                     <button className="close-btn" onClick={onClose}>✕</button>
                 </div>
@@ -664,12 +726,12 @@ const FeatureChoiceOverlay = ({ isOpen, onClose, feature, options, onSelect, cur
                         return (
                             <div 
                                 key={idx} 
-                                className={`choice-option-card ${isSelected ? 'selected' : ''}`}
+                                className={`choice-option-card ${isSelected ? 'selected' : ''} ${isLocked ? 'locked' : ''}`}
                                 onClick={() => handleToggleOption(optKey)}
                             >
                                 <div className="option-name">{optName}</div>
                                 {optDescRaw && <div className="option-desc">{processRichText(optDescRaw)}</div>}
-                                {isSelected && <div className="selected-tag">SELECTED</div>}
+                                {isSelected && <div className="selected-tag">{isLocked ? 'LOCKED' : 'SELECTED'}</div>}
                             </div>
                         );
                     })}
@@ -816,6 +878,7 @@ const SpellOverlay = ({
     spellSlotsRules,
     onToggleSpell
 }) => {
+    const [spellSearchTerm, setSpellSearchTerm] = useState("");
     if (!show || !availableSpells) return null;
 
     const selectedSpells = character.data.spells || [];
@@ -883,11 +946,30 @@ const SpellOverlay = ({
                         Prepared Spells: <strong>{preparedCount} / {spellsPreparedLimit}</strong>
                     </div>
                 </div>
+
+                <div className="search-wrapper spell-search" style={{ margin: '15px 0', maxWidth: 'none' }}>
+                    <input 
+                        type="text" 
+                        className="search-input" 
+                        placeholder="Search spells by name or description (e.g. 'damage', 'fire', 'heal')..." 
+                        value={spellSearchTerm}
+                        onChange={(e) => setSpellSearchTerm(e.target.value)}
+                    />
+                    <i className="fa-solid fa-magnifying-glass"></i>
+                </div>
+
                 <p className="overlay-hint">{hintText}</p>
                 <div className="spell-overlay-list">
                     {Object.keys(availableSpells).map(level => {
                         if (parseInt(level) > maxAvailableSlot && level !== "0") return null;
-                        const spellsAtLevel = availableSpells[level];
+                        
+                        const term = spellSearchTerm.toLowerCase();
+                        const spellsAtLevel = availableSpells[level].filter(s => 
+                            s.name.toLowerCase().includes(term) || 
+                            (s.description || "").toLowerCase().includes(term)
+                        );
+
+                        if (spellsAtLevel.length === 0 && spellSearchTerm) return null;
 
                         return (
                             <div key={level} className="overlay-level-group">
@@ -924,24 +1006,26 @@ const SpellOverlay = ({
 function CharacterSheet() {
     const { id } = useParams();
     const navigate = useNavigate();
-    const { token, user } = useAuth();
+    const { token, user: currentUser } = useAuth();
+    const { addAlert, confirm } = useNotification();
     const location = useLocation();
 
     const isEditMode = location.pathname.endsWith('/edit');
     const [character, setCharacter] = useState(null);
 
-    const isOwner = character?.user_id === user?.id;
-    const isAdmin = user?.is_admin;
+    const isOwner = character?.user_id === currentUser?.id;
+    const isAdmin = currentUser?.is_admin;
     const [activeSession, setActiveSession] = useState(null);
     const [sessionParticipants, setSessionParticipants] = useState([]);
     const [showTransferModal, setShowTransferModal] = useState(false);
     const [itemToTransfer, setItemToTransfer] = useState(null);
-    const [transferNotice, setTransferNotice] = useState(null);
+    const [showRestOverlay, setShowRestOverlay] = useState(false);
+    const [statModConfig, setStatModConfig] = useState({ isOpen: false, type: null, statKey: null, value: 0, label: "" });
     const [showGoldTransferModal, setShowGoldTransferModal] = useState(false);
     const [goldTransferAmount, setGoldTransferAmount] = useState(1);
     const [goldTransferRecipient, setGoldTransferRecipient] = useState(null);
 
-    const isDM = activeSession && activeSession.dm_id === user?.id;
+    const isDM = activeSession && activeSession.dm_id === currentUser?.id;
     const isAuthorized = isOwner || isAdmin || isDM;
     const canEdit = isEditMode && (isOwner || isAdmin || isDM);
     const viewOnly = !canEdit;
@@ -952,8 +1036,7 @@ function CharacterSheet() {
     const [choiceOverlay, setChoiceOverlay] = useState({ isOpen: false, feature: null });
 
     const [skills, setSkills] = useState({}); // Renamed from skillProficiencies
-    const [showMaxHpModifiers, setShowMaxHpModifiers] = useState(false); // Renamed from showModifierInput
-    const [maxHpModifier, setMaxHpModifier] = useState(0); // Renamed from damageModInput
+    const [maxHpModifier] = useState(0); // Renamed from damageModInput
     const [inventoryItems, setInventoryItems] = useState([]); // Renamed from inventory
     const [gold, setGold] = useState(0);
     const [inventoryFilter, setInventoryFilter] = useState("All");
@@ -992,183 +1075,177 @@ function CharacterSheet() {
     const [effectiveMaxHp, setEffectiveMaxHp] = useState(0);
 
     // Consolidated Loading Logic
-    useEffect(() => {
-        const loadAllData = async () => {
-            try {
+    const fetchData = useCallback(async () => {
+        try {
+            // 1. Fetch Global Rules first (Optional but good to have ready)
+            const [weaponRes, armorRes, spellSlotsRes] = await Promise.all([
+                fetch(`http://localhost:5000/api/rules/weapons`),
+                fetch(`http://localhost:5000/api/rules/armor`),
+                fetch(`http://localhost:5000/api/rules/spell_slots`)
+            ]);
 
-                // 1. Fetch Global Rules first (Optional but good to have ready)
-                const [weaponRes, armorRes, spellSlotsRes] = await Promise.all([
-                    fetch(`http://localhost:5000/api/rules/weapons`),
-                    fetch(`http://localhost:5000/api/rules/armor`),
-                    fetch(`http://localhost:5000/api/rules/spell_slots`)
-                ]);
+            const wRules = await weaponRes.json();
+            const aRules = await armorRes.json();
+            const sSlotsRules = await spellSlotsRes.json();
 
-                const wRules = await weaponRes.json();
-                const aRules = await armorRes.json();
-                const sSlotsRules = await spellSlotsRes.json();
+            setWeaponRules(wRules);
+            setArmorRules(aRules);
+            setSpellSlotsRules(sSlotsRules);
 
-                setWeaponRules(wRules);
-                setArmorRules(aRules);
-                setSpellSlotsRules(sSlotsRules);
+            // 2. Fetch Character Data
+            const charRes = await fetch(`http://localhost:5000/api/characters/${id}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!charRes.ok) {
+                if (charRes.status === 404) throw new Error("Character not found");
+                throw new Error("Failed to load character");
+            }
+            const data = await charRes.json();
 
-                // 2. Fetch Character Data
-                const charRes = await fetch(`http://localhost:5000/api/characters/${id}`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                if (!charRes.ok) {
-                    if (charRes.status === 404) throw new Error("Character not found");
-                    throw new Error("Failed to load character");
+            // Set immediate basic state
+            setCharacter(data);
+            setSkills(data.data.skillProficiencies || {});
+            setGold(data.data.gold || 0);
+            setXp(data.data.xp || 0);
+            setTempXp(data.data.xp || 0);
+            setActiveFeatures(data.data.activeFeatures || []);
+            setFeatureUses(data.data.featureUses || {});
+            setFeatureChoices(data.data.featureChoices || {});
+
+            // Initialize HP
+            const initialBaseMaxHp = data.data.hp_max_base || 0;
+            const initialMaxHpModifier = data.data.hp_modifier || 0;
+            setBaseMaxHp(initialBaseMaxHp);
+            setEffectiveMaxHp(initialBaseMaxHp + initialMaxHpModifier);
+            setCurrentHp(data.data.hp_current || 0);
+
+            // 3. Normalize Inventory (Needs wRules and aRules)
+            const rawInventory = data.data.inventory || [];
+            const normalizedInventory = rawInventory.map(item => {
+                let normalized = typeof item === 'string' ? { name: item, quantity: 1, category: "Other", equipped: false } : { equipped: false, ...item };
+                if (typeof item === 'string') {
+                    const match = item.match(/^(\d+)\s+(.*)$/);
+                    if (match) { normalized.quantity = parseInt(match[1]); normalized.name = match[2]; }
                 }
-                const data = await charRes.json();
+                if (normalized.name.endsWith('s') && !wRules[normalized.name]) {
+                    const singular = normalized.name.slice(0, -1);
+                    if (wRules[singular]) { normalized.name = singular; normalized.category = "Weapon"; }
+                } else if (wRules[normalized.name]) { normalized.category = "Weapon"; }
+                if (aRules[normalized.name]) normalized.category = "Armor";
+                return normalized;
+            });
+            setInventoryItems(normalizedInventory);
 
-                // Set immediate basic state
-                setCharacter(data);
-                setSkills(data.data.skillProficiencies || {});
-                setGold(data.data.gold || 0);
-                setXp(data.data.xp || 0);
-                setTempXp(data.data.xp || 0);
-                setActiveFeatures(data.data.activeFeatures || []);
-                setFeatureUses(data.data.featureUses || {});
-                setFeatureChoices(data.data.featureChoices || {});
+            // 4. Fetch Specific Rules (Parallel)
+            const rulePromises = [];
+            if (data.class?.name) {
+                rulePromises.push(fetch(`http://localhost:5000/api/classes/${data.class.name.toLowerCase()}`).then(r => r.json()));
+                rulePromises.push(fetch(`http://localhost:5000/api/spells/${data.class.name.toLowerCase()}`).then(r => r.json()));
+            }
+            if (data.data?.species) {
+                rulePromises.push(fetch(`http://localhost:5000/api/species`).then(r => r.json()));
+            }
+            if (data.data?.background) {
+                rulePromises.push(fetch(`http://localhost:5000/api/backgrounds`).then(r => r.json()));
+            }
 
-                // Initialize HP
-                const initialBaseMaxHp = data.data.hp_max_base || 0;
-                const initialMaxHpModifier = data.data.hp_modifier || 0;
-                setBaseMaxHp(initialBaseMaxHp);
-                setEffectiveMaxHp(initialBaseMaxHp + initialMaxHpModifier);
-                setCurrentHp(data.data.hp_current || 0);
+            const ruleResults = await Promise.all(rulePromises);
+            let resultIdx = 0;
 
-                // 3. Normalize Inventory (Needs wRules and aRules)
-                const rawInventory = data.data.inventory || [];
-                const normalizedInventory = rawInventory.map(item => {
-                    let normalized = typeof item === 'string' ? { name: item, quantity: 1, category: "Other", equipped: false } : { equipped: false, ...item };
-                    if (typeof item === 'string') {
-                        const match = item.match(/^(\d+)\s+(.*)$/);
-                        if (match) { normalized.quantity = parseInt(match[1]); normalized.name = match[2]; }
-                    }
-                    if (normalized.name.endsWith('s') && !wRules[normalized.name]) {
-                        const singular = normalized.name.slice(0, -1);
-                        if (wRules[singular]) { normalized.name = singular; normalized.category = "Weapon"; }
-                    } else if (wRules[normalized.name]) { normalized.category = "Weapon"; }
-                    if (aRules[normalized.name]) normalized.category = "Armor";
-                    return normalized;
-                });
-                setInventoryItems(normalizedInventory);
+            let resolvedClassRules = null;
+            if (data.class?.name) {
+                resolvedClassRules = ruleResults[resultIdx++];
+                setClassRules(resolvedClassRules);
+                setAvailableSpells(ruleResults[resultIdx++]);
+            }
 
-                // 4. Fetch Specific Rules (Parallel)
-                const rulePromises = [];
-                if (data.class?.name) {
-                    rulePromises.push(fetch(`http://localhost:5000/api/classes/${data.class.name.toLowerCase()}`).then(r => r.json()));
-                    rulePromises.push(fetch(`http://localhost:5000/api/spells/${data.class.name.toLowerCase()}`).then(r => r.json()));
-                }
-                if (data.data?.species) {
-                    rulePromises.push(fetch(`http://localhost:5000/api/species`).then(r => r.json()));
-                }
-                if (data.data?.background) {
-                    rulePromises.push(fetch(`http://localhost:5000/api/backgrounds`).then(r => r.json()));
-                }
+            if (data.data?.species) {
+                const speciesList = ruleResults[resultIdx++];
+                const species = speciesList.find(s => s.name.toLowerCase() === data.data.species.toLowerCase());
+                if (species) setSpeciesRules(species);
+            }
 
-                const ruleResults = await Promise.all(rulePromises);
-                let resultIdx = 0;
-
-                let resolvedClassRules = null;
-                if (data.class?.name) {
-                    resolvedClassRules = ruleResults[resultIdx++];
-                    setClassRules(resolvedClassRules);
-                    setAvailableSpells(ruleResults[resultIdx++]);
-                }
-
-                if (data.data?.species) {
-                    const speciesList = ruleResults[resultIdx++];
-                    const species = speciesList.find(s => s.name.toLowerCase() === data.data.species.toLowerCase());
-                    if (species) setSpeciesRules(species);
-                }
-
-                if (data.data?.background) {
-                    const bgList = ruleResults[resultIdx++];
-                    const bg = bgList.find(b => b.name.toLowerCase() === data.data.background.toLowerCase());
-                    if (bg) setBackgroundRules(bg);
-                }
-                 
-                // 4b. Fetch Global Rule Options (Weapon Mastery, Metamagic, Invocations)
-                const optionsRes = await fetch("http://localhost:5000/api/rules/options");
-                const featsRes = await fetch("http://localhost:5000/api/feats");
+            if (data.data?.background) {
+                const bgList = ruleResults[resultIdx++];
+                const bg = bgList.find(b => b.name.toLowerCase() === data.data.background.toLowerCase());
+                if (bg) setBackgroundRules(bg);
+            }
                 
-                if (optionsRes.ok && featsRes.ok) {
-                    const optionsData = await optionsRes.json();
-                    const featsData = await featsRes.json();
-                    setRuleOptions({ ...optionsData, ...featsData });
-                }
+            // 4b. Fetch Global Rule Options (Weapon Mastery, Metamagic, Invocations)
+            const optionsRes = await fetch("http://localhost:5000/api/rules/options");
+            const featsRes = await fetch("http://localhost:5000/api/feats");
+            
+            if (optionsRes.ok && featsRes.ok) {
+                const optionsData = await optionsRes.json();
+                const featsData = await featsRes.json();
+                setRuleOptions({ ...optionsData, ...featsData });
+            }
 
-                // 5. Check for Active Session Participation
-                const sessionRes = await fetch(`http://localhost:5000/api/host/active`, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                if (sessionRes.ok) {
-                    const activeSessions = await sessionRes.json();
-                    // Find if any active session contains this character
-                    // We need to fetch details for each active session we're in to find our character
-                    // OR we can just check all participants in session details.
-                    // For now, let's fetch details for each session the user is in.
-                    for (const s of activeSessions) {
-                        if (!s.can_enter) continue;
-                        const detailRes = await fetch(`http://localhost:5000/api/host/details/${s.id}`, {
-                            headers: { 'Authorization': `Bearer ${token}` }
-                        });
-                        if (detailRes.ok) {
-                            const details = await detailRes.json();
-                            const me = details.participants.find(p => p.character && p.character.id === parseInt(id));
-                            if (me) {
-                                setActiveSession(details);
-                                setSessionParticipants(details.participants.filter(p => p.character && p.character.id !== parseInt(id)));
-                                break;
-                            }
+            // 5. Check for Active Session Participation
+            const sessionRes = await fetch(`http://localhost:5000/api/host/active`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (sessionRes.ok) {
+                const activeSessions = await sessionRes.json();
+                for (const s of activeSessions) {
+                    if (!s.can_enter) continue;
+                    const detailRes = await fetch(`http://localhost:5000/api/host/details/${s.id}`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    if (detailRes.ok) {
+                        const details = await detailRes.json();
+                        const me = details.participants.find(p => p.character && p.character.id === parseInt(id));
+                        if (me) {
+                            setActiveSession(details);
+                            setSessionParticipants(details.participants.filter(p => p.character && p.character.id !== parseInt(id)));
+                            break;
                         }
                     }
                 }
-
-                // 6. Final Step: Layout Initialization
-                // Now that we have all rules, checks like hasSpellcasting will be accurate
-                if (data.data?.layout) {
-                    const mergedLayout = { ...data.data.layout };
-                    Object.keys(DEFAULT_LAYOUTS).forEach(bp => {
-                        const defaultForBp = DEFAULT_LAYOUTS[bp];
-                        const savedForBp = mergedLayout[bp] || [];
-                        const savedKeys = new Set(savedForBp.map(item => item.i));
-                        const updatedSaved = savedForBp.map(item => {
-                            const constraints = LAYOUT_CONSTRAINTS[item.i];
-                            if (constraints) {
-                                const merged = { ...item, ...constraints };
-                                if (constraints.minH && merged.h < constraints.minH) merged.h = constraints.minH;
-                                if (constraints.minW && merged.w < constraints.minW) merged.w = constraints.minW;
-                                return merged;
-                            }
-                            return item;
-                        });
-                        defaultForBp.forEach(defaultItem => {
-                            if (!savedKeys.has(defaultItem.i)) updatedSaved.push(defaultItem);
-                        });
-                        mergedLayout[bp] = updatedSaved;
-                    });
-                    setLayout(mergedLayout);
-                }
-
-                if (data.data?.level_up_pending) {
-                    setShowLevelUpOverlay(true);
-                    setPreviousLevel(data.data.level > 1 ? data.data.level - 1 : 0);
-                }
-
-                setLoading(false);
-
-            } catch (err) {
-                console.error("Load failed:", err);
-                setError(err.message);
-                setLoading(false);
             }
-        };
 
-        loadAllData();
+            // 6. Final Step: Layout Initialization
+            if (data.data?.layout) {
+                const mergedLayout = { ...data.data.layout };
+                Object.keys(DEFAULT_LAYOUTS).forEach(bp => {
+                    const defaultForBp = DEFAULT_LAYOUTS[bp];
+                    const savedForBp = mergedLayout[bp] || [];
+                    const savedKeys = new Set(savedForBp.map(item => item.i));
+                    const updatedSaved = savedForBp.map(item => {
+                        const constraints = LAYOUT_CONSTRAINTS[item.i];
+                        if (constraints) {
+                            const merged = { ...item, ...constraints };
+                            if (constraints.minH && merged.h < constraints.minH) merged.h = constraints.minH;
+                            if (constraints.minW && merged.w < constraints.minW) merged.w = constraints.minW;
+                            return merged;
+                        }
+                        return item;
+                    });
+                    defaultForBp.forEach(defaultItem => {
+                        if (!savedKeys.has(defaultItem.i)) updatedSaved.push(defaultItem);
+                    });
+                    mergedLayout[bp] = updatedSaved;
+                });
+                setLayout(mergedLayout);
+            }
+
+            if (data.data?.level_up_pending) {
+                setShowLevelUpOverlay(true);
+                setPreviousLevel(data.data.level > 1 ? data.data.level - 1 : 0);
+            }
+
+            setLoading(false);
+
+        } catch (err) {
+            console.error("Load failed:", err);
+            setError(err.message);
+            setLoading(false);
+        }
     }, [id, token]);
+
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
 
     // Effect to update effectiveMaxHp when baseMaxHp or maxHpModifier changes
     useEffect(() => {
@@ -1214,7 +1291,26 @@ function CharacterSheet() {
     const handleFeatureChoice = useCallback((featureId, choice) => {
         setFeatureChoices(prev => {
             const next = { ...prev, [featureId]: choice };
-            saveCharacter({ featureChoices: next });
+            
+            // Check if this choice is a subclass choice
+            const updatePayload = { featureChoices: next };
+            const isSubclassChoice = featureId.includes('_subclass');
+            
+            if (isSubclassChoice) {
+                const subclassId = Array.isArray(choice) ? choice[0] : choice;
+                updatePayload.subclass = subclassId;
+                
+                // Update local state IMMEDIATELY so features appear without reload
+                setCharacter(prevChar => {
+                    if (!prevChar) return prevChar;
+                    return {
+                        ...prevChar,
+                        class: { ...prevChar.class, subclass: subclassId }
+                    };
+                });
+            }
+            
+            saveCharacter(updatePayload);
             return next;
         });
     }, [saveCharacter]);
@@ -1225,7 +1321,7 @@ function CharacterSheet() {
         const requiredXp = XP_THRESHOLDS[nextLevel] || 0;
 
         if (xp < requiredXp) {
-            alert(`Not enough XP to level up to ${nextLevel}. Required: ${requiredXp}`);
+            addAlert(`Not enough XP to level up to ${nextLevel}. Required: ${requiredXp}`, 'warning');
             return;
         }
 
@@ -1236,34 +1332,33 @@ function CharacterSheet() {
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
-                    // Update local state to reflect level up
-                    setCharacter(prev => ({ ...prev, level: data.new_level }));
-                    // Potentially re-fetch full data to update HP etc.
-                    window.location.reload(); // Simplest way to refresh all rules and HP
+                    addAlert(`Leveled up to ${nextLevel}!`, 'success');
+                    fetchData();
                 } else {
-                    alert(data.error || "Level up failed");
+                    addAlert(data.error || "Level up failed", 'error');
                 }
             })
             .catch(err => console.error("Error during level up:", err));
     };
 
-    const handleLevelDown = () => {
-        if (!character) return;
-        if (!window.confirm("Are you sure you want to level down? This will reset your stats for the previous level.")) return;
+    const handleLevelDown = async () => {
+        if (!(await confirm("Are you sure you want to level down? This will reset your stats for the previous level."))) return;
 
-        fetch(`http://localhost:5000/api/characters/${id}/leveldown`, {
-            method: "POST",
-            headers: { "Authorization": `Bearer ${token}` }
-        })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    window.location.reload();
-                } else {
-                    alert(data.error || "Level down failed");
-                }
-            })
-            .catch(err => console.error("Error during level down:", err));
+        try {
+            const res = await fetch(`http://localhost:5000/api/characters/${id}/leveldown`, {
+                method: "POST",
+                headers: { "Authorization": `Bearer ${token}` }
+            });
+            const data = await res.json();
+            if (res.ok) {
+                addAlert("Level down successful", 'info');
+                fetchData();
+            } else {
+                addAlert(data.error || "Level down failed", 'error');
+            }
+        } catch (err) {
+            addAlert("An error occurred during level down", 'error');
+        }
     };
 
     const handleXpAdjust = (amount) => {
@@ -1373,15 +1468,60 @@ function CharacterSheet() {
         saveCharacter({ hp_current: val });
     };
 
-    const updateMaxHpModifier = (value) => {
-        let val = parseInt(value) || 0;
-        val = Math.max(-10, Math.min(10, val));
-        setMaxHpModifier(val);
+
+    const API_BASE_URL = "http://localhost:5000";
+
+    const applyStatModifier = async (type, statKey, newValue) => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/characters/${id}/mod-stats`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify({ type, stat: statKey, value: newValue })
+            });
+
+            if (!response.ok) throw new Error("Failed to update stat modifier");
+            
+            await fetchData(); // Sync all independent state variables
+            setStatModConfig({ isOpen: false });
+            addAlert(`${statModConfig.label} updated successfully!`, "success");
+        } catch (err) {
+            addAlert(err.message, "error");
+        }
     };
 
-    const applyMaxHpModifier = () => {
-        saveCharacter({ hp_modifier: maxHpModifier });
+    const handleCompleteRest = async (restType, restData) => {
+        try {
+            const endpoint = restType === 'long' ? 'long' : 'short';
+            const response = await fetch(`${API_BASE_URL}/api/characters/${id}/rest/${endpoint}`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify(restData)
+            });
+
+            if (!response.ok) throw new Error(`Failed to process ${restType} rest`);
+            
+            // Re-calculate local feature uses
+            if (restData.rechargedFeatures) {
+                const updatedUses = { ...featureUses };
+                restData.rechargedFeatures.forEach(featId => {
+                    delete updatedUses[featId]; // Resetting to default (max)
+                });
+                setFeatureUses(updatedUses);
+            }
+
+            await fetchData(); // Sync all independent state variables (HP, Hit Dice, etc)
+            addAlert(`${restType.charAt(0).toUpperCase() + restType.slice(1)} Rest complete!`, "success");
+        } catch (err) {
+            addAlert(err.message, "error");
+        }
     };
+
 
     const toggleEquip = (targetItem) => {
         setInventoryItems(prev => {
@@ -1402,31 +1542,45 @@ function CharacterSheet() {
         });
     };
 
-    const removeItem = (itemToRemove) => {
-        if (itemToRemove.quantity > 1) {
-            const removeOne = window.confirm(`This item has ${itemToRemove.quantity} copies. \n\nClick OK to remove JUST ONE copy, or CANCEL to remove the ENTIRE STACK.`);
+    const removeFromInventory = async (index) => {
+        const itemToRemove = inventoryItems[index];
+        if (!itemToRemove) return;
 
-            if (removeOne) {
-                // Remove just one
-                const newInventory = inventoryItems.map(item =>
-                    item === itemToRemove ? { ...item, quantity: item.quantity - 1 } : item
-                );
-                setInventoryItems(newInventory);
-                saveCharacter({ inventory: newInventory });
+        let shouldRemoveAll = false;
+        if (itemToRemove.quantity > 1) {
+            const result = await confirm(`This item has ${itemToRemove.quantity} copies. \n\nConfirm to remove JUST ONE copy, or Cancel to proceed to STACK REMOVAL option.`);
+            if (result) {
+                shouldRemoveAll = false;
             } else {
-                // Confirm total removal
-                if (window.confirm(`Are you sure you want to remove ALL copies of ${itemToRemove.name}?`)) {
-                    const newInventory = inventoryItems.filter(item => item !== itemToRemove);
-                    setInventoryItems(newInventory);
-                    saveCharacter({ inventory: newInventory });
+                if (await confirm(`Are you sure you want to remove ALL copies of ${itemToRemove.name}?`)) {
+                    shouldRemoveAll = true;
+                } else {
+                    return;
                 }
             }
         } else {
-            if (window.confirm(`Are you sure you want to remove ${itemToRemove.name} from your inventory?`)) {
-                const newInventory = inventoryItems.filter(item => item !== itemToRemove);
-                setInventoryItems(newInventory);
-                saveCharacter({ inventory: newInventory });
+            if (!(await confirm(`Are you sure you want to remove ${itemToRemove.name} from your inventory?`))) return;
+            shouldRemoveAll = true;
+        }
+
+        try {
+            const res = await fetch(`http://localhost:5000/api/characters/${id}/inventory/remove`, {
+                method: "POST",
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ index, remove_all: shouldRemoveAll })
+            });
+
+            if (res.ok) {
+                addAlert("Item removed", 'info');
+                fetchData();
+            } else {
+                addAlert("Failed to remove item", 'error');
             }
+        } catch (err) {
+            addAlert("An error occurred", 'error');
         }
     };
 
@@ -1435,12 +1589,19 @@ function CharacterSheet() {
         if (armorRules[item.name]) category = "Armor";
         else if (weaponRules[item.name]) category = "Weapon";
 
+        const term = (character?.data?.inventorySearchTerm || "").toLowerCase();
+        if (term && !item.name.toLowerCase().includes(term)) return acc;
+
         const itemWithCat = { ...item, category, originalIndex };
 
         if (!acc[category]) acc[category] = [];
         acc[category].push(itemWithCat);
+        
+        // Populate the "All" category
+        acc["All"].push(itemWithCat);
+        
         return acc;
-    }, { "All": inventoryItems.map((it, idx) => ({ ...it, originalIndex: idx })) }), [inventoryItems, armorRules, weaponRules]);
+    }, { "All": [] }), [inventoryItems, armorRules, weaponRules, character?.data?.inventorySearchTerm]);
 
     const displayedItems = groupedInventory[inventoryFilter] || [];
 
@@ -1461,76 +1622,54 @@ function CharacterSheet() {
         .catch(err => console.error("Error toggling privacy:", err));
     };
 
-    const handleSendItem = async (recipientId) => {
-        if (!itemToTransfer || !activeSession) return;
-        
-        if (!window.confirm(`Are you sure you want to send ${itemToTransfer.name} to this character?`)) return;
+    const transferItem = async (index, targetCharId) => {
+        const itemToTransfer = inventoryItems[index];
+        if (!await confirm(`Are you sure you want to send ${itemToTransfer.name} to this character?`)) return;
 
         try {
-            const res = await fetch(`http://localhost:5000/api/host/${activeSession.id}/transfer-item`, {
-                method: 'POST',
+            const res = await fetch(`http://localhost:5000/api/characters/${id}/inventory/transfer`, {
+                method: "POST",
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify({
-                    sender_char_id: parseInt(id),
-                    receiver_char_id: recipientId,
-                    item_index: itemToTransfer.originalIndex
-                })
+                body: JSON.stringify({ index, target_id: targetCharId })
             });
-
             const data = await res.json();
             if (res.ok) {
-                // Update local inventory
-                const newInventory = inventoryItems.filter((_, idx) => idx !== itemToTransfer.originalIndex);
-                setInventoryItems(newInventory);
-                
-                // Show notification
-                setTransferNotice(data.message);
-                setTimeout(() => setTransferNotice(null), 4000);
-                
+                addAlert(`Sent ${itemToTransfer.name}!`, 'success');
+                fetchData();
                 setShowTransferModal(false);
-                setItemToTransfer(null);
             } else {
-                alert(data.error || "Transfer failed");
+                addAlert(data.error || "Transfer failed", 'error');
             }
         } catch (err) {
-            alert("An error occurred during transfer");
+            addAlert("An error occurred during transfer", 'error');
         }
     };
 
-    const handleTransferGold = async () => {
-        if (!goldTransferRecipient || !activeSession || goldTransferAmount <= 0) return;
-        
-        if (!window.confirm(`Are you sure you want to send ${goldTransferAmount} GP to this character?`)) return;
+    const transferGold = async (targetCharId) => {
+        if (!await confirm(`Are you sure you want to send ${goldTransferAmount} GP to this character?`)) return;
 
         try {
-            const res = await fetch(`http://localhost:5000/api/host/${activeSession.id}/transfer-gold`, {
-                method: 'POST',
+            const res = await fetch(`http://localhost:5000/api/characters/${id}/inventory/transfer-gold`, {
+                method: "POST",
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: JSON.stringify({
-                    sender_char_id: parseInt(id),
-                    receiver_char_id: goldTransferRecipient,
-                    amount: goldTransferAmount
-                })
+                body: JSON.stringify({ amount: goldTransferAmount, target_id: targetCharId })
             });
-
             const data = await res.json();
             if (res.ok) {
-                setGold(data.new_gold);
-                setTransferNotice(data.message);
-                setTimeout(() => setTransferNotice(null), 4000);
+                addAlert(`Sent ${goldTransferAmount} GP!`, 'success');
+                fetchData();
                 setShowGoldTransferModal(false);
-                setGoldTransferAmount(1);
             } else {
-                alert(data.error || "Transfer failed");
+                addAlert(data.error || "Transfer failed", 'error');
             }
         } catch (err) {
-            alert("An error occurred during gold transfer");
+            addAlert("An error occurred during gold transfer", 'error');
         }
     };
 
@@ -1552,6 +1691,20 @@ function CharacterSheet() {
             }
         } catch (err) {
             console.error("Failed to acknowledge gold gift:", err);
+        }
+    };
+
+    const handleBack = () => {
+        // If history length is 1, it means this was likely opened in a new tab
+        if (window.history.length > 1) {
+            navigate(-1);
+        } else {
+            // Try to close the window, fallback to hub if it fails
+            window.close();
+            // A small delay to check if close worked, otherwise navigate
+            setTimeout(() => {
+                navigate('/characters-hub');
+            }, 100);
         }
     };
 
@@ -1657,11 +1810,13 @@ function CharacterSheet() {
 
         // 2. Add Subclass Features
         const subclassId = character.class?.subclass;
-        if (subclassId && classRules?.subclasses?.[subclassId]?.features) {
-            const scFeatures = classRules.subclasses[subclassId].features;
+        const subclassInfo = classRules?.subclasses?.[subclassId];
+        if (subclassId && subclassInfo?.features) {
+            const scFeatures = subclassInfo.features;
+            const scName = subclassInfo.name?.replace(/^Path Of The /i, '') || subclassId;
             Object.keys(scFeatures).forEach(lvl => {
                 if (parseInt(lvl) <= currentLevel) {
-                    allFeatures.push(...scFeatures[lvl].map(f => ({ ...f, source: 'Subclass', level: lvl })));
+                    allFeatures.push(...scFeatures[lvl].map(f => ({ ...f, source: `Subclass: ${scName}`, level: lvl })));
                 }
             });
         }
@@ -1785,8 +1940,11 @@ function CharacterSheet() {
                 result.immunities = [...new Set([...result.immunities, ...imm])];
             }
         });
+
         return result;
     }, [availableFeatures, activeFeatures]);
+
+    const conditions = useMemo(() => character?.data?.conditions || { exhaustion: 0 }, [character]);
 
     const filteredFeatures = useMemo(() => {
         // Only show Class, Subclass, and Background features in the general widget
@@ -1943,7 +2101,7 @@ function CharacterSheet() {
                                 <div 
                                     key={participant.character.id} 
                                     className="recipient-option"
-                                    onClick={() => handleSendItem(participant.character.id)}
+                                    onClick={() => transferItem(itemToTransfer.originalIndex, participant.character.id)}
                                 >
                                     <div className="recipient-info">
                                         <span className="char-name">{participant.character.name}</span>
@@ -1957,19 +2115,11 @@ function CharacterSheet() {
                 </div>
             )}
 
-            {transferNotice && (
-                <div className="transfer-notice-overlay">
-                    <div className="transfer-notice">
-                        <i className="fa-solid fa-circle-check"></i>
-                        {transferNotice}
-                    </div>
-                </div>
-            )}
 
             <BackToTop />
             <div className="sheet-top-bar">
                 <div className="top-bar-left">
-                    <button onClick={() => navigate(-1)} className="back-button">
+                    <button onClick={handleBack} className="back-button">
                         <i className="fa-solid fa-arrow-left"></i> Back
                     </button>
                     {(isOwner || isAdmin || isDM) && (
@@ -2041,13 +2191,21 @@ function CharacterSheet() {
                                 </div>
                             </div>
                             {!viewOnly && character.level < 20 && (
-                                <button
-                                    className={`levelup-button ${xp >= (XP_THRESHOLDS[character.level + 1] || 0) ? "available" : "locked"}`}
-                                    onClick={handleLevelUp}
-                                    disabled={xp < (XP_THRESHOLDS[character.level + 1] || 0)}
-                                >
-                                    {xp >= (XP_THRESHOLDS[character.level + 1] || 0) ? "✧ LEVEL UP ✧" : "Level Up"}
-                                </button>
+                                <div className="header-actions">
+                                    <button 
+                                        className="rest-trigger-btn"
+                                        onClick={() => setShowRestOverlay(true)}
+                                    >
+                                        <i className="fa-solid fa-campground"></i> Take a Rest
+                                    </button>
+                                    <button
+                                        className={`levelup-button ${xp >= (XP_THRESHOLDS[character.level + 1] || 0) ? "available" : "locked"}`}
+                                        onClick={handleLevelUp}
+                                        disabled={xp < (XP_THRESHOLDS[character.level + 1] || 0)}
+                                    >
+                                        {xp >= (XP_THRESHOLDS[character.level + 1] || 0) ? "✧ LEVEL UP ✧" : "Level Up"}
+                                    </button>
+                                </div>
                             )}
                         </div>
                         <div className="header-details">
@@ -2060,21 +2218,33 @@ function CharacterSheet() {
                             </span>
                             <span className="detail-pill background-pill">{character.data.background}</span>
                         </div>
-                        {(defenses.resistances.length > 0 || defenses.immunities.length > 0) && (
+                        {(defenses.resistances.length > 0 || defenses.immunities.length > 0 || conditions.exhaustion > 0) && (
                             <div className="header-defenses">
-                                {defenses.resistances.length > 0 && (
-                                    <div className="defense-group">
-                                        <span className="defense-label">Resists:</span>
-                                        <div className="defense-tags">
-                                            {defenses.resistances.map(r => <span key={r} className="defense-tag">{r}</span>)}
-                                        </div>
-                                    </div>
+                                {(defenses.resistances.length > 0 || defenses.immunities.length > 0) && (
+                                    <>
+                                        {defenses.resistances.length > 0 && (
+                                            <div className="defense-group">
+                                                <span className="defense-label">Resists:</span>
+                                                <div className="defense-tags">
+                                                    {defenses.resistances.map(r => <span key={r} className="defense-tag">{r}</span>)}
+                                                </div>
+                                            </div>
+                                        )}
+                                        {defenses.immunities.length > 0 && (
+                                            <div className="defense-group">
+                                                <span className="defense-label">Immune:</span>
+                                                <div className="defense-tags">
+                                                    {defenses.immunities.map(i => <span key={i} className="defense-tag immunity">{i}</span>)}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </>
                                 )}
-                                {defenses.immunities.length > 0 && (
-                                    <div className="defense-group">
-                                        <span className="defense-label">Immune:</span>
+                                {conditions.exhaustion > 0 && (
+                                    <div className="defense-group conditions-group">
+                                        <span className="defense-label">Conditions:</span>
                                         <div className="defense-tags">
-                                            {defenses.immunities.map(i => <span key={i} className="defense-tag immunity">{i}</span>)}
+                                            <span className="defense-tag condition exhaustion">Exhaustion (Level {conditions.exhaustion})</span>
                                         </div>
                                     </div>
                                 )}
@@ -2098,8 +2268,23 @@ function CharacterSheet() {
                                     className="hp-current-input"
                                 />
                             )}
-                            <span className="hp-sep">/</span>
-                            <span className="hp-max" onClick={() => !viewOnly && setShowMaxHpModifiers(!showMaxHpModifiers)}>
+                            <span 
+                                className="hp-sep"
+                                onClick={() => !viewOnly && setStatModConfig({
+                                    isOpen: true,
+                                    type: "hp_max",
+                                    statKey: null,
+                                    value: maxHpModifier,
+                                    label: "Max HP Modifier"
+                                })}
+                            >/</span>
+                            <span className="hp-max" onClick={() => !viewOnly && setStatModConfig({
+                                isOpen: true,
+                                type: "hp_max",
+                                statKey: null,
+                                value: maxHpModifier,
+                                label: "Max HP Modifier"
+                            })}>
                                 {effectiveMaxHp}
                             </span>
                             <div className="ac-display" title="Armor Class">
@@ -2109,13 +2294,7 @@ function CharacterSheet() {
                                 </div>
                             </div>
                         </div>
-                        {showMaxHpModifiers && (
-                            <div className="hp-mod-overlay">
-                                <input type="number" value={maxHpModifier} onChange={(e) => updateMaxHpModifier(e.target.value)} />
-                                <button onClick={applyMaxHpModifier}>Apply</button>
-                                <button onClick={() => setShowMaxHpModifiers(false)}>✕</button>
-                            </div>
-                        )}
+                        {/* Old HP Modifier UI Removed */}
                     </div>
                 </div>
 
@@ -2128,7 +2307,17 @@ function CharacterSheet() {
                             const mod = calculateModifier(score);
                             const hasAdvantage = key === "strength" && activeFeatures.includes("barbarian_rage");
                             return (
-                                <div key={key} className={`ability-box ${hasAdvantage ? 'has-adv' : ''}`}>
+                                <div 
+                                    key={key} 
+                                    className={`ability-box ${hasAdvantage ? 'has-adv' : ''} ${!viewOnly ? 'clickable' : ''}`}
+                                    onClick={() => !viewOnly && setStatModConfig({
+                                        isOpen: true,
+                                        type: "ability",
+                                        statKey: key,
+                                        value: score,
+                                        label: name
+                                    })}
+                                >
                                     <span className="ability-name">{name.slice(0, 3).toUpperCase()}</span>
                                     <span className="ability-mod">{mod >= 0 ? "+" : ""}{mod}</span>
                                     <span className="ability-score">{score}</span>
@@ -2227,6 +2416,7 @@ function CharacterSheet() {
                                 onUpdateChoice={(feature, options) => setChoiceOverlay({ isOpen: true, feature, options })}
                                 availableSpells={availableSpells}
                                 viewOnly={viewOnly}
+                                isAuthorized={isAuthorized}
                             />
                         ))}
                     </div>
@@ -2281,6 +2471,19 @@ function CharacterSheet() {
                     {!isLayoutLocked && <div className="widget-handle">⠿</div>}
                     <div className="inventory-header-row">
                         <h3>Inventory</h3>
+                        <div className="search-wrapper inventory-search" style={{ margin: '0 15px', flex: 1 }}>
+                            <input 
+                                type="text" 
+                                className="search-input" 
+                                placeholder="Search inventory..." 
+                                value={character.data.inventorySearchTerm || ""}
+                                onChange={(e) => {
+                                    const term = e.target.value;
+                                    setCharacter(prev => ({ ...prev, data: { ...prev.data, inventorySearchTerm: term } }));
+                                }}
+                            />
+                            <i className="fa-solid fa-magnifying-glass"></i>
+                        </div>
                         <div className="gold-box" onClick={() => isAuthorized && activeSession && setShowGoldTransferModal(true)}>
                             <i className="fa-solid fa-coins"></i> Gold: {gold} GP
                             {isAuthorized && activeSession && <i className="fa-solid fa-right-left transfer-hint-icon"></i>}
@@ -2352,7 +2555,7 @@ function CharacterSheet() {
                                             <i className="fa-solid fa-paper-plane"></i>
                                         </button>
                                     )}
-                                    {!viewOnly && <button className="del-btn" onClick={() => removeItem(item)}>✕</button>}
+                                    {!viewOnly && <button className="del-btn" onClick={() => removeFromInventory(item.originalIndex)}>✕</button>}
                                 </div>
                             </div>
                         ))}
@@ -2413,6 +2616,22 @@ function CharacterSheet() {
                 spellcastingRules={spellcastingRules}
                 spellSlotsRules={spellSlotsRules}
                 onToggleSpell={toggleSpellSelection}
+            />
+
+            <RestOverlay
+                show={showRestOverlay}
+                character={character}
+                classRules={classRules}
+                availableFeatures={availableFeatures}
+                onClose={() => setShowRestOverlay(false)}
+                onCompleteRest={handleCompleteRest}
+            />
+
+            <StatModifierOverlay
+                config={statModConfig}
+                onClose={() => setStatModConfig({ isOpen: false })}
+                onApply={applyStatModifier}
+                baseValue={statModConfig.type === 'ability' ? (character.data.base_abilities?.[statModConfig.statKey] ?? 10) : character.data.hp_max_base}
             />
 
 
@@ -2545,7 +2764,7 @@ function CharacterSheet() {
                             <button 
                                 className="confirm-transfer-btn"
                                 disabled={!goldTransferRecipient || goldTransferAmount <= 0 || goldTransferAmount > gold}
-                                onClick={handleTransferGold}
+                                onClick={() => transferGold(goldTransferRecipient)}
                             >
                                 <i className="fa-solid fa-paper-plane"></i> Confirm Gold Transfer
                             </button>
