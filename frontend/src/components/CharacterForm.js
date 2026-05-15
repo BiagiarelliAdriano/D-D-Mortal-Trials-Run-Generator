@@ -32,6 +32,8 @@ function CharacterForm() {
     // Drag-and-drop state
     const [draggedRoll, setDraggedRoll] = useState(null);
     const [dragOverAbility, setDragOverAbility] = useState(null);
+    const [isRandomizing, setIsRandomizing] = useState(false);
+
 
     const [formData, setFormData] = useState({
         name: "",
@@ -274,6 +276,44 @@ function CharacterForm() {
             charisma: null,
         });
         setSelectedRoll(null);
+    };
+
+    const randomizeStats = async () => {
+        if (isRandomizing || initialRolledStats.length === 0) return;
+        setIsRandomizing(true);
+
+        // Reset first
+        setAssignedStats({
+            strength: null,
+            dexterity: null,
+            constitution: null,
+            intelligence: null,
+            wisdom: null,
+            charisma: null,
+        });
+        setRolledStats(initialRolledStats);
+        setSelectedRoll(null);
+
+        // Wait a bit after reset
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        const abilities = ["strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma"];
+        const shuffledAbilities = [...abilities].sort(() => Math.random() - 0.5);
+        const statsPool = [...initialRolledStats];
+
+        for (let i = 0; i < 6; i++) {
+            const statName = shuffledAbilities[i];
+            const roll = statsPool[i];
+
+            setAssignedStats(prev => ({ ...prev, [statName]: roll.value }));
+            setRolledStats(prev => prev.filter(r => r.id !== roll.id));
+
+            if (i < 5) {
+                await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+        }
+
+        setIsRandomizing(false);
     };
 
     const handleSubmit = () => {
@@ -548,7 +588,7 @@ function CharacterForm() {
 
                         <div className="dice-rolling-section">
                             {canRoll ? (
-                                <button className="dice-roll-button" onClick={rollAbilities}>
+                                <button className="dice-roll-button" onClick={rollAbilities} disabled={isRandomizing}>
                                     <span className="dice-icon">🎲</span> Roll 4d6 Drop Lowest
                                 </button>
                             ) : (
@@ -561,6 +601,16 @@ function CharacterForm() {
                                     <span className="bonus-reroll"> (+1 bonus reroll available)</span>
                                 )}
                             </p>
+                            {initialRolledStats.length > 0 && (
+                                <button 
+                                    className={`randomize-button ${isRandomizing ? 'loading' : ''}`} 
+                                    onClick={randomizeStats} 
+                                    disabled={isRandomizing}
+                                >
+                                    <span className="random-icon">{isRandomizing ? '⏳' : '✨'}</span> 
+                                    {isRandomizing ? 'Randomizing...' : 'Randomize'}
+                                </button>
+                            )}
                         </div>
 
                         <h3>Rolled Numbers</h3>
@@ -568,11 +618,12 @@ function CharacterForm() {
                             {rolledStats.map(r => (
                                 <button
                                     key={r.id}
-                                    draggable={true}
+                                    draggable={!isRandomizing}
                                     onDragStart={(e) => handleDragStart(e, r)}
                                     onDragEnd={handleDragEnd}
-                                    onClick={() => setSelectedRoll(r)}
-                                    className={`stat-button ${selectedRoll?.id === r.id ? "selected" : ""}`}
+                                    onClick={() => !isRandomizing && setSelectedRoll(r)}
+                                    className={`stat-button ${selectedRoll?.id === r.id ? "selected" : ""} ${isRandomizing ? "disabled" : ""}`}
+                                    disabled={isRandomizing}
                                 >
                                     {r.value}
                                 </button>
@@ -587,14 +638,14 @@ function CharacterForm() {
                                     <button
                                         key={stat}
                                         title={stat.charAt(0).toUpperCase() + stat.slice(1)}
-                                        onClick={() => assignStat(stat)}
-                                        onDragOver={handleDragOver}
-                                        onDragEnter={() => handleDragEnter(stat)}
-                                        onDragLeave={(e) => handleDragLeave(e)}
-                                        onDrop={(e) => handleDrop(e, stat)}
+                                        onClick={() => !isRandomizing && assignStat(stat)}
+                                        onDragOver={(e) => !isRandomizing && handleDragOver(e)}
+                                        onDragEnter={() => !isRandomizing && handleDragEnter(stat)}
+                                        onDragLeave={(e) => !isRandomizing && handleDragLeave(e)}
+                                        onDrop={(e) => !isRandomizing && handleDrop(e, stat)}
                                         className={`assigned-stat-button ${val !== null ? "assigned" : ""
-                                            } ${dragOverAbility === stat ? "drag-over" : ""
-                                            }`}
+                                            } ${dragOverAbility === stat ? "drag-over" : ""} ${isRandomizing ? "disabled" : ""}`}
+                                        disabled={isRandomizing}
                                     >
                                         <span className="stat-label">{stat.substring(0, 3).toUpperCase()}</span>
                                         <span className="stat-value">{val ?? "-"}</span>
@@ -606,14 +657,14 @@ function CharacterForm() {
                         <p><strong>Total = {abilityTotal}</strong></p>
 
                         <div className="navigation-buttons compact" style={{ marginTop: '15px' }}>
-                            <button className="nav-button" onClick={() => setStep(0)}>Back</button>
+                            <button className="nav-button" onClick={() => setStep(0)} disabled={isRandomizing}>Back</button>
                             {/* Reset button only for new character */}
                             {!isEditMode && initialRolledStats.length > 0 && (
-                                <button className="nav-button" onClick={resetStatAssignment}>
+                                <button className="nav-button" onClick={resetStatAssignment} disabled={isRandomizing}>
                                     Reset Stats
                                 </button>
                             )}
-                            <button className="nav-button" disabled={!allStatsAssigned} onClick={() => setStep(2)}>
+                            <button className="nav-button" disabled={!allStatsAssigned || isRandomizing} onClick={() => setStep(2)}>
                                 Next
                             </button>
                         </div>

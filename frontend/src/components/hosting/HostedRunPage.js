@@ -72,11 +72,17 @@ const HostedRunPage = () => {
             const currentPhase = session.shop_state.phase;
             if (shopPrevPhase === 'selection' && currentPhase === 'shopping') {
                 setIsBuildingShop(true);
+                
+                // Check for Wondrous category and notify
+                if (session.shop_state.items && session.shop_state.items.Wondrous) {
+                    addAlert("A rare Wondrous category has appeared in the shop!", "info");
+                }
+
                 setTimeout(() => setIsBuildingShop(false), 2000);
             }
             setShopPrevPhase(currentPhase);
         }
-    }, [session, shopPrevPhase]);
+    }, [session, shopPrevPhase, addAlert]);
 
     // Handle Level Up Detection
     useEffect(() => {
@@ -236,7 +242,8 @@ const HostedRunPage = () => {
                 body: JSON.stringify({
                     category: shopConfirm.category,
                     item_index: shopConfirm.itemIndex,
-                    is_common: shopConfirm.isCommon
+                    is_common: shopConfirm.isCommon,
+                    trade_in_indices: shopConfirm.tradeIns || []
                 })
             });
             const data = await response.json();
@@ -392,7 +399,15 @@ const HostedRunPage = () => {
             const isLocked = !!state.locked;
 
             const renderItemsList = (itemDict, isCommonSec) => {
-                return Object.entries(itemDict).map(([cat, list]) => (
+                const entries = Object.entries(itemDict);
+                // Place Wondrous at the end of the generated items list
+                entries.sort(([a], [b]) => {
+                    if (a === "Wondrous") return 1;
+                    if (b === "Wondrous") return -1;
+                    return 0;
+                });
+
+                return entries.map(([cat, list]) => (
                     <div key={cat} className="shop-items-category">
                         <h5>{cat}</h5>
                         <div className="shop-items-grid">
@@ -408,7 +423,7 @@ const HostedRunPage = () => {
                                     <button
                                         key={idx}
                                         className={btnClass}
-                                        onClick={() => !sold && affordable && !isDMOrAdmin && !isLocked && setShopConfirm({ category: cat, itemIndex: idx, item, isCommon: isCommonSec })}
+                                        onClick={() => !sold && affordable && !isDMOrAdmin && !isLocked && setShopConfirm({ category: cat, itemIndex: idx, item, isCommon: isCommonSec, tradeIns: [] })}
                                         disabled={!!sold || !affordable || isDMOrAdmin || isLocked}
                                         title={isLocked ? "Shop is locked" : (sold ? `Bought by ${sold.char_name}` : (!affordable ? `You need ${item.cost} gp (You have ${myGold} gp)` : ""))}
                                     >
@@ -493,7 +508,9 @@ const HostedRunPage = () => {
                             <div key={category} className="item-category">
                                 <h5>{category}</h5>
                                 <ul>
-                                    {items.map((item, idx) => <li key={idx}>{item}</li>)}
+                                    {items.map((item, idx) => (
+                                        <li key={idx}>{typeof item === 'string' ? item : item.name}</li>
+                                    ))}
                                 </ul>
                             </div>
                         ))}
@@ -526,7 +543,9 @@ const HostedRunPage = () => {
                     <div className="detail-section highlight">
                         <h4><i className="fa-solid fa-wand-magic-sparkles"></i> Divine Gifts</h4>
                         <ul className="gift-list">
-                            {encounter.magic_items.map((item, i) => <li key={i}>{item}</li>)}
+                            {encounter.magic_items.map((item, i) => (
+                                <li key={i}>{typeof item === 'string' ? item : item.name}</li>
+                            ))}
                         </ul>
                     </div>
                 )}
@@ -657,8 +676,14 @@ const HostedRunPage = () => {
                                     const monstersMatch = enc.monsters?.some(m => m.toLowerCase().includes(term)) || false;
                                     const typeMatch = (enc.type?.toLowerCase() || "").includes(term);
                                     const noteMatch = (enc.note?.toLowerCase() || "").includes(term);
-                                    const itemMatch = enc.magic_items?.some(i => (i?.toLowerCase() || "").includes(term)) || false;
-                                    const shopItemMatch = enc.items_by_category ? Object.values(enc.items_by_category).flat().some(i => (i?.toLowerCase() || "").includes(term)) : false;
+                                    const itemMatch = enc.magic_items?.some(i => {
+                                        const itemName = typeof i === 'string' ? i : i.name;
+                                        return (itemName?.toLowerCase() || "").includes(term);
+                                    }) || false;
+                                    const shopItemMatch = enc.items_by_category ? Object.values(enc.items_by_category).flat().some(i => {
+                                        const itemName = typeof i === 'string' ? i : i.name;
+                                        return (itemName?.toLowerCase() || "").includes(term);
+                                    }) : false;
                                     return monstersMatch || typeMatch || noteMatch || itemMatch || shopItemMatch;
                                 })
                                 .map(([num, enc]) => (
@@ -782,10 +807,13 @@ const HostedRunPage = () => {
                                     }
                                     {session.party_inventory.length > 0 ? (
                                         session.party_inventory
-                                            .filter(item => !searchTerm || item.toLowerCase().includes(searchTerm.toLowerCase()))
+                                            .filter(item => {
+                                                const itemName = typeof item === 'string' ? item : item.name;
+                                                return !searchTerm || itemName.toLowerCase().includes(searchTerm.toLowerCase());
+                                            })
                                             .map((item, idx) => (
                                                 <div key={`item-${idx}`} className="vault-item">
-                                                    <span className="item-name">{item}</span>
+                                                    <span className="item-name">{typeof item === 'string' ? item : item.name}</span>
                                                     {!isDM && (
                                                         <button className="claim-btn" onClick={() => handleClaimItem(idx)}>
                                                             <i className="fa-solid fa-hand-holding-dollar"></i> Claim
@@ -808,10 +836,13 @@ const HostedRunPage = () => {
                                 <div className="vault-grid">
                                     {(session.claimed_items && session.claimed_items.length > 0) ? (
                                         session.claimed_items
-                                            .filter(entry => !searchTerm || entry.item.toLowerCase().includes(searchTerm.toLowerCase()) || entry.character_name.toLowerCase().includes(searchTerm.toLowerCase()))
+                                            .filter(entry => {
+                                                const itemName = typeof entry.item === 'string' ? entry.item : entry.item.name;
+                                                return !searchTerm || itemName.toLowerCase().includes(searchTerm.toLowerCase()) || entry.character_name.toLowerCase().includes(searchTerm.toLowerCase());
+                                            })
                                             .map((entry, idx) => (
                                                 <div key={idx} className="vault-item claimed">
-                                                    <span className="item-name">{entry.item}</span>
+                                                    <span className="item-name">{typeof entry.item === 'string' ? entry.item : entry.item.name}</span>
                                                     <div className="claimed-by">
                                                         <i className="fa-solid fa-user-tag"></i> {entry.character_name}
                                                     </div>
@@ -850,33 +881,108 @@ const HostedRunPage = () => {
             {shopConfirm && (() => {
                 const myParticipant = session.participants.find(p => p.user_id === currentUser.id);
                 const currentGold = myParticipant?.character?.data?.gold || 0;
-                const cost = shopConfirm.item.cost;
-                const remaining = currentGold - cost;
+                const charInventoryRaw = myParticipant?.character?.data?.inventory || [];
+                const charInventory = charInventoryRaw.map(it => 
+                    typeof it === 'string' ? { name: it, rarity: 'common', category: 'Other' } : it
+                );
+                
+                const RARITY_VALS = { 'common': 50, 'uncommon': 400, 'rare': 4000, 'very rare': 40000, 'legendary': 400000 };
+                const getItemVal = (it) => {
+                    const r = it.rarity?.toLowerCase() || 'common';
+                    const base = RARITY_VALS[r] || 0;
+                    return it.category === 'Wondrous' ? base * 2 : base;
+                };
+
+                const itemToBuy = shopConfirm.item;
+                const isWondrous = shopConfirm.category === 'Wondrous';
+                const baseCost = itemToBuy.cost;
+                
+                // Calculate discount from selected trade-ins
+                const selectedIndices = shopConfirm.tradeIns || [];
+                const totalDiscount = selectedIndices.reduce((acc, idx) => acc + getItemVal(charInventory[idx]), 0);
+                const finalCost = Math.max(0, baseCost - totalDiscount);
+                const remainingGold = currentGold - finalCost;
+
+                // Find eligible items for trade-in (same rarity)
+                const eligibleItems = isWondrous ? charInventory.map((it, idx) => ({ ...it, originalIndex: idx }))
+                    .filter(it => it.rarity && it.rarity.toLowerCase() === itemToBuy.rarity?.toLowerCase()) : [];
+
+                const toggleTradeIn = (idx) => {
+                    const newTradeIns = selectedIndices.includes(idx)
+                        ? selectedIndices.filter(i => i !== idx)
+                        : [...selectedIndices, idx];
+                    setShopConfirm({ ...shopConfirm, tradeIns: newTradeIns });
+                };
+
                 return (
                     <div className="modal-overlay">
                         <div className="shop-confirm-modal">
                             <h2>Confirm Purchase</h2>
                             <div className="shop-modal-body">
-                                <p className="sq-item-name">{shopConfirm.item.name}</p>
+                                <div className="sq-header">
+                                    <p className="sq-item-name">{itemToBuy.name}</p>
+                                    <span className={`rarity-tag ${itemToBuy.rarity?.toLowerCase()}`}>{itemToBuy.rarity}</span>
+                                </div>
+
+                                {isWondrous && (
+                                    <div className="trade-in-section">
+                                        <h4><i className="fa-solid fa-arrows-rotate"></i> Trade-in Options</h4>
+                                        <p className="trade-in-hint">Trade items of the same rarity to reduce the price.</p>
+                                        <div className="trade-in-grid">
+                                            {eligibleItems.length > 0 ? (
+                                                eligibleItems.map((it) => (
+                                                    <div 
+                                                        key={it.originalIndex} 
+                                                        className={`trade-in-item ${selectedIndices.includes(it.originalIndex) ? 'selected' : ''}`}
+                                                        onClick={() => toggleTradeIn(it.originalIndex)}
+                                                    >
+                                                        <div className="tii-info">
+                                                            <span className="tii-name">{it.name}</span>
+                                                            <span className="tii-rarity">{it.rarity} {it.category}</span>
+                                                        </div>
+                                                        <div className="tii-value">
+                                                            -{getItemVal(it)} gp
+                                                        </div>
+                                                    </div>
+                                                ))
+                                            ) : (
+                                                <div className="trade-in-empty">No items of {itemToBuy.rarity} rarity available for trade.</div>
+                                            )}
+                                        </div>
+                                        {totalDiscount > 0 && (
+                                            <div className="trade-in-summary">
+                                                <span className="tis-label">Total Trade-in Value:</span>
+                                                <span className="tis-value">-{totalDiscount} gp</span>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+
                                 <div className="shop-gold-summary">
                                     <div className="sgs-row">
                                         <span>Current Gold:</span>
                                         <span>{currentGold} <i className="fa-solid fa-coins"></i></span>
                                     </div>
                                     <div className="sgs-row cost">
-                                        <span>Cost:</span>
-                                        <span>- {cost} <i className="fa-solid fa-coins"></i></span>
+                                        <span>{isWondrous ? 'Final Cost:' : 'Cost:'}</span>
+                                        <span className={totalDiscount > 0 ? 'discounted' : ''}>
+                                            - {finalCost} <i className="fa-solid fa-coins"></i>
+                                        </span>
                                     </div>
                                     <hr />
-                                    <div className="sgs-row remaining">
+                                    <div className={`sgs-row remaining ${remainingGold < 0 ? 'insufficient' : ''}`}>
                                         <span>Remaining:</span>
-                                        <span>{remaining} <i className="fa-solid fa-coins"></i></span>
+                                        <span>{remainingGold} <i className="fa-solid fa-coins"></i></span>
                                     </div>
                                 </div>
                             </div>
                             <div className="shop-modal-actions">
-                                <button className="confirm-btn gold" onClick={handleBuyItem}>
-                                    <i className="fa-solid fa-hand-holding-dollar"></i> Buy Item
+                                <button 
+                                    className="confirm-btn gold" 
+                                    onClick={handleBuyItem}
+                                    disabled={remainingGold < 0}
+                                >
+                                    <i className="fa-solid fa-hand-holding-dollar"></i> Confirm & Buy
                                 </button>
                                 <button className="close-modal" onClick={() => setShopConfirm(null)}>Cancel</button>
                             </div>

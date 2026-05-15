@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useNotification } from '../../context/NotificationContext';
 import UserProfilePill from '../UserProfilePill';
+import AdminRecovery from './AdminRecovery';
 import '../../styles/Auth.css'; // Reuse some base auth styles
 import '../../styles/Admin.css';
 
@@ -13,6 +14,7 @@ const AdminDashboard = () => {
     const [expandedUser, setExpandedUser] = useState(null);
     const [editData, setEditData] = useState({});
     const [updatingUser, setUpdatingUser] = useState(null);
+    const [activeTab, setActiveTab] = useState('users'); // 'users' or 'recovery'
     const { token, user } = useAuth();
     const { addAlert, confirm } = useNotification();
     const navigate = useNavigate();
@@ -167,139 +169,159 @@ const AdminDashboard = () => {
                         <span className="stat-value">{stats?.total_characters}</span>
                     </div>
                 </section>
-                <section className="user-table-section">
-                    <h2>Registered Ascendants</h2>
-                    <table className="admin-table">
-                        <thead>
-                            <tr>
-                                <th>Avatar</th>
-                                <th>Name</th>
-                                <th>Status</th>
-                                <th>Characters</th>
-                                <th>Joined</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {stats?.users.map(u => (
-                                <React.Fragment key={u.id}>
-                                    <tr className={`${u.is_admin ? 'admin-row' : ''} ${expandedUser === u.id ? 'expanded-row' : ''}`} onClick={() => toggleExpand(u)}>
-                                        <td className="center">
-                                            {u.avatar.startsWith('static/') || u.avatar.startsWith('/') ? (
-                                                <img 
-                                                    src={`${u.avatar}`} 
-                                                    alt="Avatar" 
-                                                    className="admin-avatar-mini"
-                                                    onError={(e) => {
-                                                        e.target.onerror = null;
-                                                        e.target.src = '';
-                                                        e.target.innerText = u.username.substring(0, 2).toUpperCase();
-                                                    }}
-                                                />
-                                            ) : (
-                                                <div className="admin-avatar-mini" title={u.avatar}>
-                                                    {u.username.substring(0, 2).toUpperCase()}
-                                                </div>
-                                            )}
-                                        </td>
-                                        <td>{u.username}</td>
-                                        <td>
-                                            <span className={`status-badge ${u.is_admin ? 'admin' : 'user'}`}>
-                                                {u.is_admin ? 'Creator' : 'Ascendant'}
-                                            </span>
-                                        </td>
-                                        <td className="center">{u.character_count}</td>
-                                        <td>{new Date(u.created_at).toLocaleDateString()}</td>
-                                        <td className="center">
-                                            <button className="admin-expand-btn">
-                                                {expandedUser === u.id ? '▲ Hide' : '▼ Manage'}
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    {expandedUser === u.id && (
-                                        <tr className="character-sub-row">
-                                            <td colSpan="6">
-                                                <div className="admin-user-management">
-                                                    <div className="management-header">
-                                                        <div className="user-profile-preview">
-                                                            {u.avatar.startsWith('/') ? (
-                                                                <img src={`${u.avatar}`} alt="Avatar Large" className="admin-avatar-large" />
-                                                            ) : (
-                                                                <div className="admin-avatar-large">{u.username.substring(0, 2).toUpperCase()}</div>
-                                                            )}
-                                                            <div className="user-meta-info">
-                                                                <h3>Manage {u.username}</h3>
-                                                                <span className="joined-date">Joined on {new Date(u.created_at).toLocaleDateString()}</span>
-                                                                <span className="security-q">Security Question: <strong>{u.security_question || 'None set'}</strong></span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
 
-                                                    <div className="edit-actions-form">
-                                                        <div className="form-group">
-                                                            <label>Username</label>
-                                                            <input 
-                                                                type="text" 
-                                                                value={editData.username || ''} 
-                                                                onChange={(e) => handleFieldChange('username', e.target.value)}
-                                                            />
-                                                        </div>
-                                                        <div className="form-group">
-                                                            <label>New Profile Image</label>
-                                                            <input 
-                                                                type="file" 
-                                                                accept="image/*"
-                                                                onChange={handleFileChange}
-                                                            />
-                                                        </div>
-                                                        <button 
-                                                            className="save-profile-btn"
-                                                            onClick={() => handleSaveProfile(u.id)}
-                                                            disabled={updatingUser === u.id}
-                                                        >
-                                                            {updatingUser === u.id ? 'Saving Changes...' : 'Save Profile Changes'}
-                                                        </button>
-                                                        <hr className="admin-hr" />
-                                                        <button 
-                                                            className="delete-user-btn"
-                                                            onClick={() => handleDeleteUser(u.id, u.username)}
-                                                            disabled={updatingUser === u.id}
-                                                        >
-                                                            Delete Ascendant Account
-                                                        </button>
-                                                    </div>
-                                                </div>
+                <nav className="admin-tabs">
+                    <button 
+                        className={`tab-btn ${activeTab === 'users' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('users')}
+                    >
+                        <i className="fas fa-users"></i> Ascendants
+                    </button>
+                    <button 
+                        className={`tab-btn ${activeTab === 'recovery' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('recovery')}
+                    >
+                        <i className="fas fa-key"></i> Recovery Requests
+                    </button>
+                </nav>
 
-                                                <div className="admin-char-list">
-                                                    <h4>Characters of {u.username}</h4>
-                                                    {u.characters.length === 0 ? (
-                                                        <p className="no-chars">This ascendant has not yet forged any characters.</p>
-                                                    ) : (
-                                                        <div className="admin-char-grid">
-                                                            {u.characters.map(c => (
-                                                                <div key={c.id} className="admin-char-card">
-                                                                    <div className="admin-char-info">
-                                                                        <span className="admin-char-name">{c.name}</span>
-                                                                        <span className="admin-char-details">Lvl {c.level} {c.class_name}</span>
-                                                                    </div>
-                                                                    <div className="admin-char-actions">
-                                                                        <button onClick={() => navigate(`/characters/${c.id}`)} className="admin-btn view">View</button>
-                                                                        <button onClick={() => navigate(`/characters/${c.id}/edit`)} className="admin-btn edit">Edit</button>
-                                                                        <button onClick={(e) => handleDeleteCharacter(c.id, e)} className="admin-btn delete">Delete</button>
-                                                                    </div>
-                                                                </div>
-                                                            ))}
-                                                        </div>
-                                                    )}
-                                                </div>
+                {activeTab === 'users' ? (
+                    <section className="user-table-section">
+                        <h2>Registered Ascendants</h2>
+                        <table className="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Avatar</th>
+                                    <th>Name</th>
+                                    <th>Status</th>
+                                    <th>Characters</th>
+                                    <th>Joined</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {stats?.users.map(u => (
+                                    <React.Fragment key={u.id}>
+                                        <tr className={`${u.is_admin ? 'admin-row' : ''} ${expandedUser === u.id ? 'expanded-row' : ''}`} onClick={() => toggleExpand(u)}>
+                                            <td className="center">
+                                                {u.avatar.startsWith('static/') || u.avatar.startsWith('/') ? (
+                                                    <img 
+                                                        src={`${u.avatar}`} 
+                                                        alt="Avatar" 
+                                                        className="admin-avatar-mini"
+                                                        onError={(e) => {
+                                                            e.target.onerror = null;
+                                                            e.target.src = '';
+                                                            e.target.innerText = u.username.substring(0, 2).toUpperCase();
+                                                        }}
+                                                    />
+                                                ) : (
+                                                    <div className="admin-avatar-mini" title={u.avatar}>
+                                                        {u.username.substring(0, 2).toUpperCase()}
+                                                    </div>
+                                                )}
+                                            </td>
+                                            <td>{u.username}</td>
+                                            <td>
+                                                <span className={`status-badge ${u.is_admin ? 'admin' : 'user'}`}>
+                                                    {u.is_admin ? 'Creator' : 'Ascendant'}
+                                                </span>
+                                            </td>
+                                            <td className="center">{u.character_count}</td>
+                                            <td>{new Date(u.created_at).toLocaleDateString()}</td>
+                                            <td className="center">
+                                                <button className="admin-expand-btn">
+                                                    {expandedUser === u.id ? '▲ Hide' : '▼ Manage'}
+                                                </button>
                                             </td>
                                         </tr>
-                                    )}
-                                </React.Fragment>
-                            ))}
-                        </tbody>
-                    </table>
-                </section>
+                                        {expandedUser === u.id && (
+                                            <tr className="character-sub-row">
+                                                <td colSpan="6">
+                                                    <div className="admin-user-management">
+                                                        <div className="management-header">
+                                                            <div className="user-profile-preview">
+                                                                {u.avatar.startsWith('/') ? (
+                                                                    <img src={`${u.avatar}`} alt="Avatar Large" className="admin-avatar-large" />
+                                                                ) : (
+                                                                    <div className="admin-avatar-large">{u.username.substring(0, 2).toUpperCase()}</div>
+                                                                )}
+                                                                <div className="user-meta-info">
+                                                                    <h3>Manage {u.username}</h3>
+                                                                    <span className="joined-date">Joined on {new Date(u.created_at).toLocaleDateString()}</span>
+                                                                    <span className="security-q">Security Question: <strong>{u.security_question || 'None set'}</strong></span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="edit-actions-form">
+                                                            <div className="form-group">
+                                                                <label>Username</label>
+                                                                <input 
+                                                                    type="text" 
+                                                                    value={editData.username || ''} 
+                                                                    onChange={(e) => handleFieldChange('username', e.target.value)}
+                                                                />
+                                                            </div>
+                                                            <div className="form-group">
+                                                                <label>New Profile Image</label>
+                                                                <input 
+                                                                    type="file" 
+                                                                    accept="image/*"
+                                                                    onChange={handleFileChange}
+                                                                />
+                                                            </div>
+                                                            <button 
+                                                                className="save-profile-btn"
+                                                                onClick={() => handleSaveProfile(u.id)}
+                                                                disabled={updatingUser === u.id}
+                                                            >
+                                                                {updatingUser === u.id ? 'Saving Changes...' : 'Save Profile Changes'}
+                                                            </button>
+                                                            <hr className="admin-hr" />
+                                                            <button 
+                                                                className="delete-user-btn"
+                                                                onClick={() => handleDeleteUser(u.id, u.username)}
+                                                                disabled={updatingUser === u.id}
+                                                            >
+                                                                Delete Ascendant Account
+                                                            </button>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="admin-char-list">
+                                                        <h4>Characters of {u.username}</h4>
+                                                        {u.characters.length === 0 ? (
+                                                            <p className="no-chars">This ascendant has not yet forged any characters.</p>
+                                                        ) : (
+                                                            <div className="admin-char-grid">
+                                                                {u.characters.map(c => (
+                                                                    <div key={c.id} className="admin-char-card">
+                                                                        <div className="admin-char-info">
+                                                                            <span className="admin-char-name">{c.name}</span>
+                                                                            <span className="admin-char-details">Lvl {c.level} {c.class_name}</span>
+                                                                        </div>
+                                                                        <div className="admin-char-actions">
+                                                                            <button onClick={() => navigate(`/characters/${c.id}`)} className="admin-btn view">View</button>
+                                                                            <button onClick={() => navigate(`/characters/${c.id}/edit`)} className="admin-btn edit">Edit</button>
+                                                                            <button onClick={(e) => handleDeleteCharacter(c.id, e)} className="admin-btn delete">Delete</button>
+                                                                        </div>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </React.Fragment>
+                                ))}
+                            </tbody>
+                        </table>
+                    </section>
+                ) : (
+                    <AdminRecovery />
+                )}
             </main>
         </div>
     );

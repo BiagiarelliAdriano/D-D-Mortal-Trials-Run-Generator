@@ -1350,3 +1350,138 @@
 .animated.fadeIn {
     animation: fadeIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
+/* Shop Trade-in System */
+.trade-in-section {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px dashed var(--border);
+}
+
+.trade-in-section h4 {
+    color: var(--accent);
+    font-size: 0.9rem;
+    margin-bottom: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.trade-in-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 200px;
+    overflow-y: auto;
+    padding-right: 5px;
+}
+
+.trade-in-item {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.trade-in-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: var(--text-dim);
+}
+
+.trade-in-item.selected {
+    background: rgba(46, 204, 113, 0.15);
+    border-color: var(--success);
+    box-shadow: inset 0 0 10px rgba(46, 204, 113, 0.1);
+}
+
+.tii-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.tii-name {
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+.tii-rarity {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    opacity: 0.7;
+}
+
+.tii-value {
+    color: var(--accent);
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+.trade-in-summary {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 12px 15px;
+    border-radius: 8px;
+    margin-top: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid rgba(46, 204, 113, 0.3);
+}
+
+.tis-label {
+    font-size: 0.85rem;
+    color: var(--success);
+    font-weight: 600;
+}
+
+.tis-value {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: var(--success);
+}
+
+.shop-confirm-modal {
+    max-width: 600px;
+    width: 95%;
+}
+
+.trade-in-empty {
+    text-align: center;
+    padding: 1rem;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    font-style: italic;
+    color: var(--text-dim);
+    font-size: 0.9rem;
+}
+
+.sgs-row.cost span.discounted {
+    color: var(--success);
+    font-weight: bold;
+}
+
+.sgs-row.remaining.insufficient span {
+    color: #e74c3c;
+    animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+.sq-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.trade-in-hint {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    margin-bottom: 1rem;
+}

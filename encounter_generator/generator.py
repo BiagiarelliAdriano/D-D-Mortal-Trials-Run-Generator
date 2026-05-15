@@ -21,25 +21,38 @@ def get_random_magic_item(rarity):
     item_list = MAGIC_ITEMS[rarity][category]
     selected = random.choice(item_list)
 
+    name = ""
     if category == "Scroll" and selected == "generate":
-        return generate_scroll_for_rarity(rarity)
+        name = generate_scroll_for_rarity(rarity)
     elif category == "Armor" and selected == "enspelled":
-        return generate_enspell_armor(rarity)
+        name = generate_enspell_armor(rarity)
     elif category == "Staff" and selected == "enspelled":
-        return generate_enspell_staff(rarity)
+        name = generate_enspell_staff(rarity)
     elif category == "Weapon" and selected == "enspelled":
-        return generate_enspell_weapon(rarity)
+        name = generate_enspell_weapon(rarity)
     else:
-        return selected
+        name = selected
+        
+    return {
+        "name": name,
+        "rarity": rarity,
+        "category": category
+    }
 
 def get_random_wondrous_item(rarity):
     categories = ["Arcana", "Armaments", "Implements", "Relics"]
     chosen_category = random.choice(categories)
     items = WONDROUS_ITEMS.get(rarity, {}).get(chosen_category, [])
     if not items:
-        return f"{rarity.capitalize()} Wondrous Item ({chosen_category})"
-    
-    return random.choice(items)
+        name = f"{rarity.capitalize()} Wondrous Item ({chosen_category})"
+    else:
+        name = random.choice(items)
+        
+    return {
+        "name": name,
+        "rarity": rarity,
+        "category": "Wondrous"
+    }
 
 def generate_scroll_for_rarity(rarity):
     levels = possible_rarities[rarity]

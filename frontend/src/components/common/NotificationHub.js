@@ -31,6 +31,7 @@ const NotificationHub = ({ notifications, removeAlert, confirmData, onConfirmRes
                                 {n.type === 'error' && '✕'}
                                 {n.type === 'warning' && '⚠'}
                                 {n.type === 'info' && 'ℹ'}
+                                {n.type === 'loading' && <i className="fa-solid fa-spinner fa-spin"></i>}
                             </span>
                             <span className="toast-message">{n.message}</span>
                         </div>

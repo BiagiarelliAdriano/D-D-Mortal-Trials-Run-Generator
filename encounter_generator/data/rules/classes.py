@@ -56,13 +56,14 @@ BARBARIAN = {
                 "description": "Your battle fury is a primal force that surges from within, granting you preternatural strength and resilience. On your turn, you can enter a Rage as a Bonus Action. \n\nWhile Raging, you gain the following benefits: \n- **Strength Advantage**: You have Advantage on Strength checks and Strength saving throws. \n- **Rage Damage**: When you make a melee attack using Strength and hit, you gain a bonus to the damage roll. \n- **Resilience**: You have resistance to Bludgeoning, Piercing, and Slashing damage. \n\nYour Rage lasts for 10 minutes. It ends early if you are knocked unconscious or if your turn ends and you haven't attacked a creature, taken damage, or used a Bonus Action to extend it since your last turn.",
                 "details": {
                     "Action": "Bonus Action",
-                    "Uses": {
-                        "1-2": "2",
-                        "3-5": "3",
-                        "6-11": "4",
-                        "12-16": "5",
-                        "17-20": "6"
+                    "uses": {
+                        "1-2": 2,
+                        "3-5": 3,
+                        "6-11": 4,
+                        "12-16": 5,
+                        "17-20": 6
                     },
+                    "recharge": "Short Rest (regain 1), Long Rest (regain all)",
                     "Rage Damage": {
                         "1-8": "+2",
                         "9-15": "+3",
@@ -86,8 +87,8 @@ BARBARIAN = {
             {
                 "id": "barbarian_weapon_mastery",
                 "name": "Weapon Mastery",
-                "summary": "Gain mastery of two melee weapons; increases at higher levels.",
-                "description": "Your training with weapons allows you to push them beyond their normal limits. You gain mastery of two melee weapons of your choice. When you hit a creature with a weapon you have mastered, you can use the weapon's mastery property if you meet the requirements. At higher levels, the number of weapons you can master increases.",
+                "summary": "Gain mastery of two melee weapons; increases at higher levels. On a Long Rest, you may swap one mastered weapon for another.",
+                "description": "Your training with weapons allows you to push them beyond their normal limits. You gain mastery of two melee weapons of your choice. When you hit a creature with a weapon you have mastered, you can use the weapon's mastery property if you meet the requirements. At higher levels, the number of weapons you can master increases.\n\nWhen you finish a Long Rest, you may replace one of your mastered weapons with a different melee weapon.",
                 "details": {
                     "Action": "Passive",
                     "weapons_mastered": {
@@ -97,7 +98,9 @@ BARBARIAN = {
                             "4-9": 3,
                             "10-20": 4
                         }
-                    }
+                    },
+                    "recharge": "Long Rest",
+                    "recharge_effect": "swap_weapon_mastery"
                 }
             }
         ],
@@ -243,10 +246,17 @@ BARBARIAN = {
             {
                 "id": "barbarian_relentless_rage",
                 "name": "Relentless Rage",
-                "summary": "Make Con save to avoid dropping to 0 HP; DC increases with each use until rest.",
-                "description": "Your rage can keep you fighting through even the most grievous wounds. If you drop to 0 hit points while you're raging and don't die outright, you can make a DC 10 Constitution saving throw. If you succeed, you drop to 1 hit point instead. Each time you use this feature after the first, the DC increases by 5, resetting to 10 after a Short or Long rest.",
+                "summary": "Make Con save to avoid dropping to 0 HP; unlimited uses but DC starts at 10 and increases by 5 each use, resetting on Short or Long Rest.",
+                "description": "Your rage can keep you fighting through even the most grievous wounds. If you drop to 0 hit points while you're raging and don't die outright, you can make a Constitution saving throw. If you succeed, you drop to 1 hit point instead. The DC starts at 10 and increases by 5 each time you use this feature, resetting back to 10 after you finish a Short or Long Rest.",
                 "details": {
                     "Action": "Passive",
+                    "save": "Constitution",
+                    "dc_base": 10,
+                    "dc_increment": 5,
+                    "recharge": "Short or Long Rest",
+                    "recharge_effect": "reset_dc",
+                    "uses": "Unlimited",
+                    "note": "DC resets to 10 after each Short or Long Rest."
                 }
             }
         ],
@@ -282,9 +292,15 @@ BARBARIAN = {
                 "id": "barbarian_persistent_rage",
                 "name": "Persistent Rage",
                 "summary": "Rage lasts 10 minutes without needing extensions; regains all Rage uses on Initiative (once per Long Rest).",
-                "description": "Your rage is so fierce that it now lasts for the full 10 minutes regardless of whether you attack or take damage. Additionally, if you roll Initiative and have no Rage uses left, you regain all your uses (once per Long Rest).",
+                "description": "Your rage is so fierce that it now lasts for the full 10 minutes regardless of whether you attack or take damage. Additionally, once per Long Rest, if you roll Initiative and have no Rage uses left, you regain all your Rage uses immediately.",
                 "details": {
                     "Action": "Passive",
+                    "uses": 1,
+                    "recharge": "Long Rest",
+                    "recharge_effect": "restore_feature",
+                    "restore_target": "barbarian_rage",
+                    "trigger": "Initiative",
+                    "note": "When triggered on Initiative: restores all Rage uses. The trigger itself recharges on Long Rest."
                 }
             }
         ],
@@ -379,6 +395,7 @@ BARD = {
         "progression": "full",
         "preparation_mode": "learned",
         "focus": ["Musical Instrument"],
+        "recharge": "Long Rest",
         "cantrips_known": {1: 2, 4: 3, 10: 4},
         "spells_prepared": {
             1: 4, 2: 5, 3: 6, 4: 7, 5: 9, 6: 10, 7: 11, 8: 12, 9: 14, 10: 15,
@@ -398,7 +415,7 @@ BARD = {
                         "type": "ability-mod",
                         "ability": "Charisma"
                     },
-                    "recharge": "Long Rest",
+                    "recharge": "Long Rest (regain all)",
                     "die": {
                         "type": "level-based",
                         "scaling": {
@@ -419,6 +436,7 @@ BARD = {
                 "description": "You have learned to untangle and reshape the fabric of reality in harmony with your wishes and music. Your spells are part of your vast repertoire, magic that you can tune to different situations. You use Charisma as your spellcasting ability.",
                 "details": {
                     "Action": "Passive",
+                    "recharge": "Long Rest"
                 }
             }
         ],
@@ -483,6 +501,7 @@ BARD = {
                 "details": {
                     "Action": "Passive",
                     "recharge": "Short or Long Rest",
+                    "recharge_change": "bard_bardic_inspiration",
                     "spell_slot_conversion": "Expend 1 slot to regain 1 use (no Action required)"
                 }
             }
@@ -660,6 +679,7 @@ CLERIC = {
         "progression": "full",
         "preparation_mode": "prepared",
         "focus": ["Holy Symbol"],
+        "recharge": "Long Rest",
         "cantrips_known": {1: 3, 4: 4, 10: 5},
         "spells_prepared": {
             1: 4, 2: 5, 3: 6, 4: 7, 5: 9, 6: 10, 7: 11, 8: 12, 9: 14, 10: 15,
@@ -675,6 +695,7 @@ CLERIC = {
                 "description": "As a conduit for divine power, you can cast Cleric spells. You use Wisdom as your spellcasting ability and can use a Holy Symbol as a spellcasting focus. Every day you can prepare a list of spells to have ready.",
                 "details": {
                     "Action": "Passive",
+                    "recharge": "Long Rest"
                 }
             },
             {
@@ -911,6 +932,8 @@ CLERIC = {
                 "details": {
                     "Action": "Passive",
                     "upgrade": "Can cast Level 9 Cleric spells",
+                    "recharge": "2d4 Long Rests",
+                    "recharge_logic": "variable_long_rests",
                     "recharge_penalty": "If level 9 is used, cannot use again for 2d4 Long Rests."
                 }
             }
@@ -956,6 +979,7 @@ DRUID = {
         "progression": "full",
         "preparation_mode": "prepared",
         "focus": ["Druidic Focus"],
+        "recharge": "Long Rest",
         "cantrips_known": {1: 2, 4: 3, 10: 4},
         "spells_prepared": {
             1: 4, 2: 5, 3: 6, 4: 7, 5: 9, 6: 10, 7: 11, 8: 12, 9: 14, 10: 15,
@@ -971,6 +995,7 @@ DRUID = {
                 "description": "Drawing on the divine essence of nature itself, you can cast spells to shape that essence to your will. You use Wisdom as your spellcasting ability and can use a Druidic Focus as a conduit for your magic. After a Long Rest, you can change your list of prepared spells by communion with nature.",
                 "details": {
                     "Action": "Passive",
+                    "recharge": "Long Rest"
                 }
             },
             {
@@ -1085,6 +1110,7 @@ DRUID = {
                 "details": {
                     "Action": "Passive",
                     "slot_to_wild_shape": "Expend spell slot to gain 1 use (if none left, 1/turn)",
+                    "recharge": "Long Rest",
                     "wild_shape_to_slot": "Expend 1 use to gain Level 1 slot (1/Long Rest)"
                 }
             }
@@ -1227,6 +1253,7 @@ DRUID = {
                 "details": {
                     "Action": "Action",
                     "evergreen_wild_shape": "Regain 1 use on Initiative if none are left.",
+                    "recharge": "Long Rest",
                     "nature_magician": "Convert multiple Wild Shape uses into a single spell slot (1 use = 2 spell levels, 1/Long Rest).",
                     "longevity": "Age 1 year for every 10 years passed."
                 }
@@ -1293,10 +1320,10 @@ FIGHTER = {
                 "details": {
                     "Action": "Bonus Action",
                     "Regain": "1d10 + Fighter Level",
-                    "Uses": {
-                        "1-3": "2",
-                        "4-9": "3",
-                        "10-20": "4"
+                    "uses": {
+                        "1-3": 2,
+                        "4-9": 3,
+                        "10-20": 4
                     },
                     "recharge": "Short Rest (regain 1), Long Rest (regain all)"
                 }
@@ -1315,6 +1342,8 @@ FIGHTER = {
                         "10-15": "5 Choices",
                         "16-20": "6 Choices"
                     },
+                    "recharge": "Long Rest",
+                    "recharge_effect": "swap_weapon_mastery",
                     "Maintenance": "Can change 1 choice per Long Rest"
                 }
             }
@@ -1327,12 +1356,12 @@ FIGHTER = {
                 "description": "You can push yourself beyond your normal limits for a moment. On your turn, you can take one additional action of any kind, provided that it is not the Magic action. This additional action must be taken on the same turn you use this feature.",
                 "details": {
                     "Action": "Passive",
-                    "Uses": {
-                        "2-16": "1",
-                        "17-20": "2"
+                    "uses": {
+                        "2-16": 1,
+                        "17-20": 2
                     },
                     "Restriction": "Cannot be used for Magic action; once per turn",
-                    "Recharge": "Short or Long Rest"
+                    "recharge": "Short or Long Rest"
                 }
             },
             {
@@ -1984,6 +2013,7 @@ PALADIN = {
         "progression": "half",
         "preparation_mode": "prepared",
         "focus": ["Holy Symbol"],
+        "recharge": "Long Rest",
         "spells_prepared": {
             1: 2, 2: 3, 3: 4, 4: 5, 5: 6, 6: 6, 7: 7, 8: 7, 9: 9, 10: 9,
             11: 10, 12: 10, 13: 11, 14: 11, 15: 12, 16: 12, 17: 14, 18: 14, 19: 15, 20: 15
@@ -1999,6 +2029,7 @@ PALADIN = {
                 "details": {
                     "Action": "Bonus Action",
                     "pool": "5 * Paladin Level",
+                    "recharge": "Long Rest",
                     "poison_removal_cost": 5
                 }
             },
@@ -2009,6 +2040,7 @@ PALADIN = {
                 "description": "You have learned to cast divine spells through meditation and prayer. You use your Charisma whenever a spell refers to your spellcasting ability.",
                 "details": {
                     "Action": "Passive",
+                    "recharge": "Long Rest"
                 }
             },
             {
@@ -2018,7 +2050,9 @@ PALADIN = {
                 "description": "Your training with weapons allows you to use the mastery properties of particular weapons. You gain the mastery properties of two weapons of your choice.",
                 "details": {
                     "Action": "Passive",
-                    "masteries": 2
+                    "masteries": 2,
+                    "recharge": "Long Rest",
+                    "recharge_effect": "swap_weapon_mastery"
                 }
             }
         ],
@@ -2047,7 +2081,8 @@ PALADIN = {
                 "details": {
                     "Action": "Bonus Action",
                     "spells_granted": ["Divine Smite"],
-                    "free_cast": "1/Long Rest"
+                    "free_cast": "1/Long Rest",
+                    "recharge": "Long Rest"
                 }
             }
         ],
@@ -2120,7 +2155,8 @@ PALADIN = {
                 "details": {
                     "Action": "Action",
                     "spells_granted": ["Find Steed"],
-                    "free_cast": "1/Long Rest"
+                    "free_cast": "1/Long Rest",
+                    "recharge": "Long Rest"
                 }
             }
         ],
@@ -2316,6 +2352,7 @@ RANGER = {
         "progression": "half",
         "preparation_mode": "prepared",
         "focus": ["Druidic Focus"],
+        "recharge": "Long Rest",
         "spells_prepared": {
             1: 2, 2: 3, 3: 4, 4: 5, 5: 6, 6: 6, 7: 7, 8: 7, 9: 9, 10: 9,
             11: 10, 12: 10, 13: 11, 14: 11, 15: 12, 16: 12, 17: 14, 18: 14, 19: 15, 20: 15
@@ -2330,7 +2367,8 @@ RANGER = {
                 "description": "You have learned to cast spells derived from the primal forces of nature. You use your Wisdom whenever a spell refers to your spellcasting ability.",
                 "details": {
                     "Action": "Passive",
-                    "spells_lvl_1": 2
+                    "spells_lvl_1": 2,
+                    "recharge": "Long Rest"
                 }
             },
             {
@@ -2352,7 +2390,9 @@ RANGER = {
                 "description": "Your training with weapons allows you to use the mastery properties of particular weapons. You gain the mastery properties of two weapons of your choice.",
                 "details": {
                     "Action": "Passive",
-                    "masteries": 2
+                    "masteries": 2,
+                    "recharge": "Long Rest",
+                    "recharge_effect": "swap_weapon_mastery"
                 }
             }
         ],
@@ -2680,7 +2720,9 @@ ROGUE = {
                 "description": "Your training with weapons allows you to use the mastery properties of particular weapons. You gain the mastery properties of two weapons of your choice.",
                 "details": {
                     "Action": "Passive",
-                    "masteries": 2
+                    "masteries": 2,
+                    "recharge": "Long Rest",
+                    "recharge_effect": "swap_weapon_mastery"
                 }
             }
         ],
@@ -2979,6 +3021,7 @@ SORCERER = {
         "progression": "full",
         "preparation_mode": "learned",
         "focus": ["Arcane Focus"],
+        "recharge": "Long Rest",
         "cantrips_known": {1: 4, 4: 5, 10: 6},
         "spells_prepared": {
             1: 2, 2: 4, 3: 6, 4: 7, 5: 9, 6: 10, 7: 11, 8: 12, 9: 14, 10: 15,
@@ -2994,6 +3037,7 @@ SORCERER = {
                 "description": "An event in your past, or in the life of a precursor, left an indelible mark on you, infusing you with arcane magic. This magic is yours to command through your force of personality.",
                 "details": {
                     "Action": "Passive",
+                    "recharge": "Long Rest"
                 }
             },
             {
@@ -3082,12 +3126,13 @@ SORCERER = {
             {
                 "id": "sorcerer_sorcerous_restoration",
                 "name": "Sorcerous Restoration",
-                "summary": "Regain Sorcery Points on a Short Rest or rolling Initiative.",
-                "description": "You have learned to recover your sorcerous energy through short periods of rest. Once per Long Rest, you can regain half your expended Sorcery Points when you finish a Short Rest. \n\nIn addition, when you roll Initiative and have no Sorcery Points remaining, you regain 1 Sorcery Point.",
+                "summary": "Regain Sorcery Points on a Short Rest.",
+                "description": "You have learned to recover your sorcerous energy through short periods of rest. Once per Long Rest, you can regain half your Sorcerer level (rounded up) in Sorcery Points when you finish a Short Rest.",
                 "details": {
                     "Action": "Passive",
+                    "uses": 1,
                     "trigger": "Short Rest",
-                    "amount": "Level / 2 (round down)",
+                    "amount": "Level / 2 (round up)",
                     "recharge": "Long Rest"
                 }
             }
@@ -3234,6 +3279,7 @@ WARLOCK = {
         "progression": "pact",
         "preparation_mode": "learned",
         "focus": ["Arcane Focus"],
+        "recharge": "Short or Long Rest",
         "cantrips_known": {1: 2, 4: 3, 10: 4},
         "spells_prepared": {
             1: 2, 2: 3, 3: 4, 4: 5, 5: 6, 6: 7, 7: 8, 8: 9, 9: 10, 10: 10,
@@ -3265,6 +3311,7 @@ WARLOCK = {
                 "description": "Your arcane research and the magic bestowed on you by your patron have given you facility with spells.",
                 "details": {
                     "Action": "Passive",
+                    "recharge": "Short or Long Rest"
                 }
             }
         ],
@@ -3276,6 +3323,7 @@ WARLOCK = {
                 "description": "You can perform an occult ritual to regain some of your expended Pact Magic spell slots. By spending 1 minute in ritualistic prayer or meditation, you regain a number of Pact Magic spell slots equal to half your total number of Pact Magic spell slots (rounded up). \n\nYou regain the ability to do so when you finish a Long Rest.",
                 "details": {
                     "Action": "Passive",
+                    "uses": 1,
                     "recharge": "Long Rest",
                     "benefit": "Regain half Pact Magic slots (round up)"
                 }
@@ -3337,6 +3385,7 @@ WARLOCK = {
                 "description": "You can communicate directly with your patron to seek guidance. You have the Contact Other Plane spell always prepared, and you can cast it for free with automatic success once per day.",
                 "details": {
                     "Action": "Passive",
+                    "uses": 1,
                     "spells_granted": ["Contact Other Plane"],
                     "free_cast_benefit": "Auto-success on saving throw",
                     "recharge": "Long Rest"
@@ -3363,6 +3412,7 @@ WARLOCK = {
                 "description": "Your patron bestows upon you a magical secret called an arcanum. You can choose one 6th-level spell from the warlock spell list to cast once without expending a spell slot.",
                 "details": {
                     "Action": "Passive",
+                    "uses": 1,
                     "arcanum_level": 6,
                     "recharge": "Long Rest"
                 }
@@ -3386,6 +3436,7 @@ WARLOCK = {
                 "description": "Your patron bestows upon you another arcanum. You can choose one 7th-level spell from the warlock spell list to cast once without expending a spell slot.",
                 "details": {
                     "Action": "Passive",
+                    "uses": 1,
                     "arcanum_level": 7,
                     "recharge": "Long Rest"
                 }
@@ -3411,6 +3462,7 @@ WARLOCK = {
                 "description": "Your patron bestows upon you another arcanum. You can choose one 8th-level spell from the warlock spell list to cast once without expending a spell slot.",
                 "details": {
                     "Action": "Passive",
+                    "uses": 1,
                     "arcanum_level": 8,
                     "recharge": "Long Rest"
                 }
@@ -3434,6 +3486,7 @@ WARLOCK = {
                 "description": "Your patron bestows upon you a final arcanum. You can choose one 9th-level spell from the warlock spell list to cast once without expending a spell slot.",
                 "details": {
                     "Action": "Passive",
+                    "uses": 1,
                     "arcanum_level": 9,
                     "recharge": "Long Rest"
                 }
@@ -3467,9 +3520,9 @@ WIZARD = {
     "id": "wizard",
     "name": "Wizard",
     "subclasses": WIZARD_SUBCLASSES,
-    "description": """Wizards are supreme magic-users, defined and united as a class by the spells 
-        they cast. Drawing on the subtle weave of magic that permeates the cosmos, wizards cast 
-        spells of explosive fire, arcing lightning, subtle deception, and brute-force mind control.""",
+    "description": """Wizards are supreme magic-users, defined and united as a class by the spells they cast. 
+        Drawing on the subtle weave of magic that permeates the cosmos, wizards cast spells of explosive fire, 
+        arcing lightning, subtle deception, and brute-force mind control.""",
     "primary_ability": "Intelligence",
     "hit_die": "d6",
     "proficiencies": {
@@ -3501,6 +3554,7 @@ WIZARD = {
         "progression": "full",
         "preparation_mode": "prepared",
         "focus": ["Arcane Focus", "Spellbook"],
+        "recharge": "Long Rest",
         "cantrips_known": {1: 3, 4: 4, 10: 5},
         "spells_prepared": {
             1: 4, 2: 5, 3: 6, 4: 7, 5: 8, 6: 9, 7: 10, 8: 11, 9: 12, 10: 13,
@@ -3518,10 +3572,11 @@ WIZARD = {
             {
                 "id": "wizard_spellcasting",
                 "name": "Spellcasting",
-                "summary": "Cast Wizard spells using Intelligence; replace one cantrip after a Long Rest.",
+                "summary": "Cast Wizard spells using Intelligence and a Spellbook; can swap one spell on level up.",
                 "description": "As a student of arcane magic, you have a spellbook containing spells that show the first glimmerings of your true power.",
                 "details": {
                     "Action": "Passive",
+                    "recharge": "Long Rest"
                 }
             },
             {
@@ -3541,7 +3596,9 @@ WIZARD = {
                 "description": "You have learned to regain some of your magical energy by studying your spellbook. Once per day when you finish a Short Rest, you can choose expended spell slots to recover. \n\nThe combined level of the spell slots you recover can be no more than half your wizard level (rounded up), and none of the slots can be of 6th level or higher. For example, if you're a 4th-level wizard, you can recover up to two levels worth of spell slots.",
                 "details": {
                     "Action": "Passive",
+                    "uses": 1,
                     "recharge": "Long Rest",
+                    "trigger": "Short Rest",
                     "max_slot_level": 5,
                     "recovery_amount": "Wizard Level / 2 (round up)"
                 }
@@ -3581,7 +3638,7 @@ WIZARD = {
                 "name": "Feat or ASI",
                 "summary": "Choose a feat or increase ability scores.",
                 "details": {
-                    "Action": "Passive",
+                    "Action": "Passive"
                 }
             }
         ],
@@ -3593,6 +3650,9 @@ WIZARD = {
                 "description": "You can quickly study your spellbook to change one of your prepared spells. Whenever you finish a Short Rest, you can choose one of the Wizard spells you have prepared and replace it with another spell of the same level from your spellbook.",
                 "details": {
                     "Action": "Passive",
+                    "uses": 1,
+                    "trigger": "Short Rest",
+                    "recharge": "Short Rest",
                     "effect": "Swap one prepared spell after a Short Rest"
                 }
             }
@@ -3605,7 +3665,7 @@ WIZARD = {
                 "summary": "Gain a feature from your chosen Wizard subclass.",
                 "description": "You gain a new ability based on the Arcane Tradition you chose at 3rd level.",
                 "details": {
-                    "Action": "Passive",
+                    "Action": "Passive"
                 }
             }
         ],
@@ -3615,7 +3675,7 @@ WIZARD = {
                 "name": "Feat or ASI",
                 "summary": "Choose a feat or increase ability scores.",
                 "details": {
-                    "Action": "Passive",
+                    "Action": "Passive"
                 }
             }
         ],
@@ -3627,7 +3687,7 @@ WIZARD = {
                 "summary": "Gain a feature from your chosen Wizard subclass.",
                 "description": "You gain a new ability based on the Arcane Tradition you chose at 3rd level.",
                 "details": {
-                    "Action": "Passive",
+                    "Action": "Passive"
                 }
             }
         ],
@@ -3637,7 +3697,7 @@ WIZARD = {
                 "name": "Feat or ASI",
                 "summary": "Choose a feat or increase ability scores.",
                 "details": {
-                    "Action": "Passive",
+                    "Action": "Passive"
                 }
             }
         ],
@@ -3649,7 +3709,7 @@ WIZARD = {
                 "summary": "Gain a feature from your chosen Wizard subclass.",
                 "description": "You gain a final, powerful ability based on the Arcane Tradition you chose at 3rd level.",
                 "details": {
-                    "Action": "Passive",
+                    "Action": "Passive"
                 }
             }
         ],
@@ -3659,7 +3719,7 @@ WIZARD = {
                 "name": "Feat or ASI",
                 "summary": "Choose a feat or increase ability scores.",
                 "details": {
-                    "Action": "Passive",
+                    "Action": "Passive"
                 }
             }
         ],
@@ -3668,9 +3728,12 @@ WIZARD = {
                 "id": "wizard_spell_mastery",
                 "name": "Spell Mastery",
                 "summary": "Cast a chosen level 1 and level 2 spell at will.",
-                "description": "You have achieved such mastery over certain spells that you can cast them at will. Choose a 1st-level wizard spell and a 2nd-level wizard spell that are in your spellbook. You can cast those spells at their lowest level without expending a spell slot when you have them prepared. \n\nYou can spend 8 hours in study to swap one or both of these spells for different spells of the same levels.",
+                "description": "You have achieved such mastery over certain spells that you can cast them at will. Choose a 1st-level wizard spell and a 2nd-level wizard spell that are in your spellbook. You can cast those spells at their lowest level without expending a spell slot when you have them prepared. \n\nWhen taking a Long Rest, you can go deep in study to swap one or both of these spells for different spells of the same levels.",
                 "details": {
                     "Action": "Passive",
+                    "uses": 1,
+                    "recharge": "Long Rest",
+                    "recharge_effect": "swap_mastery_spells",
                     "at_will_levels": [1, 2]
                 }
             }
@@ -3681,7 +3744,7 @@ WIZARD = {
                 "name": "Epic Boon or Feat",
                 "summary": "Choose a powerful Epic Boon or another feat.",
                 "details": {
-                    "Action": "Passive",
+                    "Action": "Passive"
                 }
             }
         ],
@@ -3693,10 +3756,27 @@ WIZARD = {
                 "description": "You gain mastery over two powerful spells and can cast them with little effort. Choose two 3rd-level wizard spells in your spellbook as your signature spells. You always have these spells prepared, and they don't count against the number of spells you have prepared. \n\nYou can cast each of them once at 3rd level without expending a spell slot. When you do so, you can't do so again until you finish a Short or Long Rest.",
                 "details": {
                     "Action": "Passive",
+                    "uses": 2,
                     "signature_level": 3,
                     "recharge": "Short or Long Rest"
                 }
             }
         ]
     }
+}
+
+
+CLASSES = {
+    "barbarian": BARBARIAN,
+    "bard": BARD,
+    "cleric": CLERIC,
+    "druid": DRUID,
+    "fighter": FIGHTER,
+    "monk": MONK,
+    "paladin": PALADIN,
+    "ranger": RANGER,
+    "rogue": ROGUE,
+    "sorcerer": SORCERER,
+    "warlock": WARLOCK,
+    "wizard": WIZARD
 }

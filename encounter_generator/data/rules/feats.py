@@ -125,7 +125,12 @@ GENERAL_FEATS = [
             """Increase one ability score of your choice by 2, or increase two ability scores of your choice by 1.
                 This feat can't increase an ability score above 20.""",
             """Repeatable. You can take this feat more than once.""",
-        ]
+        ],
+        "choice": {
+            "choose": 2,
+            "options": ["Strength", "Dexterity", "Constitution", "Intelligence", "Wisdom", "Charisma"],
+            "allow_duplicates": True
+        }
     },
     {
         "name": "Actor",
@@ -148,7 +153,11 @@ GENERAL_FEATS = [
             """Climb Speed. You gain a Climb Speed equal to your Speed.""",
             """Hop Up. When you have the Prone condition, you can right yourself with only 5ft of movement.""",
             """Jumping. You can make a running Long or High Jump after moving only 5ft.""",
-        ]
+        ],
+        "choice": {
+            "choose": 1,
+            "options": ["Strength", "Dexterity"]
+        }
     },
     {
         "name": "Charger",
@@ -161,7 +170,11 @@ GENERAL_FEATS = [
                 it with a melee attack roll as part of the Attack action, choose one of the following effects: gain a 1d8
                 bonus to the attack's damage roll, or push the target up to 10ft away if it is no more than one size
                 larger than you. You can use this benefit only once on each of your turns.""",
-        ]
+        ],
+        "choice": {
+            "choose": 1,
+            "options": ["Strength", "Dexterity"]
+        }
     },
     {
         "name": "Chef",
@@ -178,7 +191,11 @@ GENERAL_FEATS = [
                 to your Proficiency Bonus if you have ingredients and Cook's Utensils on hand. These special treats last 8
                 hours after being made. A creature can use a Bonus Action to eat one of those treats to gain a number of Temporary
                 Hit Points equal to your Proficiency Bonus.""",
-        ]
+        ],
+        "choice": {
+            "choose": 1,
+            "options": ["Constitution", "Wisdom"]
+        }
     },
     {
         "name": "Crossbow Expert",
@@ -206,7 +223,11 @@ GENERAL_FEATS = [
                 5ft to an unoccupied space if the target is no more than one size larger than you.""",
             """Enhanced Critical. When you score a Critical Hit that deals Bludgeoning damage to a creature, attack rolls
                 against that creature have Advantage until the start of your next turn.""",
-        ]
+        ],
+        "choice": {
+            "choose": 1,
+            "options": ["Strength", "Constitution"]
+        }
     },
     {
         "name": "Defensive Duelist",
@@ -231,7 +252,11 @@ GENERAL_FEATS = [
                 to the extra attack's damage unless that modifier is negative.""",
             """Quick Draw. You can draw or stow two weapons that lack the Two-Handed property when you would
                 normally be able to draw or stow only one.""",
-        ]
+        ],
+        "choice": {
+            "choose": 1,
+            "options": ["Strength", "Dexterity"]
+        }
     },
     {
         "name": "Durable",
@@ -255,7 +280,11 @@ GENERAL_FEATS = [
                 a spell you cast that deals damage of that type, you can treat any 1 on a damage die as a 2.""",
             """Repeatable. You can take this feat more than once, but you must choose a different damage type each time
                 for Energy Mastery.""",
-        ]
+        ],
+        "choice": {
+            "choose": 1,
+            "options": ["Acid", "Cold", "Fire", "Lightning", "Thunder"]
+        }
     },
     {
         "name": "Verdant-Touched",
@@ -303,7 +332,11 @@ GENERAL_FEATS = [
             "You gain the following benefits",
             """Ability Score Increase. Increase your Constitution or Strength score by 1, to a maximum of 20.""",
             """Armor Training. You gain training with Heavy armor.""",
-        ]
+        ],
+        "choice": {
+            "choose": 1,
+            "options": ["Constitution", "Strength"]
+        }
     },
     {
         "name": "Heavy Armor Master",
@@ -314,7 +347,11 @@ GENERAL_FEATS = [
             """Damage Reduction. When you're hit by an attack while you're wearing Heavy armor, any Bludgeoning,
                 Piercing, and Slashing damage dealt to you by that attack is reduced by an amount equal to your
                 Proficiency Bonus.""",
-        ]
+        ],
+        "choice": {
+            "choose": 1,
+            "options": ["Constitution", "Strength"]
+        }
     },
     {
         "name": "Inspiring Leader",
@@ -326,7 +363,11 @@ GENERAL_FEATS = [
                 a speech, song, or dance. When you do so, choose up to six allies (which can include yourself) within
                 30ft of yourself who witness the performance. The chosen creatures each gain Temporary Hit Points equal
                 to your character level plus the modifier of the ability you increased with this feat.""",
-        ]
+        ],
+        "choice": {
+            "choose": 1,
+            "options": ["Wisdom", "Charisma"]
+        }
     },
     {
         "name": "Keen Mind",
@@ -347,7 +388,11 @@ GENERAL_FEATS = [
             "You gain the following benefits",
             """Ability Score Increase. Increase your Strength or Dexterity score by 1 to a maximum of 20.""",
             """Armor Training. You gain training with Light armor and Shields.""",
-        ]
+        ],
+        "choice": {
+            "choose": 1,
+            "options": ["Strength", "Dexterity"]
+        }
     },
     {
         "name": "Mage Slayer",
@@ -359,7 +404,11 @@ GENERAL_FEATS = [
                 saving throw it makes to maintain Concentration.""",
             """Guarded Mind. If you fail an Intelligence, a Wisdom, or a Charisma saving throw, you can cause yourself to
                 succeed instead. Once you use this benefit, you can't use it again until you finish a Short or Long Rest.""",
-        ]
+        ],
+        "choice": {
+            "choose": 1,
+            "options": ["Strength", "Dexterity"]
+        }
     },
     {
         "name": "Martial Weapon Training",
@@ -368,7 +417,11 @@ GENERAL_FEATS = [
             "You gain the following benefits",
             """Ability Score Increase. Increase your Strength or Dexterity score by 1, to a maximum of 20.""",
             """Weapon Proficiency. You gain proficiency with Martial weapons.""",
-        ]
+        ],
+        "choice": {
+            "choose": 1,
+            "options": ["Strength", "Dexterity"]
+        }
     },
     {
         "name": "Medium Armor Master",
@@ -378,7 +431,11 @@ GENERAL_FEATS = [
             """Ability Score Increase. Increase your Strength or Dexterity score by 1, to a maximum of 20.""",
             """Dexterous Wearer. While you're wearing Medium armor, you can add 3, rather than 2, to your AC if
                 you have a Dexterity score of 16 or higher.""",
-        ]
+        ],
+        "choice": {
+            "choose": 1,
+            "options": ["Strength", "Dexterity"]
+        }
     },
     {
         "name": "Moderately Armored",
@@ -387,7 +444,11 @@ GENERAL_FEATS = [
             "You gain the following benefits",
             """Ability Score Increase. Increase your Strength or Dexterity score by 1, to a maximum of 20.""",
             """Armor Training. You gain training with Medium armor.""",
-        ]
+        ],
+        "choice": {
+            "choose": 1,
+            "options": ["Strength", "Dexterity"]
+        }
     },
     {
         "name": "Mounted Combatant",
@@ -403,7 +464,11 @@ GENERAL_FEATS = [
                 condition.""",
             """Veer. While mounted, you can force an attack that hits your mount to hit you instead if you don't have
                 the Incapacitated condition.""",
-        ]
+        ],
+        "choice": {
+            "choose": 1,
+            "options": ["Strength", "Dexterity", "Wisdom"]
+        }
     },
     {
         "name": "Observant",
@@ -415,7 +480,11 @@ GENERAL_FEATS = [
                 proficiency with the chosen skill, you gain proficiency in it, and if you already have proficiency in it,
                 you gain Expertise in it.""",
             """Quick Search. You can take the Search action as a Bonus Action.""",
-        ]
+        ],
+        "choice": {
+            "choose": 1,
+            "options": ["Intelligence", "Wisdom"]
+        }
     },
     {
         "name": "Piercer",
@@ -427,7 +496,11 @@ GENERAL_FEATS = [
                 one of the attack's damage dice, and you must use the new roll.""",
             """Enhanced Critical. When you score a Critical Hit that deals Piercing damage to a creature, you can roll one
                 additional damage die when determining the extra Piercing damage the target takes.""",
-        ]
+        ],
+        "choice": {
+            "choose": 1,
+            "options": ["Strength", "Dexterity"]
+        }
     },
     {
         "name": "Poisoner",
@@ -443,7 +516,11 @@ GENERAL_FEATS = [
                 takes damage from the poisoned item, that creature must succeed on a Constitution saving throw
                 (DC 8 plus the modifier of the ability increased by this feat and your Proficiency Bonus) or take 2d8 Poison
                 damage and have the Poisoned condition until the end of your next turn.""",
-        ]
+        ],
+        "choice": {
+            "choose": 1,
+            "options": ["Dexterity", "Intelligence"]
+        }
     },
     {
         "name": "Polearm Master",
@@ -456,7 +533,11 @@ GENERAL_FEATS = [
                 end of the weapon. The weapon deals Bludgeoning damage, and the weapon's damage die for this attack is a d4.""",
             """Reactive Strike. While you're holding a Quarterstaff, a Staff, or a weapon that has the Heavy and Reach properties,
                 you can take a Reaction to make one melee attack against a creature that enters the reach you have that weapon.""",
-        ]
+        ],
+        "choice": {
+            "choose": 1,
+            "options": ["Dexterity", "Strength"]
+        }
     },
     {
         "name": "Resilient",
@@ -466,7 +547,11 @@ GENERAL_FEATS = [
             """Ability Score Increase. Choose one ability in which you lack saving throw proficiency. Increase the chosen
                 ability score by 1, to a maximum of 20.""",
             """Saving Throw Proficiency. You gain saving throw proficiency with the chosen ability.""",
-        ]
+        ],
+        "choice": {
+            "choose": 1,
+            "options": ["Strength", "Dexterity", "Constitution", "Intelligence", "Wisdom", "Charisma"]
+        }
     },
     {
         "name": "Ritual Caster",
@@ -492,7 +577,11 @@ GENERAL_FEATS = [
             """Guardian. Immediately after a creature within 5ft of you takes the Disengage action or hits a target
                 other than you with an attack, you can make an Opportunity Attack against that creature.""",
             """Halt. When you hit a creature with an Opportunity Attack, the creature's Speed becomes 0 for the rest of the current turn.""",
-        ]
+        ],
+        "choice": {
+            "choose": 1,
+            "options": ["Strength", "Dexterity"]
+        }
     },
     {
         "name": "Shadow-Touched",
@@ -543,7 +632,11 @@ GENERAL_FEATS = [
             """Ability Score Increase. Increase one ability score of your choice by 1, to a maximum of 20.""",
             """Skill Proficiency. You gain proficiency in one skill of your choice.""",
             """Expertise. Choose one skill in which you have proficiency but lack Expertise. You gain Expertise with that skill.""",
-        ]
+        ],
+        "choice": {
+            "choose": 1,
+            "options": ["Strength", "Dexterity", "Constitution", "Intelligence", "Wisdom", "Charisma"]
+        }
     },
     {
         "name": "Skulker",
@@ -568,7 +661,11 @@ GENERAL_FEATS = [
                 the Speed of that creature by 10ft until the start of your next turn.""",
             """Enhanced Critical. When you score a Critical Hit that deals Slashing damage to a creature, it has Disadvantage
                 on attack rolls until the start of your next turn.""",
-        ]
+        ],
+        "choice": {
+            "choose": 1,
+            "options": ["Strength", "Dexterity"]
+        }
     },
     {
         "name": "Speedy",
@@ -580,7 +677,11 @@ GENERAL_FEATS = [
             """Dash over Difficult Terrain. When you take the Dash action on your turn, Difficult Terrain doesn't cost you extra
                 movement for the rest of that turn.""",
             """Agile Movement. Opportunity Attacks have Disadvantage against you.""",
-        ]
+        ],
+        "choice": {
+            "choose": 1,
+            "options": ["Dexterity", "Constitution"]
+        }
     },
     {
         "name": "Spell Sniper",
@@ -645,7 +746,11 @@ GENERAL_FEATS = [
             """Mastery Property. Your training with weapons allows you to use the mastery property of one kind of Simple or Martial
                 weapon of your choice, provided you have proficiency with it. Whenever you finish a Long Rest, you can change the kind
                 of weapon to another eligible kind.""",
-        ]
+        ],
+        "choice": {
+            "choose": 1,
+            "options": ["Strength", "Dexterity"]
+        }
     },
 ]
 

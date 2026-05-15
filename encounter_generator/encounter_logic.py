@@ -431,31 +431,37 @@ def generate_shop_encounter(rarity1, rarity2):
             item_list = MAGIC_ITEMS[primary][category]
             selected = random.choice(item_list)
 
+            name = ""
             if category == "Scroll" and selected == "generate":
-                items.append(generate_scroll_for_rarity(primary))
+                name = generate_scroll_for_rarity(primary)
             elif category == "Armor" and selected == "enspelled":
-                items.append(generate_enspell_armor(primary))
+                name = generate_enspell_armor(primary)
             elif category == "Staff" and selected == "enspelled":
-                items.append(generate_enspell_staff(primary))
+                name = generate_enspell_staff(primary)
             elif category == "Weapon" and selected == "enspelled":
-                items.append(generate_enspell_weapon(primary))
+                name = generate_enspell_weapon(primary)
             else:
-                items.append(selected)
+                name = selected
+            
+            items.append({"name": name, "rarity": primary, "category": category})
 
         # Generate 1 item from secondary rarity
         item_list = MAGIC_ITEMS[secondary][category]
         selected = random.choice(item_list)
 
+        name = ""
         if category == "Scroll" and selected == "generate":
-            items.append(generate_scroll_for_rarity(secondary))
+            name = generate_scroll_for_rarity(secondary)
         elif category == "Armor" and selected == "enspelled":
-            items.append(generate_enspell_armor(secondary))
+            name = generate_enspell_armor(secondary)
         elif category == "Staff" and selected == "enspelled":
-            items.append(generate_enspell_staff(secondary))
+            name = generate_enspell_staff(secondary)
         elif category == "Weapon" and selected == "enspelled":
-            items.append(generate_enspell_weapon(secondary))
+            name = generate_enspell_weapon(secondary)
         else:
-            items.append(selected)
+            name = selected
+            
+        items.append({"name": name, "rarity": secondary, "category": category})
 
         shop_inventory[category] = items
 
@@ -519,7 +525,8 @@ def generate_encounter(encounter_number, run_state):
     # Generate all normal magic items first
     for _ in range(loot_count):
         if rarities:
-            magic_items.append(get_random_magic_item(random.choice(rarities)))
+            chosen_rarity = random.choice(rarities)
+            magic_items.append(get_random_magic_item(chosen_rarity))
 
     # Then do a single 30% roll to upgrade one to a wondrous item
     if rarities and loot_count > 0 and random.random() < 0.3:
@@ -605,7 +612,8 @@ def generate_filtered_encounter(encounter_number):
 
     for _ in range(loot_count):
         if rarities:
-            magic_items.append(get_random_magic_item(random.choice(rarities)))
+            chosen_rarity = random.choice(rarities)
+            magic_items.append(get_random_magic_item(chosen_rarity))
 
     if rarities and loot_count > 0 and random.random() < 0.3:
         wondrous_index = random.randrange(loot_count)

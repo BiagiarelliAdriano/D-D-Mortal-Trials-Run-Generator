@@ -285,6 +285,57 @@
     to { opacity: 1; transform: translateY(0); }
 }
 
+/* ── Security Challenge Step 2 ── */
+
+/* Info banner shown at the top of step 2 */
+.security-challenge-notice {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    background: rgba(255, 215, 0, 0.06);
+    border: 1px solid rgba(255, 215, 0, 0.25);
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin-bottom: 22px;
+    color: #e8daa0;
+    font-size: 0.88rem;
+    line-height: 1.5;
+    animation: fadeIn 0.3s ease-out;
+}
+
+.security-challenge-notice i {
+    color: #ffd700;
+    font-size: 1.1rem;
+    margin-top: 2px;
+    flex-shrink: 0;
+}
+
+/* "← Back to Credentials" button below the submit button */
+.back-step-btn {
+    width: 100%;
+    background: transparent;
+    border: 1px solid rgba(142, 68, 173, 0.3);
+    color: #a395b3;
+    padding: 10px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: all 0.2s ease;
+    letter-spacing: 0.5px;
+}
+
+.back-step-btn:hover:not(:disabled) {
+    border-color: rgba(142, 68, 173, 0.7);
+    color: #d4c4e8;
+    background: rgba(142, 68, 173, 0.08);
+}
+
+.back-step-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
 /* Responsive constraints */
 @media (max-width: 768px) {
     .two-col-form {

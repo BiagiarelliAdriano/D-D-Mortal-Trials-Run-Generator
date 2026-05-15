@@ -133,6 +133,57 @@
     border-radius: 50px;
     cursor: pointer;
     gap: 10px;
+    transition: all 0.3s ease;
+}
+
+.dice-roll-button:hover:not(:disabled) {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(142, 68, 173, 0.4);
+}
+
+.randomize-button {
+    background: linear-gradient(135deg, #1a1a2b 0%, #000 100%);
+    color: var(--accent);
+    border: 1px solid var(--accent);
+    padding: 8px 25px;
+    font-size: 1rem;
+    font-family: var(--font-serif);
+    border-radius: 50px;
+    cursor: pointer;
+    margin-top: 15px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+}
+
+.randomize-button:hover:not(:disabled) {
+    background: rgba(255, 215, 0, 0.1);
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+    transform: translateY(-2px);
+}
+
+.randomize-button.loading {
+    border-color: var(--primary);
+    box-shadow: 0 0 25px var(--primary-dim);
+    animation: randomizePulse 1.5s infinite ease-in-out;
+}
+
+.randomize-button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+@keyframes randomizePulse {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.05); opacity: 0.8; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.stat-button.disabled, .assigned-stat-button.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    filter: grayscale(0.5);
 }
 
 .rolled-stats-group {

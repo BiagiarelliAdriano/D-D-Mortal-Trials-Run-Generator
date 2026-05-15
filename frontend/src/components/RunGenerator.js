@@ -70,7 +70,9 @@ const RunGenerator = () => {
                             <div key={category} className="item-category">
                                 <h5>{category}</h5>
                                 <ul>
-                                    {items.map((item, idx) => <li key={idx}>{item}</li>)}
+                                    {items.map((item, idx) => (
+                                        <li key={idx}>{typeof item === 'string' ? item : item.name}</li>
+                                    ))}
                                 </ul>
                             </div>
                         ))}
@@ -103,7 +105,9 @@ const RunGenerator = () => {
                     <div className="detail-section highlight">
                         <h4><i className="fa-solid fa-wand-magic-sparkles"></i> Divine Gifts</h4>
                         <ul className="gift-list">
-                            {encounter.magic_items.map((item, i) => <li key={i}>{item}</li>)}
+                            {encounter.magic_items.map((item, i) => (
+                                <li key={i}>{typeof item === 'string' ? item : item.name}</li>
+                            ))}
                         </ul>
                     </div>
                 )}

@@ -3,7 +3,7 @@ from datetime import datetime
 from flask_migrate import Migrate
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
-from models import db, Run, Character, User, HostedRun, SessionParticipant
+from models import db, Run, Character, User, HostedRun, SessionParticipant, RecoveryRequest
 from encounter_generator.encounter_logic import generate_all_encounters
 from encounter_generator.generator import generate_divine_blessing
 from encounter_generator.data.rules.classes import BARBARIAN, BARD, CLERIC, DRUID, FIGHTER, MONK, PALADIN, RANGER, ROGUE, SORCERER, WARLOCK, WIZARD
@@ -19,9 +19,13 @@ import json
 import os
 import uuid
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.sql import func
 from PIL import Image
 from werkzeug.utils import secure_filename
 from werkzeug.security import generate_password_hash
+from cryptography.fernet import Fernet
+import base64
+from hashlib import sha256
 
 XP_THRESHOLDS = {
     1: 0,
@@ -125,22 +129,27 @@ RARITY_CATEGORY_PRICES = {
     "common": {
         "Armor": 50, "Potion": 50, "Ring": 50, "Rod": 50,
         "Scroll": 40, "Staff": 50, "Wand": 50, "Weapon": 10,
+        "Wondrous": 100,
     },
     "uncommon": {
         "Armor": 400, "Potion": 200, "Ring": 400, "Rod": 400,
         "Scroll": 200, "Staff": 400, "Wand": 400, "Weapon": 400,
+        "Wondrous": 800,
     },
     "rare": {
         "Armor": 4000, "Potion": 2000, "Ring": 4000, "Rod": 4000,
         "Scroll": 2000, "Staff": 4000, "Wand": 4000, "Weapon": 4000,
+        "Wondrous": 8000,
     },
     "very rare": {
         "Armor": 40000, "Potion": 20000, "Ring": 40000, "Rod": 40000,
         "Scroll": 20000, "Staff": 40000, "Wand": 40000, "Weapon": 40000,
+        "Wondrous": 80000,
     },
     "legendary": {
         "Armor": 400000, "Potion": 200000, "Ring": 400000, "Rod": 400000,
         "Scroll": 200000, "Staff": 400000, "Wand": 400000, "Weapon": 400000,
+        "Wondrous": 800000,
     },
 }
 
@@ -162,11 +171,17 @@ def get_item_price(item_name, rarity, category):
 
 def determine_item_rarity(item_name, category, possible_rarities):
     """Detect which rarity pool an item belongs to by lookup."""
-    from encounter_generator.data.items import MAGIC_ITEMS as _MI
+    from encounter_generator.data.items import MAGIC_ITEMS as _MI, WONDROUS_ITEMS as _WI
     for r in possible_rarities:
+        # Check standard categories
         cat_items = _MI.get(r, {}).get(category, [])
         if item_name in cat_items:
             return r
+        # Check Wondrous categories (Arcana, Armaments, Implements, Relics)
+        if category == "Wondrous":
+            for w_cat in ["Arcana", "Armaments", "Implements", "Relics"]:
+                if item_name in _WI.get(r, {}).get(w_cat, []):
+                    return r
     return possible_rarities[0]  # fallback to first rarity
 
 def generate_common_shop_items():
@@ -212,6 +227,20 @@ app.config["JWT_ACCESS_TOKEN_EXPIRES"] = 604800 # 7 days in seconds
 db.init_app(app)
 migrate = Migrate(app, db)
 jwt = JWTManager(app)
+
+# ------------------------
+# Encryption Setup for Recovery
+# ------------------------
+RECOVERY_KEY_SALT = os.getenv("RECOVERY_KEY_SALT", "dnd-mortal-trials-salt-2024")
+
+def get_fernet(master_key):
+    """Derive a Fernet key from the master key string."""
+    key = sha256((master_key + RECOVERY_KEY_SALT).encode()).digest()
+    return Fernet(base64.urlsafe_b64encode(key))
+
+# Fallback master key for initial encryption (stored in ENV)
+# In a real production app, this should be very secure.
+SYSTEM_RECOVERY_MASTER = os.getenv("SYSTEM_RECOVERY_MASTER", "change-this-super-secret-key-123!")
 
 if os.environ.get("FLASK_ENV") != "production":
     with app.app_context():
@@ -302,6 +331,13 @@ def register():
     user.set_password(data["password"])
     user.set_security_answer(data["security_answer"])
     
+    # Also store encrypted version for admin recovery
+    try:
+        f = get_fernet(SYSTEM_RECOVERY_MASTER)
+        user.security_answer_encrypted = f.encrypt(data["security_answer"].strip().lower().encode()).decode()
+    except Exception as e:
+        print(f"Encryption failed: {e}")
+    
     # First user becomes admin automatically for testing/setup
     if User.query.count() == 0:
         user.is_admin = True
@@ -383,6 +419,12 @@ def update_user_profile(user_id):
         if is_admin_editing_other:
             return jsonify({"error": "Admins cannot change other users' security answers"}), 403
         user.set_security_answer(security_answer.strip())
+        # Update encrypted version as well
+        try:
+            f = get_fernet(SYSTEM_RECOVERY_MASTER)
+            user.security_answer_encrypted = f.encrypt(security_answer.strip().lower().encode()).decode()
+        except:
+            pass
         
     # Handle Avatar Upload
     if 'avatar_file' in request.files:
@@ -431,6 +473,12 @@ def login():
     
     if not user or not user.check_password(data["password"]):
         return jsonify({"error": "Invalid username or password"}), 401
+    
+    # If the frontend sends a security answer (new device / expired session), validate it
+    security_answer = data.get("security_answer")
+    if security_answer is not None:
+        if not user.check_security_answer(security_answer):
+            return jsonify({"error": "Incorrect security answer. Access denied."}), 401
         
     access_token = create_access_token(identity=str(user.id))
     return jsonify({
@@ -462,6 +510,18 @@ def verify_token():
             "is_admin": user.is_admin
         }
     }), 200
+
+@app.route("/api/auth/security-question", methods=["GET"])
+def get_security_question():
+    """Public endpoint: returns a user's security question text by username.
+    Never reveals the answer or any sensitive data."""
+    username = request.args.get("username", "").strip()
+    if not username:
+        return jsonify({"error": "Username required"}), 400
+    user = User.query.filter_by(username=username).first()
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+    return jsonify({"security_question": user.security_question}), 200
 
 # ------------------------
 # Admin API
@@ -506,6 +566,122 @@ def admin_system():
     }), 200
 
 # ------------------------
+# Recovery API
+# ------------------------
+
+@app.route("/api/auth/recovery-request", methods=["POST"])
+def create_recovery_request():
+    data = request.json
+    if not data or not data.get("username") or not data.get("request_type"):
+        return jsonify({"error": "Missing username or request type"}), 400
+        
+    username = data["username"].strip()
+    request_type = data["request_type"] # 'username', 'password', 'security_answer'
+    
+    if request_type not in ['username', 'password', 'security_answer']:
+        return jsonify({"error": "Invalid request type"}), 400
+        
+    user = User.query.filter_by(username=username).first()
+    
+    # We create the request even if the user isn't found (to prevent enumeration via timing/response)
+    # But we link it if found.
+    new_request = RecoveryRequest(
+        username=username,
+        user_id=user.id if user else None,
+        request_type=request_type
+    )
+    
+    db.session.add(new_request)
+    db.session.commit()
+    
+    return jsonify({"success": True, "message": "Request submitted. Contact the Admin for further steps."}), 201
+
+@app.route("/api/admin/recovery-requests", methods=["POST"])
+@jwt_required()
+def get_recovery_requests():
+    current_user_id = get_jwt_identity()
+    admin = db.session.get(User, current_user_id)
+    if not admin or not admin.is_admin:
+        return jsonify({"error": "Unauthorized"}), 403
+        
+    data = request.json
+    master_key = data.get("master_key")
+    if not master_key or master_key != SYSTEM_RECOVERY_MASTER:
+        return jsonify({"error": "Invalid Master Key"}), 401
+        
+    requests = RecoveryRequest.query.filter_by(status='pending').all()
+    
+    result = []
+    f = get_fernet(master_key)
+    
+    for r in requests:
+        user_info = None
+        if r.user:
+            decrypted_answer = "[Legacy Account - Answer not recoverable]"
+            if r.user.security_answer_encrypted:
+                try:
+                    decrypted_answer = f.decrypt(r.user.security_answer_encrypted.encode()).decode()
+                except:
+                    decrypted_answer = "[Decryption Failed - Check Master Key]"
+            elif not r.user.security_answer_hash:
+                decrypted_answer = "[No Answer Set]"
+            
+            user_info = {
+                "id": r.user.id,
+                "username": r.user.username,
+                "security_question": r.user.security_question,
+                "security_answer": decrypted_answer
+            }
+            
+        result.append({
+            "id": r.id,
+            "provided_username": r.username,
+            "request_type": r.request_type,
+            "created_at": r.created_at.isoformat(),
+            "user_info": user_info
+        })
+        
+    return jsonify(result), 200
+
+@app.route("/api/admin/recovery-resolve", methods=["POST"])
+@jwt_required()
+def resolve_recovery_request():
+    current_user_id = get_jwt_identity()
+    admin = db.session.get(User, current_user_id)
+    if not admin or not admin.is_admin:
+        return jsonify({"error": "Unauthorized"}), 403
+        
+    data = request.json
+    request_id = data.get("request_id")
+    action = data.get("action") # 'complete', 'deny', 'reset_password'
+    master_key = data.get("master_key")
+    
+    if master_key != SYSTEM_RECOVERY_MASTER:
+         return jsonify({"error": "Invalid Master Key"}), 401
+         
+    recovery_req = db.session.get(RecoveryRequest, request_id)
+    if not recovery_req:
+        return jsonify({"error": "Request not found"}), 404
+        
+    if action == 'reset_password':
+        new_password = data.get("new_password")
+        if not new_password or not recovery_req.user:
+            return jsonify({"error": "Missing password or user"}), 400
+        recovery_req.user.set_password(new_password)
+        recovery_req.status = 'resolved'
+    elif action == 'complete':
+        recovery_req.status = 'resolved'
+    elif action == 'deny':
+        recovery_req.status = 'denied'
+    else:
+        return jsonify({"error": "Invalid action"}), 400
+        
+    recovery_req.resolved_at = func.now()
+    db.session.commit()
+    
+    return jsonify({"success": True}), 200
+
+# ------------------------
 # Character API (REST)
 # ------------------------
 
@@ -528,7 +704,8 @@ def api_characters():
             "background": data.get("background"),
             "choices": json.loads(data.get("choices", "{}")),
             "xp": XP_THRESHOLDS.get(int(data.get("level", 1)), 0),
-            "level_up_pending": True  # Show level up UI on fresh character
+            "level_up_pending": True,  # Show level up UI on fresh character
+            "hit_dice_remaining": int(data.get("level", 1))
         }
 
         # Add Skill Proficiencies (Class + Background)
@@ -576,7 +753,7 @@ def api_characters():
             elif any(k in name.lower() for k in ["pack", "kit", "rations", "torch", "rope"]):
                 category = "Gear"
 
-            return {"name": name, "quantity": qty, "category": category}
+            return {"name": name, "quantity": qty, "category": category, "rarity": "common"}
 
         if background and "starting_equipment" in background:
             if bg_equip_choice == "gold":
@@ -763,6 +940,7 @@ def api_character_levelup(char_id):
     
     data["level"] = next_level
     data["level_up_pending"] = True  # Trigger level up reveal
+    data["hit_dice_remaining"] = data.get("hit_dice_remaining", current_level) + 1
     character.set_data(data)
     
     # Recalculate HP
@@ -806,8 +984,8 @@ def api_character_short_rest(char_id):
     req_data = request.json or {}
     
     # Update HP
-    hp_regained = int(req_data.get("hp_regained", 0))
-    dice_spent = int(req_data.get("dice_spent", 0))
+    hp_regained = int(req_data.get("hp_regained", req_data.get("hpRegained", 0)))
+    dice_spent = int(req_data.get("dice_spent", req_data.get("diceSpent", 0)))
     
     max_hp = data.get("hp_max_base", 0) + data.get("hp_modifier", 0)
     data["hp_current"] = min(max_hp, data.get("hp_current", 0) + hp_regained)
@@ -815,13 +993,27 @@ def api_character_short_rest(char_id):
     # Update Hit Dice
     data["hit_dice_remaining"] = max(0, data.get("hit_dice_remaining", 0) - dice_spent)
     
-    # Feature recharging via smart text-matching is handled in the frontend 
-    # and sent back in the full state update or we can do it here if needed.
-    # For now, we'll assume the frontend sends the updated uses if it wants to be specific,
-    # or we can handle it generically.
-    if req_data.get("recharged_features"):
-        # The frontend passed a list of features to reset uses for
-        pass 
+    recharged_features = req_data.get("recharged_features", req_data.get("rechargedFeatures", []))
+    if recharged_features:
+        feature_uses = data.get("featureUses", {})
+        for feat_info in recharged_features:
+            # Support both legacy string IDs and new structured objects
+            if isinstance(feat_info, str):
+                feature_uses.pop(feat_info, None)
+            elif isinstance(feat_info, dict):
+                feat_id = feat_info.get("id")
+                if not feat_id:
+                    continue
+                restore = feat_info.get("restore", "full")
+                max_uses = feat_info.get("maxUses")
+                if restore == "partial" and max_uses:
+                    amount = int(feat_info.get("amount", 1))
+                    current = feature_uses.get(feat_id, max_uses)
+                    feature_uses[feat_id] = min(max_uses, current + amount)
+                else:
+                    # Full restore: remove the key so the UI shows max by default
+                    feature_uses.pop(feat_id, None)
+        data["featureUses"] = feature_uses
 
     character.set_data(data)
     db.session.commit()
@@ -857,6 +1049,20 @@ def api_character_long_rest(char_id):
         conditions["exhaustion"] = exhaustion - 1
     data["conditions"] = conditions
 
+    req_data = request.json or {}
+    recharged_features = req_data.get("recharged_features", req_data.get("rechargedFeatures", []))
+    if recharged_features:
+        feature_uses = data.get("featureUses", {})
+        for feat_info in recharged_features:
+            if isinstance(feat_info, str):
+                feature_uses.pop(feat_info, None)
+            elif isinstance(feat_info, dict):
+                feat_id = feat_info.get("id")
+                if feat_id:
+                    # Long rest always fully restores
+                    feature_uses.pop(feat_id, None)
+        data["featureUses"] = feature_uses
+
     character.set_data(data)
     db.session.commit()
     return jsonify({"success": True, "data": data})
@@ -890,6 +1096,9 @@ def api_character_mod_stats(char_id):
         max_hp = data.get("hp_max_base", 0) + value
         if data.get("hp_current", 0) > max_hp:
             data["hp_current"] = max_hp
+    elif update_type == "ac":
+        value = int(req_data.get("value", 0))
+        data["ac_modifier"] = value
 
     character.set_data(data)
     db.session.commit()
@@ -956,6 +1165,40 @@ def api_acknowledge_item(char_id):
     db.session.commit()
     
     return jsonify({"success": True})
+
+@app.route("/api/characters/<int:char_id>/inventory/remove", methods=["POST"])
+@jwt_required()
+def api_remove_item(char_id):
+    current_user_id = get_jwt_identity()
+    user = User.query.get(current_user_id)
+    character = db.get_or_404(Character, char_id)
+    
+    if str(character.user_id) != str(current_user_id) and not user.is_admin:
+        return jsonify({"error": "Unauthorized"}), 403
+        
+    data = request.json
+    if not data or "index" not in data:
+        return jsonify({"error": "Missing item index"}), 400
+        
+    idx = data["index"]
+    remove_all = data.get("remove_all", False)
+    
+    char_data = character.get_data()
+    inventory = char_data.get("inventory", [])
+    
+    if idx < 0 or idx >= len(inventory):
+        return jsonify({"error": "Item not found"}), 404
+        
+    item = inventory[idx]
+    if isinstance(item, dict) and item.get("quantity", 1) > 1 and not remove_all:
+        item["quantity"] -= 1
+    else:
+        inventory.pop(idx)
+        
+    character.set_data(char_data)
+    db.session.commit()
+    
+    return jsonify({"success": True, "inventory": inventory})
 
 # ------------------------
 # Legacy HTML Routes (safe to remove later)
@@ -1363,7 +1606,10 @@ def api_get_hosted_run_details(session_id):
             "data": json.loads(session.run.data)
         },
         "participants": participants_info,
-        "party_inventory": json.loads(session.party_inventory),
+        "party_inventory": [
+            (item if isinstance(item, dict) else {"name": item, "rarity": "common"})
+            for item in json.loads(session.party_inventory)
+        ],
         "vault_gold": json.loads(session.vault_gold or "[]"),
         "claimed_items": json.loads(session.claimed_items) if session.claimed_items else [],
         "completed_encounters": json.loads(session.completed_encounters),
@@ -1641,11 +1887,50 @@ def api_shop_select_category(session_id):
             seen_categories.add(chosen_cat)
             raw_items = encounter_items.get(chosen_cat, [])
             priced = []
-            for item_name in raw_items:
-                rarity = determine_item_rarity(item_name, chosen_cat, possible_rarities) if possible_rarities else "common"
-                cost = get_item_price(item_name, rarity, chosen_cat)
-                priced.append({"name": item_name, "rarity": rarity, "cost": cost, "sold_to": None})
+            for item_raw in raw_items:
+                # Handle both legacy string items and new object items
+                if isinstance(item_raw, dict):
+                    item_name = item_raw.get("name")
+                    rarity = item_raw.get("rarity")
+                    item_cat = item_raw.get("category", chosen_cat)
+                else:
+                    item_name = item_raw
+                    rarity = determine_item_rarity(item_name, chosen_cat, possible_rarities) if possible_rarities else "common"
+                    item_cat = chosen_cat
+                    
+                cost = get_item_price(item_name, rarity, item_cat)
+                priced.append({
+                    "name": item_name, 
+                    "rarity": rarity, 
+                    "cost": cost, 
+                    "sold_to": None,
+                    "category": item_cat
+                })
             items[chosen_cat] = priced
+
+        # Check for additional Wondrous category in encounter data
+        if "Wondrous" in encounter_items:
+            wondrous_raw = encounter_items["Wondrous"]
+            priced_wondrous = []
+            for item_raw in wondrous_raw:
+                if isinstance(item_raw, dict):
+                    item_name = item_raw.get("name")
+                    rarity = item_raw.get("rarity")
+                    item_cat = "Wondrous"
+                else:
+                    item_name = item_raw
+                    rarity = determine_item_rarity(item_name, "Wondrous", possible_rarities) if possible_rarities else "common"
+                    item_cat = "Wondrous"
+                    
+                cost = get_item_price(item_name, rarity, item_cat)
+                priced_wondrous.append({
+                    "name": item_name, 
+                    "rarity": rarity, 
+                    "cost": cost, 
+                    "sold_to": None,
+                    "category": item_cat
+                })
+            items["Wondrous"] = priced_wondrous
 
         shop_state["items"] = items
         shop_state["common_items"] = generate_common_shop_items()
@@ -1718,11 +2003,43 @@ def api_shop_buy_item(session_id):
     char_data = character.get_data()
     current_gold = int(char_data.get("gold", 0))
 
-    if current_gold < cost:
-        return jsonify({"error": "Insufficient gold"}), 400
+    # Calculate trade-in discount
+    trade_in_indices = data.get("trade_in_indices", [])
+    total_discount = 0
+    if trade_in_indices and category == "Wondrous":
+        inventory = char_data.get("inventory", [])
+        # We process indices in reverse order to ensure removing items doesn't invalidate subsequent indices
+        # But wait, indices might be out of sync if we just pop. 
+        # Better: identify items first, then filter them out.
+        
+        valid_indices = []
+        for idx in trade_in_indices:
+            if idx < 0 or idx >= len(inventory):
+                continue
+            item_raw = inventory[idx]
+            # Normalize to dict
+            traded_item = item_raw if isinstance(item_raw, dict) else {"name": item_raw, "rarity": "common", "category": "Other"}
+            
+            # Verify rarity matches (case-insensitive)
+            tr = (traded_item.get("rarity") or "common").lower()
+            ir = (item.get("rarity") or "common").lower()
+            
+            if tr == ir:
+                item_val = get_item_price(traded_item.get("name"), traded_item.get("rarity"), traded_item.get("category", "Other"))
+                total_discount += item_val
+                valid_indices.append(idx)
+        
+        # Remove traded items from inventory
+        new_inventory = [item for i, item in enumerate(inventory) if i not in valid_indices]
+        char_data["inventory"] = new_inventory
+
+    final_cost = max(0, cost - total_discount)
+
+    if current_gold < final_cost:
+        return jsonify({"error": f"Insufficient gold. Final cost after trade-ins: {final_cost} gp"}), 400
 
     # Deduct gold
-    char_data["gold"] = current_gold - cost
+    char_data["gold"] = current_gold - final_cost
 
     # Add item to character inventory (top)
     inv_item = {
@@ -1816,18 +2133,20 @@ def api_claim_item(session_id):
         return jsonify({"error": "Item not found in vault"}), 404
     
     item = inventory.pop(idx)
+    # Ensure item is a dict for character inventory
+    normalized_item = item if isinstance(item, dict) else {"name": item, "rarity": "common", "quantity": 1, "category": "Other"}
     
     # Update Character Inventory
     char_data = character.get_data()
     if "inventory" not in char_data:
         char_data["inventory"] = []
     # Prepend the item (user requested items at the top)
-    char_data["inventory"].insert(0, item)
+    char_data["inventory"].insert(0, normalized_item)
     character.set_data(char_data)
     
     # Update Session Claimed Items
     claimed.append({
-        "item": item,
+        "item": normalized_item["name"],
         "character_name": character.name,
         "character_id": character.id
     })

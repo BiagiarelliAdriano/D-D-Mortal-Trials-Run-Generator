@@ -27,6 +27,7 @@ class User(db.Model):
     avatar = db.Column(db.String(255), nullable=False, default="fighter") # D&D class inspired avatar names or file path
     security_question = db.Column(db.String(255), nullable=True)
     security_answer_hash = db.Column(db.String(255), nullable=False)
+    security_answer_encrypted = db.Column(db.Text, nullable=True) # Encrypted with Admin Master Key
     is_admin = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=func.now(), nullable=False)
     
@@ -223,4 +224,16 @@ class SessionParticipant(db.Model):
 
     # Relationships
     user = db.relationship('User', backref='session_participations')
-    character = db.relationship('Character', backref='session_links')
+    character = db.relationship('Character', backref='session_links')
+
+class RecoveryRequest(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True) # Linked if username matches
+    request_type = db.Column(db.String(20), nullable=False) # 'username', 'password', 'security_answer'
+    status = db.Column(db.String(20), default='pending') # 'pending', 'resolved', 'denied'
+    created_at = db.Column(db.DateTime, default=func.now(), nullable=False)
+    resolved_at = db.Column(db.DateTime, nullable=True)
+
+    # Relationships
+    user = db.relationship('User', backref='recovery_requests')

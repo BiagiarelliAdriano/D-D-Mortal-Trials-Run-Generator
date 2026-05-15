@@ -14,14 +14,33 @@ export const NotificationProvider = ({ children }) => {
     /**
      * Add a toast notification
      * @param {string} message 
-     * @param {string} type - 'success' | 'error' | 'info' | 'warning'
+     * @param {string} type - 'success' | 'error' | 'info' | 'warning' | 'loading'
      * @param {number} duration - ms before auto-dismiss
+     * @returns {number} The notification ID
      */
     const addAlert = useCallback((message, type = 'info', duration = 5000) => {
         const id = Date.now() + Math.random();
         setNotifications(prev => [...prev, { id, message, type }]);
 
-        if (duration) {
+        if (duration > 0) {
+            setTimeout(() => {
+                removeAlert(id);
+            }, duration);
+        }
+        return id;
+    }, [removeAlert]);
+
+    /**
+     * Update an existing notification
+     * @param {number} id 
+     * @param {string} message 
+     * @param {string} type 
+     * @param {number} duration 
+     */
+    const updateAlert = useCallback((id, message, type = 'info', duration = 5000) => {
+        setNotifications(prev => prev.map(n => n.id === id ? { ...n, message, type } : n));
+        
+        if (duration > 0) {
             setTimeout(() => {
                 removeAlert(id);
             }, duration);
@@ -53,7 +72,7 @@ export const NotificationProvider = ({ children }) => {
     };
 
     return (
-        <NotificationContext.Provider value={{ addAlert, confirm, prompt }}>
+        <NotificationContext.Provider value={{ addAlert, updateAlert, removeAlert, confirm, prompt }}>
             {children}
             <NotificationHub 
                 notifications={notifications} 

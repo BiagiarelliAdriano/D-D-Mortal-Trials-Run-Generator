@@ -54,6 +54,51 @@ const processRichText = (text) => {
     });
 };
 
+/**
+ * Checks if a feature or feat prerequisite is met by the character.
+ */
+const checkPrerequisites = (prerequisite, character, level = 1, classRules = null) => {
+    if (!prerequisite || !character) return null;
+
+    const checkSingle = (req) => {
+        if (typeof req !== 'string') return null;
+        const levelMatch = req.match(/Level\s+(\d+)/i);
+        if (levelMatch) {
+            const reqLevel = parseInt(levelMatch[1]);
+            if (level < reqLevel) return req;
+        }
+        const abilityMatch = req.match(/(Strength|Dexterity|Constitution|Intelligence|Wisdom|Charisma)\s+(\d+)/i);
+        if (abilityMatch) {
+            const ability = abilityMatch[1].toLowerCase();
+            const reqScore = parseInt(abilityMatch[2]);
+            const currentScore = character.data?.abilities?.[ability] || 10;
+            if (currentScore < reqScore) return req;
+        }
+        if (req.includes('Spellcasting Feature') || req.includes('Pact Magic')) {
+            const hasMagic = !!(classRules?.spellcasting || character.class?.spellcasting);
+            if (!hasMagic) return req;
+        }
+        return null;
+    };
+
+    if (typeof prerequisite === 'string') return checkSingle(prerequisite);
+
+    if (Array.isArray(prerequisite)) {
+        const failed = [];
+        for (const req of prerequisite) {
+            if (Array.isArray(req)) {
+                const anyMet = req.some(r => !checkSingle(r));
+                if (!anyMet) failed.push(`(${req.join(' or ')})`);
+            } else {
+                const error = checkSingle(req);
+                if (error) failed.push(error);
+            }
+        }
+        return failed.length > 0 ? failed.join(' and ') : null;
+    }
+    return null;
+};
+
 const LevelUpOverlay = ({
     show,
     minimized,
@@ -70,7 +115,8 @@ const LevelUpOverlay = ({
     onToggleFeature, // Reusing CharacterSheet expands
     featureChoices,
     onUpdateChoice, // Trigger choice modal
-    resolveOptionsForFeature // Function passed down
+    resolveOptionsForFeature, // Function passed down
+    classRules
 }) => {
     const { confirm } = useNotification();
     const [expandedFeatures, setExpandedFeatures] = useState({});
@@ -219,6 +265,8 @@ const LevelUpOverlay = ({
                                         featureChoices={featureChoices}
                                         onUpdateChoice={onUpdateChoice}
                                         resolveOptionsForFeature={resolveOptionsForFeature}
+                                        character={character}
+                                        classRules={classRules}
                                     />
                                 ))}
                             </div>
@@ -253,7 +301,7 @@ const LevelUpOverlay = ({
 };
 
 // Internal reusable card
-const LuFeatureCard = ({ feature, isExpanded, onToggle, currentLevel, upgrades, featureChoices, onUpdateChoice, resolveOptionsForFeature }) => {
+const LuFeatureCard = ({ feature, isExpanded, onToggle, currentLevel, upgrades, featureChoices, onUpdateChoice, resolveOptionsForFeature, character, classRules }) => {
     
     // Check if choice needed
     let hasChoices = false;
@@ -273,6 +321,16 @@ const LuFeatureCard = ({ feature, isExpanded, onToggle, currentLevel, upgrades, 
             <div className="feature-title" onClick={onToggle}>
                 <div className="feature-title-left">
                     <span className="feature-name">{feature.name}</span>
+                    {(() => {
+                        const currentChoices = Array.isArray(currentChoice) ? currentChoice : (currentChoice ? [currentChoice] : []);
+                        const resolvedChoices = currentChoices.map(c => {
+                            const found = options.find(o => (typeof o === 'string' ? o : (o.id || o.name)) === c);
+                            return found ? (typeof found === 'string' ? { name: found } : found) : { name: c };
+                        });
+                        return resolvedChoices.map((rc, idx) => (
+                            <span key={idx} className="feature-choice-badge">{rc.name}</span>
+                        ));
+                    })()}
                     {upgrades && <span className="lu-upgrade-badge">UPGRADED</span>}
                 </div>
                 <div className="feature-title-right">
@@ -307,7 +365,88 @@ const LuFeatureCard = ({ feature, isExpanded, onToggle, currentLevel, upgrades, 
                         </div>
                     )}
 
+                    {(() => {
+                        const currentChoices = Array.isArray(currentChoice) ? currentChoice : (currentChoice ? [currentChoice] : []);
+                        const chosenOptionsDetails = currentChoices.map(c => {
+                            const found = options.find(o => (typeof o === 'string' ? o : (o.id || o.name)) === c);
+                            return found ? (typeof found === 'string' ? { name: found } : found) : { name: c };
+                        });
+
+                        if (chosenOptionsDetails.length === 0) return null;
+
+                        return (
+                            <div className="chosen-options-list">
+                                {chosenOptionsDetails.map((opt, idx) => {
+                                    const subChoiceId = `${feature.id}_sub_${idx}`;
+                                    const rawSubChoice = featureChoices?.[subChoiceId];
+                                    const currentSubChoices = Array.isArray(rawSubChoice) ? rawSubChoice : (rawSubChoice ? [rawSubChoice] : []);
+                                    
+                                    const hasSubChoices = !!opt.choice;
+
+                                    return (
+                                        <div key={idx} className="chosen-option-block">
+                                            <div className="chosen-option-header">
+                                                <h4>Selected: {opt.name}</h4>
+                                                {hasSubChoices && (
+                                                    <button 
+                                                        className="feature-choice-btn sub-choice-btn"
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            const virtualFeature = {
+                                                                ...feature,
+                                                                id: subChoiceId,
+                                                                name: `${opt.name} Choice`,
+                                                                details: { choice: opt.choice }
+                                                            };
+                                                            onUpdateChoice(virtualFeature, opt.choice.options);
+                                                        }}
+                                                    >
+                                                        {currentSubChoices.length > 0 ? 'Change' : 'Choose'}
+                                                    </button>
+                                                )}
+                                            </div>
+                                            {currentSubChoices.length > 0 && (
+                                                <div className="sub-choice-badges">
+                                                    {currentSubChoices.map((c, i) => (
+                                                        <span key={i} className="feature-choice-badge sub-badge">{c}</span>
+                                                    ))}
+                                                </div>
+                                            )}
+                                            {opt.description && <p>{processRichText(opt.description)}</p>}
+                                            {opt.benefit && <p>{processRichText(opt.benefit)}</p>}
+                                            {opt.summary && <p className="option-summary-line">{processRichText(opt.summary)}</p>}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        );
+                    })()}
+
                     {feature.summary && <p className="feature-summary"><strong>Summary:</strong> {processRichText(feature.summary)}</p>}
+
+                    {feature.prerequisite && (() => {
+                        const warning = checkPrerequisites(feature.prerequisite, character, currentLevel, classRules);
+                        return (
+                            <div className={`feat-prerequisite-line ${warning ? 'unmet' : 'met'}`}>
+                                <span className="prereq-icon">{warning ? '⚠' : '✓'}</span>
+                                <span className="prereq-text">
+                                    Prerequisite: {Array.isArray(feature.prerequisite) ? feature.prerequisite.flat().join(', ') : feature.prerequisite}
+                                </span>
+                                {warning && (
+                                    <span className="prereq-warning-inline"> — Not met: {warning}</span>
+                                )}
+                            </div>
+                        );
+                    })()}
+
+                    {feature.effects && Array.isArray(feature.effects) && (
+                        <div className="feat-effects-list">
+                            {feature.effects.map((eff, i) => (
+                                <p key={i} className="feat-effect-item">{processRichText(eff)}</p>
+                            ))}
+                        </div>
+                    )}
+
                     {feature.description && (
                         <div className="feature-description">
                             {feature.description.split('\n').map((para, i) => (
