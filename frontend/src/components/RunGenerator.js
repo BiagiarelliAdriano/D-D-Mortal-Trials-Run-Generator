@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useNotification } from '../context/NotificationContext';
 import BackToTop from './common/BackToTop';
+import UserProfilePill from './UserProfilePill';
 import '../styles/RunGenerator.css';
 
 const RunGenerator = () => {
@@ -246,14 +247,15 @@ const RunGenerator = () => {
         <div className="generator-container">
             <header className="generator-header">
                 <div className="nav-group">
-                    <button className="back-btn" onClick={() => navigate('/')}>
-                        <i className="fa-solid fa-arrow-left"></i> Home
+                    <button className="back-btn" onClick={() => navigate(-1)}>
+                        <i className="fa-solid fa-arrow-left"></i> Back
                     </button>
                     {token && (
                         <button className="back-btn secondary" onClick={() => navigate('/saved-runs')}>
                             <i className="fa-solid fa-list-ul"></i> My Saved Runs
                         </button>
                     )}
+                    <UserProfilePill />
                 </div>
                 <h1 className="serif-text">Run Generator</h1>
                 <div className="header-actions">

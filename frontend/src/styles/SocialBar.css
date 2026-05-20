@@ -42,6 +42,16 @@
     color: white;
 }
 
+.social-icon.bug-report {
+    cursor: pointer;
+    outline: none;
+}
+
+.social-icon.bug-report:hover {
+    background: #FF9800;
+    color: white;
+}
+
 @media (max-width: 768px) {
     .global-social-bar {
         bottom: 15px;

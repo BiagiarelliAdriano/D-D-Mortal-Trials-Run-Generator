@@ -1245,7 +1245,7 @@ function CharacterSheet() {
     const isEditMode = location.pathname.endsWith('/edit');
     const [character, setCharacter] = useState(null);
 
-    const isOwner = character?.user_id === currentUser?.id;
+    const isOwner = currentUser?.id && character?.user_id === currentUser?.id;
     const isAdmin = currentUser?.is_admin;
     const [activeSession, setActiveSession] = useState(null);
     const [sessionParticipants, setSessionParticipants] = useState([]);
@@ -1260,6 +1260,7 @@ function CharacterSheet() {
     const [pendingGifts, setPendingGifts] = useState({ gold: [], items: [] });
     const [isGiftsLoading, setIsGiftsLoading] = useState(false);
     const [isApplyingStatMod, setIsApplyingStatMod] = useState(false);
+    const [levelingUpAlertId, setLevelingUpAlertId] = useState(null);
 
 
     // Experience Editor State
@@ -1508,8 +1509,12 @@ function CharacterSheet() {
             }
 
             if (data.data?.level_up_pending) {
-                setShowLevelUpOverlay(true);
-                setPreviousLevel(data.data.level > 1 ? data.data.level - 1 : 0);
+                const fetchIsOwner = currentUser?.id && data.user_id === currentUser?.id;
+                const fetchIsAdmin = currentUser?.is_admin;
+                if (fetchIsOwner || fetchIsAdmin) {
+                    setShowLevelUpOverlay(true);
+                    setPreviousLevel(data.data.level > 1 ? data.data.level - 1 : 0);
+                }
             }
 
             setLoading(false);
@@ -1519,7 +1524,14 @@ function CharacterSheet() {
             setError(err.message);
             setLoading(false);
         }
-    }, [id, token]);
+    }, [id, token, currentUser]);
+
+    useEffect(() => {
+        if (showLevelUpOverlay && levelingUpAlertId) {
+            updateAlert(levelingUpAlertId, `Ascended! Time to choose your new powers.`, 'success', 5000);
+            setLevelingUpAlertId(null);
+        }
+    }, [showLevelUpOverlay, levelingUpAlertId, updateAlert]);
 
     useEffect(() => {
         fetchData();
@@ -1659,6 +1671,9 @@ function CharacterSheet() {
             return;
         }
 
+        const loadingId = addAlert(`Initiating Level Up to Level ${nextLevel}...`, 'loading', 0);
+        setLevelingUpAlertId(loadingId);
+
         fetch(`http://localhost:5000/api/characters/${id}/levelup`, {
             method: "POST",
             headers: { "Authorization": `Bearer ${token}` }
@@ -1666,13 +1681,18 @@ function CharacterSheet() {
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
-                    addAlert(`Leveled up to ${nextLevel}!`, 'success');
+                    // We wait for the fetchData to reveal the overlay before clearing the loading alert
                     fetchData();
                 } else {
-                    addAlert(data.error || "Level up failed", 'error');
+                    updateAlert(loadingId, data.error || "Level up failed", 'error', 5000);
+                    setLevelingUpAlertId(null);
                 }
             })
-            .catch(err => console.error("Error during level up:", err));
+            .catch(err => {
+                console.error("Error during level up:", err);
+                updateAlert(loadingId, "A mystical error occurred during Level Up.", 'error', 5000);
+                setLevelingUpAlertId(null);
+            });
     };
 
     const handleLevelDown = async () => {
@@ -2194,11 +2214,11 @@ function CharacterSheet() {
         if (classRules?.features) {
             Object.keys(classRules.features).forEach(lvl => {
                 if (parseInt(lvl) <= currentLevel) {
-                    allFeatures.push(...classRules.features[lvl].map(f => ({ 
-                        ...f, 
-                        id: f.type === 'subclass_feature' ? `${f.id}_${lvl}` : f.id, 
-                        source: 'Class', 
-                        level: lvl 
+                    allFeatures.push(...classRules.features[lvl].map(f => ({
+                        ...f,
+                        id: f.type === 'subclass_feature' ? `${f.id}_${lvl}` : f.id,
+                        source: 'Class',
+                        level: lvl
                     })));
                 }
             });
@@ -2636,7 +2656,7 @@ function CharacterSheet() {
                                     >
                                         <i className="fa-solid fa-campground"></i> Take a Rest
                                     </button>
-                                    {character.level < 20 && (
+                                    {character?.level < 20 && (isOwner || isAdmin) && (
                                         <button
                                             className={`levelup-button ${xp >= (XP_THRESHOLDS[character.level + 1] || 0) ? "available" : "locked"}`}
                                             onClick={handleLevelUp}
@@ -2918,7 +2938,7 @@ function CharacterSheet() {
 
                 <div key="notes" className="widget card notes-widget">
                     {!isLayoutLocked && <div className="widget-handle">⠿</div>}
-                    <NotesWidget 
+                    <NotesWidget
                         notes={character.data.notes || []}
                         onUpdateNotes={updateNotes}
                         isEditMode={isEditMode}
@@ -3043,8 +3063,9 @@ function CharacterSheet() {
                 )}
             </ResponsiveGridLayout>
 
-            <LevelUpOverlay
-                show={showLevelUpOverlay}
+            {(isOwner || isAdmin) && (
+                <LevelUpOverlay
+                    show={showLevelUpOverlay}
                 minimized={levelUpMinimized}
                 character={character}
                 previousLevel={previousLevel}
@@ -3065,6 +3086,7 @@ function CharacterSheet() {
                 resolveOptionsForFeature={(feat) => resolveOptionsForFeature(feat, character, classRules, ruleOptions, availableSpells)}
                 classRules={classRules}
             />
+        )}
 
             <SpellOverlay
                 show={showSpellOverlay}
@@ -3402,7 +3424,7 @@ function CharacterSheet() {
                                             value={tempXp}
                                             onChange={(e) => {
                                                 let rawVal = e.target.value.replace(/\D/g, "");
-                                                if (rawVal.length > 6) rawVal = rawVal.slice(0, 6);
+                                                if (rawVal.length > 7) rawVal = rawVal.slice(0, 7);
                                                 // Handle multiple zeros or leading zeros during typing
                                                 if (rawVal.length > 1 && rawVal.startsWith("0")) {
                                                     rawVal = rawVal.replace(/^0+/, "") || "0";
@@ -3420,27 +3442,31 @@ function CharacterSheet() {
                                 </div>
 
                                 <div className="xp-actions">
-                                    <button
-                                        className="action-btn levelup-btn"
-                                        onClick={handleLevelUp}
-                                        disabled={xp < (XP_THRESHOLDS[character.level + 1] || 0) || character.level >= 20}
-                                    >
-                                        ✧ Level Up ✧
-                                    </button>
+                                    {(isOwner || isAdmin) && (
+                                        <button
+                                            className="action-btn levelup-btn"
+                                            onClick={handleLevelUp}
+                                            disabled={xp < (XP_THRESHOLDS[character.level + 1] || 0) || character.level >= 20}
+                                        >
+                                            ✧ Level Up ✧
+                                        </button>
+                                    )}
                                     <button
                                         className="action-btn levelup-preview-btn"
                                         onClick={() => setShowLevelPreview(!showLevelPreview)}
                                     >
                                         {showLevelPreview ? "Close Preview" : "✧ Level Up Preview ✧"}
                                     </button>
-                                    <button
-                                        className="action-btn leveldown-btn"
-                                        onClick={handleLevelDown}
-                                        disabled={character.level <= 1 || xp !== (XP_THRESHOLDS[character.level] || 0)}
-                                        title={xp !== (XP_THRESHOLDS[character.level] || 0) ? `Reset XP to ${XP_THRESHOLDS[character.level]} to Level Down` : ""}
-                                    >
-                                        ⚠ Level Down
-                                    </button>
+                                    {(isOwner || isAdmin) && (
+                                        <button
+                                            className="action-btn leveldown-btn"
+                                            onClick={handleLevelDown}
+                                            disabled={character.level <= 1 || xp !== (XP_THRESHOLDS[character.level] || 0)}
+                                            title={xp !== (XP_THRESHOLDS[character.level] || 0) ? `Reset XP to ${XP_THRESHOLDS[character.level]} to Level Down` : ""}
+                                        >
+                                            ⚠ Level Down
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                         </div>

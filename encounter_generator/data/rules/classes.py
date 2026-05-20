@@ -214,6 +214,16 @@ BARBARIAN = {
                 }
             }
         ],
+        8: [
+            {
+                "id": "feat_or_asi_8",
+                "name": "Feat or ASI",
+                "summary": "Choose a feat or increase ability scores.",
+                "details": {
+                    "Action": "Passive",
+                }
+            }
+        ],
         9: [
             {
                 "id": "barbarian_brutal_strike",
@@ -260,6 +270,16 @@ BARBARIAN = {
                 }
             }
         ],
+        12: [
+            {
+                "id": "feat_or_asi_12",
+                "name": "Feat or ASI",
+                "summary": "Choose a feat or increase ability scores.",
+                "details": {
+                    "Action": "Passive",
+                }
+            }
+        ],
         13: [
             {
                 "id": "barbarian_improved_brutal_strike",
@@ -301,6 +321,16 @@ BARBARIAN = {
                     "restore_target": "barbarian_rage",
                     "trigger": "Initiative",
                     "note": "When triggered on Initiative: restores all Rage uses. The trigger itself recharges on Long Rest."
+                }
+            }
+        ],
+        16: [
+            {
+                "id": "feat_or_asi_16",
+                "name": "Feat or ASI",
+                "summary": "Choose a feat or increase ability scores.",
+                "details": {
+                    "Action": "Passive",
                 }
             }
         ],

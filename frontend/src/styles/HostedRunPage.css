@@ -317,6 +317,28 @@
     border-color: var(--accent);
 }
 
+.participant-card.is-me {
+    border-color: var(--success);
+    background: linear-gradient(135deg, var(--bg-card) 0%, rgba(46, 204, 113, 0.05) 100%);
+    box-shadow: 0 0 20px rgba(46, 204, 113, 0.1);
+    position: relative;
+}
+
+.participant-card.is-me::after {
+    content: "YOU";
+    position: absolute;
+    top: -10px;
+    right: 15px;
+    background: var(--success);
+    color: white;
+    font-size: 0.7rem;
+    font-weight: 800;
+    padding: 2px 8px;
+    border-radius: 4px;
+    letter-spacing: 1px;
+    box-shadow: 0 4px 10px rgba(46, 204, 113, 0.3);
+}
+
 .p-header {
     display: flex;
     gap: 1rem;

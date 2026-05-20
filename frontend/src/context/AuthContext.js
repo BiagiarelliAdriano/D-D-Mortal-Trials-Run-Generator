@@ -7,7 +7,18 @@ export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
-    const [token, setToken] = useState(localStorage.getItem('token') || null);
+    const [token, setToken] = useState(() => {
+        const sessionToken = sessionStorage.getItem('token');
+        if (sessionToken) return sessionToken;
+        
+        const localToken = localStorage.getItem('token');
+        if (localToken) {
+            // Copy it to this tab's isolated session so it can diverge later if needed
+            sessionStorage.setItem('token', localToken);
+            return localToken;
+        }
+        return null;
+    });
     const [loading, setLoading] = useState(true);
 
     const logout = useCallback(() => {
@@ -16,7 +27,8 @@ export const AuthProvider = ({ children }) => {
         // Explicit logout: clear the token and the reauth flag, but intentionally
         // KEEP device_fingerprint so that re-logging in on the same device
         // after a voluntary logout does NOT trigger the security question challenge.
-        localStorage.removeItem('token');
+        sessionStorage.removeItem('token');
+        localStorage.removeItem('token'); // Clears the "remember me" globally
         localStorage.removeItem('needs_reauth');
     }, []);
 
@@ -39,7 +51,7 @@ export const AuthProvider = ({ children }) => {
                 localStorage.setItem('needs_reauth', 'true');
                 setToken(null);
                 setUser(null);
-                localStorage.removeItem('token');
+                sessionStorage.removeItem('token');
             }
         } catch (error) {
             // Network error — clear session silently without flagging reauth,
@@ -47,7 +59,7 @@ export const AuthProvider = ({ children }) => {
             console.error('Token verification failed:', error);
             setToken(null);
             setUser(null);
-            localStorage.removeItem('token');
+            sessionStorage.removeItem('token');
         } finally {
             setLoading(false);
         }
@@ -64,7 +76,8 @@ export const AuthProvider = ({ children }) => {
     const login = (newToken, userData) => {
         setToken(newToken);
         setUser(userData);
-        localStorage.setItem('token', newToken);
+        sessionStorage.setItem('token', newToken);
+        localStorage.setItem('token', newToken); // Sets the "remember me" for future tabs
         // Trust this device — store its fingerprint and clear the reauth flag.
         // From this point on, re-logins on this same browser won't require the
         // security question until the token expires or a different device is detected.

@@ -88,7 +88,7 @@ function CharactersHub() {
         <div
             key={char.id}
             className="character-card"
-            onClick={() => navigate(`/characters/${char.id}`)}
+            onClick={() => window.open(`/characters/${char.id}`, "_blank")}
         >
             <div className="card-header">
                 <h3>{char.name}</h3>
@@ -138,7 +138,7 @@ function CharactersHub() {
                         className="action-btn btn-edit"
                         onClick={(e) => {
                             e.stopPropagation();
-                            navigate(`/characters/${char.id}/edit`);
+                            window.open(`/characters/${char.id}/edit`, "_blank");
                         }}
                     >
                         ✎ Edit

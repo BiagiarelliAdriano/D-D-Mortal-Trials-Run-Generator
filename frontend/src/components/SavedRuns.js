@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from "../context/AuthContext";
 import { useNotification } from "../context/NotificationContext";
 import BackToTop from './common/BackToTop';
+import UserProfilePill from './UserProfilePill';
 import '../styles/SavedRuns.css';
 
 const SavedRuns = () => {
@@ -47,7 +48,10 @@ const SavedRuns = () => {
                     'Authorization': token ? `Bearer ${token}` : ''
                 }
             });
-            if (!response.ok) throw new Error('Failed to delete run');
+            if (!response.ok) {
+                const errData = await response.json().catch(() => ({}));
+                throw new Error(errData.error || 'Failed to delete run');
+            }
             setRuns(runs.filter(r => r.id !== id));
             addAlert('Run deleted successfully', 'success');
         } catch (err) {
@@ -66,9 +70,12 @@ const SavedRuns = () => {
     return (
         <div className="saved-runs-container">
             <header className="saved-runs-header">
-                <button className="back-btn" onClick={() => navigate('/run-generator')}>
-                    <i className="fa-solid fa-arrow-left"></i> Back to Generator
-                </button>
+                <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
+                    <button className="back-btn" onClick={() => navigate(-1)}>
+                        <i className="fa-solid fa-arrow-left"></i> Back
+                    </button>
+                    <UserProfilePill />
+                </div>
                 <h1 className="serif-text">My Saved Trials</h1>
                 <div className="search-wrapper" style={{ margin: '10px 0', maxWidth: '300px' }}>
                     <input 

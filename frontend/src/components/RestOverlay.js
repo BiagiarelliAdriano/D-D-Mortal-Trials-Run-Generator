@@ -142,7 +142,7 @@ const RestOverlay = ({
     const handleShortRestRoll = async () => {
         const actualAvailable = availableDice - spentDiceCount;
         const actualSpend = Math.min(diceToSpend, actualAvailable);
-        
+
         if (actualSpend <= 0) return;
         if (tempHp >= maxHp) return;
 
@@ -155,7 +155,7 @@ const RestOverlay = ({
             const roll = Math.floor(Math.random() * hitDieValue) + 1;
             const total = Math.max(1, roll + conMod);
             runningRegained += total;
-            
+
             setRollResults(prev => [...prev, { roll, conMod, total }]);
             setHpRegained(runningRegained);
             setSpentDiceCount(prev => prev + 1);
@@ -177,7 +177,7 @@ const RestOverlay = ({
         }));
 
         const isLong = type === 'long';
-        const msg = isLong 
+        const msg = isLong
             ? "Are you sure you want to take a Long Rest? Your HP and Hit Dice will be fully restored, and all spell slots will be regained."
             : `Confirm Short Rest? You will spend ${spentDiceCount} Hit Dice and regain ${hpRegained} HP.`;
 
@@ -207,7 +207,7 @@ const RestOverlay = ({
                     <h2><i className="fa-solid fa-campground"></i> Take a Rest</h2>
                     <button className="close-btn" onClick={onClose} disabled={isSubmitting}>✕</button>
                 </div>
-                
+
                 <p className="rest-tip">Choose your rest type. Resources will be restored based on your class features.</p>
 
                 <div className="rest-body scrollable">
@@ -235,13 +235,13 @@ const RestOverlay = ({
                                         <span className="hd-label">Available Hit Dice ({classRules?.hit_die}):</span>
                                         <span className="hd-value">{availableDice - spentDiceCount}</span>
                                     </div>
-                                    
+
                                     {(availableDice - spentDiceCount) > 0 && currentHp < maxHp && !rolling && !isSubmitting && (
                                         <div className="hd-controls">
                                             <div className="hd-input-group">
                                                 <label>Spend:</label>
-                                                <input 
-                                                    type="number" min="1" max={availableDice - spentDiceCount} 
+                                                <input
+                                                    type="number" min="1" max={availableDice - spentDiceCount}
                                                     value={diceToSpend}
                                                     onChange={(e) => setDiceToSpend(Math.max(1, Math.min(availableDice - spentDiceCount, parseInt(e.target.value) || 1)))}
                                                     className="hd-spend-input"
@@ -296,9 +296,9 @@ const RestOverlay = ({
                                 )}
                             </div>
                             <div className="column-footer">
-                                <button 
-                                    className="confirm-btn premium short-btn" 
-                                    onClick={() => handleConfirmRest('short')} 
+                                <button
+                                    className="confirm-btn premium short-btn"
+                                    onClick={() => handleConfirmRest('short')}
                                     disabled={rolling || isSubmitting || (currentHp === maxHp && spentDiceCount === 0 && restFeatures.short.recharging.length === 0 && restFeatures.short.triggering.length === 0)}
                                 >
                                     {isSubmitting ? "Resting..." : "Finish Short Rest"}
@@ -316,11 +316,11 @@ const RestOverlay = ({
                                 <div className="long-rest-benefits">
                                     <div className="benefit-card">
                                         <i className="fa-solid fa-heart"></i>
-                                        <div className="benefit-info"><span className="title">Full HP</span><span className="desc">Restore to max</span></div>
+                                        <div className="benefit-info"><span className="title">Full HP</span><span className="desc"> Restore to max</span></div>
                                     </div>
                                     <div className="benefit-card">
                                         <i className="fa-solid fa-dice-d20"></i>
-                                        <div className="benefit-info"><span className="title">Hit Dice</span><span className="desc">Regain half ({Math.max(1, Math.floor(character.level / 2))})</span></div>
+                                        <div className="benefit-info"><span className="title">Hit Dice</span><span className="desc"> Regain to max</span></div>
                                     </div>
                                     {hasSpellcasting && (
                                         <div className="benefit-card highlight">
@@ -358,9 +358,9 @@ const RestOverlay = ({
                                 )}
                             </div>
                             <div className="column-footer">
-                                <button 
-                                    className="confirm-btn premium long-btn" 
-                                    onClick={() => handleConfirmRest('long')} 
+                                <button
+                                    className="confirm-btn premium long-btn"
+                                    onClick={() => handleConfirmRest('long')}
                                     disabled={rolling || isSubmitting}
                                 >
                                     {isSubmitting ? "Resting..." : "Finish Long Rest"}

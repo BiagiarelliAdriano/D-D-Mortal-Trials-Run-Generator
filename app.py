@@ -3,7 +3,7 @@ from datetime import datetime
 from flask_migrate import Migrate
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
-from models import db, Run, Character, User, HostedRun, SessionParticipant, RecoveryRequest
+from models import db, Run, Character, User, HostedRun, SessionParticipant, RecoveryRequest, Report, UserNotification
 from encounter_generator.encounter_logic import generate_all_encounters
 from encounter_generator.generator import generate_divine_blessing
 from encounter_generator.data.rules.classes import BARBARIAN, BARD, CLERIC, DRUID, FIGHTER, MONK, PALADIN, RANGER, ROGUE, SORCERER, WARLOCK, WIZARD
@@ -592,6 +592,16 @@ def create_recovery_request():
     )
     
     db.session.add(new_request)
+    
+    # Notify all admins about the new recovery request
+    admins = User.query.filter_by(is_admin=True).all()
+    for admin in admins:
+        notif = UserNotification(
+            user_id=admin.id,
+            message=f"New Account Recovery Request ({request_type}) submitted for username: {username}."
+        )
+        db.session.add(notif)
+        
     db.session.commit()
     
     return jsonify({"success": True, "message": "Request submitted. Contact the Admin for further steps."}), 201
@@ -679,6 +689,121 @@ def resolve_recovery_request():
     recovery_req.resolved_at = func.now()
     db.session.commit()
     
+    return jsonify({"success": True}), 200
+
+# ------------------------
+# Reports & Notifications API
+# ------------------------
+
+@app.route("/api/reports", methods=["POST"])
+@jwt_required()
+def api_create_report():
+    current_user_id = get_jwt_identity()
+    data = request.json
+    
+    report_type = data.get("report_type")
+    description = data.get("description")
+    
+    if not report_type or not description:
+        return jsonify({"error": "Missing required fields"}), 400
+        
+    report = Report(
+        user_id=current_user_id,
+        report_type=report_type,
+        feature=data.get("feature"),
+        description=description,
+        reproduction_steps=data.get("reproduction_steps")
+    )
+    db.session.add(report)
+    
+    # Notify all admins about the new report
+    admins = User.query.filter_by(is_admin=True).all()
+    user_who_reported = db.session.get(User, current_user_id)
+    username = user_who_reported.username if user_who_reported else "A user"
+    for admin in admins:
+        notif = UserNotification(
+            user_id=admin.id,
+            message=f"New {report_type} submitted by {username}."
+        )
+        db.session.add(notif)
+        
+    db.session.commit()
+    return jsonify({"success": True, "message": "Report submitted successfully."}), 201
+
+@app.route("/api/admin/reports", methods=["GET"])
+@jwt_required()
+def api_admin_get_reports():
+    current_user_id = get_jwt_identity()
+    admin = db.session.get(User, current_user_id)
+    if not admin or not admin.is_admin:
+        return jsonify({"error": "Unauthorized"}), 403
+        
+    reports = Report.query.order_by(Report.created_at.desc()).all()
+    result = []
+    for r in reports:
+        result.append({
+            "id": r.id,
+            "username": r.user.username,
+            "report_type": r.report_type,
+            "feature": r.feature,
+            "description": r.description,
+            "reproduction_steps": r.reproduction_steps,
+            "status": r.status,
+            "created_at": r.created_at.isoformat(),
+            "resolved_at": r.resolved_at.isoformat() if r.resolved_at else None
+        })
+    return jsonify(result), 200
+
+@app.route("/api/admin/reports/<int:report_id>/resolve", methods=["POST"])
+@jwt_required()
+def api_admin_resolve_report(report_id):
+    current_user_id = get_jwt_identity()
+    admin = db.session.get(User, current_user_id)
+    if not admin or not admin.is_admin:
+        return jsonify({"error": "Unauthorized"}), 403
+        
+    report = db.get_or_404(Report, report_id)
+    data = request.json
+    reply_message = data.get("message")
+    
+    if not reply_message:
+        return jsonify({"error": "Missing reply message"}), 400
+        
+    report.status = "resolved"
+    report.resolved_at = func.now()
+    
+    notification = UserNotification(
+        user_id=report.user_id,
+        message=f"Admin reply regarding your {report.report_type} report: {reply_message}"
+    )
+    db.session.add(notification)
+    db.session.commit()
+    return jsonify({"success": True, "message": "Report resolved and notification sent."}), 200
+
+@app.route("/api/users/notifications", methods=["GET"])
+@jwt_required()
+def api_get_notifications():
+    current_user_id = get_jwt_identity()
+    notifications = UserNotification.query.filter_by(user_id=current_user_id, is_read=False).all()
+    result = []
+    for n in notifications:
+        result.append({
+            "id": n.id,
+            "message": n.message,
+            "created_at": n.created_at.isoformat()
+        })
+    return jsonify(result), 200
+
+@app.route("/api/users/notifications/<int:notification_id>/read", methods=["POST"])
+@jwt_required()
+def api_mark_notification_read(notification_id):
+    current_user_id = get_jwt_identity()
+    notification = db.get_or_404(UserNotification, notification_id)
+    if str(notification.user_id) != str(current_user_id):
+        return jsonify({"error": "Unauthorized"}), 403
+        
+    notification.is_read = True
+    db.session.commit()
     return jsonify({"success": True}), 200
 
 # ------------------------
@@ -1375,8 +1500,13 @@ def api_delete_run_json(run_id):
     if str(run.user_id) != str(current_user_id) and not is_admin:
         return jsonify({"error": "Unauthorized"}), 403
         
-    db.session.delete(run)
-    db.session.commit()
+    try:
+        db.session.delete(run)
+        db.session.commit()
+    except IntegrityError:
+        db.session.rollback()
+        return jsonify({"error": "This Run is connected to a hosted game. To delete this Run, you must first delete the hosted game."}), 400
+
     return jsonify({"message": "Run deleted successfully"}), 200
 
 @app.route("/api/rules/armor")

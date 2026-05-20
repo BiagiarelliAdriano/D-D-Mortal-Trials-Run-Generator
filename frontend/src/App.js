@@ -15,6 +15,8 @@ import SavedRuns from "./components/SavedRuns";
 import HostHub from "./components/hosting/HostHub";
 import HostedRunPage from "./components/hosting/HostedRunPage";
 import SocialBar from "./components/layout/SocialBar";
+import ReportPage from "./components/ReportPage";
+import NotificationPoller from "./components/NotificationPoller";
 import "./App.css";
 import "./styles/theme.css";
 import "./styles/SocialBar.css";
@@ -48,6 +50,7 @@ function App() {
     <AuthProvider>
       <NotificationProvider>
         <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+          <NotificationPoller />
           <Routes>
             <Route path="/" element={<LandingPage />} />
             <Route path="/run-generator" element={<RunGenerator />} />
@@ -63,6 +66,7 @@ function App() {
             <Route path="/characters/:id" element={<ProtectedRoute><CharacterSheet /></ProtectedRoute>} />
             <Route path="/characters/create" element={<ProtectedRoute><CharacterForm /></ProtectedRoute>} />
             <Route path="/characters/:id/edit" element={<ProtectedRoute><CharacterSheet /></ProtectedRoute>} />
+            <Route path="/report" element={<ProtectedRoute><ReportPage /></ProtectedRoute>} />
           </Routes>
           <SocialBar />
         </BrowserRouter>

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import BackToTop from '../common/BackToTop';
+import UserProfilePill from '../UserProfilePill';
 import '../../styles/HostHub.css';
 
 const HostHub = () => {
@@ -144,9 +145,12 @@ const HostHub = () => {
     return (
         <div className="host-hub-container">
             <div className="host-hub-card">
-                <button className="spire-back-btn" onClick={() => navigate('/')}>
-                    <i className="fa-solid fa-house"></i> Home Spire
-                </button>
+                <div className="hub-nav-group">
+                    <button className="spire-back-btn" onClick={() => navigate('/')}>
+                        <i className="fa-solid fa-house"></i> Home Spire
+                    </button>
+                    <UserProfilePill />
+                </div>
                 <div className="host-header">
                     <h1>The Hosting Spire</h1>
                     <p>Manage your trials or join an existing ascent.</p>

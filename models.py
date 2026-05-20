@@ -33,6 +33,8 @@ class User(db.Model):
     
     # Relationship: A user can have many characters
     characters = db.relationship('Character', backref='owner', lazy=True, cascade="all, delete-orphan")
+    reports = db.relationship('Report', backref='user', lazy=True, cascade="all, delete-orphan")
+    notifications = db.relationship('UserNotification', backref='user', lazy=True, cascade="all, delete-orphan")
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -237,3 +239,21 @@ class RecoveryRequest(db.Model):
 
     # Relationships
     user = db.relationship('User', backref='recovery_requests')
+
+class Report(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    report_type = db.Column(db.String(20), nullable=False) # 'Feedback' or 'Bug'
+    feature = db.Column(db.String(100), nullable=True) # Used for bugs
+    description = db.Column(db.Text, nullable=False)
+    reproduction_steps = db.Column(db.Text, nullable=True) # Used for bugs
+    status = db.Column(db.String(20), default='pending') # 'pending' or 'resolved'
+    created_at = db.Column(db.DateTime, default=func.now(), nullable=False)
+    resolved_at = db.Column(db.DateTime, nullable=True)
+
+class UserNotification(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    message = db.Column(db.Text, nullable=False)
+    is_read = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=func.now(), nullable=False)

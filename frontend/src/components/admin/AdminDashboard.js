@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useNotification } from '../../context/NotificationContext';
 import UserProfilePill from '../UserProfilePill';
 import AdminRecovery from './AdminRecovery';
+import AdminReports from './AdminReports';
 import '../../styles/Auth.css'; // Reuse some base auth styles
 import '../../styles/Admin.css';
 
@@ -183,6 +184,12 @@ const AdminDashboard = () => {
                     >
                         <i className="fas fa-key"></i> Recovery Requests
                     </button>
+                    <button 
+                        className={`tab-btn ${activeTab === 'reports' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('reports')}
+                    >
+                        <i className="fa-solid fa-bug"></i> Reports
+                    </button>
                 </nav>
 
                 {activeTab === 'users' ? (
@@ -319,8 +326,10 @@ const AdminDashboard = () => {
                             </tbody>
                         </table>
                     </section>
-                ) : (
+                ) : activeTab === 'recovery' ? (
                     <AdminRecovery />
+                ) : (
+                    <AdminReports />
                 )}
             </main>
         </div>

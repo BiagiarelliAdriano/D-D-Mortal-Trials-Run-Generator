@@ -631,8 +631,8 @@ const HostedRunPage = () => {
                         CODE: <span>{session.invite_code}</span>
                     </div>
                 </div>
-
                 <UserProfilePill />
+
 
                 <nav className="session-tabs">
                     <button className={activeTab === 'trial' ? 'active' : ''} onClick={() => { setActiveTab('trial'); setSearchTerm(''); }}>Trial</button>
@@ -722,7 +722,7 @@ const HostedRunPage = () => {
                     <div className="party-view">
                         <div className="participants-grid">
                             {session.participants.map(p => (
-                                <div key={p.user_id} className={`participant-card ${p.role === 'DM' ? 'dm' : ''}`}>
+                                <div key={p.user_id} className={`participant-card ${p.role === 'DM' ? 'dm' : ''} ${p.user_id === currentUser?.id ? 'is-me' : ''}`}>
                                     <div className="p-header">
                                         <div className="p-avatar">
                                             {p.username.substring(0, 2).toUpperCase()}

@@ -22,6 +22,14 @@ const SocialBar = () => {
             >
                 <i className="fa-brands fa-patreon"></i>
             </a>
+            <button 
+                onClick={() => window.open('/report', '_blank')}
+                className="social-icon bug-report"
+                title="Report Feedback or a Bug"
+            >
+                <i className="fa-solid fa-bug"></i>
+            </button>
+
         </div>
     );
 };
