@@ -3,17 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import '../../styles/Auth.css';
 
-const avatarOptions = [
-    "artificer", "barbarian", "bard", "cleric",
-    "druid", "fighter", "monk", "paladin",
-    "ranger", "rogue", "sorcerer", "warlock", "wizard"
-];
-
 const Register = () => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
-    const [avatar, setAvatar] = useState('fighter');
+    const [discordId, setDiscordId] = useState('');
     const [securityAnswer, setSecurityAnswer] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
@@ -40,6 +34,11 @@ const Register = () => {
             return;
         }
 
+        if (!discordId.trim()) {
+            setError("Discord ID is required.");
+            return;
+        }
+
         setLoading(true);
 
         try {
@@ -49,7 +48,7 @@ const Register = () => {
                 body: JSON.stringify({
                     username,
                     password,
-                    avatar,
+                    discord_id: discordId.trim(),
                     security_answer: securityAnswer
                 })
             });
@@ -120,7 +119,9 @@ const Register = () => {
                                 placeholder="Repeat password..."
                             />
                         </div>
+                    </div>
 
+                    <div className="auth-col right-col">
                         <div className="form-group security-box">
                             <label className="security-label">Security Question</label>
                             <p className="security-question-text">
@@ -134,22 +135,21 @@ const Register = () => {
                                 placeholder="Answer here to recover account..."
                             />
                         </div>
-                    </div>
 
-                    <div className="auth-col right-col">
-                        <label className="avatar-label">Choose your Class Avatar</label>
-                        <div className="avatar-grid">
-                            {avatarOptions.map(opt => (
-                                <div
-                                    key={opt}
-                                    className={`avatar-option ${avatar === opt ? 'selected' : ''}`}
-                                    onClick={() => setAvatar(opt)}
-                                    title={opt.charAt(0).toUpperCase() + opt.slice(1)}
-                                >
-                                    {/* Placeholder styling for SVG/Image, using letters for now */}
-                                    {opt.substring(0, 2).toUpperCase()}
-                                </div>
-                            ))}
+                        <div className="form-group">
+                            <label>Discord ID</label>
+                            <input
+                                type="text"
+                                value={discordId}
+                                onChange={(e) => setDiscordId(e.target.value)}
+                                required
+                                placeholder="e.g. 1242152068635164899"
+                                pattern="\d+"
+                                title="Discord ID must be a sequence of numbers."
+                            />
+                            <small className="help-text" style={{ fontSize: '0.75rem', opacity: 0.7, marginTop: '4px', display: 'block' }}>
+                                Used by the Admin to verify your identity on Discord for account recovery. NOT SHOWN ANYWHERE WITHIN SITE.
+                            </small>
                         </div>
                     </div>
 
@@ -172,3 +172,4 @@ const Register = () => {
 };
 
 export default Register;
+

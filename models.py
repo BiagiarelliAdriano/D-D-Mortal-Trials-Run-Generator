@@ -24,10 +24,10 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     password_hash = db.Column(db.String(255), nullable=False)
-    avatar = db.Column(db.String(255), nullable=False, default="fighter") # D&D class inspired avatar names or file path
+    avatar = db.Column(db.String(255), nullable=False, default="") # D&D class inspired avatar names or file path
+    discord_id = db.Column(db.String(255), nullable=True)
     security_question = db.Column(db.String(255), nullable=True)
     security_answer_hash = db.Column(db.String(255), nullable=False)
-    security_answer_encrypted = db.Column(db.Text, nullable=True) # Encrypted with Admin Master Key
     is_admin = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=func.now(), nullable=False)
     
@@ -234,6 +234,8 @@ class RecoveryRequest(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True) # Linked if username matches
     request_type = db.Column(db.String(20), nullable=False) # 'username', 'password', 'security_answer'
     status = db.Column(db.String(20), default='pending') # 'pending', 'resolved', 'denied'
+    recovery_code = db.Column(db.String(8), nullable=True)
+    code_expires_at = db.Column(db.DateTime, nullable=True)
     created_at = db.Column(db.DateTime, default=func.now(), nullable=False)
     resolved_at = db.Column(db.DateTime, nullable=True)
 

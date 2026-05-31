@@ -11,8 +11,7 @@ const AdminRecovery = () => {
     const [requests, setRequests] = useState([]);
     const [loading, setLoading] = useState(false);
     const [unlocking, setUnlocking] = useState(false);
-    const [resettingId, setResettingId] = useState(null);
-    const [newPasswords, setNewPasswords] = useState({});
+    const [generatedCodes, setGeneratedCodes] = useState({});
 
     const handleUnlock = async (e) => {
         if (e) e.preventDefault();
@@ -47,16 +46,22 @@ const AdminRecovery = () => {
         }
     }, [isUnlocked, masterKey, getRecoveryRequests]);
 
-    const handleAction = async (requestId, action, extraData = {}) => {
-        const msg = action === 'deny' ? "Deny this recovery request?" : "Mark this request as resolved?";
+    const handleAction = async (requestId, action) => {
+        const msg = action === 'deny' 
+            ? "Are you sure you want to DENY this recovery request?" 
+            : "Are you sure you want to APPROVE this request and generate a Recovery Code?";
         if (!await confirm(msg)) return;
 
         try {
-            const data = await resolveRecovery(requestId, action, masterKey, extraData);
+            const data = await resolveRecovery(requestId, action, masterKey);
             if (data.success) {
-                addAlert(`Request ${action === 'deny' ? 'denied' : 'resolved'} successfully.`, "success");
-                fetchRequests();
-                if (action === 'reset_password') setResettingId(null);
+                if (action === 'approve') {
+                    addAlert(`Request approved! Code generated successfully.`, "success");
+                    setGeneratedCodes(prev => ({ ...prev, [requestId]: data.recovery_code }));
+                } else {
+                    addAlert(`Request denied successfully.`, "success");
+                    fetchRequests();
+                }
             } else {
                 addAlert(data.error || "Failed to resolve request.", "error");
             }
@@ -65,8 +70,9 @@ const AdminRecovery = () => {
         }
     };
 
-    const handlePasswordChange = (requestId, val) => {
-        setNewPasswords(prev => ({ ...prev, [requestId]: val }));
+    const handleCopy = (code) => {
+        navigator.clipboard.writeText(code);
+        addAlert("Recovery code copied to clipboard!", "success");
     };
 
     if (!isUnlocked) {
@@ -129,13 +135,18 @@ const AdminRecovery = () => {
                                             <label>Matched User:</label>
                                             <span>{req.user_info.username} (ID: {req.user_info.id})</span>
                                         </div>
-                                        <div className="info-row">
-                                            <label>Security Question:</label>
-                                            <p className="q-text">{req.user_info.security_question}</p>
+                                        <div className="info-row highlight" style={{ backgroundColor: '#2d1b4e', padding: '10px', borderRadius: '4px', border: '1px solid #5b3e96', marginTop: '10px' }}>
+                                            <label style={{ color: '#c4a7e7', display: 'block', marginBottom: '4px' }}>Discord ID:</label>
+                                            <strong style={{ fontSize: '1.1rem', color: '#fff', letterSpacing: '0.5px' }}>
+                                                {req.user_info.discord_id || "No Discord ID Linked"}
+                                            </strong>
+                                            <small style={{ display: 'block', opacity: 0.7, marginTop: '4px', fontSize: '0.75rem', lineHeight: '1.2' }}>
+                                                Verify the Discord account matches this ID before sending the code!
+                                            </small>
                                         </div>
-                                        <div className="info-row highlight">
-                                            <label>Security Answer:</label>
-                                            <p className="a-text">{req.user_info.security_answer}</p>
+                                        <div className="info-row" style={{ marginTop: '10px' }}>
+                                            <label>Security Question:</label>
+                                            <p className="q-text" style={{ margin: '4px 0 0' }}>{req.user_info.security_question || "No security question configured"}</p>
                                         </div>
                                     </div>
                                 ) : (
@@ -144,44 +155,41 @@ const AdminRecovery = () => {
                                         <span>No matching account found for this username.</span>
                                     </div>
                                 )}
+
+                                {generatedCodes[req.id] && (
+                                    <div className="generated-code-box" style={{ marginTop: '15px', padding: '12px', background: '#1c3d27', border: '1px solid #27a243', borderRadius: '4px', textAlign: 'center' }}>
+                                        <label style={{ display: 'block', color: '#a3f3b9', fontWeight: 'bold', marginBottom: '5px' }}>ONE-TIME RECOVERY CODE</label>
+                                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
+                                            <code style={{ fontSize: '1.4rem', color: '#fff', fontWeight: 'bold', letterSpacing: '2px' }}>{generatedCodes[req.id]}</code>
+                                            <button 
+                                                className="action-btn copy" 
+                                                onClick={() => handleCopy(generatedCodes[req.id])}
+                                                style={{ background: '#27a243', border: 'none', color: '#fff', padding: '4px 8px', borderRadius: '3px', cursor: 'pointer' }}
+                                            >
+                                                <i className="fas fa-copy"></i> Copy
+                                            </button>
+                                        </div>
+                                        <p style={{ margin: '5px 0 0', fontSize: '0.75rem', color: '#a3f3b9', opacity: 0.8 }}>Send this code to the user via Discord. Expires in 24 hours.</p>
+                                    </div>
+                                )}
                             </div>
 
                             <div className="req-actions">
-                                {req.user_info && req.request_type === 'password' && (
-                                    <>
-                                        {resettingId === req.id ? (
-                                            <div className="reset-password-form">
-                                                <input 
-                                                    type="text" 
-                                                    placeholder="New Password"
-                                                    value={newPasswords[req.id] || ''}
-                                                    onChange={(e) => handlePasswordChange(req.id, e.target.value)}
-                                                />
-                                                <div className="form-buttons">
-                                                    <button 
-                                                        className="confirm-reset"
-                                                        onClick={() => handleAction(req.id, 'reset_password', { new_password: newPasswords[req.id] })}
-                                                        disabled={!newPasswords[req.id] || newPasswords[req.id].length < 12}
-                                                    >
-                                                        Confirm
-                                                    </button>
-                                                    <button className="cancel-reset" onClick={() => setResettingId(null)}>Cancel</button>
-                                                </div>
-                                            </div>
-                                        ) : (
-                                            <button className="action-btn reset" onClick={() => setResettingId(req.id)}>
-                                                <i className="fas fa-key"></i> Reset Password
-                                            </button>
-                                        )}
-                                    </>
+                                {!generatedCodes[req.id] && req.user_info && (
+                                    <button className="action-btn reset" style={{ background: '#5b3e96' }} onClick={() => handleAction(req.id, 'approve')}>
+                                        <i className="fas fa-check-circle"></i> Approve & Generate Code
+                                    </button>
                                 )}
-
-                                <button className="action-btn complete" onClick={() => handleAction(req.id, 'complete')}>
-                                    <i className="fas fa-check"></i> Resolved
-                                </button>
-                                <button className="action-btn deny" onClick={() => handleAction(req.id, 'deny')}>
-                                    <i className="fas fa-times"></i> Deny
-                                </button>
+                                {!generatedCodes[req.id] && (
+                                    <button className="action-btn deny" onClick={() => handleAction(req.id, 'deny')}>
+                                        <i className="fas fa-times"></i> Deny
+                                    </button>
+                                )}
+                                {generatedCodes[req.id] && (
+                                    <button className="action-btn complete" onClick={fetchRequests}>
+                                        <i className="fas fa-check"></i> Done
+                                    </button>
+                                )}
                             </div>
                         </div>
                     ))}
@@ -192,3 +200,4 @@ const AdminRecovery = () => {
 };
 
 export default AdminRecovery;
+

@@ -4,6 +4,7 @@ import { NotificationProvider } from "./context/NotificationContext";
 import Login from "./components/auth/Login";
 import Register from "./components/auth/Register";
 import RecoveryRequest from "./components/auth/RecoveryRequest";
+import ResetCredentials from "./components/auth/ResetCredentials";
 import AdminDashboard from "./components/admin/AdminDashboard";
 import CharactersHub from "./components/CharactersHub";
 import CharacterSheet from "./components/CharacterSheet";
@@ -58,6 +59,7 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/recovery-request" element={<RecoveryRequest />} />
+            <Route path="/reset-credentials" element={<ResetCredentials />} />
             <Route path="/admin" element={<AdminProtectedRoute><AdminDashboard /></AdminProtectedRoute>} />
             <Route path="/profile/:id" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
             <Route path="/hosting" element={<ProtectedRoute><HostHub /></ProtectedRoute>} />

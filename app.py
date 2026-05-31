@@ -325,18 +325,12 @@ def register():
         
     user = User(
         username=username,
-        avatar=data.get("avatar", "fighter"),
+        avatar=data.get("avatar", ""),
+        discord_id=data.get("discord_id", "").strip() or None,
         security_question=data.get("security_question", "What is the name of your very first Dungeons & Dragons character?").strip()
     )
     user.set_password(data["password"])
     user.set_security_answer(data["security_answer"])
-    
-    # Also store encrypted version for admin recovery
-    try:
-        f = get_fernet(SYSTEM_RECOVERY_MASTER)
-        user.security_answer_encrypted = f.encrypt(data["security_answer"].strip().lower().encode()).decode()
-    except Exception as e:
-        print(f"Encryption failed: {e}")
     
     # First user becomes admin automatically for testing/setup
     if User.query.count() == 0:
@@ -353,9 +347,11 @@ def register():
             "id": user.id, 
             "username": user.username, 
             "avatar": user.avatar,
+            "discord_id": user.discord_id,
             "is_admin": user.is_admin
         }
     }), 201
+
 
 @app.route("/api/users/<int:user_id>", methods=["GET"])
 @jwt_required()
@@ -419,12 +415,6 @@ def update_user_profile(user_id):
         if is_admin_editing_other:
             return jsonify({"error": "Admins cannot change other users' security answers"}), 403
         user.set_security_answer(security_answer.strip())
-        # Update encrypted version as well
-        try:
-            f = get_fernet(SYSTEM_RECOVERY_MASTER)
-            user.security_answer_encrypted = f.encrypt(security_answer.strip().lower().encode()).decode()
-        except:
-            pass
         
     # Handle Avatar Upload
     if 'avatar_file' in request.files:
@@ -622,25 +612,14 @@ def get_recovery_requests():
     requests = RecoveryRequest.query.filter_by(status='pending').all()
     
     result = []
-    f = get_fernet(master_key)
-    
     for r in requests:
         user_info = None
         if r.user:
-            decrypted_answer = "[Legacy Account - Answer not recoverable]"
-            if r.user.security_answer_encrypted:
-                try:
-                    decrypted_answer = f.decrypt(r.user.security_answer_encrypted.encode()).decode()
-                except:
-                    decrypted_answer = "[Decryption Failed - Check Master Key]"
-            elif not r.user.security_answer_hash:
-                decrypted_answer = "[No Answer Set]"
-            
             user_info = {
                 "id": r.user.id,
                 "username": r.user.username,
-                "security_question": r.user.security_question,
-                "security_answer": decrypted_answer
+                "discord_id": r.user.discord_id,
+                "security_question": r.user.security_question
             }
             
         result.append({
@@ -663,7 +642,7 @@ def resolve_recovery_request():
         
     data = request.json
     request_id = data.get("request_id")
-    action = data.get("action") # 'complete', 'deny', 'reset_password'
+    action = data.get("action") # 'approve', 'deny'
     master_key = data.get("master_key")
     
     if master_key != SYSTEM_RECOVERY_MASTER:
@@ -673,14 +652,16 @@ def resolve_recovery_request():
     if not recovery_req:
         return jsonify({"error": "Request not found"}), 404
         
-    if action == 'reset_password':
-        new_password = data.get("new_password")
-        if not new_password or not recovery_req.user:
-            return jsonify({"error": "Missing password or user"}), 400
-        recovery_req.user.set_password(new_password)
-        recovery_req.status = 'resolved'
-    elif action == 'complete':
-        recovery_req.status = 'resolved'
+    response_data = {"success": True}
+    
+    if action == 'approve':
+        import secrets
+        from datetime import datetime, timedelta
+        code = secrets.token_hex(4).upper()
+        recovery_req.recovery_code = code
+        recovery_req.code_expires_at = datetime.utcnow() + timedelta(hours=24)
+        recovery_req.status = 'approved'
+        response_data["recovery_code"] = code
     elif action == 'deny':
         recovery_req.status = 'denied'
     else:
@@ -689,7 +670,101 @@ def resolve_recovery_request():
     recovery_req.resolved_at = func.now()
     db.session.commit()
     
-    return jsonify({"success": True}), 200
+    return jsonify(response_data), 200
+
+@app.route("/api/auth/verify-security-answer", methods=["POST"])
+def verify_security_answer():
+    data = request.json
+    if not data or not data.get("username") or not data.get("security_answer"):
+        return jsonify({"error": "Username and security answer required"}), 400
+        
+    user = User.query.filter_by(username=data["username"].strip()).first()
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+        
+    if not user.security_question:
+        return jsonify({"error": "This account does not have a security question configured"}), 400
+        
+    if not user.check_security_answer(data["security_answer"]):
+        return jsonify({"error": "Incorrect security answer"}), 401
+        
+    from datetime import timedelta
+    reset_token = create_access_token(
+        identity=str(user.id),
+        expires_delta=timedelta(minutes=5),
+        additional_claims={"is_recovery": True}
+    )
+    return jsonify({"success": True, "reset_token": reset_token}), 200
+
+@app.route("/api/auth/redeem-recovery", methods=["POST"])
+def redeem_recovery():
+    data = request.json
+    if not data or not data.get("username") or not data.get("recovery_code"):
+        return jsonify({"error": "Username and recovery code required"}), 400
+        
+    user = User.query.filter_by(username=data["username"].strip()).first()
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+        
+    from datetime import datetime
+    req = RecoveryRequest.query.filter_by(
+        user_id=user.id,
+        recovery_code=data["recovery_code"].strip().upper(),
+        status='approved'
+    ).first()
+    
+    if not req:
+        return jsonify({"error": "Invalid or inactive recovery code"}), 400
+        
+    if req.code_expires_at and req.code_expires_at < datetime.utcnow():
+        return jsonify({"error": "Recovery code has expired"}), 400
+        
+    from datetime import timedelta
+    reset_token = create_access_token(
+        identity=str(user.id),
+        expires_delta=timedelta(minutes=5),
+        additional_claims={"is_recovery": True}
+    )
+    
+    req.status = 'resolved'
+    req.resolved_at = datetime.utcnow()
+    db.session.commit()
+    
+    return jsonify({"success": True, "reset_token": reset_token}), 200
+
+@app.route("/api/auth/reset-credentials", methods=["POST"])
+@jwt_required()
+def reset_credentials():
+    from flask_jwt_extended import get_jwt
+    claims = get_jwt()
+    if not claims.get("is_recovery"):
+        return jsonify({"error": "Unauthorized credential reset attempt"}), 403
+        
+    current_user_id = get_jwt_identity()
+    user = db.session.get(User, current_user_id)
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+        
+    data = request.json
+    new_password = data.get("new_password")
+    new_security_question = data.get("new_security_question")
+    new_security_answer = data.get("new_security_answer")
+    
+    if not new_password and not new_security_answer:
+        return jsonify({"error": "Nothing to reset"}), 400
+        
+    if new_password:
+        if len(new_password) < 12:
+            return jsonify({"error": "Password must be at least 12 characters long"}), 400
+        user.set_password(new_password)
+        
+    if new_security_question and new_security_answer:
+        user.security_question = new_security_question.strip()
+        user.set_security_answer(new_security_answer.strip())
+        
+    db.session.commit()
+    return jsonify({"success": True, "message": "Credentials updated successfully"}), 200
+
 
 # ------------------------
 # Reports & Notifications API
