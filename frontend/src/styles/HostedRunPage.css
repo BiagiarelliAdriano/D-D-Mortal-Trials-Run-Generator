@@ -48,6 +48,76 @@
     gap: 1.5rem;
 }
 
+.session-header-tools {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.rations-pill {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 8px 6px 12px;
+    border: 1px solid rgba(255, 215, 0, 0.35);
+    border-radius: 999px;
+    background: rgba(255, 215, 0, 0.08);
+    box-shadow: inset 0 0 14px rgba(255, 215, 0, 0.05);
+}
+
+.rations-pill-main {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-main);
+    white-space: nowrap;
+}
+
+.rations-pill-main i {
+    color: var(--accent);
+}
+
+.rations-label {
+    color: var(--text-dim);
+    font-size: 0.76rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.rations-pill-main strong {
+    min-width: 28px;
+    color: var(--accent);
+    font-size: 1rem;
+    text-align: right;
+}
+
+.rations-actions {
+    display: flex;
+    gap: 4px;
+}
+
+.rations-actions button {
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.25);
+    color: var(--text-dim);
+    padding: 4px 9px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.rations-actions button:hover:not(:disabled) {
+    color: #1e1e2f;
+    background: var(--accent);
+    border-color: var(--accent);
+}
+
+.rations-actions button:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+}
+
 .back-link {
     background: transparent;
     border: none;

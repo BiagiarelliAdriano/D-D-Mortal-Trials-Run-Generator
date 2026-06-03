@@ -1083,6 +1083,15 @@ def api_character_detail(char_id):
         db.session.commit()
         return jsonify({"success": True})
 
+    # Check for pending rest
+    pending_rest = None
+    participant = SessionParticipant.query.filter(
+        SessionParticipant.character_id == character.id,
+        SessionParticipant.pending_rest != None
+    ).first()
+    if participant:
+        pending_rest = participant.pending_rest
+
     # GET single character
     data = character.get_data()
     return jsonify({
@@ -1095,7 +1104,8 @@ def api_character_detail(char_id):
             "name": data.get("class_name"),
             "subclass": data.get("subclass")
         },
-        "data": data
+        "data": data,
+        "pending_rest": pending_rest
     })
 
 @app.route("/api/characters/<int:char_id>/toggle-privacy", methods=["POST"])
@@ -1216,6 +1226,12 @@ def api_character_short_rest(char_id):
         data["featureUses"] = feature_uses
 
     character.set_data(data)
+    
+    # Clear pending rest
+    participations = SessionParticipant.query.filter_by(character_id=character.id).all()
+    for p in participations:
+        p.pending_rest = None
+        
     db.session.commit()
     return jsonify({"success": True, "data": data})
 
@@ -1264,6 +1280,12 @@ def api_character_long_rest(char_id):
         data["featureUses"] = feature_uses
 
     character.set_data(data)
+    
+    # Clear pending rest
+    participations = SessionParticipant.query.filter_by(character_id=character.id).all()
+    for p in participations:
+        p.pending_rest = None
+        
     db.session.commit()
     return jsonify({"success": True, "data": data})
 
@@ -1819,6 +1841,7 @@ def api_get_hosted_run_details(session_id):
         "claimed_items": json.loads(session.claimed_items) if session.claimed_items else [],
         "completed_encounters": json.loads(session.completed_encounters),
         "shop_state": json.loads(session.shop_state) if session.shop_state else None,
+        "rations": session.rations,
         "is_active": session.is_active
     }), 200
 
@@ -1869,6 +1892,47 @@ def api_rename_hosted_run(session_id):
         return jsonify({"error": "A trial with this name already exists. Please choose a unique title."}), 400
         
     return jsonify({"message": "Run renamed successfully", "title": session.run.title_run}), 200
+
+@app.route("/api/host/<int:session_id>/spend-rations", methods=["POST"])
+@jwt_required()
+def api_spend_rations(session_id):
+    current_user_id = get_jwt_identity()
+    session = db.get_or_404(HostedRun, session_id)
+    
+    if str(session.dm_id) != str(current_user_id):
+        return jsonify({"error": "Only the Dungeon Master can spend rations"}), 403
+        
+    data = request.json
+    rest_type = data.get("rest_type") # 'short' or 'long'
+    
+    if rest_type not in ['short', 'long']:
+        return jsonify({"error": "Invalid rest type"}), 400
+        
+    cost = 0.5 if rest_type == 'short' else 1.0
+    
+    if session.rations < cost:
+        return jsonify({"error": "Not enough rations"}), 400
+        
+    session.rations -= cost
+    
+    # Notify participants and set pending rest
+    for participant in session.participants:
+        if participant.role != 'DM' and participant.character_id:
+            participant.pending_rest = rest_type
+            
+            # Create notification
+            db.session.add(UserNotification(
+                user_id=participant.user_id,
+                message=f"A {rest_type.capitalize()} Rest has been initiated in run '{session.run.title_run}'! Open your character sheet to take it."
+            ))
+            
+    db.session.commit()
+    
+    return jsonify({
+        "success": True,
+        "message": f"{rest_type.capitalize()} Rest initiated.",
+        "rations": session.rations
+    })
 
 @app.route("/api/host/<int:session_id>/complete-encounter", methods=["POST"])
 @jwt_required()
@@ -2000,6 +2064,12 @@ def api_complete_encounter(session_id):
     session.party_inventory = json.dumps(current_inv)
     session.vault_gold = json.dumps(vault_gold)
     
+    # Handle Rations from encounter
+    rations_found = 0
+    if "rations" in target_enc:
+        rations_found = float(target_enc["rations"])
+        session.rations = round(session.rations + rations_found, 1)
+
     # Update completed encounters
     completed = json.loads(session.completed_encounters)
     if enc_num not in completed:
@@ -2010,7 +2080,9 @@ def api_complete_encounter(session_id):
     
     res_data = {
         "message": f"Encounter {enc_num} completed",
-        "party_inventory": current_inv
+        "party_inventory": current_inv,
+        "rations_found": rations_found,
+        "rations": session.rations
     }
     if leveled_up_chars:
         res_data["leveled_up"] = leveled_up_chars

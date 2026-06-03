@@ -1871,6 +1871,17 @@ MONK = {
                 }
             }
         ],
+        8: [
+            {
+                "id": "feat_or_asi_8",
+                "name": "Feat or ASI",
+                "summary": "Choose a feat or increase ability scores.",
+                "description": "You can further specialize your character's talents by increasing your ability scores or choosing a new Feat.",
+                "details": {
+                    "Action": "Passive",
+                }
+            },
+        ],
         9: [
             {
                 "id": "monk_acrobatic_movement",
@@ -1918,6 +1929,17 @@ MONK = {
                 }
             }
         ],
+        12: [
+            {
+                "id": "feat_or_asi_12",
+                "name": "Feat or ASI",
+                "summary": "Choose a feat or increase ability scores.",
+                "description": "You can further specialize your character's talents by increasing your ability scores or choosing a new Feat.",
+                "details": {
+                    "Action": "Passive",
+                }
+            },
+        ],
         13: [
             {
                 "id": "monk_deflect_energy",
@@ -1952,6 +1974,17 @@ MONK = {
                     "Action": "Passive",
                 }
             }
+        ],
+        16: [
+            {
+                "id": "feat_or_asi_16",
+                "name": "Feat or ASI",
+                "summary": "Choose a feat or increase ability scores.",
+                "description": "You can further specialize your character's talents by increasing your ability scores or choosing a new Feat.",
+                "details": {
+                    "Action": "Passive",
+                }
+            },
         ],
         17: [
             {

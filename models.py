@@ -207,6 +207,7 @@ class HostedRun(db.Model):
     completed_encounters = db.Column(db.Text, default='[]')
     vault_gold = db.Column(db.Text, default='[]')
     shop_state = db.Column(db.Text, nullable=True)
+    rations = db.Column(db.Float, default=3.0, nullable=False)
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=func.now(), nullable=False)
 
@@ -223,6 +224,7 @@ class SessionParticipant(db.Model):
     character_id = db.Column(db.Integer, db.ForeignKey('character.id'), nullable=True)
     role = db.Column(db.String(20), default='Ascendant') # 'DM' or 'Ascendant'
     joined_at = db.Column(db.DateTime, default=func.now(), nullable=False)
+    pending_rest = db.Column(db.String(20), nullable=True) # 'short' or 'long'
 
     # Relationships
     user = db.relationship('User', backref='session_participations')
@@ -230,6 +232,7 @@ class SessionParticipant(db.Model):
 
 class RecoveryRequest(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+
     username = db.Column(db.String(80), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True) # Linked if username matches
     request_type = db.Column(db.String(20), nullable=False) # 'username', 'password', 'security_answer'

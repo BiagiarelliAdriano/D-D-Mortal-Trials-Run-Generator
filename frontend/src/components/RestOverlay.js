@@ -41,7 +41,8 @@ const RestOverlay = ({
     classRules,
     availableFeatures,
     onClose,
-    onCompleteRest
+    onCompleteRest,
+    preselectedRest
 }) => {
     const [hpRegained, setHpRegained] = useState(0);
     const [rollResults, setRollResults] = useState([]);
@@ -210,10 +211,17 @@ const RestOverlay = ({
 
                 <p className="rest-tip">Choose your rest type. Resources will be restored based on your class features.</p>
 
+                {preselectedRest && (
+                    <div className="prompt-banner" style={{ background: '#5e43f333', border: '1px solid #5e43f3', padding: '10px', borderRadius: '8px', margin: '10px 20px', textAlign: 'center', color: '#fff', fontWeight: 'bold' }}>
+                        <i className="fa-solid fa-bell" style={{ marginRight: '8px' }}></i>
+                        Your Party has initiated a {preselectedRest === 'long' ? 'Long Rest' : 'Short Rest'}!
+                    </div>
+                )}
+
                 <div className="rest-body scrollable">
                     <div className="rest-layout-split">
                         {/* SHORT REST COLUMN */}
-                        <div className="rest-column left">
+                        <div className={`rest-column left ${preselectedRest === 'long' ? 'dimmed' : ''}`}>
                             <div className="column-head">
                                 <h3>Short Rest</h3>
                             </div>
@@ -307,7 +315,7 @@ const RestOverlay = ({
                         </div>
 
                         {/* LONG REST COLUMN */}
-                        <div className="rest-column right">
+                        <div className={`rest-column right ${preselectedRest === 'short' ? 'dimmed' : ''}`}>
                             <div className="column-head">
                                 <h3>Long Rest</h3>
                             </div>

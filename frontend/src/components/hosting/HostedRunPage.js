@@ -30,6 +30,11 @@ const HostedRunPage = () => {
     const [levelUpReveal, setLevelUpReveal] = useState(null); // Stores character info for modal
     const [dismissedLevelUps, setDismissedLevelUps] = useState(new Set()); // Local tracking for this session
 
+    const formatRations = (value) => {
+        const numeric = Number(value || 0);
+        return Number.isInteger(numeric) ? numeric.toString() : numeric.toFixed(1);
+    };
+
     const fetchSessionDetails = useCallback(async () => {
         try {
             const response = await fetch(`/api/host/details/${id}`, {
@@ -156,12 +161,48 @@ const HostedRunPage = () => {
                 body: JSON.stringify({ encounter_num: num })
             });
             if (response.ok) {
+                const data = await response.json();
+                // Immediately update rations in local state so pill reflects new value at once
+                if (data.rations !== undefined) {
+                    setSession(prev => prev ? { ...prev, rations: data.rations } : prev);
+                }
                 fetchSessionDetails();
-                setNotice({ message: `Encounter #${num} marked as complete!`, type: 'success' });
+                const rationText = data.rations_found > 0 ? ` +${formatRations(data.rations_found)} ration${data.rations_found === 1 ? '' : 's'}.` : '';
+                setNotice({ message: `Encounter #${num} marked as complete!${rationText}`, type: 'success' });
                 setTimeout(() => setNotice(null), 3000);
+            } else {
+                const data = await response.json();
+                addAlert(data.error || "Failed to complete encounter", "error");
             }
         } catch (err) {
             addAlert(err.message, 'error');
+        }
+    };
+
+    const handleUseRations = async (restType) => {
+        const cost = restType === 'long' ? 1 : 0.5;
+        const label = restType === 'long' ? 'Long Rest' : 'Short Rest';
+        if (!await confirm(`Spend ${cost} ration${cost === 1 ? '' : 's'} to prepare a party ${label}?`)) return;
+
+        try {
+            const response = await fetch(`/api/host/${id}/spend-rations`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ rest_type: restType })
+            });
+            const data = await response.json();
+            if (response.ok) {
+                addAlert(`${label} prepared for linked characters.`, "success");
+                setSession(prev => prev ? { ...prev, rations: data.rations } : prev);
+                fetchSessionDetails();
+            } else {
+                addAlert(data.error || `Failed to prepare ${label}`, "error");
+            }
+        } catch (err) {
+            addAlert(err.message, "error");
         }
     };
 
@@ -631,7 +672,32 @@ const HostedRunPage = () => {
                         CODE: <span>{session.invite_code}</span>
                     </div>
                 </div>
-                <UserProfilePill />
+                <div className="session-header-tools">
+                    <div className="rations-pill" title="Party rations for this hosted run">
+                        <div className="rations-pill-main">
+                            <i className="fa-solid fa-bowl-food"></i>
+                            <span className="rations-label">Rations</span>
+                            <strong>{formatRations(session.rations)}</strong>
+                        </div>
+                        <div className="rations-actions">
+                            <button
+                                onClick={() => handleUseRations('short')}
+                                disabled={Number(session.rations || 0) < 0.5}
+                                title="Spend 0.5 ration to prepare a party Short Rest"
+                            >
+                                Short
+                            </button>
+                            <button
+                                onClick={() => handleUseRations('long')}
+                                disabled={Number(session.rations || 0) < 1}
+                                title="Spend 1 ration to prepare a party Long Rest"
+                            >
+                                Long
+                            </button>
+                        </div>
+                    </div>
+                    <UserProfilePill />
+                </div>
 
 
                 <nav className="session-tabs">

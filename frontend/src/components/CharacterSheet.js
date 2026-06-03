@@ -1252,6 +1252,7 @@ function CharacterSheet() {
     const [showTransferModal, setShowTransferModal] = useState(false);
     const [itemToTransfer, setItemToTransfer] = useState(null);
     const [showRestOverlay, setShowRestOverlay] = useState(false);
+    const [pendingRestType, setPendingRestType] = useState(null);
     const [statModConfig, setStatModConfig] = useState({ isOpen: false, type: null, statKey: null, value: 0, label: "" });
     const [showGoldTransferModal, setShowGoldTransferModal] = useState(false);
     const [goldTransferAmount, setGoldTransferAmount] = useState(1);
@@ -1379,6 +1380,12 @@ function CharacterSheet() {
                 throw new Error("Failed to load character");
             }
             const data = await charRes.json();
+
+            // Check for pending rest
+            if (data.pending_rest) {
+                setPendingRestType(data.pending_rest);
+                setShowRestOverlay(true);
+            }
 
             // Set immediate basic state
             setCharacter(data);
@@ -3108,6 +3115,7 @@ function CharacterSheet() {
 
             <RestOverlay
                 show={showRestOverlay}
+                preselectedRest={pendingRestType}
                 character={character}
                 currentHp={currentHp}
                 maxHp={effectiveMaxHp}
