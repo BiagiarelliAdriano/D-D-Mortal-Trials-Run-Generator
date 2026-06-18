@@ -53,7 +53,14 @@ BARBARIAN = {
                 "id": "barbarian_rage",
                 "name": "Rage",
                 "summary": "Enter a state of primal fury, granting bonuses to damage, resistances, and Strength-based rolls.",
-                "description": "Your battle fury is a primal force that surges from within, granting you preternatural strength and resilience. On your turn, you can enter a Rage as a Bonus Action. \n\nWhile Raging, you gain the following benefits: \n- **Strength Advantage**: You have Advantage on Strength checks and Strength saving throws. \n- **Rage Damage**: When you make a melee attack using Strength and hit, you gain a bonus to the damage roll. \n- **Resilience**: You have resistance to Bludgeoning, Piercing, and Slashing damage. \n\nYour Rage lasts for 10 minutes. It ends early if you are knocked unconscious or if your turn ends and you haven't attacked a creature, taken damage, or used a Bonus Action to extend it since your last turn.",
+                "description": "You can imbue yourself with a primal power called Rage, a force that grants you extraordinary might and resilience. You can enter it as a Bonus Action if you aren't wearing Heavy armor. You can enter your Rage the number of times shown for your Barbarian level in the Rages count of this feature. You regain one expended use when you finish a Short Rest, and you regain all expended uses when you finish a Long Rest. While active, your Rage follows the rules below. \n *Damage Resistances.* You have Resistance to Bludgeoning, Piercing, and Slashing damage. \n *Rage Damage.* When you make an attack using Strength, with either a weapon or an Unarmed Strike, and deal damage to the target, you gain a bonus to the damage that increases as you gain levels as a Barbarian, as shown in the Rage Damage field of this feature. \n *Strength Advantage.* You have Advantage on Strength checks and Strength saving throws. \n *No Concentration or Spells.* You can't maintain Concentration, and you can't cast spells. \n *Duration.* The Rage lasts until the end of your next turn, and it ends early if you don Heavy armor or have the Incapacitated condition. If your Rage is still active on your next turn, you can extend the Rage for another Round by doing one of the following: \n - Make an attack roll against an enemy. \n - Force an enemy to make a saving throw. \n - Take a Bonus Action to extend your Rage. \n Each time the Rage is extended, it lasts until the end of your next turn. You can maintain a Rage for up to 10 minutes.",
+                "behaviors": [
+                    "activatable",
+                    "uses",
+                    "advantage",
+                    "damage_bonus",
+                    "resistance"
+                ],
                 "details": {
                     "Action": "Bonus Action",
                     "uses": {
@@ -77,7 +84,7 @@ BARBARIAN = {
                 "id": "barbarian_unarmored_defense",
                 "name": "Unarmored Defense",
                 "summary": "Your AC equals 10 + Dex mod + Con mod while not wearing armor.",
-                "description": "Your body is as tough as any suit of mail. While you are not wearing any armor, your Armor Class equals 10 + your Dexterity modifier + your Constitution modifier. You can use a Shield and still gain this benefit.",
+                "description": "While you are not wearing any armor, your Armor Class equals 10 + your Dexterity modifier + your Constitution modifier. You can use a Shield and still gain this benefit.",
                 "details": {
                     "Action": "Passive",
                     "Calculation": "10 + DEX + CON",
@@ -118,7 +125,7 @@ BARBARIAN = {
                 "id": "barbarian_reckless_attack",
                 "name": "Reckless Attack",
                 "summary": "Gain Advantage on Strength attacks for the turn; attackers gain Advantage against you.",
-                "description": "You can throw aside all concern for defense to attack with fierce desperation. When you make your first attack on your turn, you can decide to attack recklessly. Doing so gives you Advantage on melee weapon attack rolls using Strength during this turn, but attack rolls against you have Advantage until your next turn.",
+                "description": "You can throw aside all concern for defense to attack with fierce desperation. When you make your first attack on your turn, you can decide to attack recklessly. Doing so gives you Advantage on attack rolls using Strength until the start of your next turn, but attack rolls against you have Advantage until your next turn.",
                 "details": {
                     "Action": "Passive",
                 }
@@ -144,7 +151,7 @@ BARBARIAN = {
                 "id": "barbarian_primal_knowledge",
                 "name": "Primal Knowledge",
                 "summary": "Gain 1 Barbarian skill; can use Strength for select ability checks while raging.",
-                "description": "Your connection to your primal heritage allows you to draw on your physical might to bolster your skills. You gain proficiency in another skill from the Barbarian skill list. Additionally, while your Rage is active, you can use Strength instead of another ability for checks in certain skills, such as Acrobatics, Intimidation, Perception, Stealth, or Survival.",
+                "description": "You gain proficiency in another skill from the Barbarian skill list. Additionally, while your Rage is active, you can use Strength instead of another ability for checks in certain skills, such as Acrobatics, Intimidation, Perception, Stealth, or Survival.",
                 "details": {
                     "Action": "Passive",
                     "skills_affected": ["Acrobatics", "Intimidation", "Perception", "Stealth", "Survival"]

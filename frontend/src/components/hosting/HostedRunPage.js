@@ -623,6 +623,7 @@ const HostedRunPage = () => {
     if (!session) return <div className="hosted-page-container"><div className="error-message">Session not found or connection lost.</div></div>;
 
     const isDM = currentUser.id === session.dm_id;
+    const isDMOrAdmin = isDM || isAdmin;
 
     return (
         <div className="hosted-page-container">
@@ -679,22 +680,28 @@ const HostedRunPage = () => {
                             <span className="rations-label">Rations</span>
                             <strong>{formatRations(session.rations)}</strong>
                         </div>
-                        <div className="rations-actions">
-                            <button
-                                onClick={() => handleUseRations('short')}
-                                disabled={Number(session.rations || 0) < 0.5}
-                                title="Spend 0.5 ration to prepare a party Short Rest"
-                            >
-                                Short
-                            </button>
-                            <button
-                                onClick={() => handleUseRations('long')}
-                                disabled={Number(session.rations || 0) < 1}
-                                title="Spend 1 ration to prepare a party Long Rest"
-                            >
-                                Long
-                            </button>
-                        </div>
+                        {isDMOrAdmin ? (
+                            <div className="rations-actions">
+                                <button
+                                    onClick={() => handleUseRations('short')}
+                                    disabled={Number(session.rations || 0) < 0.5}
+                                    title="Spend 0.5 ration to prepare a party Short Rest"
+                                >
+                                    Short
+                                </button>
+                                <button
+                                    onClick={() => handleUseRations('long')}
+                                    disabled={Number(session.rations || 0) < 1}
+                                    title="Spend 1 ration to prepare a party Long Rest"
+                                >
+                                    Long
+                                </button>
+                            </div>
+                        ) : (
+                            <span className="rations-helper-text">
+                                Only the DM can give Rests
+                            </span>
+                        )}
                     </div>
                     <UserProfilePill />
                 </div>

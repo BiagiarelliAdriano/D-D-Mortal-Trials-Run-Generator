@@ -1079,7 +1079,6 @@ def api_character_detail(char_id):
             character.update_hp(new_level, con_mod, updated_data.get("class_name", "Barbarian"))
             # Note: update_hp saves internally, so we don't need to call set_data again ideally, 
             # but update_hp calls set_data, so it's fine.
-
         db.session.commit()
         return jsonify({"success": True})
 
@@ -1816,6 +1815,7 @@ def api_get_hosted_run_details(session_id):
             "user_id": p.user.id,
             "username": p.user.username,
             "role": p.role,
+            "pending_rest": p.pending_rest,
             "character": {
                 "id": p.character.id,
                 "name": p.character.name,
@@ -1899,8 +1899,11 @@ def api_spend_rations(session_id):
     current_user_id = get_jwt_identity()
     session = db.get_or_404(HostedRun, session_id)
     
-    if str(session.dm_id) != str(current_user_id):
-        return jsonify({"error": "Only the Dungeon Master can spend rations"}), 403
+    user = db.session.get(User, current_user_id)
+    is_admin = user.is_admin if user else False
+    
+    if str(session.dm_id) != str(current_user_id) and not is_admin:
+        return jsonify({"error": "Only the Dungeon Master or an Admin can spend rations"}), 403
         
     data = request.json
     rest_type = data.get("rest_type") # 'short' or 'long'
@@ -1920,10 +1923,10 @@ def api_spend_rations(session_id):
         if participant.role != 'DM' and participant.character_id:
             participant.pending_rest = rest_type
             
-            # Create notification
+            # Create global notification
             db.session.add(UserNotification(
                 user_id=participant.user_id,
-                message=f"A {rest_type.capitalize()} Rest has been initiated in run '{session.run.title_run}'! Open your character sheet to take it."
+                message=f"A {rest_type.capitalize()} Rest has been initiated by the Dungeon Master! Open your Character Sheet."
             ))
             
     db.session.commit()

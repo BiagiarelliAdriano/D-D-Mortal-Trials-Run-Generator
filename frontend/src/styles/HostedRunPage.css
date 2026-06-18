@@ -118,6 +118,16 @@
     cursor: not-allowed;
 }
 
+.rations-helper-text {
+    font-size: 0.72rem;
+    color: var(--text-dim);
+    font-style: italic;
+    border-left: 1px solid rgba(255, 255, 255, 0.15);
+    padding-left: 10px;
+    padding-right: 6px;
+    white-space: nowrap;
+}
+
 .back-link {
     background: transparent;
     border: none;

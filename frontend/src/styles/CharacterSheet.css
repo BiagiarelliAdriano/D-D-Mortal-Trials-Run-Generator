@@ -4586,6 +4586,41 @@ h3,
     color: var(--accent);
 }
 
+/* Feature Notes Styling */
+.feature-notes-section {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid var(--border);
+}
+
+.feature-notes-label {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+.feature-notes-input {
+    width: 100%;
+    min-height: 80px;
+    padding: 15px;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    color: var(--text-main);
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    resize: vertical;
+    outline: none;
+    box-sizing: border-box;
+}
+
+.feature-notes-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 10px var(--primary-glow);
+}
+
 
 .rest-column.dimmed { opacity: 0.4; filter: grayscale(50%); }
 

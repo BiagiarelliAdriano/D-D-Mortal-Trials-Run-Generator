@@ -4,7 +4,7 @@ import { useNotification } from '../context/NotificationContext';
 
 const NotificationPoller = () => {
     const { token, user } = useAuth();
-    const { confirm } = useNotification();
+    const { confirm, addAlert } = useNotification();
 
     const checkNotifications = useCallback(async () => {
         if (!token || !user) return;
@@ -22,28 +22,32 @@ const NotificationPoller = () => {
             
             // For each unread notification, display it then mark as read
             for (const notif of notifications) {
-                // Show standard confirm to ensure they acknowledge it
-                await confirm(`New Message from Admin:\n\n${notif.message}`);
+                if (notif.message.includes("Rest has been initiated")) {
+                    addAlert(notif.message, 'success');
+                } else {
+                    // Show standard confirm to ensure they acknowledge it
+                    await confirm(`New Message from Admin:\n\n${notif.message}`);
+                }
                 
                 // Mark as read
-                await fetch(`/api/users/notifications/${notif.id}/read`, {
+                fetch(`/api/users/notifications/${notif.id}/read`, {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
-                });
+                }).catch(err => console.error("Failed to mark as read", err));
             }
         } catch (err) {
             console.error("Error checking notifications:", err);
         }
-    }, [token, user, confirm]);
+    }, [token, user, confirm, addAlert]);
 
     useEffect(() => {
         // Check once on mount/auth
         checkNotifications();
         
-        // And optionally poll every few minutes
-        const interval = setInterval(checkNotifications, 5 * 60 * 1000);
+        // And optionally poll every 10 seconds for live updates
+        const interval = setInterval(checkNotifications, 10 * 1000);
         return () => clearInterval(interval);
     }, [checkNotifications]);
 

@@ -301,15 +301,18 @@ const calculateAttack = (name, abilities, profBonus, features = [], level = 1, w
 
     // Check for Rage
     const activeFeatureIds = features.activeIds || [];
-    const isCurrentlyRaging = activeFeatureIds.includes("barbarian_rage");
+    const rageActive = activeFeatureIds.includes("barbarian_rage");
     let notes = data.properties.join(", ");
 
     if (data.mastery && data.mastery.length > 0) {
         notes += (notes ? ", " : "") + `Mastery: ${data.mastery[0]}`;
     }
 
-    if (isCurrentlyRaging && usedStrForDamage) {
-        const rageBonus = level >= 16 ? 4 : (level >= 9 ? 3 : 2);
+    if (rageActive && usedStrForDamage) {
+        let rageBonus = 2;
+
+        if (level >= 16) rageBonus = 4;
+        else if (level >= 9) rageBonus = 3;
         damageMod += rageBonus;
         notes += (notes ? ", " : "") + `(+${rageBonus} Rage Damage)`;
     }
@@ -492,11 +495,12 @@ const CombatWidget = ({ character, inventory, features, profBonus, weaponRules, 
 const RichFeature = ({
     feature, isExpanded, onToggle, level, isActive, onActivate, currentUses,
     characterData, classRules, ruleOptions, featureChoices, onUpdateChoice, availableSpells,
-    viewOnly, isAuthorized
+    viewOnly, isAuthorized, featureNotes, setFeatureNotes
 }) => {
-    const maxUsesData = feature.details?.Uses;
+    const maxUsesData = feature.details?.uses;
     const maxUses = maxUsesData ? resolveScalingValue(maxUsesData, level) : null;
     const hasUses = maxUses !== null;
+    const isActivatable = feature.id === "barbarian_rage";
 
     const rawChoice = featureChoices?.[feature.id];
     const currentChoices = Array.isArray(rawChoice) ? rawChoice : (rawChoice ? [rawChoice] : []);
@@ -549,16 +553,19 @@ const RichFeature = ({
             </div>
             {isExpanded && (
                 <div className="feature-body">
-                    {!viewOnly && feature.id === "barbarian_rage" && (
+                    {!viewOnly && isActivatable && (
                         <button
-                            className={`activate-btn ${isActive ? 'active' : ''} ${(currentUses === 0 || (!isActive && currentUses === 0)) ? 'disabled' : ''}`}
+                            className={`activate-btn ${isActive ? 'active' : ''} ${hasUses && currentUses === 0 ? 'disabled' : ''}`}
                             onClick={(e) => {
                                 e.stopPropagation();
-                                onActivate(feature.id, maxUses);
+                                onActivate(feature.id);
                             }}
-                            disabled={!isActive && currentUses === 0}
+                            disabled={!isActive && (currentUses ?? maxUses ?? 0) <= 0}
+                            title={!isActive && (currentUses ?? 0) <= 0
+                                ? "You have 0 uses for this feature. Check description to know how to gain them."
+                                : ""}
                         >
-                            {isActive ? "End Rage" : "Rage!"}
+                            {isActive ? "Deactive" : "Activate!"}
                         </button>
                     )}
                     {feature.summary && <p className="feature-summary"><strong>Summary:</strong> {processRichText(feature.summary)}</p>}
@@ -652,6 +659,31 @@ const RichFeature = ({
                             <ValueRenderer value={feature.details} level={level} themeRole="view_only" />
                         </div>
                     )}
+                    <div className="feature-notes-section">
+                        <label className="feature-notes-label">
+                            Notes ({(featureNotes?.[feature.id] || "").replace(/\s/g, "").length}/100)
+                        </label>
+
+                        <textarea
+                            className="feature-notes-input"
+                            value={featureNotes?.[feature.id] || ""}
+                            maxLength={200}
+                            placeholder="Write personal notes for this feature..."
+                            onChange={(e) => {
+                                const value = e.target.value;
+
+                                const nonSpaceCount = value.replace(/\s/g, "").length;
+
+                                if (nonSpaceCount > 100) return;
+
+                                setFeatureNotes(prev => ({
+                                    ...prev,
+                                    [feature.id]: value
+                                }));
+                            }}
+                        >
+                        </textarea>
+                    </div>
                 </div>
             )}
         </div>
@@ -1338,6 +1370,7 @@ function CharacterSheet() {
     const [showSpellOverlay, setShowSpellOverlay] = useState(false);
     const [spellOverlayMinimized, setSpellOverlayMinimized] = useState(false);
     const [featureChoices, setFeatureChoices] = useState({});
+    const [featureNotes, setFeatureNotes] = useState({});
 
     // Level Up Overlay State
     const [showLevelUpOverlay, setShowLevelUpOverlay] = useState(false);
@@ -1352,6 +1385,8 @@ function CharacterSheet() {
     const [currentHp, setCurrentHp] = useState(0);
     const [baseMaxHp, setBaseMaxHp] = useState(0);
     const [effectiveMaxHp, setEffectiveMaxHp] = useState(0);
+
+    const [characterLoaded, setCharacterLoaded] = useState(false);
 
     // Consolidated Loading Logic
     const fetchData = useCallback(async () => {
@@ -1385,6 +1420,8 @@ function CharacterSheet() {
             if (data.pending_rest) {
                 setPendingRestType(data.pending_rest);
                 setShowRestOverlay(true);
+            } else {
+                setPendingRestType(null);
             }
 
             // Set immediate basic state
@@ -1396,6 +1433,8 @@ function CharacterSheet() {
             setActiveFeatures(data.data.activeFeatures || []);
             setFeatureUses(data.data.featureUses || {});
             setFeatureChoices(data.data.featureChoices || {});
+            setFeatureNotes(data.data.featureNotes || {});
+            setCharacterLoaded(true);
 
             // Initialize HP
             const initialBaseMaxHp = data.data.hp_max_base || 0;
@@ -1798,26 +1837,28 @@ function CharacterSheet() {
         });
     };
 
-    const toggleFeatureActive = (featureId, maxUses) => {
-        setActiveFeatures(prev => {
-            let next;
-            if (prev.includes(featureId)) {
-                next = prev.filter(id => id !== featureId);
-            } else {
-                // Check if we have uses left
-                const currentUses = featureUses[featureId] !== undefined ? featureUses[featureId] : maxUses;
-                if (currentUses <= 0) return prev; // No uses left
+    const toggleFeatureActive = (featureId) => {
+        setActiveFeatures(prevActive => {
+            const isActive = prevActive.includes(featureId);
 
-                next = [...prev, featureId];
-                // Consume use
-                setFeatureUses(u => {
-                    const newUses = { ...u, [featureId]: currentUses - 1 };
-                    saveCharacter({ featureUses: newUses });
-                    return newUses;
-                });
-            }
-            saveCharacter({ activeFeatures: next });
-            return next;
+            const nextActive = isActive
+                ? prevActive.filter(id => id !== featureId)
+                : [...prevActive, featureId];
+
+            setFeatureUses(prevUses => {
+                const currentUses = prevUses?.[featureId] ?? 0;
+
+                const nextUses = {
+                    ...prevUses,
+                    [featureId]: isActive
+                        ? currentUses + 1
+                        : Math.max(0, currentUses - 1)
+                };
+
+                return nextUses;
+            });
+
+            return nextActive;
         });
     };
 
@@ -1828,6 +1869,15 @@ function CharacterSheet() {
         setCurrentHp(val);
         saveCharacter({ hp_current: val });
     };
+
+    useEffect(() => {
+        if (!characterLoaded) return;
+        saveCharacter({
+            activeFeatures,
+            featureUses,
+            featureNotes
+        });
+    }, [activeFeatures, featureUses, featureNotes, characterLoaded, saveCharacter]);
 
 
     const API_BASE_URL = "http://localhost:5000";
@@ -2376,26 +2426,33 @@ function CharacterSheet() {
     // --- Dynamic Defenses Logic ---
     const defenses = useMemo(() => {
         const result = { resistances: [], immunities: [] };
+
         if (!availableFeatures) return result;
 
         availableFeatures.forEach(f => {
-            // Check if feature is passive or active
-            const isRage = f.id === "barbarian_rage";
             const isActive = activeFeatures.includes(f.id);
 
-            // Rage resistances only apply when active
-            if (isRage && !isActive) return;
+            // Rage special case
+            if (
+                f.id === "barbarian_rage" &&
+                !isActive
+            ) {
+                return;
+            }
 
             if (f.details?.Resistances) {
-                const res = typeof f.details.Resistances === 'string'
-                    ? f.details.Resistances.split(', ')
+                const res = typeof f.details.Resistances === "string"
+                    ? f.details.Resistances.split(", ")
                     : f.details.Resistances;
+
                 result.resistances = [...new Set([...result.resistances, ...res])];
             }
+
             if (f.details?.Immunities) {
-                const imm = typeof f.details.Immunities === 'string'
-                    ? f.details.Immunities.split(', ')
+                const imm = typeof f.details.Immunities === "string"
+                    ? f.details.Immunities.split(", ")
                     : f.details.Immunities;
+
                 result.immunities = [...new Set([...result.immunities, ...imm])];
             }
         });
@@ -2781,7 +2838,9 @@ function CharacterSheet() {
                         {ABILITY_SCORES.map(({ name, key }) => {
                             const score = character.data?.abilities?.[key] ?? 10;
                             const mod = calculateModifier(score);
-                            const hasAdvantage = key === "strength" && activeFeatures.includes("barbarian_rage");
+                            const hasAdvantage =
+                                activeFeatures.includes("barbarian_rage") &&
+                                key === "strength";
                             return (
                                 <div
                                     key={key}
@@ -2813,7 +2872,9 @@ function CharacterSheet() {
                             const base = calculateModifier(score);
                             const isProficient = proficientSaves.includes(key);
                             const total = base + (isProficient ? currentProficiencyBonus : 0);
-                            const hasAdvantage = key === "strength" && activeFeatures.includes("barbarian_rage");
+                            const hasAdvantage =
+                                activeFeatures.includes("barbarian_rage") &&
+                                key === "strength";
                             return (
                                 <div key={key} className={`save-row ${hasAdvantage ? 'has-adv' : ''}`}>
                                     <span className={`prof-dot ${isProficient ? "fill" : ""}`}></span>
@@ -2890,6 +2951,8 @@ function CharacterSheet() {
                                 ruleOptions={ruleOptions}
                                 featureChoices={featureChoices}
                                 onUpdateChoice={(feature, options) => setChoiceOverlay({ isOpen: true, feature, options })}
+                                featureNotes={featureNotes}
+                                setFeatureNotes={setFeatureNotes}
                                 availableSpells={availableSpells}
                                 viewOnly={viewOnly}
                                 isAuthorized={isAuthorized}
@@ -2919,6 +2982,8 @@ function CharacterSheet() {
                                     ruleOptions={ruleOptions}
                                     featureChoices={featureChoices}
                                     onUpdateChoice={(feature, options) => setChoiceOverlay({ isOpen: true, feature, options })}
+                                    featureNotes={featureNotes}
+                                    setFeatureNotes={setFeatureNotes}
                                     availableSpells={availableSpells}
                                     viewOnly={viewOnly}
                                 />
@@ -3073,27 +3138,27 @@ function CharacterSheet() {
             {(isOwner || isAdmin) && (
                 <LevelUpOverlay
                     show={showLevelUpOverlay}
-                minimized={levelUpMinimized}
-                character={character}
-                previousLevel={previousLevel}
-                availableFeatures={availableFeatures}
-                onClose={handleDismissLevelUp}
-                onMinimize={() => setLevelUpMinimized(true)}
-                onRestore={() => setLevelUpMinimized(false)}
-                onOpenSpells={() => setShowSpellOverlay(true)}
-                spellcastingRules={classRules?.spellcasting}
-                featureUses={featureUses}
-                activeFeatures={activeFeatures}
-                onToggleFeature={toggleFeatureActive}
-                featureChoices={featureChoices}
-                onUpdateChoice={(feat, options) => {
-                    if (levelUpMinimized) setLevelUpMinimized(false);
-                    setChoiceOverlay({ isOpen: true, feature: feat, options });
-                }}
-                resolveOptionsForFeature={(feat) => resolveOptionsForFeature(feat, character, classRules, ruleOptions, availableSpells)}
-                classRules={classRules}
-            />
-        )}
+                    minimized={levelUpMinimized}
+                    character={character}
+                    previousLevel={previousLevel}
+                    availableFeatures={availableFeatures}
+                    onClose={handleDismissLevelUp}
+                    onMinimize={() => setLevelUpMinimized(true)}
+                    onRestore={() => setLevelUpMinimized(false)}
+                    onOpenSpells={() => setShowSpellOverlay(true)}
+                    spellcastingRules={classRules?.spellcasting}
+                    featureUses={featureUses}
+                    activeFeatures={activeFeatures}
+                    onToggleFeature={toggleFeatureActive}
+                    featureChoices={featureChoices}
+                    onUpdateChoice={(feat, options) => {
+                        if (levelUpMinimized) setLevelUpMinimized(false);
+                        setChoiceOverlay({ isOpen: true, feature: feat, options });
+                    }}
+                    resolveOptionsForFeature={(feat) => resolveOptionsForFeature(feat, character, classRules, ruleOptions, availableSpells)}
+                    classRules={classRules}
+                />
+            )}
 
             <SpellOverlay
                 show={showSpellOverlay}
