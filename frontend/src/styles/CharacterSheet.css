@@ -2383,6 +2383,9 @@ h3,
     flex-direction: column;
     gap: 10px;
     padding: 15px;
+    min-height: 0;
+    height: 100%;
+    overflow: hidden;
 }
 
 .spellcasting-header {
@@ -2391,6 +2394,13 @@ h3,
     align-items: center;
     border-bottom: 1px solid var(--border);
     padding-bottom: 8px;
+}
+
+.spellcasting-content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
 }
 
 /* Manage Spells Button — matches back-button / lock-button aesthetic */
@@ -2505,6 +2515,8 @@ h3,
 
 .prepared-spells-list {
     flex: 1;
+    min-height: 0;
+    overflow-y: auto;
     display: flex;
     flex-direction: column;
     gap: 10px;
@@ -2990,6 +3002,48 @@ h3,
     color: var(--text-dim);
     font-size: 0.9rem;
     padding: 10px 0;
+}
+
+.expandable-spell {
+    cursor: pointer;
+    flex-direction: column;
+}
+
+.spell-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+}
+
+.cast-spell-btn {
+    background: var(--primary);
+    color: #ffd700;
+    border: 1px solid var(--border);
+    padding: 5px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.cast-spell-btn:hover {
+    transform: scale(1.05);
+}
+
+.spell-body {
+    margin-top: 12px;
+    padding: 12px;
+    border-top: 1px solid var (--border);
+    color: var(--text-main);
+    line-height: 1.5;
+}
+
+.spell-body p {
+    margin: 5px 0;
+}
+
+.expandable-spell.expanded {
+    border-left-color: var(--accent);
 }
 
 /* Responsive Overrides */

@@ -1012,6 +1012,96 @@ const FeatureChoiceOverlay = ({ isOpen, onClose, feature, options, onSelect, cur
     );
 };
 
+const SpellCard = ({ spell }) => {
+    const [isExpanded, setIsExpanded] = useState(false);
+
+    const displayOrder = [
+        "school",
+        "action",
+        "range",
+        "components",
+        "duration",
+        "description",
+        "damage",
+        "damage_type",
+        "spell_type",
+        "scaling",
+        "level_upgrade"
+    ];
+
+    const formatLabel = (key) => {
+        return key
+            .replaceAll("_", " ")
+            .replace(/\b\w/g, l => l.toUpperCase());
+    };
+
+    const renderValue = (value) => {
+        if (Array.isArray(value)) {
+            return value.join(", ");
+        }
+
+        if (typeof value === "object" && value !== null) {
+            return Object.entries(value)
+                .map(([k,v]) =>
+                    `${k}: ${renderValue(v)}`
+                )
+                .join(", ");
+        }
+
+        return value;
+    };
+
+    return (
+        <div
+            className={`prepared-spell-row expandable-spell ${isExpanded ? "expanded" : ""}`}
+            onClick={() => setIsExpanded(!isExpanded)}
+        >
+            <div className="spell-header">
+                <span className="spell-name">
+                    {spell.name}
+                </span>
+
+                <button
+                    className="cast-spell-btn"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                    }}
+                >
+                    Cast
+                </button>
+            </div>
+
+            {isExpanded && (
+                <div className="spell-body">
+                    {displayOrder.map(field => {
+                        const value = spell[field];
+
+                        if (
+                            value === null ||
+                            value === undefined ||
+                            value === "" ||
+                            (Array.isArray(value) && value.length === 0) ||
+                            (typeof value === "object" && value !== null && Object.keys(value).length === 0)
+                        ) {
+                            return null
+                        }
+
+                        return (
+                            <p key={field}>
+                                <strong>
+                                    {formatLabel(field)}:
+                                </strong>{" "}
+
+                                {renderValue(value)}
+                            </p>
+                        );
+                    })}
+                </div>
+            )}
+        </div>
+    );
+};
+
 const SpellcastingWidget = ({
     hasSpellcasting,
     spellcastingRules,
@@ -1116,10 +1206,10 @@ const SpellcastingWidget = ({
                         <div key={level} className="spell-level-group">
                             <h4>{level === "0" ? "Cantrips" : `Level ${level}`}</h4>
                             {selectedAtLevel.map(spell => (
-                                <div key={spell.name} className="prepared-spell-row">
-                                    <span className="spell-name">{spell.name}</span>
-                                    <span className="spell-school">{spell.school}</span>
-                                </div>
+                                <SpellCard
+                                    key={spell.name}
+                                    spell={spell}
+                                />
                             ))}
                         </div>
                     );

@@ -1643,16 +1643,17 @@ def api_rules_spell_slots():
 @app.route("/api/spells/<classname>")
 def get_spells(classname):
     class_spells = {}
+    
     for level, spells_list in SPELLS.items():
         filtered_spells = []
+        
         for spell in spells_list:
             if "classes" in spell and classname.capitalize() in spell["classes"]:
-                filtered_spells.append({
-                    "name": spell.get("name"),
-                    "school": spell.get("school")
-                })
+                filtered_spells.append(spell)
+        
         if filtered_spells:
             class_spells[level] = filtered_spells
+    
     return jsonify(class_spells)
 
 # ------------------------
