@@ -3030,6 +3030,24 @@ h3,
     transform: scale(1.05);
 }
 
+.cast-level-btn {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 1rem;
+    cursor: pointer;
+    font-family: 'Georgia', serif;
+}
+
+.cast-level-btn:hover {
+    background: #ffd700;
+    color: black;
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+    transform: scale(1.05);
+}
+
 .spell-body {
     margin-top: 12px;
     padding: 12px;

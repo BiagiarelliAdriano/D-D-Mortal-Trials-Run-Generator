@@ -1012,7 +1012,16 @@ const FeatureChoiceOverlay = ({ isOpen, onClose, feature, options, onSelect, cur
     );
 };
 
-const SpellCard = ({ spell }) => {
+const SpellCard = ({
+    spell,
+    availableSlotsObj,
+    addAlert,
+    spellSlotsCurrent,
+    setSpellSlotsCurrent,
+    castingSpell,
+    setCastingSpell,
+    saveCharacter
+}) => {
     const [isExpanded, setIsExpanded] = useState(false);
 
     const displayOrder = [
@@ -1042,7 +1051,7 @@ const SpellCard = ({ spell }) => {
 
         if (typeof value === "object" && value !== null) {
             return Object.entries(value)
-                .map(([k,v]) =>
+                .map(([k, v]) =>
                     `${k}: ${renderValue(v)}`
                 )
                 .join(", ");
@@ -1050,6 +1059,19 @@ const SpellCard = ({ spell }) => {
 
         return value;
     };
+
+    const spellLevel =
+        spell.level ??
+        0;
+
+    const castableLevels = Object.keys(
+        spellSlotsCurrent
+    ).filter(level => {
+        return (
+            parseInt(level) >= spellLevel &&
+            spellSlotsCurrent[level] > 0
+        );
+    });
 
     return (
         <div
@@ -1061,14 +1083,59 @@ const SpellCard = ({ spell }) => {
                     {spell.name}
                 </span>
 
-                <button
-                    className="cast-spell-btn"
-                    onClick={(e) => {
-                        e.stopPropagation();
-                    }}
-                >
-                    Cast
-                </button>
+                {(
+                    <div
+                        className="cast-wrapper"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <button
+                            className="cast-spell-btn"
+                            onClick={() => {
+                                if (spellLevel === 0) {
+                                    addAlert(
+                                        `You cast ${spell.name}!`,
+                                        "success"
+                                    );
+                                    return;
+                                }
+
+                                setCastingSpell(
+                                    castingSpell === spell.name
+                                        ? null
+                                        : spell.name
+                                );
+                            }}
+                        >
+                            Cast
+                        </button>
+
+                        {spellLevel > 0 && castingSpell === spell.name && (
+                            <div className="cast-dropdown">
+                                {castableLevels.map(level => (
+                                    <button
+                                        key={level}
+                                        className="cast-level-btn"
+                                        onClick={() => {
+                                            setSpellSlotsCurrent(prev => ({
+                                                ...prev,
+                                                [level]: prev[level] - 1
+                                            }));
+
+                                            addAlert(
+                                                `You cast ${spell.name} at level ${level}!`,
+                                                "success"
+                                            );
+
+                                            setCastingSpell(null);
+                                        }}
+                                    >
+                                        {level}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                )}
             </div>
 
             {isExpanded && (
@@ -1106,6 +1173,10 @@ const SpellcastingWidget = ({
     hasSpellcasting,
     spellcastingRules,
     spellSlotsRules,
+    spellSlotsCurrent,
+    setSpellSlotsCurrent,
+    addAlert,
+    saveCharacter,
     character,
     availableSpells,
     isLayoutLocked,
@@ -1113,7 +1184,9 @@ const SpellcastingWidget = ({
     onOpenOverlay,
     viewOnly
 }) => {
-    if (!hasSpellcasting || !spellcastingRules || !spellSlotsRules || !character) return null;
+    const [castingSpell, setCastingSpell] = useState(null);
+    const [spellcastingSearchTerm, setSpellcastingSearchTerm] = useState("");
+    const [spellTypeFilter, setSpellTypeFilter] = useState(null);
 
     const spellcasting = spellcastingRules;
     const ability = spellcasting.ability || "intelligence";
@@ -1125,16 +1198,39 @@ const SpellcastingWidget = ({
     const progression = spellcasting.progression;
     const progressionKey = progression === "pact" ? "pact_magic" : progression;
     const slotsTable = spellSlotsRules[progressionKey];
-    let availableSlotsObj = {};
-    if (slotsTable) {
-        let maxSlotLevel = character.level;
-        while (maxSlotLevel > 0 && !slotsTable[maxSlotLevel]) {
-            maxSlotLevel--;
+    const availableSlotsObj = useMemo(() => {
+        let slots = {};
+
+        if (slotsTable) {
+            let maxSlotLevel = character.level;
+            while (maxSlotLevel > 0 && !slotsTable[maxSlotLevel]) {
+                maxSlotLevel--;
+            }
+            if (maxSlotLevel > 0) {
+                slots = slotsTable[maxSlotLevel];
+            }
         }
-        if (maxSlotLevel > 0) {
-            availableSlotsObj = slotsTable[maxSlotLevel];
-        }
-    }
+
+        return slots;
+    }, [slotsTable, character.level]);
+
+    useEffect(() => {
+        if (
+            !character ||
+            Object.keys(spellSlotsCurrent).length > 0 ||
+            Object.keys(availableSlotsObj).length === 0
+        ) return;
+
+        setSpellSlotsCurrent(availableSlotsObj);
+
+        saveCharacter({
+            spell_slots_current: availableSlotsObj,
+            spell_slots_max: availableSlotsObj
+        });
+
+    }, [character, spellSlotsCurrent, availableSlotsObj, saveCharacter]);
+
+    if (!hasSpellcasting || !spellcastingRules || !spellSlotsRules || !character) return null;
 
     const selectedSpells = character.data.spells || [];
     const cantripsKnownLimit = resolveScalingValue(spellcasting.cantrips_known, character.level) || 0;
@@ -1152,10 +1248,46 @@ const SpellcastingWidget = ({
     return (
         <div className="spellcasting-content">
             {!isLayoutLocked && <div className="widget-handle">⠿</div>}
-            <div className="spellcasting-header">
-                <h3>Spellcasting</h3>
+            <div className="spellcasting-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '15px', flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '15px', flex: 1, flexWrap: 'wrap' }}>
+                    <h3>Spellcasting</h3>
+                    <div className="search-wrapper spell-search" style={{ margin: 0, flex: 1, minWidth: '200px', maxWidth: '250px' }}>
+                        <input
+                            type="text"
+                            className="search-input"
+                            placeholder="Search prepared spells..."
+                            value={spellcastingSearchTerm}
+                            onFocus={() => {
+                                if (spellTypeFilter) setSpellTypeFilter(null);
+                            }}
+                            onChange={(e) => {
+                                setSpellcastingSearchTerm(e.target.value);
+                                if (e.target.value && spellTypeFilter) setSpellTypeFilter(null);
+                            }}
+                        />
+                        <i className="fa-solid fa-magnifying-glass"></i>
+                    </div>
+                    <div className="feature-tabs" style={{ margin: 0 }}>
+                        {["Area of Effect", "Buff", "Debuff", "Heal", "Melee Attack", "Ranged Attack", "Summon", "Target Save", "Utility"].map(t => (
+                            <button
+                                key={t}
+                                onClick={() => {
+                                    if (spellTypeFilter === t) {
+                                        setSpellTypeFilter(null);
+                                    } else {
+                                        setSpellTypeFilter(t);
+                                        setSpellcastingSearchTerm("");
+                                    }
+                                }}
+                                className={spellTypeFilter === t ? "active" : ""}
+                            >
+                                {t}
+                            </button>
+                        ))}
+                    </div>
+                </div>
                 {!viewOnly && (
-                    <button className="manage-spells-btn" onClick={onOpenOverlay}>
+                    <button className="manage-spells-btn" onClick={onOpenOverlay} style={{ flexShrink: 0 }}>
                         📖 Manage Spells
                     </button>
                 )}
@@ -1189,7 +1321,7 @@ const SpellcastingWidget = ({
                 {Object.keys(availableSlotsObj).map(level => (
                     <div key={level} className="spell-slot-box">
                         <span className="slot-lvl">Lv {level}</span>
-                        <span className="slot-count">{availableSlotsObj[level]}</span>
+                        <span className="slot-count">{spellSlotsCurrent[level] ?? availableSlotsObj[level]}</span>
                     </div>
                 ))}
                 {Object.keys(availableSlotsObj).length === 0 && <span className="no-slots-msg">No spell slots available yet.</span>}
@@ -1198,7 +1330,42 @@ const SpellcastingWidget = ({
             <div className="prepared-spells-list scrollable">
                 {["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"].map(level => {
                     const spellsAtLevel = availableSpells?.[level] || [];
-                    const selectedAtLevel = spellsAtLevel.filter(s => selectedSpells.includes(s.name));
+                    let selectedAtLevel = spellsAtLevel.filter(s => selectedSpells.includes(s.name));
+
+                    const safeString = (val) => {
+                        if (!val) return "";
+                        if (typeof val === "string") return val;
+                        if (Array.isArray(val)) return val.map(safeString).join(" ");
+                        if (typeof val === "object") return Object.values(val).map(safeString).join(" ");
+                        return String(val);
+                    };
+
+                    if (spellTypeFilter) {
+                        const filterTerm = spellTypeFilter.toLowerCase();
+                        selectedAtLevel = selectedAtLevel.filter(spell =>
+                            safeString(spell.spell_type).toLowerCase().includes(filterTerm)
+                        );
+                    }
+
+                    if (spellcastingSearchTerm) {
+                        const term = spellcastingSearchTerm.toLowerCase();
+
+                        selectedAtLevel = selectedAtLevel.filter(spell => {
+                            return (
+                                safeString(spell.name).toLowerCase().includes(term) ||
+                                safeString(spell.school).toLowerCase().includes(term) ||
+                                safeString(spell.action).toLowerCase().includes(term) ||
+                                safeString(spell.range).toLowerCase().includes(term) ||
+                                safeString(spell.components).toLowerCase().includes(term) ||
+                                safeString(spell.duration).toLowerCase().includes(term) ||
+                                safeString(spell.description).toLowerCase().includes(term) ||
+                                safeString(spell.damage).toLowerCase().includes(term) ||
+                                safeString(spell.damage_type).toLowerCase().includes(term) ||
+                                safeString(spell.spell_type).toLowerCase().includes(term) ||
+                                safeString(spell.level_upgrade).toLowerCase().includes(term)
+                            );
+                        });
+                    }
 
                     if (selectedAtLevel.length === 0) return null;
 
@@ -1209,6 +1376,13 @@ const SpellcastingWidget = ({
                                 <SpellCard
                                     key={spell.name}
                                     spell={spell}
+                                    availableSlotsObj={availableSlotsObj}
+                                    addAlert={addAlert}
+                                    spellSlotsCurrent={spellSlotsCurrent}
+                                    setSpellSlotsCurrent={setSpellSlotsCurrent}
+                                    castingSpell={castingSpell}
+                                    setCastingSpell={setCastingSpell}
+                                    saveCharacter={saveCharacter}
                                 />
                             ))}
                         </div>
@@ -1461,6 +1635,7 @@ function CharacterSheet() {
     const [spellOverlayMinimized, setSpellOverlayMinimized] = useState(false);
     const [featureChoices, setFeatureChoices] = useState({});
     const [featureNotes, setFeatureNotes] = useState({});
+    const [spellSlotsCurrent, setSpellSlotsCurrent] = useState({});
 
     // Level Up Overlay State
     const [showLevelUpOverlay, setShowLevelUpOverlay] = useState(false);
@@ -1524,6 +1699,7 @@ function CharacterSheet() {
             setFeatureUses(data.data.featureUses || {});
             setFeatureChoices(data.data.featureChoices || {});
             setFeatureNotes(data.data.featureNotes || {});
+            setSpellSlotsCurrent(data.data.spell_slots_current || {});
             setCharacterLoaded(true);
 
             // Initialize HP
@@ -1817,7 +1993,13 @@ function CharacterSheet() {
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
-                    // We wait for the fetchData to reveal the overlay before clearing the loading alert
+
+                    if (data.data?.spell_slots_current) {
+                        setSpellSlotsCurrent(
+                            data.data.spell_slots_current
+                        );
+                    }
+
                     fetchData();
                 } else {
                     updateAlert(loadingId, data.error || "Level up failed", 'error', 5000);
@@ -1841,7 +2023,14 @@ function CharacterSheet() {
             });
             const data = await res.json();
             if (res.ok) {
-                addAlert("Level down successful", 'info');
+                addAlert("Level down successful", "info");
+
+                if (data.data?.spell_slots_current) {
+                    setSpellSlotsCurrent(
+                        data.data.spell_slots_current
+                    );
+                }
+
                 fetchData();
             } else {
                 addAlert(data.error || "Level down failed", 'error');
@@ -1969,6 +2158,13 @@ function CharacterSheet() {
         });
     }, [activeFeatures, featureUses, featureNotes, characterLoaded, saveCharacter]);
 
+    useEffect(() => {
+        if (Object.keys(spellSlotsCurrent).length === 0) return;
+
+        saveCharacter({
+            spell_slots_current: spellSlotsCurrent
+        });
+    }, [spellSlotsCurrent, saveCharacter]);
 
     const API_BASE_URL = "http://localhost:5000";
 
@@ -3220,6 +3416,10 @@ function CharacterSheet() {
                             currentProficiencyBonus={currentProficiencyBonus}
                             onOpenOverlay={() => { setShowSpellOverlay(true); setSpellOverlayMinimized(false); }}
                             viewOnly={viewOnly}
+                            spellSlotsCurrent={spellSlotsCurrent}
+                            setSpellSlotsCurrent={setSpellSlotsCurrent}
+                            addAlert={addAlert}
+                            saveCharacter={saveCharacter}
                         />
                     </div>
                 )}

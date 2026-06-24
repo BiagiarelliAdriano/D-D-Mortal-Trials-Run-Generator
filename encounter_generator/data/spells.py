@@ -1489,7 +1489,7 @@ SPELLS = {
             "components": ["V", "S"],
             "duration": "Instantaneous",
             "description": "You tap into your life force to heal yourself. Roll one or two of your unexpended Hit Point Dice, and regain a number of Hit Points equal to the roll's total plus your spellcasting ability modifier. Those dice are then expended.",
-            "damage": ["Hit Dice" + "spellcasting modifier"],
+            "damage": ["Hit Dice" "+" "spellcasting modifier"],
             "damage_type": None,
             "spell_type": "Heal",
             "scaling": None,

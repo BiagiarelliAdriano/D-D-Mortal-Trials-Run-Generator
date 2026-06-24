@@ -1080,7 +1080,10 @@ def api_character_detail(char_id):
             # Note: update_hp saves internally, so we don't need to call set_data again ideally, 
             # but update_hp calls set_data, so it's fine.
         db.session.commit()
-        return jsonify({"success": True})
+        return jsonify({
+            "success": True,
+            "saved_slots": updated_data.get("spell_slots_current")
+        })
 
     # Check for pending rest
     pending_rest = None
@@ -1150,6 +1153,51 @@ def api_character_levelup(char_id):
     data["level"] = next_level
     data["level_up_pending"] = True  # Trigger level up reveal
     data["hit_dice_remaining"] = data.get("hit_dice_remaining", current_level) + 1
+    # Update Spell Slots upon level up
+    class_name = data.get("class_name", "").lower()
+
+    class_rules = CLASSES.get(class_name)
+
+    progression = None
+
+    if class_rules:
+        spellcasting = class_rules.get("spellcasting", {})
+        progression = spellcasting.get("progression")
+    slot_tables = {
+        "full": FULL_CASTER_SLOTS,
+        "half": HALF_CASTER_SLOTS,
+        "third": THIRD_CASTER_SLOTS,
+        "pact": PACT_MAGIC_SLOTS,
+        "pact_magic": PACT_MAGIC_SLOTS
+    }
+
+    if progression in slot_tables:
+        slots_table = slot_tables[progression]
+        old_max_slots = slots_table.get(current_level, {})
+        new_max_slots = slots_table.get(next_level, {})
+        current_slots = data.get("spell_slots_current", {}).copy()
+        updated_slots = {}
+
+        for level, new_max in new_max_slots.items():
+            old_max = old_max_slots.get(level, 0)
+            current_amount = current_slots.get(
+                level,
+                old_max
+            )
+
+            # New spell level unlocked
+            if level not in old_max_slots:
+                updated_slots[level] = new_max
+            else:
+                gained = new_max - old_max
+                # Add gained slots, but do not restore used slots
+                updated_slots[level] = min(
+                    current_amount + gained,
+                    new_max
+                )
+        data["spell_slots_current"] = updated_slots
+        data["spell_slots_max"] = new_max_slots
+
     character.set_data(data)
     
     # Recalculate HP
@@ -1159,7 +1207,7 @@ def api_character_levelup(char_id):
     character.update_hp(next_level, con_mod, data.get("class_name", "Barbarian"))
     
     db.session.commit()
-    return jsonify({"success": True, "new_level": next_level})
+    return jsonify({"success": True, "new_level": next_level, "data": character.get_data()})
 
 @app.route("/api/characters/<int:char_id>/acknowledge-gold-gift", methods=["POST"])
 @jwt_required()
@@ -1263,6 +1311,10 @@ def api_character_long_rest(char_id):
     if exhaustion > 0:
         conditions["exhaustion"] = exhaustion - 1
     data["conditions"] = conditions
+    
+    # 5. Restore Spell Slots on Long Rest
+    if "spell_slots_current" in data:
+        data["spell_slots_current"] = data.get("spell_slots_max", data["spell_slots_current"])
 
     req_data = request.json or {}
     recharged_features = req_data.get("recharged_features", req_data.get("rechargedFeatures", []))
@@ -1347,6 +1399,43 @@ def api_character_leveldown(char_id):
     # I'll set it to the threshold of the new level for a clean reset.
     data["level"] = next_level
     data["xp"] = XP_THRESHOLDS.get(next_level, 0)
+    
+    # Update spell slots
+    class_name = data.get("class_name", "").lower()
+
+    class_rules = CLASSES.get(class_name)
+
+    progression = None
+
+    if class_rules:
+        spellcasting = class_rules.get("spellcasting", {})
+        progression = spellcasting.get("progression")
+    slot_tables = {
+        "full": FULL_CASTER_SLOTS,
+        "half": HALF_CASTER_SLOTS,
+        "third": THIRD_CASTER_SLOTS,
+        "pact": PACT_MAGIC_SLOTS,
+        "pact_magic": PACT_MAGIC_SLOTS
+    }
+
+    if progression in slot_tables:
+        slots_table = slot_tables[progression]
+        old_max_slots = slots_table.get(current_level, {})
+        new_max_slots = slots_table.get(next_level, {})
+        current_slots = data.get("spell_slots_current", {}).copy()
+        updated_slots = {}
+
+        for level, new_max in new_max_slots.items():
+            old_max = old_max_slots.get(level, 0)
+            current_amount = current_slots.get(level, old_max)
+
+            lost = old_max - new_max
+            # Remove lost slots, do not drop below 0
+            updated_slots[level] = max(0, current_amount - lost)
+
+        data["spell_slots_current"] = updated_slots
+        data["spell_slots_max"] = new_max_slots
+    
     character.set_data(data)
     
     # Recalculate HP (models.py handles the truncation of rolls)
@@ -1355,7 +1444,7 @@ def api_character_leveldown(char_id):
     character.update_hp(next_level, con_mod, data.get("class_name", "Barbarian"))
     
     db.session.commit()
-    return jsonify({"success": True, "new_level": next_level})
+    return jsonify({"success": True, "new_level": next_level, "data": character.get_data()})
 
 @app.route("/api/characters/<int:char_id>/acknowledge-item", methods=["POST"])
 @jwt_required()
@@ -1643,17 +1732,21 @@ def api_rules_spell_slots():
 @app.route("/api/spells/<classname>")
 def get_spells(classname):
     class_spells = {}
-    
+
     for level, spells_list in SPELLS.items():
         filtered_spells = []
-        
+
         for spell in spells_list:
             if "classes" in spell and classname.capitalize() in spell["classes"]:
-                filtered_spells.append(spell)
-        
+
+                filtered_spells.append({
+                    **spell,
+                    "level": level
+                })
+
         if filtered_spells:
             class_spells[level] = filtered_spells
-    
+
     return jsonify(class_spells)
 
 # ------------------------

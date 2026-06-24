@@ -94,7 +94,7 @@ const Register = () => {
                                 required
                                 autoFocus
                                 placeholder="Unique Name..."
-                                maxLength="80"
+                                maxLength="30"
                             />
                         </div>
 
@@ -133,6 +133,7 @@ const Register = () => {
                                 onChange={(e) => setSecurityAnswer(e.target.value)}
                                 required
                                 placeholder="Answer here to recover account..."
+                                maxLength="30"
                             />
                         </div>
 
@@ -141,11 +142,13 @@ const Register = () => {
                             <input
                                 type="text"
                                 value={discordId}
-                                onChange={(e) => setDiscordId(e.target.value)}
+                                onChange={(e) => setDiscordId(e.target.value.replace(/\D/g, ""))}
                                 required
                                 placeholder="e.g. 1242152068635164899"
                                 pattern="\d+"
                                 title="Discord ID must be a sequence of numbers."
+                                maxLength="19"
+                                minLength="19"
                             />
                             <small className="help-text" style={{ fontSize: '0.75rem', opacity: 0.7, marginTop: '4px', display: 'block' }}>
                                 Used by the Admin to verify your identity on Discord for account recovery. NOT SHOWN ANYWHERE WITHIN SITE.

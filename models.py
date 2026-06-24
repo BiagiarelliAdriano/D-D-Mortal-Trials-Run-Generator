@@ -108,7 +108,8 @@ DEFAULT_CHARACTER_DATA = {
         "survival": False,
     },
     "inventory": [],
-    "gold": 0
+    "gold": 0,
+    "spell_slots_current": {},
 }
 
 class Character(db.Model):
