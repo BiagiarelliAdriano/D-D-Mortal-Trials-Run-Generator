@@ -10,7 +10,7 @@ const NotesWidget = ({ notes, onUpdateNotes, isEditMode, viewOnly }) => {
         const initialNotes = (notes || []).map(n => {
             const unsavedContent = localStorage.getItem(`unsaved_note_content_${n.id}`);
             const unsavedTitle = localStorage.getItem(`unsaved_note_title_${n.id}`);
-            
+
             let updated = { ...n };
 
             // If the database already matches our local backup, it means the save succeeded! We can safely delete the backup.
@@ -20,7 +20,7 @@ const NotesWidget = ({ notes, onUpdateNotes, isEditMode, viewOnly }) => {
                 hasUnsaved = true;
                 updated.content = unsavedContent;
             }
-            
+
             if (unsavedTitle === n.title) {
                 localStorage.removeItem(`unsaved_note_title_${n.id}`);
             } else if (unsavedTitle !== null) {
@@ -143,7 +143,7 @@ const NoteCard = ({ note, isEditMode, viewOnly, onUpdate, onDelete, execCommand 
 
     const handleInput = () => {
         if (saveTimeout.current) clearTimeout(saveTimeout.current);
-        
+
         if (contentRef.current) {
             localStorage.setItem(`unsaved_note_content_${note.id}`, contentRef.current.innerHTML);
         }
@@ -181,9 +181,9 @@ const NoteCard = ({ note, isEditMode, viewOnly, onUpdate, onDelete, execCommand 
     };
 
     return (
-        <div 
+        <div
             ref={cardRef}
-            className={`note-card premium-card ${isEditMode ? 'is-editing' : ''} ${isResizing ? 'resizing' : ''}`} 
+            className={`note-card premium-card ${isEditMode ? 'is-editing' : ''} ${isResizing ? 'resizing' : ''}`}
             style={{ minHeight: (note.height || 150) + 'px', height: 'auto' }}
         >
             <div className="note-card-header">
@@ -203,7 +203,7 @@ const NoteCard = ({ note, isEditMode, viewOnly, onUpdate, onDelete, execCommand 
                             }
                             setLocalTitle(val);
                             localStorage.setItem(`unsaved_note_title_${note.id}`, val);
-                            
+
                             if (titleTimeout.current) clearTimeout(titleTimeout.current);
                             titleTimeout.current = setTimeout(() => {
                                 onUpdate(note.id, 'title', val);
@@ -226,14 +226,14 @@ const NoteCard = ({ note, isEditMode, viewOnly, onUpdate, onDelete, execCommand 
                     </span>
                 )}
                 {!viewOnly && (
-                    <button 
-                        type="button" 
-                        className="note-delete-btn" 
+                    <button
+                        type="button"
+                        className="note-delete-btn"
                         onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
                             onDelete();
-                        }} 
+                        }}
                         title="Delete Note"
                     >
                         <i className="fa-solid fa-trash-can"></i>

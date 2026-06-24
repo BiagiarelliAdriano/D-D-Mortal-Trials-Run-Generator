@@ -1228,7 +1228,7 @@ const SpellcastingWidget = ({
             spell_slots_max: availableSlotsObj
         });
 
-    }, [character, spellSlotsCurrent, availableSlotsObj, saveCharacter]);
+    }, [character, spellSlotsCurrent, setSpellSlotsCurrent, availableSlotsObj, saveCharacter]);
 
     if (!hasSpellcasting || !spellcastingRules || !spellSlotsRules || !character) return null;
 

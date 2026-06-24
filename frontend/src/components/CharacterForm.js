@@ -1019,6 +1019,7 @@ function CharacterForm() {
                                 onChange={(e) =>
                                     setFormData({ ...formData, name: e.target.value })
                                 }
+                                maxLength="30"
                             />
                         </div>
 
