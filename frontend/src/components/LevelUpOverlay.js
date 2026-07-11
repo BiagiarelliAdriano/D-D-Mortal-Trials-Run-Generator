@@ -104,6 +104,7 @@ const LevelUpOverlay = ({
     minimized,
     character,
     previousLevel,
+    leveledUpClass,
     availableFeatures,
     onClose, // Dismiss permanently
     onMinimize,
@@ -130,19 +131,28 @@ const LevelUpOverlay = ({
     // HP Calculation
     const conScore = character.data.abilities?.constitution || 10;
     const conMod = Math.floor((conScore - 10) / 2);
-    const hpRolls = character.data.hp_rolls || [];
-    
+    const hpRolls = character.data.hp_rolls || {};
+    let allHpRolls = [];
+
+    // Support old characters
+    if (Array.isArray(hpRolls)) {
+        allHpRolls = hpRolls;
+    }
+    // Support multiclass characters
+    else {
+        allHpRolls = Object.values(hpRolls).flat();
+    }
+
     // Total max HP right now
-    const baseHp = hpRolls.reduce((a, b) => a + b, 0);
+    const baseHp = allHpRolls.reduce((a, b) => a + b, 0);
     const conBonus = currentLevel * conMod;
     const currentMaxHp = baseHp + conBonus;
 
     // Previous max HP
-    const prevRolls = hpRolls.slice(0, oldLevel);
+    const prevRolls = allHpRolls.slice(0, oldLevel);
     const prevBaseHp = prevRolls.reduce((a, b) => a + b, 0);
     const prevConBonus = oldLevel * conMod;
     const prevMaxHp = prevBaseHp + prevConBonus;
-
     const hpGained = currentMaxHp - prevMaxHp;
 
     // Proficiency
@@ -154,39 +164,113 @@ const LevelUpOverlay = ({
     const newFeatures = [];
     const upgradedFeatures = [];
 
+    // Normalise the class that was just leveled up for comparison
+    const leveledClassId = leveledUpClass?.toLowerCase() || null;
+
+    // Find the current and previous level *in the leveled class specifically*
+    const leveledClassEntry = character.data?.class_levels?.find(
+        cls => cls.class_name.toLowerCase() === leveledClassId
+    );
+    const leveledClassCurrentLevel = leveledClassEntry?.level ?? currentLevel;
+    const leveledClassPreviousLevel = leveledClassCurrentLevel - 1;
+
     // Diff logic for features
     availableFeatures.forEach(feature => {
-        // Only classify things strictly tied to a level. Species/Backgrounds generally won't "level up" this way.
+        // Only classify things strictly tied to a level.
         const fLevel = parseInt(feature.level);
-        if (isNaN(fLevel)) return; 
+        if (isNaN(fLevel)) return;
 
-        if (fLevel > oldLevel && fLevel <= currentLevel) {
+        const featureClassLevel = feature.classLevel ?? fLevel;
+        const featureClassId = feature.classId || null;
+
+        // --- Multiclass path: feature has an explicit classId ---
+        if (featureClassId) {
+            // Only process features that belong to the class that was leveled up
+            if (leveledClassId && featureClassId !== leveledClassId) return;
+
+            const classEntry = character.data?.class_levels?.find(
+                cls => cls.class_name.toLowerCase() === featureClassId
+            );
+
+            const previousFeatureLevel = classEntry
+                ? classEntry.level - 1
+                : oldLevel;
+
+            if (featureClassLevel > previousFeatureLevel && featureClassLevel <= (classEntry?.level ?? currentLevel)) {
+                newFeatures.push(feature);
+            } else if (featureClassLevel <= previousFeatureLevel) {
+                // Check if upgraded
+                if (feature.details) {
+                    let isUpgraded = false;
+                    const upgrades = [];
+
+                    for (const [key, val] of Object.entries(feature.details)) {
+                        if (
+                            typeof val === 'object' &&
+                            val !== null &&
+                            !Array.isArray(val) &&
+                            Object.keys(val).some(k => k.match(/^\d+(-?\d+)?$/))
+                        ) {
+                            const oldVal = resolveScalingValue(val, previousFeatureLevel);
+                            const newVal = resolveScalingValue(val, classEntry?.level ?? currentLevel);
+                            if (oldVal !== newVal) {
+                                isUpgraded = true;
+                                upgrades.push({ key, oldVal, newVal });
+                            }
+                        } else if (key === 'weapons_mastered' && val.scaling) {
+                            const oldVal = resolveScalingValue(val.scaling, previousFeatureLevel);
+                            const newVal = resolveScalingValue(val.scaling, classEntry?.level ?? currentLevel);
+                            if (oldVal !== newVal) {
+                                isUpgraded = true;
+                                upgrades.push({ key: 'Weapons Mastered', oldVal, newVal });
+                            }
+                        }
+                    }
+
+                    if (isUpgraded) {
+                        upgradedFeatures.push({ feature, upgrades });
+                    }
+                }
+            }
+            return;
+        }
+
+        // --- No classId: subclass features, background feats, etc. ---
+        // For these, use the leveled class's level range
+        if (fLevel > leveledClassPreviousLevel && fLevel <= leveledClassCurrentLevel) {
             newFeatures.push(feature);
-        } else if (fLevel <= oldLevel) {
-            // Check if upgraded
+        } else if (fLevel <= leveledClassPreviousLevel) {
+            // Check if upgraded via scaling
             if (feature.details) {
                 let isUpgraded = false;
                 const upgrades = [];
 
                 for (const [key, val] of Object.entries(feature.details)) {
-                    if (typeof val === 'object' && val !== null && !Array.isArray(val) && Object.keys(val).some(k => k.match(/^\d+(-?\d+)?$/))) {
-                        // It's a scaling dict
-                        const oldVal = resolveScalingValue(val, oldLevel);
-                        const newVal = resolveScalingValue(val, currentLevel);
-                        
+                    if (
+                        typeof val === 'object' &&
+                        val !== null &&
+                        !Array.isArray(val) &&
+                        Object.keys(val).some(k => k.match(/^\d+(-?\d+)?$/))
+                    ) {
+                        const oldVal = resolveScalingValue(val, leveledClassPreviousLevel);
+                        const newVal = resolveScalingValue(val, leveledClassCurrentLevel);
                         if (oldVal !== newVal) {
                             isUpgraded = true;
                             upgrades.push({ key, oldVal, newVal });
                         }
                     } else if (key === 'weapons_mastered' && val.scaling) {
-                         const oldVal = resolveScalingValue(val.scaling, oldLevel);
-                         const newVal = resolveScalingValue(val.scaling, currentLevel);
-                         if (oldVal !== newVal) {
-                             isUpgraded = true;
-                             upgrades.push({ key: 'Weapons Mastered', oldVal, newVal });
-                         }
-                    } else if (key === 'effects_count' && currentLevel===17 && feature.id==="barbarian_brutal_strike_upgrade") {
-                         // Extremely specific override if needed, though strictly brutal_strike_upgrade is a new feature at 17, so handled by logic above.
+                        const oldVal = resolveScalingValue(val.scaling, leveledClassPreviousLevel);
+                        const newVal = resolveScalingValue(val.scaling, leveledClassCurrentLevel);
+                        if (oldVal !== newVal) {
+                            isUpgraded = true;
+                            upgrades.push({ key: 'Weapons Mastered', oldVal, newVal });
+                        }
+                    } else if (
+                        key === 'effects_count' &&
+                        currentLevel === 17 &&
+                        feature.id === "barbarian_brutal_strike_upgrade"
+                    ) {
+                        // Existing exception
                     }
                 }
 
@@ -227,7 +311,7 @@ const LevelUpOverlay = ({
                         <button className="close-btn" onClick={handleConfirmClose}>✕</button>
                     </div>
                 </div>
-                
+
                 <div className="lu-stats-row">
                     <div className="lu-stat-card">
                         <span className="lu-stat-label">Hit Points</span>
@@ -256,9 +340,9 @@ const LevelUpOverlay = ({
                             <h3>New Features</h3>
                             <div className="lu-feature-list">
                                 {newFeatures.map(f => (
-                                    <LuFeatureCard 
-                                        key={f.id} 
-                                        feature={f} 
+                                    <LuFeatureCard
+                                        key={f.id}
+                                        feature={f}
                                         isExpanded={expandedFeatures[f.id]}
                                         onToggle={() => toggleExpand(f.id)}
                                         currentLevel={currentLevel}
@@ -277,10 +361,10 @@ const LevelUpOverlay = ({
                         <div className="lu-section">
                             <h3>Upgraded Features</h3>
                             <div className="lu-feature-list">
-                                {upgradedFeatures.map(({feature: f, upgrades}) => (
-                                    <LuFeatureCard 
-                                        key={f.id} 
-                                        feature={f} 
+                                {upgradedFeatures.map(({ feature: f, upgrades }) => (
+                                    <LuFeatureCard
+                                        key={f.id}
+                                        feature={f}
                                         isExpanded={expandedFeatures[f.id]}
                                         onToggle={() => toggleExpand(f.id)}
                                         currentLevel={currentLevel}
@@ -302,7 +386,7 @@ const LevelUpOverlay = ({
 
 // Internal reusable card
 const LuFeatureCard = ({ feature, isExpanded, onToggle, currentLevel, upgrades, featureChoices, onUpdateChoice, resolveOptionsForFeature, character, classRules }) => {
-    
+
     // Check if choice needed
     let hasChoices = false;
     let options = [];
@@ -335,8 +419,8 @@ const LuFeatureCard = ({ feature, isExpanded, onToggle, currentLevel, upgrades, 
                 </div>
                 <div className="feature-title-right">
                     {hasChoices && (
-                        <button 
-                            className="feature-choice-btn" 
+                        <button
+                            className="feature-choice-btn"
                             onClick={(e) => {
                                 e.stopPropagation();
                                 onUpdateChoice(feature, options);
@@ -347,7 +431,7 @@ const LuFeatureCard = ({ feature, isExpanded, onToggle, currentLevel, upgrades, 
                     )}
                 </div>
             </div>
-            
+
             {isExpanded && (
                 <div className="feature-body">
                     {upgrades && (
@@ -380,7 +464,7 @@ const LuFeatureCard = ({ feature, isExpanded, onToggle, currentLevel, upgrades, 
                                     const subChoiceId = `${feature.id}_sub_${idx}`;
                                     const rawSubChoice = featureChoices?.[subChoiceId];
                                     const currentSubChoices = Array.isArray(rawSubChoice) ? rawSubChoice : (rawSubChoice ? [rawSubChoice] : []);
-                                    
+
                                     const hasSubChoices = !!opt.choice;
 
                                     return (
@@ -388,7 +472,7 @@ const LuFeatureCard = ({ feature, isExpanded, onToggle, currentLevel, upgrades, 
                                             <div className="chosen-option-header">
                                                 <h4>Selected: {opt.name}</h4>
                                                 {hasSubChoices && (
-                                                    <button 
+                                                    <button
                                                         className="feature-choice-btn sub-choice-btn"
                                                         onClick={(e) => {
                                                             e.stopPropagation();

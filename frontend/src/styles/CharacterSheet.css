@@ -347,6 +347,35 @@ h3,
     margin-left: 10px;
 }
 
+.header-proficiencies {
+    margin-top: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+}
+
+.proficiency-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-family: var(--font-serif);
+    font-size: 0.85rem;
+}
+
+.proficiency-label {
+    color: var(--accent);
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 1px;
+}
+
 /* Feature Benefits & Badges */
 .benefit-badges {
     display: flex;
@@ -2375,6 +2404,29 @@ h3,
     opacity: 0.2;
     filter: grayscale(1);
     cursor: not-allowed;
+}
+
+.multiclass-btn {
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.2s;
+}
+
+.multiclass-btn.available {
+    background-color: #2e8b57;
+    color: white;
+}
+
+.multiclass-btn.blocked {
+    background-color: #a83232;
+    color: white;
+}
+
+.multiclass-btn.owned {
+    background-color: #c58a1a;
+    color: white;
 }
 
 /* --- Spellcasting Widget --- */

@@ -1,6 +1,7 @@
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 import json
+import random
 from sqlalchemy.sql import func
 from werkzeug.security import generate_password_hash, check_password_hash
 from encounter_generator.data.rules.game_rules import CLASS_HIT_DICE
@@ -29,6 +30,10 @@ class User(db.Model):
     security_question = db.Column(db.String(255), nullable=True)
     security_answer_hash = db.Column(db.String(255), nullable=False)
     is_admin = db.Column(db.Boolean, default=False)
+    # Patreon integration
+    patreon_id = db.Column(db.String(100), nullable=True)
+    patreon_connected = db.Column(db.Boolean, default=False)
+    patreon_tier = db.Column(db.String(50), nullable=True)
     created_at = db.Column(db.DateTime, default=func.now(), nullable=False)
     
     # Relationship: A user can have many characters
@@ -50,19 +55,34 @@ class User(db.Model):
     def check_security_answer(self, answer):
         clean_answer = answer.strip().lower()
         return check_password_hash(self.security_answer_hash, clean_answer)
+    
+    def has_unlimited_access(self):
+        return self.is_admin or (
+            self.patreon_connected and
+            self.patreon_tier == "website"
+        )
 
 DEFAULT_CHARACTER_DATA = {
     "class_name": "",
     "subclass": "",
     "level": 1,
+    "class_levels": [
+        {
+            "class_name": "",
+            "level": 1,
+            "subclass": ""
+        }
+    ],
     "xp": 0,
+    "level_up_pending": False,
+    "level_one_pending": True,
     "background": "",
     
     "hp_current": 0,
     "hp_max_base": 0,
     "hp_max_original": 0,
     "hp_modifier": 0,
-    "hp_rolls": [],
+    "hp_rolls": {},
     "hit_dice_remaining": 0,
 
     "heroicInspiration": False,
@@ -86,7 +106,11 @@ DEFAULT_CHARACTER_DATA = {
     "conditions": {
         "exhaustion": 0
     },
-    
+    "proficiencies": {
+        "armor": [],
+        "weapons": [],
+        "tools": []
+    },
     "skillProficiencies": {
         "acrobatics": False,
         "animal_handling": False,
@@ -127,61 +151,78 @@ class Character(db.Model):
         merged = json.loads(json.dumps(DEFAULT_CHARACTER_DATA)) # deep copy
         
         for key, value in char_data.items():
-            if isinstance(value, dict) and key in merged:
+            if (
+                isinstance(value, dict)
+                and key in merged
+                and isinstance(merged[key], dict)
+            ):
                 merged[key].update(value)
             else:
                 merged[key] = value
         
         self.data = json.dumps(merged)
 
-    def update_hp(self, new_level, con_mod, class_name):
+    def update_hp(self, new_level, con_mod):
         """
-        Calculates and updates HP based on level, class, and constitution.
-        Preserves existing rolls if level is unchanged or increased.
+        Calculates HP using multiclass rules.
+        Each class contributes its own Hit Dice pool.
         """
         data = self.get_data()
-        current_rolls = data.get("hp_rolls", [])
+        class_levels = data.get("class_levels", [])
+        hp_rolls = data.get("hp_rolls", {})
         
-        hit_die = CLASS_HIT_DICE.get(class_name, 8) # Default to d8
+        # Convert old characters using the previous system
+        if isinstance(hp_rolls, list):
+            hp_rolls = {
+                data.get("class_name", "Barbarian"): hp_rolls
+            }
         
-        # If level < len(rolls), we might have down-leveled (truncate)
-        # If level > len(rolls), we need to roll new dice
-        
-        # Level 1 is always max die
-        if not current_rolls:
-            current_rolls = [hit_die]
-        
-        # Adjust rolls list size
-        if new_level > len(current_rolls):
-            import random
-            for _ in range(new_level - len(current_rolls)):
-                 # Roll hit die (1 to hit_die)
-                roll = random.randint(1, hit_die)
-                current_rolls.append(roll)
-        elif new_level < len(current_rolls):
-            current_rolls = current_rolls[:new_level]
+        total_character_levels = sum(
+            cls.get("level", 0)
+            for cls in class_levels
+        )
+        for cls in class_levels:
+            class_name = cls.get("class_name")
+            if not class_name:
+                continue
+            class_level = cls.get("level", 0)
+            hit_die = CLASS_HIT_DICE.get(class_name, 8)
+            if class_name not in hp_rolls:
+                hp_rolls[class_name] = []
+            current_rolls = hp_rolls[class_name]
             
-        # Calculate Max HP Base (without modifier)
-        # Formula: Sum(rolls) + (Level * Con Mod)
-        base_hp = sum(current_rolls)
+            # Add missing levels
+            while len(current_rolls) < class_level:
+                # First level of entire character gets max HP
+                if total_character_levels == class_level and len(current_rolls) == 0:
+                    roll = hit_die
+                else:
+                    roll = random.randint(1, hit_die)
+                
+                current_rolls.append(roll)
+            
+            # Remove extra rolls if needed
+            while len(current_rolls) > class_level:
+                current_rolls.pop()
+        
+        # Calculate HP
+        base_hp = 0
+        
+        for rolls in hp_rolls.values():
+            base_hp += sum(rolls)
         con_bonus = new_level * con_mod
         hp_max_base = base_hp + con_bonus
-        
-        # Update data
-        data["hp_rolls"] = current_rolls
+        data["hp_rolls"] = hp_rolls
         data["hp_max_base"] = hp_max_base
         
-        # Store original HP if not already set (first time calculation)
-        if data.get("hp_max_original", 0) == 0:
-            data["hp_max_original"] = hp_max_base
+        # Hit dice remaining equals total character level
+        data["hit_dice_remaining"] = {
+            class_name: len(rolls)
+            for class_name, rolls in hp_rolls.items()
+        }
         
-        # If current HP is 0 (new char), initialize to max
         if data.get("hp_current", 0) == 0:
-            modifier = data.get("hp_modifier", 0)
-            data["hp_current"] = hp_max_base + modifier
-        
-        # Reset/Initialize Hit Dice remaining to Max (level)
-        data["hit_dice_remaining"] = new_level
+            data["hp_current"] = hp_max_base + data.get("hp_modifier", 0)
         
         self.set_data(data)
 

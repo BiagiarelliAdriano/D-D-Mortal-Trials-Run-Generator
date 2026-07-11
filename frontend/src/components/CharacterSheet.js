@@ -1564,9 +1564,14 @@ function CharacterSheet() {
     const [xp, setXp] = useState(0);
     const [tempXp, setTempXp] = useState("");
     const [showXpEditor, setShowXpEditor] = useState(false);
+    const [showMulticlassSelection, setShowMulticlassSelection] = useState(false);
+    const [selectedLevelUpClass, setSelectedLevelUpClass] = useState(null);
+    const [multiclassRules, setMulticlassRules] = useState({});
+    // eslint-disable-next-line no-unused-vars
+    const [levelUpPreviewMode, setLevelUpPreviewMode] = useState(false);
+    const [allClassRules, setAllClassRules] = useState({});
 
     // Level Up Preview State
-    const [showLevelPreview, setShowLevelPreview] = useState(false);
     const [previewLevel, setPreviewLevel] = useState(1);
     const [previewPage, setPreviewPage] = useState(1);
     const [isFeatureListTransitioning, setIsFeatureListTransitioning] = useState(false);
@@ -1576,13 +1581,30 @@ function CharacterSheet() {
     const [spellOverlayPreviewMode, setSpellOverlayPreviewMode] = useState(false);
 
     useEffect(() => {
-        if (showXpEditor) {
+        if (showXpEditor && !selectedLevelUpClass) {
             setPreviewLevel(character?.level || 1);
             setPreviewPage(1);
             setPreviewChoices({});
             setPreviewExpandedFeatures({});
         }
-    }, [showXpEditor, character?.level]);
+    }, [showXpEditor, character?.level, selectedLevelUpClass]);
+
+    useEffect(() => {
+        if (selectedLevelUpClass) {
+            const className = selectedLevelUpClass.toLowerCase();
+            if (!allClassRules[className]) {
+                fetch(`http://localhost:5000/api/classes/${className}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        setAllClassRules(prev => ({
+                            ...prev,
+                            [className]: data
+                        }));
+                    })
+                    .catch(err => console.error("Error fetching class rules for preview:", err));
+            }
+        }
+    }, [selectedLevelUpClass, allClassRules]);
 
     const handlePreviewLevelChange = (lvl) => {
         if (lvl === previewLevel) return;
@@ -1641,6 +1663,7 @@ function CharacterSheet() {
     const [showLevelUpOverlay, setShowLevelUpOverlay] = useState(false);
     const [levelUpMinimized, setLevelUpMinimized] = useState(false);
     const [previousLevel, setPreviousLevel] = useState(0);
+    const [levelUpClass, setLevelUpClass] = useState(null);
 
     // Drag and Drop state for Inventory
     const [draggedItemIndex, setDraggedItemIndex] = useState(null);
@@ -1652,6 +1675,31 @@ function CharacterSheet() {
     const [effectiveMaxHp, setEffectiveMaxHp] = useState(0);
 
     const [characterLoaded, setCharacterLoaded] = useState(false);
+
+    const openLevelUpSelection = useCallback(() => {
+        setShowXpEditor(true);
+        setLevelUpPreviewMode(true);
+
+        if (character?.class?.name) {
+            setSelectedLevelUpClass(character.class.name);
+
+            const existingClasses = character.data?.class_levels || [];
+            const primaryClassLevelInfo = existingClasses.find(
+                c => c.class_name.toLowerCase() === character.class.name.toLowerCase()
+            );
+
+            const nextLevel = primaryClassLevelInfo
+                ? primaryClassLevelInfo.level + 1
+                : 1;
+
+            setPreviewLevel(nextLevel);
+        }
+
+        setTimeout(() => {
+            setShowMulticlassSelection(true);
+        }, 50);
+
+    }, [character]);
 
     // Consolidated Loading Logic
     const fetchData = useCallback(async () => {
@@ -1729,9 +1777,32 @@ function CharacterSheet() {
 
             // 4. Fetch Specific Rules (Parallel)
             const rulePromises = [];
+            const classFetches = {};
+            if (data.data?.class_levels) {
+                data.data.class_levels.forEach(cls => {
+                    const className = cls.class_name.toLowerCase();
+                    if (!classFetches[className]) {
+                        classFetches[className] = fetch(
+                            `http://localhost:5000/api/classes/${className}`
+                        ).then(r => r.json());
+                    }
+                });
+            } else if (data.class?.name) {
+                const className = data.class.name.toLowerCase();
+                classFetches[className] = fetch(
+                    `http://localhost:5000/api/classes/${className}`
+                ).then(r => r.json());
+            }
+            const classNames = Object.keys(classFetches);
+            const classRulesPromises = classNames.map(
+                name => classFetches[name]
+            );
+            rulePromises.push(...classRulesPromises);
             if (data.class?.name) {
-                rulePromises.push(fetch(`http://localhost:5000/api/classes/${data.class.name.toLowerCase()}`).then(r => r.json()));
-                rulePromises.push(fetch(`http://localhost:5000/api/spells/${data.class.name.toLowerCase()}`).then(r => r.json()));
+                rulePromises.push(
+                    fetch(`http://localhost:5000/api/spells/${data.class.name.toLowerCase()}`)
+                        .then(r => r.json())
+                );
             }
             if (data.data?.species) {
                 rulePromises.push(fetch(`http://localhost:5000/api/species`).then(r => r.json()));
@@ -1744,8 +1815,13 @@ function CharacterSheet() {
             let resultIdx = 0;
 
             let resolvedClassRules = null;
+            const loadedClassRules = {};
+            classNames.forEach(className => {
+                loadedClassRules[className] = ruleResults[resultIdx++];
+            });
+            setAllClassRules(loadedClassRules);
             if (data.class?.name) {
-                resolvedClassRules = ruleResults[resultIdx++];
+                resolvedClassRules = loadedClassRules[data.class.name.toLowerCase()];
                 setClassRules(resolvedClassRules);
                 setAvailableSpells(ruleResults[resultIdx++]);
             }
@@ -1761,6 +1837,16 @@ function CharacterSheet() {
                 const bg = bgList.find(b => b.name.toLowerCase() === data.data.background.toLowerCase());
                 if (bg) setBackgroundRules(bg);
             }
+
+            fetch("http://localhost:5000/api/classes/multiclass-data", {
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                }
+            })
+                .then(res => res.json())
+                .then(data => {
+                    setMulticlassRules(data)
+                })
 
             // 4b. Fetch Global Rule Options (Weapon Mastery, Metamagic, Invocations)
             const optionsRes = await fetch("http://localhost:5000/api/rules/options");
@@ -1820,12 +1906,18 @@ function CharacterSheet() {
                 setLayout(mergedLayout);
             }
 
-            if (data.data?.level_up_pending) {
+            if (data.data?.level_one_pending) {
                 const fetchIsOwner = currentUser?.id && data.user_id === currentUser?.id;
                 const fetchIsAdmin = currentUser?.is_admin;
+
                 if (fetchIsOwner || fetchIsAdmin) {
                     setShowLevelUpOverlay(true);
-                    setPreviousLevel(data.data.level > 1 ? data.data.level - 1 : 0);
+
+                    setPreviousLevel(0);
+
+                    setLevelUpClass(
+                        data.data.class_name
+                    );
                 }
             }
 
@@ -1837,6 +1929,31 @@ function CharacterSheet() {
             setLoading(false);
         }
     }, [id, token, currentUser]);
+
+    useEffect(() => {
+
+        if (character) {
+            console.log(
+                "Pending:",
+                character.data?.level_up_pending
+            );
+        }
+
+        if (
+            character &&
+            character.data?.level_up_pending &&
+            isOwner &&
+            !showXpEditor
+        ) {
+            openLevelUpSelection();
+        }
+
+    }, [
+        character,
+        isOwner,
+        showXpEditor,
+        openLevelUpSelection
+    ]);
 
     useEffect(() => {
         if (showLevelUpOverlay && levelingUpAlertId) {
@@ -1975,6 +2092,11 @@ function CharacterSheet() {
 
     const handleLevelUp = () => {
         if (!character) return;
+
+        if (!selectedLevelUpClass) {
+            addAlert("Choose a class before leveling up.", "warning");
+            return;
+        }
         const nextLevel = character.level + 1;
         const requiredXp = XP_THRESHOLDS[nextLevel] || 0;
 
@@ -1988,17 +2110,35 @@ function CharacterSheet() {
 
         fetch(`http://localhost:5000/api/characters/${id}/levelup`, {
             method: "POST",
-            headers: { "Authorization": `Bearer ${token}` }
+            headers: {
+                "Authorization": `Bearer ${token}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                class_name: selectedLevelUpClass
+            })
         })
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
 
-                    if (data.data?.spell_slots_current) {
-                        setSpellSlotsCurrent(
-                            data.data.spell_slots_current
-                        );
-                    }
+                    setShowXpEditor(false);
+                    setShowMulticlassSelection(false);
+                    setPreviewChoices({});
+                    setLevelUpPreviewMode(false);
+                    setSelectedLevelUpClass(null);
+
+                    setPreviousLevel(character.level);
+                    setLevelUpClass(selectedLevelUpClass);
+
+                    setShowLevelUpOverlay(true);
+
+                    updateAlert(
+                        loadingId,
+                        "Level up complete!",
+                        "success",
+                        5000
+                    );
 
                     fetchData();
                 } else {
@@ -2066,6 +2206,49 @@ function CharacterSheet() {
         setXp(val);
         setTempXp(val.toString());
         saveCharacter({ xp: val });
+    };
+
+    const getMulticlassStatus = (cls) => {
+        const className = cls.toLowerCase();
+
+        const existingClasses = character?.data?.class_levels || [];
+
+        const alreadyHasClass = existingClasses.some(
+            c => c.class_name.toLowerCase() === className
+        );
+
+        if (alreadyHasClass) {
+            return "owned";
+        }
+
+        const targetClass = multiclassRules[className];
+
+        if (!targetClass) {
+            return "blocked";
+        }
+
+        // Supports both:
+        // "Strength"
+        // ["Strength", "Dexterity"]
+        const requiredAbilities = Array.isArray(targetClass.primary_ability)
+            ? targetClass.primary_ability
+            : [targetClass.primary_ability];
+
+
+        const hasRequirement = requiredAbilities.some(ability => {
+            const abilityKey = ability.toLowerCase();
+
+            const score = character?.data?.abilities?.[abilityKey] || 0;
+
+            return score >= 13;
+        });
+
+
+        if (!hasRequirement) {
+            return "blocked";
+        }
+
+        return "available";
     };
 
     const ABILITY_SCORES = useMemo(() => [
@@ -2541,7 +2724,7 @@ function CharacterSheet() {
 
     const handleDismissLevelUp = () => {
         setShowLevelUpOverlay(false);
-        saveCharacter({ level_up_pending: false });
+        saveCharacter({ level_up_pending: false, level_one_pending: false });
     };
 
     // --- Rich Rendering Components ---
@@ -2553,19 +2736,26 @@ function CharacterSheet() {
         const allFeatures = [];
         const currentLevel = character.level;
 
-        // 1. Add Class Features
-        if (classRules?.features) {
-            Object.keys(classRules.features).forEach(lvl => {
-                if (parseInt(lvl) <= currentLevel) {
-                    allFeatures.push(...classRules.features[lvl].map(f => ({
+        // 1. Add Class Features (Multiclass Support)
+        const classLevels = character.data?.class_levels || [];
+        classLevels.forEach(classEntry => {
+            const classId = classEntry.class_name.toLowerCase();
+            const classLevel = classEntry.level;
+            const rules = allClassRules?.[classId];
+            if (!rules?.features) return;
+            Object.keys(rules.features).forEach(lvl => {
+                if (parseInt(lvl) <= classLevel) {
+                    allFeatures.push(...rules.features[lvl].map(f => ({
                         ...f,
-                        id: f.type === 'subclass_feature' ? `${f.id}_${lvl}` : f.id,
-                        source: 'Class',
-                        level: lvl
+                        id: `${classId}_${f.id}_${lvl}`,
+                        source: `Class: ${rules.name}`,
+                        level: lvl,
+                        classId: classId,
+                        classLevel: parseInt(lvl)
                     })));
                 }
             });
-        }
+        });
 
         // 2. Add Subclass Features
         const subclassId = character.class?.subclass;
@@ -2667,7 +2857,7 @@ function CharacterSheet() {
         });
 
         return allFeatures;
-    }, [classRules, character, speciesRules, backgroundRules, ruleOptions]);
+    }, [classRules, allClassRules, character, speciesRules, backgroundRules, ruleOptions]);
 
     const ac = useMemo(() => {
         if (!character) return 10;
@@ -2839,7 +3029,7 @@ function CharacterSheet() {
         const previewSubclass = previewSubclassKey ? previewChoices[previewSubclassKey] : null;
         const previewSubclassId = previewSubclass ? (typeof previewSubclass === 'string' ? previewSubclass : (previewSubclass.id || previewSubclass.name)) : null;
 
-        const effectiveSubclassId = showLevelPreview ? (previewSubclassId || character.class?.subclass) : character.class?.subclass;
+        const effectiveSubclassId = showMulticlassSelection ? (previewSubclassId || character.class?.subclass) : character.class?.subclass;
 
         if (effectiveSubclassId && classRules.subclasses?.[effectiveSubclassId]?.features) {
             const scFeatures = classRules.subclasses[effectiveSubclassId].features;
@@ -2870,7 +3060,7 @@ function CharacterSheet() {
         }
 
         return rules ? { ...rules, source } : null;
-    }, [classRules, character, showLevelPreview, previewChoices]);
+    }, [classRules, character, showMulticlassSelection, previewChoices]);
 
     const hasSpellcasting = useMemo(() => {
         return !!spellcastingRules;
@@ -3009,7 +3199,7 @@ function CharacterSheet() {
                                     {character?.level < 20 && (isOwner || isAdmin) && (
                                         <button
                                             className={`levelup-button ${xp >= (XP_THRESHOLDS[character.level + 1] || 0) ? "available" : "locked"}`}
-                                            onClick={handleLevelUp}
+                                            onClick={openLevelUpSelection}
                                             disabled={xp < (XP_THRESHOLDS[character.level + 1] || 0)}
                                         >
                                             {xp >= (XP_THRESHOLDS[character.level + 1] || 0) ? "✧ LEVEL UP ✧" : "Level Up"}
@@ -3019,7 +3209,11 @@ function CharacterSheet() {
                             )}
                         </div>
                         <div className="header-details">
-                            <span className="detail-pill class-pill">{character.class.name}</span>
+                            {character.data.class_levels?.map((cls, index) => (
+                                <span key={index} className="detail-pill class-pill">
+                                    {cls.class_name} {cls.level}
+                                </span>
+                            ))}
                             <span className="detail-pill species-pill">
                                 {character.data.species}
                                 {character.data.species_variant ? ` (${character.data.species_variant})` : ""} |
@@ -3027,6 +3221,30 @@ function CharacterSheet() {
                                 {speciesRules?.speed || "30 ft."}
                             </span>
                             <span className="detail-pill background-pill">{character.data.background}</span>
+                        </div>
+                        <div className="header-proficiencies">
+                            {character.data.proficiencies && (
+                                <>
+                                    {character.data.proficiencies.armor?.length > 0 && (
+                                        <div className="proficiency-group">
+                                            <span className="proficiency-label">Armor:</span>
+                                            <span>{character.data.proficiencies.armor.join(", ")}</span>
+                                        </div>
+                                    )}
+                                    {character.data.proficiencies.weapons?.length > 0 && (
+                                        <div className="proficiency-group">
+                                            <span className="proficiency-label">Weapons:</span>
+                                            <span>{character.data.proficiencies.weapons.join(", ")}</span>
+                                        </div>
+                                    )}
+                                    {character.data.proficiencies.tools?.length > 0 && (
+                                        <div className="proficiency-group">
+                                            <span className="proficiency-label">Tools:</span>
+                                            <span>{character.data.proficiencies.tools.join(", ")}</span>
+                                        </div>
+                                    )}
+                                </>
+                            )}
                         </div>
                         {(defenses.resistances.length > 0 || defenses.immunities.length > 0 || conditions.exhaustion > 0) && (
                             <div className="header-defenses">
@@ -3431,6 +3649,7 @@ function CharacterSheet() {
                     minimized={levelUpMinimized}
                     character={character}
                     previousLevel={previousLevel}
+                    leveledUpClass={levelUpClass}
                     availableFeatures={availableFeatures}
                     onClose={handleDismissLevelUp}
                     onMinimize={() => setLevelUpMinimized(true)}
@@ -3488,288 +3707,386 @@ function CharacterSheet() {
                 isApplying={isApplyingStatMod}
             />
 
-
-
             {showXpEditor && (
                 <div className="xp-editor-overlay" onClick={() => {
                     setIsFeatureListTransitioning(true);
                     setTimeout(() => {
                         setShowXpEditor(false);
-                        setShowLevelPreview(false);
                         setIsFeatureListTransitioning(false);
+                        setIsFeatureListTransitioning(false);
+                        setShowMulticlassSelection(false);
+                        setSelectedLevelUpClass(null);
                         setPreviewChoices({});
                     }, 300);
                 }}>
-                    <div className={`xp-editor-panel ${showLevelPreview ? 'is-preview-active' : ''}`} onClick={e => e.stopPropagation()}>
+                    <div className={`xp-editor-panel ${showMulticlassSelection ? 'is-preview-active' : ''}`} onClick={e => e.stopPropagation()}>
                         <div className="xp-editor-header">
                             <h3>✧ Experience Editor ✧</h3>
                             <button className="close-btn" onClick={() => {
                                 setIsFeatureListTransitioning(true);
                                 setTimeout(() => {
                                     setShowXpEditor(false);
-                                    setShowLevelPreview(false);
+                                    setShowMulticlassSelection(false);
+                                    setShowMulticlassSelection(false);
+                                    setSelectedLevelUpClass(null);
                                     setIsFeatureListTransitioning(false);
                                     setPreviewChoices({});
                                 }, 300);
                             }}>×</button>
                         </div>
 
-                        <div className={`xp-editor-body ${showLevelPreview ? 'xp-editor-layout' : ''}`}>
-                            {showLevelPreview && (
-                                <div className="preview-section">
-                                    <h4>Level Preview: {previewLevel}</h4>
-
-                                    <div className="level-selector">
-                                        {Array.from({ length: 20 }, (_, i) => i + 1).map(lvl => (
-                                            <button
-                                                key={lvl}
-                                                className={`level-btn ${previewLevel === lvl ? 'active' : ''}`}
-                                                onClick={() => handlePreviewLevelChange(lvl)}
-                                            >
-                                                {lvl}
-                                            </button>
-                                        ))}
-                                    </div>
-
+                        <div className={`xp-editor-body ${showMulticlassSelection ? 'xp-editor-layout' : ''}`}>
+                            {showMulticlassSelection && (
+                                <div className="preview-section multiclass-selection-panel">
                                     <div className="preview-features-container">
-                                        {spellcastingRules && (
-                                            <button
-                                                className="preview-choice-btn preview-spell-launcher"
-                                                onClick={() => {
-                                                    setSpellOverlayPreviewMode(true);
-                                                    setPreviewSpells(character.data.spells || []);
-                                                    setShowSpellOverlay(true);
-                                                }}
-                                            >
-                                                📖 Manage Spells (Preview - Level {previewLevel})
-                                            </button>
-                                        )}
-                                        <div className={`preview-features-list ${isFeatureListTransitioning ? 'transitioning' : 'active'}`}>
-                                            {(() => {
-                                                const levelFeatures = [];
-                                                // 1. Resolve Class features
-                                                if (classRules?.features?.[previewLevel.toString()]) {
-                                                    levelFeatures.push(...classRules.features[previewLevel.toString()].map(f => ({ ...f, source: classRules.name })));
-                                                }
+                                        <h3>
+                                            Choose Your Next Class
+                                        </h3>
 
-                                                // 2. Resolve Subclass features (handling preview choices)
-                                                const previewSubclassKey = Object.keys(previewChoices).find(k => k.endsWith('_subclass'));
-                                                const previewSubclassChoice = previewSubclassKey ? previewChoices[previewSubclassKey] : null;
-                                                const previewSubclassId = previewSubclassChoice ? (typeof previewSubclassChoice === 'string' ? previewSubclassChoice : (previewSubclassChoice.id || previewSubclassChoice.name)) : null;
+                                        <div className="multiclass-class-grid">
+                                            {[
+                                                "Barbarian",
+                                                "Bard",
+                                                "Cleric",
+                                                "Druid",
+                                                "Fighter",
+                                                "Monk",
+                                                "Paladin",
+                                                "Ranger",
+                                                "Rogue",
+                                                "Sorcerer",
+                                                "Warlock",
+                                                "Wizard"
+                                            ].map(cls => (
+                                                <button
+                                                    key={cls}
+                                                    className={`multiclass-btn ${getMulticlassStatus(cls)}`}
+                                                    onClick={() => {
+                                                        const status = getMulticlassStatus(cls);
 
-                                                const effectiveSubclassId = previewSubclassId || character.class?.subclass;
-                                                const scInfo = classRules?.subclasses?.[effectiveSubclassId];
+                                                        if (status === "blocked") {
+                                                            const classData = multiclassRules?.[cls.toLowerCase()];
 
-                                                if (effectiveSubclassId && scInfo?.features?.[previewLevel.toString()]) {
-                                                    levelFeatures.push(...scInfo.features[previewLevel.toString()].map(f => ({ ...f, source: scInfo.name })));
-                                                }
+                                                            if (!classData) {
+                                                                addAlert(
+                                                                    `Unable to check requirements for ${cls}.`,
+                                                                    "warning"
+                                                                );
+                                                                return;
+                                                            }
 
-                                                // 3. Resolve Chosen Feats (from previewChoices or saved featureChoices)
-                                                const combinedChoices = { ...(character.data?.featureChoices || {}), ...previewChoices };
-                                                Object.keys(combinedChoices).forEach(choiceId => {
-                                                    if (choiceId.includes('feat_or_asi') || choiceId.includes('epic_boon')) {
-                                                        const choices = combinedChoices[choiceId];
-                                                        const choiceArr = Array.isArray(choices) ? choices : (choices ? [choices] : []);
+                                                            const requiredAbilities = Array.isArray(classData.primary_ability)
+                                                                ? classData.primary_ability
+                                                                : [classData.primary_ability];
 
-                                                        const levelMatch = choiceId.match(/_(\d+)$/);
-                                                        const featLevel = levelMatch ? parseInt(levelMatch[1]) : 1;
+                                                            const missing = requiredAbilities
+                                                                .filter(ability => {
+                                                                    const score = character?.data?.abilities?.[ability.toLowerCase()] || 0;
+                                                                    return score < 13;
+                                                                })
+                                                                .map(ability => `${ability} 13+`)
+                                                                .join(" or ");
 
-                                                        if (featLevel === previewLevel) {
-                                                            choiceArr.forEach(choiceName => {
-                                                                const skipStats = ['Feat', 'Strength', 'Dexterity', 'Constitution', 'Intelligence', 'Wisdom', 'Charisma'];
-                                                                if (skipStats.includes(choiceName)) return;
+                                                            addAlert(
+                                                                `You do not meet the requirements for ${cls}. Required: ${missing}`,
+                                                                "warning"
+                                                            );
 
-                                                                const pools = [...(ruleOptions.origin || []), ...(ruleOptions.general || []), ...(ruleOptions.epic_boon || [])];
-                                                                const featData = pools.find(f => (f.name || f.id) === choiceName);
+                                                            return;
+                                                        }
 
-                                                                if (featData) {
-                                                                    levelFeatures.push({
-                                                                        id: `chosen_feat_${choiceId}_${choiceName.replace(/\s+/g, '')}`,
-                                                                        name: `Feat: ${featData.name}`,
-                                                                        description: featData.description || (featData.effects ? featData.effects.join("\n\n") : ""),
-                                                                        source: 'Selected Feat (Preview)',
-                                                                        level: featLevel.toString(),
-                                                                        details: featData.details || {},
-                                                                        effects: featData.effects,
-                                                                        prerequisite: featData.prerequisite
-                                                                    });
+                                                        setSelectedLevelUpClass(cls);
+
+                                                        // Auto-set preview level to the level the character would actually gain
+                                                        const existingClasses = character?.data?.class_levels || [];
+                                                        const existingEntry = existingClasses.find(
+                                                            c => c.class_name.toLowerCase() === cls.toLowerCase()
+                                                        );
+                                                        const nextLevelForClass = existingEntry
+                                                            ? (existingEntry.level || 0) + 1
+                                                            : 1;
+                                                        handlePreviewLevelChange(nextLevelForClass);
+                                                    }}
+                                                >
+                                                    {cls}
+                                                </button>
+                                            ))}
+                                        </div>
+
+                                        {selectedLevelUpClass && (
+                                            <div className="preview-section">
+                                                <h4>Preview Level: {previewLevel}</h4>
+
+                                                <div className="level-selector">
+                                                    {Array.from({ length: 20 }, (_, i) => i + 1).map(lvl => (
+                                                        <button
+                                                            key={lvl}
+                                                            className={`level-btn ${previewLevel === lvl ? 'active' : ''}`}
+                                                            onClick={() => handlePreviewLevelChange(lvl)}
+                                                        >
+                                                            {lvl}
+                                                        </button>
+                                                    ))}
+                                                </div>
+
+                                                <div className="preview-features-container">
+                                                    {spellcastingRules && (
+                                                        <button
+                                                            className="preview-choice-btn preview-spell-launcher"
+                                                            onClick={() => {
+                                                                setSpellOverlayPreviewMode(true);
+                                                                setPreviewSpells(character.data.spells || []);
+                                                                setShowSpellOverlay(true);
+                                                            }}
+                                                        >
+                                                            📖 Manage Spells (Preview - Level {previewLevel})
+                                                        </button>
+                                                    )}
+                                                    <div className={`preview-features-list ${isFeatureListTransitioning ? 'transitioning' : 'active'}`}>
+                                                        {(() => {
+                                                            const levelFeatures = [];
+                                                            const previewClassRules = selectedLevelUpClass ? allClassRules[selectedLevelUpClass.toLowerCase()] : classRules;
+
+                                                            // 1. Resolve Class features
+                                                            if (previewClassRules?.features?.[previewLevel.toString()]) {
+                                                                levelFeatures.push(...previewClassRules.features[previewLevel.toString()].map(f => ({ ...f, source: previewClassRules.name })));
+                                                            }
+
+                                                            // 2. Resolve Subclass features (handling preview choices)
+                                                            const previewSubclassKey = Object.keys(previewChoices).find(k => k.endsWith('_subclass'));
+                                                            const previewSubclassChoice = previewSubclassKey ? previewChoices[previewSubclassKey] : null;
+                                                            const previewSubclassId = previewSubclassChoice ? (typeof previewSubclassChoice === 'string' ? previewSubclassChoice : (previewSubclassChoice.id || previewSubclassChoice.name)) : null;
+
+                                                            const effectiveSubclassId = previewSubclassId || character.class?.subclass;
+                                                            const scInfo = previewClassRules?.subclasses?.[effectiveSubclassId];
+
+                                                            if (effectiveSubclassId && scInfo?.features?.[previewLevel.toString()]) {
+                                                                levelFeatures.push(...scInfo.features[previewLevel.toString()].map(f => ({ ...f, source: scInfo.name })));
+                                                            }
+
+                                                            // 3. Resolve Chosen Feats (from previewChoices or saved featureChoices)
+                                                            const combinedChoices = { ...(character.data?.featureChoices || {}), ...previewChoices };
+                                                            Object.keys(combinedChoices).forEach(choiceId => {
+                                                                if (choiceId.includes('feat_or_asi') || choiceId.includes('epic_boon')) {
+                                                                    const choices = combinedChoices[choiceId];
+                                                                    const choiceArr = Array.isArray(choices) ? choices : (choices ? [choices] : []);
+
+                                                                    const levelMatch = choiceId.match(/_(\d+)$/);
+                                                                    const featLevel = levelMatch ? parseInt(levelMatch[1]) : 1;
+
+                                                                    if (featLevel === previewLevel) {
+                                                                        choiceArr.forEach(choiceName => {
+                                                                            const skipStats = ['Feat', 'Strength', 'Dexterity', 'Constitution', 'Intelligence', 'Wisdom', 'Charisma'];
+                                                                            if (skipStats.includes(choiceName)) return;
+
+                                                                            const pools = [...(ruleOptions.origin || []), ...(ruleOptions.general || []), ...(ruleOptions.epic_boon || [])];
+                                                                            const featData = pools.find(f => (f.name || f.id) === choiceName);
+
+                                                                            if (featData) {
+                                                                                levelFeatures.push({
+                                                                                    id: `chosen_feat_${choiceId}_${choiceName.replace(/\s+/g, '')}`,
+                                                                                    name: `Feat: ${featData.name}`,
+                                                                                    description: featData.description || (featData.effects ? featData.effects.join("\n\n") : ""),
+                                                                                    source: 'Selected Feat (Preview)',
+                                                                                    level: featLevel.toString(),
+                                                                                    details: featData.details || {},
+                                                                                    effects: featData.effects,
+                                                                                    prerequisite: featData.prerequisite
+                                                                                });
+                                                                            }
+                                                                        });
+                                                                    }
                                                                 }
                                                             });
-                                                        }
-                                                    }
-                                                });
 
-                                                if (levelFeatures.length === 0) {
-                                                    return <div className="no-features-msg">No new features at this level.</div>;
-                                                }
+                                                            if (levelFeatures.length === 0) {
+                                                                return <div className="no-features-msg">No new features at this level.</div>;
+                                                            }
 
-                                                const ITEMS_PER_PAGE = 3;
-                                                const totalPages = Math.ceil(levelFeatures.length / ITEMS_PER_PAGE);
-                                                const startIndex = (previewPage - 1) * ITEMS_PER_PAGE;
-                                                const visibleFeatures = levelFeatures.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-
-                                                return (
-                                                    <>
-                                                        {visibleFeatures.map(feature => {
-                                                            const options = resolveOptionsForFeature(feature, character, classRules, ruleOptions, availableSpells);
-                                                            const choiceLimit = getChoiceLimitForFeature(feature, previewLevel);
-                                                            const hasChoices = options.length > 0 && choiceLimit > 0;
-                                                            const choice = previewChoices[feature.id];
-                                                            const isExpanded = previewExpandedFeatures[feature.id];
+                                                            const ITEMS_PER_PAGE = 3;
+                                                            const totalPages = Math.ceil(levelFeatures.length / ITEMS_PER_PAGE);
+                                                            const startIndex = (previewPage - 1) * ITEMS_PER_PAGE;
+                                                            const visibleFeatures = levelFeatures.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
                                                             return (
-                                                                <div key={feature.id} className={`preview-feature-card ${isExpanded ? 'expanded' : 'collapsed'}`}>
-                                                                    <div
-                                                                        className="preview-feature-header"
-                                                                        onClick={() => setPreviewExpandedFeatures(prev => ({ ...prev, [feature.id]: !prev[feature.id] }))}
-                                                                    >
-                                                                        <div className="preview-feature-header-left">
-                                                                            <span className="preview-feature-name">{feature.name}</span>
-                                                                            {(() => {
-                                                                                const currentChoices = Array.isArray(choice) ? choice : (choice ? [choice] : []);
-                                                                                const resolvedChoices = currentChoices.map(c => {
-                                                                                    const found = options.find(o => (typeof o === 'string' ? o : (o.id || o.name)) === c);
-                                                                                    return found ? (typeof found === 'string' ? { name: found } : found) : { name: c };
-                                                                                });
-                                                                                return resolvedChoices.map((rc, idx) => (
-                                                                                    <span key={idx} className="feature-choice-badge">{rc.name}</span>
-                                                                                ));
-                                                                            })()}
-                                                                        </div>
-                                                                        <div className="preview-feature-header-right">
-                                                                            {hasChoices && (
-                                                                                <button
-                                                                                    className="preview-choice-btn-compact"
-                                                                                    onClick={(e) => {
-                                                                                        e.stopPropagation();
-                                                                                        setChoiceOverlay({
-                                                                                            isOpen: true,
-                                                                                            feature,
-                                                                                            options,
-                                                                                            isPreview: true
-                                                                                        });
-                                                                                    }}
-                                                                                >
-                                                                                    {choice ? "Change" : "Choose"}
-                                                                                </button>
-                                                                            )}
-                                                                            <i className={`fa-solid fa-chevron-${isExpanded ? 'up' : 'down'}`}></i>
-                                                                        </div>
-                                                                    </div>
-                                                                    {isExpanded && (
-                                                                        <div className="preview-feature-desc-container">
-                                                                            <PreviewChoiceDetails
-                                                                                feature={feature}
-                                                                                choice={choice}
-                                                                                character={character}
-                                                                                level={previewLevel}
-                                                                            />
-                                                                            {/* Render chosen feat details for feat_or_asi features */}
-                                                                            {feature.id?.includes('feat_or_asi') && choice && (() => {
-                                                                                const currentChoices = Array.isArray(choice) ? choice : [choice];
-                                                                                const chosenFeats = currentChoices.map(c => {
-                                                                                    const found = options.find(o => (typeof o === 'string' ? o : (o.id || o.name)) === c);
-                                                                                    return found ? (typeof found === 'string' ? { name: found } : found) : { name: c };
-                                                                                });
-                                                                                return (
-                                                                                    <div className="chosen-options-list">
-                                                                                        {chosenFeats.map((opt, idx) => {
-                                                                                            const subChoiceId = `${feature.id}_sub_${idx}`;
-                                                                                            const rawSubChoice = previewChoices[subChoiceId];
-                                                                                            const currentSubChoices = Array.isArray(rawSubChoice) ? rawSubChoice : (rawSubChoice ? [rawSubChoice] : []);
-                                                                                            const hasSubChoices = !!opt.choice;
+                                                                <>
+                                                                    {visibleFeatures.map(feature => {
+                                                                        const options = resolveOptionsForFeature(feature, character, previewClassRules, ruleOptions, availableSpells);
+                                                                        const choiceLimit = getChoiceLimitForFeature(feature, previewLevel);
+                                                                        const hasChoices = options.length > 0 && choiceLimit > 0;
+                                                                        const choice = previewChoices[feature.id];
+                                                                        const isExpanded = previewExpandedFeatures[feature.id];
 
+                                                                        return (
+                                                                            <div key={feature.id} className={`preview-feature-card ${isExpanded ? 'expanded' : 'collapsed'}`}>
+                                                                                <div
+                                                                                    className="preview-feature-header"
+                                                                                    onClick={() => setPreviewExpandedFeatures(prev => ({ ...prev, [feature.id]: !prev[feature.id] }))}
+                                                                                >
+                                                                                    <div className="preview-feature-header-left">
+                                                                                        <span className="preview-feature-name">{feature.name}</span>
+                                                                                        {(() => {
+                                                                                            const currentChoices = Array.isArray(choice) ? choice : (choice ? [choice] : []);
+                                                                                            const resolvedChoices = currentChoices.map(c => {
+                                                                                                const found = options.find(o => (typeof o === 'string' ? o : (o.id || o.name)) === c);
+                                                                                                return found ? (typeof found === 'string' ? { name: found } : found) : { name: c };
+                                                                                            });
+                                                                                            return resolvedChoices.map((rc, idx) => (
+                                                                                                <span key={idx} className="feature-choice-badge">{rc.name}</span>
+                                                                                            ));
+                                                                                        })()}
+                                                                                    </div>
+                                                                                    <div className="preview-feature-header-right">
+                                                                                        {hasChoices && (
+                                                                                            <button
+                                                                                                className="preview-choice-btn-compact"
+                                                                                                onClick={(e) => {
+                                                                                                    e.stopPropagation();
+                                                                                                    setChoiceOverlay({
+                                                                                                        isOpen: true,
+                                                                                                        feature,
+                                                                                                        options,
+                                                                                                        isPreview: true
+                                                                                                    });
+                                                                                                }}
+                                                                                            >
+                                                                                                {choice ? "Change" : "Choose"}
+                                                                                            </button>
+                                                                                        )}
+                                                                                        <i className={`fa-solid fa-chevron-${isExpanded ? 'up' : 'down'}`}></i>
+                                                                                    </div>
+                                                                                </div>
+                                                                                {isExpanded && (
+                                                                                    <div className="preview-feature-desc-container">
+                                                                                        <PreviewChoiceDetails
+                                                                                            feature={feature}
+                                                                                            choice={choice}
+                                                                                            character={character}
+                                                                                            level={previewLevel}
+                                                                                        />
+                                                                                        {/* Render chosen feat details for feat_or_asi features */}
+                                                                                        {feature.id?.includes('feat_or_asi') && choice && (() => {
+                                                                                            const currentChoices = Array.isArray(choice) ? choice : [choice];
+                                                                                            const chosenFeats = currentChoices.map(c => {
+                                                                                                const found = options.find(o => (typeof o === 'string' ? o : (o.id || o.name)) === c);
+                                                                                                return found ? (typeof found === 'string' ? { name: found } : found) : { name: c };
+                                                                                            });
                                                                                             return (
-                                                                                                <div key={idx} className="chosen-option-block">
-                                                                                                    <div className="chosen-option-header">
-                                                                                                        <h4>Selected: {opt.name}</h4>
-                                                                                                        {hasSubChoices && (
-                                                                                                            <button
-                                                                                                                className="feature-choice-btn sub-choice-btn"
-                                                                                                                onClick={(e) => {
-                                                                                                                    e.stopPropagation();
-                                                                                                                    const virtualFeature = {
-                                                                                                                        ...feature,
-                                                                                                                        id: subChoiceId,
-                                                                                                                        name: `${opt.name} Choice`,
-                                                                                                                        details: { choice: opt.choice }
-                                                                                                                    };
-                                                                                                                    setChoiceOverlay({
-                                                                                                                        isOpen: true,
-                                                                                                                        feature: virtualFeature,
-                                                                                                                        options: opt.choice.options,
-                                                                                                                        isPreview: true
-                                                                                                                    });
-                                                                                                                }}
-                                                                                                            >
-                                                                                                                {currentSubChoices.length > 0 ? 'Change' : 'Choose'}
-                                                                                                            </button>
-                                                                                                        )}
-                                                                                                    </div>
-                                                                                                    {currentSubChoices.length > 0 && (
-                                                                                                        <div className="sub-choice-badges">
-                                                                                                            {currentSubChoices.map((c, i) => (
-                                                                                                                <span key={i} className="feature-choice-badge sub-badge">{c}</span>
-                                                                                                            ))}
-                                                                                                        </div>
-                                                                                                    )}
+                                                                                                <div className="chosen-options-list">
+                                                                                                    {chosenFeats.map((opt, idx) => {
+                                                                                                        const subChoiceId = `${feature.id}_sub_${idx}`;
+                                                                                                        const rawSubChoice = previewChoices[subChoiceId];
+                                                                                                        const currentSubChoices = Array.isArray(rawSubChoice) ? rawSubChoice : (rawSubChoice ? [rawSubChoice] : []);
+                                                                                                        const hasSubChoices = !!opt.choice;
+
+                                                                                                        return (
+                                                                                                            <div key={idx} className="chosen-option-block">
+                                                                                                                <div className="chosen-option-header">
+                                                                                                                    <h4>Selected: {opt.name}</h4>
+                                                                                                                    {hasSubChoices && (
+                                                                                                                        <button
+                                                                                                                            className="feature-choice-btn sub-choice-btn"
+                                                                                                                            onClick={(e) => {
+                                                                                                                                e.stopPropagation();
+                                                                                                                                const virtualFeature = {
+                                                                                                                                    ...feature,
+                                                                                                                                    id: subChoiceId,
+                                                                                                                                    name: `${opt.name} Choice`,
+                                                                                                                                    details: { choice: opt.choice }
+                                                                                                                                };
+                                                                                                                                setChoiceOverlay({
+                                                                                                                                    isOpen: true,
+                                                                                                                                    feature: virtualFeature,
+                                                                                                                                    options: opt.choice.options,
+                                                                                                                                    isPreview: true
+                                                                                                                                });
+                                                                                                                            }}
+                                                                                                                        >
+                                                                                                                            {currentSubChoices.length > 0 ? 'Change' : 'Choose'}
+                                                                                                                        </button>
+                                                                                                                    )}
+                                                                                                                </div>
+                                                                                                                {currentSubChoices.length > 0 && (
+                                                                                                                    <div className="sub-choice-badges">
+                                                                                                                        {currentSubChoices.map((c, i) => (
+                                                                                                                            <span key={i} className="feature-choice-badge sub-badge">{c}</span>
+                                                                                                                        ))}
+                                                                                                                    </div>
+                                                                                                                )}
+                                                                                                            </div>
+                                                                                                        );
+                                                                                                    })}
                                                                                                 </div>
                                                                                             );
-                                                                                        })}
-                                                                                    </div>
-                                                                                );
-                                                                            })()}
-                                                                            <div className="preview-feature-desc">
-                                                                                {feature.prerequisite && (() => {
-                                                                                    const warning = checkPrerequisites(feature.prerequisite, character, previewLevel, classRules);
-                                                                                    return (
-                                                                                        <div className={`feat-prerequisite-line ${warning ? 'unmet' : 'met'}`}>
-                                                                                            <span className="prereq-icon">{warning ? '⚠' : '✓'}</span>
-                                                                                            <span className="prereq-text">
-                                                                                                Prerequisite: {Array.isArray(feature.prerequisite) ? feature.prerequisite.flat().join(', ') : feature.prerequisite}
-                                                                                            </span>
-                                                                                            {warning && (
-                                                                                                <span className="prereq-warning-inline"> — Not met: {warning}</span>
-                                                                                            )}
-                                                                                        </div>
-                                                                                    );
-                                                                                })()}
+                                                                                        })()}
+                                                                                        <div className="preview-feature-desc">
+                                                                                            {feature.prerequisite && (() => {
+                                                                                                const warning = checkPrerequisites(feature.prerequisite, character, previewLevel, classRules);
+                                                                                                return (
+                                                                                                    <div className={`feat-prerequisite-line ${warning ? 'unmet' : 'met'}`}>
+                                                                                                        <span className="prereq-icon">{warning ? '⚠' : '✓'}</span>
+                                                                                                        <span className="prereq-text">
+                                                                                                            Prerequisite: {Array.isArray(feature.prerequisite) ? feature.prerequisite.flat().join(', ') : feature.prerequisite}
+                                                                                                        </span>
+                                                                                                        {warning && (
+                                                                                                            <span className="prereq-warning-inline"> — Not met: {warning}</span>
+                                                                                                        )}
+                                                                                                    </div>
+                                                                                                );
+                                                                                            })()}
 
-                                                                                {feature.effects && Array.isArray(feature.effects) && (
-                                                                                    <div className="feat-effects-list">
-                                                                                        {feature.effects.map((eff, i) => (
-                                                                                            <p key={i} className="feat-effect-item">{processRichText(eff)}</p>
-                                                                                        ))}
+                                                                                            {feature.effects && Array.isArray(feature.effects) && (
+                                                                                                <div className="feat-effects-list">
+                                                                                                    {feature.effects.map((eff, i) => (
+                                                                                                        <p key={i} className="feat-effect-item">{processRichText(eff)}</p>
+                                                                                                    ))}
+                                                                                                </div>
+                                                                                            )}
+                                                                                            {feature.description}
+                                                                                        </div>
                                                                                     </div>
                                                                                 )}
-                                                                                {feature.description}
                                                                             </div>
+                                                                        );
+                                                                    })}
+
+                                                                    {totalPages > 1 && (
+                                                                        <div className="preview-pagination">
+                                                                            {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+                                                                                <button
+                                                                                    key={p}
+                                                                                    className={`page-dot ${previewPage === p ? 'active' : ''}`}
+                                                                                    onClick={() => handlePreviewPageChange(p)}
+                                                                                />
+                                                                            ))}
                                                                         </div>
                                                                     )}
-                                                                </div>
+                                                                </>
                                                             );
-                                                        })}
+                                                        })()}
+                                                    </div>
 
-                                                        {totalPages > 1 && (
-                                                            <div className="preview-pagination">
-                                                                {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
-                                                                    <button
-                                                                        key={p}
-                                                                        className={`page-dot ${previewPage === p ? 'active' : ''}`}
-                                                                        onClick={() => handlePreviewPageChange(p)}
-                                                                    />
-                                                                ))}
-                                                            </div>
-                                                        )}
-                                                    </>
-                                                );
-                                            })()}
-                                        </div>
+                                                    <div className="selected-class-info" style={{ marginTop: '20px', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '15px' }}>
+                                                        <span style={{ fontSize: '1.2em', color: '#ffb347' }}>
+                                                            Selected: {selectedLevelUpClass} (Level {previewLevel})
+                                                        </span>
+
+                                                        <button
+                                                            className="action-btn levelup-btn"
+                                                            onClick={handleLevelUp}
+                                                            disabled={xp < (XP_THRESHOLDS[character.level + 1] || 0) || character.level >= 20}
+                                                        >
+                                                            ✧ Confirm Level Up ✧
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             )}
 
-                            <div className={showLevelPreview ? 'xp-editor-main' : ''}>
+                            <div className={showMulticlassSelection ? 'xp-editor-main' : ''}>
                                 <div className="xp-status">
                                     <span>Current Level: <strong>{character.level}</strong></span>
                                     <span>Current XP: <strong>{xp}</strong></span>
@@ -3808,18 +4125,18 @@ function CharacterSheet() {
                                     {(isOwner || isAdmin) && (
                                         <button
                                             className="action-btn levelup-btn"
-                                            onClick={handleLevelUp}
-                                            disabled={xp < (XP_THRESHOLDS[character.level + 1] || 0) || character.level >= 20}
+                                            onClick={() => {
+                                                if (showMulticlassSelection) {
+                                                    setShowMulticlassSelection(false);
+                                                    setSelectedLevelUpClass(null);
+                                                } else {
+                                                    openLevelUpSelection();
+                                                }
+                                            }}
                                         >
-                                            ✧ Level Up ✧
+                                            {showMulticlassSelection ? "Cancel Level Up" : "✧ Level Up ✧"}
                                         </button>
                                     )}
-                                    <button
-                                        className="action-btn levelup-preview-btn"
-                                        onClick={() => setShowLevelPreview(!showLevelPreview)}
-                                    >
-                                        {showLevelPreview ? "Close Preview" : "✧ Level Up Preview ✧"}
-                                    </button>
                                     {(isOwner || isAdmin) && (
                                         <button
                                             className="action-btn leveldown-btn"

@@ -37,6 +37,20 @@
     animation: fadeIn 0.3s ease-out;
 }
 
+@keyframes autoSelectGlow {
+    0%   { box-shadow: 0 0 0px rgba(255, 215, 0, 0); }
+    30%  { box-shadow: 0 0 18px 6px rgba(255, 215, 0, 0.75), 0 0 35px 10px rgba(255, 200, 0, 0.35); }
+    60%  { box-shadow: 0 0 10px 3px rgba(255, 215, 0, 0.5), 0 0 22px 7px rgba(255, 200, 0, 0.2); }
+    100% { box-shadow: 0 0 18px 6px rgba(255, 215, 0, 0.75), 0 0 35px 10px rgba(255, 200, 0, 0.35); }
+}
+
+/* Flash animation for auto-randomized selections — fires once per pick */
+.auto-just-picked {
+    animation: autoSelectGlow 1.1s ease-out forwards;
+    border-color: rgba(255, 215, 0, 0.9) !important;
+    outline: none;
+}
+
 @keyframes fadeIn {
     from {
         opacity: 0;
@@ -1094,4 +1108,35 @@ input[type="number"]:focus {
     .button-group {
         max-height: 40vh;
     }
-}
+}
+/* Added for Auto-Randomize */
+.global-randomize-btn {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    background: linear-gradient(135deg, #1a1a2b 0%, #000 100%);
+    color: var(--accent);
+    border: 2px solid var(--accent);
+    padding: 10px 20px;
+    font-size: 1rem;
+    font-family: var(--font-serif);
+    border-radius: 50px;
+    cursor: pointer;
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
+    transition: all 0.3s ease;
+}
+
+.global-randomize-btn:hover {
+    transform: scale(1.05);
+    background: rgba(255, 215, 0, 0.1);
+    box-shadow: 0 0 25px rgba(255, 215, 0, 0.4);
+}
+
+.global-randomize-btn.active {
+    border-color: var(--primary);
+    color: white;
+    box-shadow: 0 0 25px var(--primary-dim);
+    animation: randomizePulse 1.5s infinite ease-in-out;
+}
+

@@ -33,8 +33,7 @@ function CharacterForm() {
     const [draggedRoll, setDraggedRoll] = useState(null);
     const [dragOverAbility, setDragOverAbility] = useState(null);
     const [isRandomizing, setIsRandomizing] = useState(false);
-
-
+    const [isAutoRandomizing, setIsAutoRandomizing] = useState(false);
     const [formData, setFormData] = useState({
         name: "",
         class_name: "",
@@ -71,7 +70,7 @@ function CharacterForm() {
     const [classDetails, setClassDetails] = useState(null);
     const [selectedSpeciesDetails, setSelectedSpeciesDetails] = useState(null);
     const [classSkills, setClassSkills] = useState([]);
-    const [classEquipChoice, setClassEquipChoice] = useState("option_a");
+    const [classEquipChoice, setClassEquipChoice] = useState(null);
     const [previewLevel, setPreviewLevel] = useState(1);
 
     useEffect(() => {
@@ -145,6 +144,7 @@ function CharacterForm() {
     const handleClassSelect = (className) => {
         setFormData({ ...formData, class_name: className });
         setClassSkills([]); // Reset skill choices
+        setClassEquipChoice(null); // Reset equipment choice
         setPreviewLevel(1); // Reset preview level
 
         // Fetch class details
@@ -154,7 +154,7 @@ function CharacterForm() {
             .catch(err => console.error("Failed to load class details", err));
     };
 
-    if (loading) return <div>Loading character...</div>;
+    // Loading check moved down to avoid violating rules of hooks
 
     const rollAbility = () => {
         const rolls = Array.from({ length: 4 }, () => Math.floor(Math.random() * 6) + 1);
@@ -309,12 +309,172 @@ function CharacterForm() {
             setRolledStats(prev => prev.filter(r => r.id !== roll.id));
 
             if (i < 5) {
-                await new Promise(resolve => setTimeout(resolve, 1000));
+                await new Promise(resolve => setTimeout(resolve, 1500));
             }
         }
 
         setIsRandomizing(false);
     };
+
+    // Helper: briefly flash the auto-just-picked CSS class on a DOM element
+    const flashPicked = (selector) => {
+        const el = typeof selector === 'string'
+            ? document.querySelector(selector)
+            : selector;
+        if (!el) return;
+        el.classList.remove('auto-just-picked');
+        // Force reflow so re-adding the class restarts the animation
+        void el.offsetWidth;
+        el.classList.add('auto-just-picked');
+        setTimeout(() => el.classList.remove('auto-just-picked'), 1100);
+    };
+
+    useEffect(() => {
+        if (!isAutoRandomizing) return;
+        
+        const timeoutId = setTimeout(() => {
+            if (step === 0) {
+                if (!formData.class_name) {
+                    const randomClass = classes[Math.floor(Math.random() * classes.length)];
+                    handleClassSelect(randomClass);
+                    setTimeout(() => flashPicked(`.selection-button[data-class="${randomClass}"]`), 150);
+                } else if (classDetails && classDetails.name.toLowerCase() === formData.class_name.toLowerCase()) {
+                    const requiredSkills = classDetails.proficiencies.skills.choose;
+                    if (classSkills.length < requiredSkills) {
+                        document.querySelector('.skill-picker-container')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        setTimeout(() => {
+                            const options = [...classDetails.proficiencies.skills.options];
+                            options.sort(() => 0.5 - Math.random());
+                            const chosen = options.slice(0, requiredSkills);
+                            setClassSkills(chosen);
+                            // Flash each chosen skill button
+                            setTimeout(() => {
+                                chosen.forEach(skill => {
+                                    const btns = document.querySelectorAll('.skill-item-button');
+                                    btns.forEach(btn => {
+                                        if (btn.textContent.trim() === skill) flashPicked(btn);
+                                    });
+                                });
+                            }, 50);
+                        }, 1000);
+                    } else {
+                        document.querySelector('.equipment-choice-section')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        setTimeout(() => {
+                            const equipOptions = Object.keys(classDetails.starting_equipment);
+                            const chosen = equipOptions[Math.floor(Math.random() * equipOptions.length)];
+                            setClassEquipChoice(chosen);
+                            setTimeout(() => flashPicked(`.equip-option-card[data-key="${chosen}"]`), 50);
+                            setTimeout(() => setStep(1), 1100);
+                        }, 1000);
+                    }
+                }
+            } 
+            else if (step === 1) {
+                if (allStatsAssigned) {
+                    setStep(2);
+                } else {
+                    const canRoll = rollCount < 2 || (rollCount === 2 && abilityTotal <= 69);
+                    if (rolledStats.length === 0 || (canRoll && abilityTotal <= 69)) {
+                        rollAbilities();
+                    } else {
+                        const abilities = ["strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma"];
+                        const shuffledAbilities = [...abilities].sort(() => Math.random() - 0.5);
+                        
+                        setAssignedStats(prev => {
+                            const newStats = { ...prev };
+                            initialRolledStats.forEach((roll, i) => {
+                                newStats[shuffledAbilities[i]] = roll.value;
+                            });
+                            return newStats;
+                        });
+                        setRolledStats([]);
+                    }
+                }
+            }
+            else if (step === 2) {
+                if (!formData.species) {
+                    const randomSpecies = speciesData[Math.floor(Math.random() * speciesData.length)];
+                    setFormData(prev => ({ ...prev, species: randomSpecies.name, species_variant: "" }));
+                    setSelectedSpeciesDetails(randomSpecies);
+                    setTimeout(() => flashPicked(`.selection-button[data-species="${randomSpecies.name}"]`), 150);
+                } else if (selectedSpeciesDetails) {
+                    let updates = {};
+                    const isSizeMissing = Array.isArray(selectedSpeciesDetails.size) && !formData.size;
+                    const variations = selectedSpeciesDetails.variations || [];
+                    const isVariantMissing = variations.length > 0 && !formData.species_variant;
+                    
+                    if (isSizeMissing) {
+                        updates.size = selectedSpeciesDetails.size[Math.floor(Math.random() * selectedSpeciesDetails.size.length)];
+                    }
+                    if (isVariantMissing) {
+                        updates.species_variant = variations[Math.floor(Math.random() * variations.length)];
+                    }
+                    
+                    if (Object.keys(updates).length > 0) {
+                        setFormData(prev => ({ ...prev, ...updates }));
+                        setTimeout(() => {
+                            if (updates.species_variant) flashPicked(`.species-variant-button[data-variant="${updates.species_variant}"]`);
+                        }, 150);
+                    } else {
+                        setStep(3);
+                    }
+                }
+            }
+            else if (step === 3) {
+                if (!formData.background) {
+                    const randomBg = backgrounds[Math.floor(Math.random() * backgrounds.length)];
+                    setFormData(prev => ({ ...prev, background: randomBg.name }));
+                    setTimeout(() => flashPicked(`.background-button[data-bg="${randomBg.name}"]`), 150);
+                } else if (!bgChoices.plus2 && !bgChoices.plus1_a) {
+                    document.querySelector('.background-button.selected')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    
+                    setTimeout(() => {
+                        const is21 = Math.random() > 0.5;
+                        const mode = is21 ? "2_1" : "1_1_1";
+                        
+                        if (mode === "2_1") {
+                            const selectedBg = backgrounds.find(bg => bg.name === formData.background);
+                            const availableAbilities = selectedBg?.ability_scores || ["Strength", "Dexterity", "Constitution", "Intelligence", "Wisdom", "Charisma"];
+                            const shuffled = [...availableAbilities].sort(() => Math.random() - 0.5);
+                            setBgChoices(prev => ({
+                                ...prev,
+                                mode: "2_1",
+                                plus2: shuffled[0],
+                                plus1: shuffled[1]
+                            }));
+                            setTimeout(() => {
+                                flashPicked('.bg-bonus-select-plus2');
+                                flashPicked('.bg-bonus-select-plus1');
+                            }, 100);
+                        } else {
+                            setBgChoices(prev => ({
+                                ...prev,
+                                mode: "1_1_1"
+                            }));
+                        }
+                    }, 1000);
+                } else {
+                    setStep(4);
+                }
+            }
+            else if (step === 4) {
+                setIsAutoRandomizing(false);
+            }
+        }, 1000);
+
+        return () => clearTimeout(timeoutId);
+    });
+
+    if (loading) {
+        return (
+            <div className="character-form-container">
+                <h1>{isEditMode ? "Edit Character" : "Create Character"}</h1>
+                <div style={{ textAlign: "center", padding: "40px", color: "var(--text-dim)", fontStyle: "italic" }}>
+                    Loading character data...
+                </div>
+            </div>
+        );
+    }
 
     const handleSubmit = () => {
         const url = isEditMode
@@ -416,6 +576,7 @@ function CharacterForm() {
                                         <button
                                             key={c}
                                             onClick={() => handleClassSelect(c)}
+                                            data-class={c}
                                             className={`selection-button ${formData.class_name === c ? "selected" : ""}`}
                                         >
                                             {c}
@@ -510,6 +671,7 @@ function CharacterForm() {
                                                 {Object.entries(classDetails.starting_equipment).map(([key, option], idx) => (
                                                     <div
                                                         key={key}
+                                                        data-key={key}
                                                         className={`equip-option-card ${classEquipChoice === key ? "selected" : ""}`}
                                                         onClick={() => setClassEquipChoice(key)}
                                                     >
@@ -685,6 +847,7 @@ function CharacterForm() {
                                     {speciesOptions.map(s => (
                                         <button
                                             key={s}
+                                            data-species={s}
                                             onClick={() => {
                                                 const details = speciesData.find(sd => sd.name === s);
                                                 setFormData({
@@ -811,6 +974,7 @@ function CharacterForm() {
                                     {backgrounds.map(bg => (
                                         <button
                                             key={bg.name}
+                                            data-bg={bg.name}
                                             onClick={() => setFormData({ ...formData, background: bg.name })}
                                             className={`background-button ${formData.background === bg.name ? "selected" : ""}`}
                                         >
@@ -868,14 +1032,14 @@ function CharacterForm() {
                                                             <div className="bonus-pickers">
                                                                 <div className="picker-row">
                                                                     <span>+2</span>
-                                                                    <select value={bgChoices.plus2} onChange={(e) => setBgChoices({ ...bgChoices, plus2: e.target.value })}>
+                                                                    <select className="bg-bonus-select-plus2" value={bgChoices.plus2} onChange={(e) => setBgChoices({ ...bgChoices, plus2: e.target.value })}>
                                                                         <option value="">Select Ability</option>
                                                                         {bgAbilities.map(a => <option key={a} value={a} disabled={a === bgChoices.plus1}>{a}</option>)}
                                                                     </select>
                                                                 </div>
                                                                 <div className="picker-row">
                                                                     <span>+1</span>
-                                                                    <select value={bgChoices.plus1} onChange={(e) => setBgChoices({ ...bgChoices, plus1: e.target.value })}>
+                                                                    <select className="bg-bonus-select-plus1" value={bgChoices.plus1} onChange={(e) => setBgChoices({ ...bgChoices, plus1: e.target.value })}>
                                                                         <option value="">Select Ability</option>
                                                                         {bgAbilities.map(a => <option key={a} value={a} disabled={a === bgChoices.plus2}>{a}</option>)}
                                                                     </select>
@@ -1044,7 +1208,13 @@ function CharacterForm() {
     };
 
     return (
-        <div className="character-form-container">
+        <div className={`character-form-container ${isAutoRandomizing ? 'auto-randomizing' : ''}`}>
+            <button 
+                className={`global-randomize-btn ${isAutoRandomizing ? 'active' : ''}`}
+                onClick={() => setIsAutoRandomizing(!isAutoRandomizing)}
+            >
+                {isAutoRandomizing ? "Stop Randomization 🛑" : "Randomize Character 🎲"}
+            </button>
             <h1>{isEditMode ? "Edit Character" : "Create Character"}</h1>
             {renderStep()}
         </div>

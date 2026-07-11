@@ -7,6 +7,7 @@ export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }) => {
     const [user, setUser] = useState(null);
+    const [hasUnlimitedAccess, setHasUnlimitedAccess] = useState(false);
     const [token, setToken] = useState(() => {
         const sessionToken = sessionStorage.getItem('token');
         if (sessionToken) return sessionToken;
@@ -24,6 +25,7 @@ export const AuthProvider = ({ children }) => {
     const logout = useCallback(() => {
         setToken(null);
         setUser(null);
+        setHasUnlimitedAccess(false);
         // Explicit logout: clear the token and the reauth flag, but intentionally
         // KEEP device_fingerprint so that re-logging in on the same device
         // after a voluntary logout does NOT trigger the security question challenge.
@@ -44,6 +46,16 @@ export const AuthProvider = ({ children }) => {
             if (response.ok) {
                 const data = await response.json();
                 setUser(data.user);
+                const accessResponse = await fetch('/api/auth/access-status', {
+                    headers: {
+                        'Authorization': `Bearer ${currentToken}`
+                    }
+                });
+
+                if (accessResponse.ok) {
+                    const accessData = await accessResponse.json();
+                    setHasUnlimitedAccess(accessData.has_unlimited_access);
+                }
             } else {
                 // JWT expired or invalid — flag this device for a security challenge
                 // on the next login attempt. We keep device_fingerprint so the system
@@ -127,6 +139,7 @@ export const AuthProvider = ({ children }) => {
         user,
         token,
         loading,
+        hasUnlimitedAccess,
         login,
         logout,
         isAdmin: user?.is_admin || false,

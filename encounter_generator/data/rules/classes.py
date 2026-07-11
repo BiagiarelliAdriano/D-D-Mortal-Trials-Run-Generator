@@ -21,7 +21,7 @@ BARBARIAN = {
     "description": """Barbarians are relentless warriors empowered by primal forces surging from within. Their fury is not
         just rage, it's a physical manifestation of raw survival instinct, ancient spirit guidance, or the wrath
         of a world out of balance.""",
-    "primary_ability": "Strength",
+    "primary_ability": ["Strength"],
     "hit_die": "d12",
     "proficiencies": {
         "saving_throws": ["Strength", "Constitution"],
@@ -36,6 +36,20 @@ BARBARIAN = {
             "granted": [],
             "choose": 2,
             "options": ["Animal Handling", "Athletics", "Intimidation", "Nature", "Perception", "Survival"]
+        }
+    },
+    "multiclass_proficiencies": {
+        "armor": ["Shields"],
+        "weapons": ["Martial"],
+        "tools": {
+            "granted": [],
+            "choose": 0,
+            "options": []
+        },
+        "skills": {
+            "granted": [],
+            "choose": 0,
+            "options": []
         }
     },
     "starting_equipment": {
@@ -397,7 +411,7 @@ BARD = {
     "description": """Bards weave magic through performance, turning memory, rhythm, and spoken word into tools of power.
         Driven by curiosity and the spark of creation, they collect fragments of history and myth, transforming
         them into magic and influence.""",
-    "primary_ability": "Charisma",
+    "primary_ability": ["Charisma"],
     "hit_die": "d8",
     "proficiencies": {
         "saving_throws": ["Dexterity", "Charisma"],
@@ -413,6 +427,24 @@ BARD = {
             "choose": 3,
             "options": [
                 "Acrobatics", "Animal Handling", "Arcana", "Athletics", "Deception", "History", "Insight", "Intimidation",
+                "Investigation", "Medicine", "Nature", "Perception", "Performance", "Persuasion", "Religion",
+                "Sleight of Hand", "Stealth", "Survival"
+            ]
+        }
+    },
+    "multiclass_proficiencies": {
+        "armor": ["Light"],
+        "weapons": [],
+        "tools": {
+            "granted": [],
+            "choose": 1,
+            "options": ["Bagpipes", "Drum", "Dulcimer", "Flute", "Horn", "Lute", "Lyre", "Pan Flute", "Shawm", "Viol"]
+        },
+        "skills": {
+            "granted": [],
+            "choose": 1,
+            "options": [
+                "Acrobatics", "Aminal Handling", "Arcana", "Athletics", "Deception", "History", "Insight", "Intimidation",
                 "Investigation", "Medicine", "Nature", "Perception", "Performance", "Persuasion", "Religion",
                 "Sleight of Hand", "Stealth", "Survival"
             ]
@@ -685,7 +717,7 @@ CLERIC = {
     "description": """Clerics are intermediaries between the mortal world and they were given powers resembling those of the gods. 
         Empowered by divine magic, they serve as healers, protectors, and harbingers of their deity's will. 
         Wielding both holy light and martial might, a Cleric is a pillar of strength for any adventuring party.""",
-    "primary_ability": "Wisdom",
+    "primary_ability": ["Wisdom"],
     "hit_die": "d8",
     "proficiencies": {
         "saving_throws": ["Wisdom", "Charisma"],
@@ -700,6 +732,20 @@ CLERIC = {
             "granted": [],
             "choose": 2,
             "options": ["History", "Insight", "Medicine", "Persuasion", "Religion"]
+        }
+    },
+    "multiclass_proficiencies": {
+        "armor": ["Light", "Medium", "Shields"],
+        "weapons": [],
+        "tools": {
+            "granted": [],
+            "choose": 0,
+            "options": []
+        },
+        "skills": {
+            "granted": [],
+            "choose": 0,
+            "options": []
         }
     },
     "starting_equipment": {
@@ -985,7 +1031,7 @@ DRUID = {
     "description": """Druids are conduits of the natural world's raw power, channeling the elements and assuming the 
         forms of beasts. They serve as guardians of the wilderness, balancing the cycles of life and death, 
         and drawing magic from the ancient rhythms of nature itself.""",
-    "primary_ability": "Wisdom",
+    "primary_ability": ["Wisdom"],
     "hit_die": "d8",
     "proficiencies": {
         "saving_throws": ["Intelligence", "Wisdom"],
@@ -1000,6 +1046,20 @@ DRUID = {
             "granted": [],
             "choose": 2,
             "options": ["Arcana", "Animal Handling", "Insight", "Medicine", "Nature", "Perception", "Religion", "Survival"]
+        }
+    },
+    "multiclass_proficiencies": {
+        "armor": ["Light", "Shields"],
+        "weapons": [],
+        "tools": {
+            "granted": [],
+            "choose": 0,
+            "options": []
+        },
+        "skills": {
+            "granted": [],
+            "choose": 0,
+            "options": []
         }
     },
     "starting_equipment": {
@@ -1306,7 +1366,7 @@ FIGHTER = {
     "description": """Fighters are masters of martial combat, skilled with a variety of weapons and armor. 
         Whether a disciplined soldier, a rugged mercenary, or a knightly champion, a Fighter excels on the 
         front lines, using tactical expertise and physical prowess to dominate the battlefield.""",
-    "primary_ability": "Strength or Dexterity",
+    "primary_ability": ["Strength", "Dexterity"],
     "hit_die": "d10",
     "proficiencies": {
         "saving_throws": ["Strength", "Constitution"],
@@ -1321,6 +1381,20 @@ FIGHTER = {
             "granted": [],
             "choose": 2,
             "options": ["Acrobatics", "Animal Handling", "Athletics", "History", "Insight", "Intimidation", "Persuasion", "Perception", "Survival"]
+        }
+    },
+    "multiclass_proficiencies": {
+        "armor": ["Light", "Medium", "Shields"],
+        "weapons": ["Martial"],
+        "tools": {
+            "granted": [],
+            "choose": 0,
+            "options": []
+        },
+        "skills": {
+            "granted": [],
+            "choose": 0,
+            "options": []
         }
     },
     "starting_equipment": {
@@ -1644,7 +1718,7 @@ MONK = {
     "description": """Monks are masters of martial arts who harness the energy within their bodies to achieve 
         extraordinary physical and mental feats. They value discipline and focus, transforming their own 
         bodies into lethal weapons while moving with supernatural speed and grace.""",
-    "primary_ability": "Dexterity and Wisdom",
+    "primary_ability": ["Dexterity", "Wisdom"],
     "hit_die": "d8",
     "proficiencies": {
         "saving_throws": ["Strength", "Dexterity"],
@@ -1665,6 +1739,20 @@ MONK = {
             "granted": [],
             "choose": 2,
             "options": ["Acrobatics", "Athletics", "History", "Insight", "Religion", "Stealth"]
+        }
+    },
+    "multiclass_proficiencies": {
+        "armor": [],
+        "weapons": [],
+        "tools": {
+            "granted": [],
+            "choose": 0,
+            "options": []
+        },
+        "skills": {
+            "granted": [],
+            "choose": 0,
+            "options": []
         }
     },
     "starting_equipment": {
@@ -2052,7 +2140,7 @@ PALADIN = {
     "description": """Paladins are holy warriors bound by sacred oaths to serve a higher power or cause. 
         They combine martial prowess with divine magic, using their power to heal the wounded, 
         smite the wicked, and protect their allies with powerful auras of grace and courage.""",
-    "primary_ability": "Strength and Charisma",
+    "primary_ability": ["Strength", "Charisma"],
     "hit_die": "d10",
     "proficiencies": {
         "saving_throws": ["Wisdom", "Charisma"],
@@ -2067,6 +2155,20 @@ PALADIN = {
             "granted": [],
             "choose": 2,
             "options": ["Athletics", "Insight", "Intimidation", "Medicine", "Persuasion", "Religion"]
+        }
+    },
+    "multiclass_proficiencies": {
+        "armor": ["Light", "Medium", "Shields"],
+        "weapons": ["Martial"],
+        "tools": {
+            "granted": [],
+            "choose": 0,
+            "options": []
+        },
+        "skills": {
+            "granted": [],
+            "choose": 0,
+            "options": []
         }
     },
     "starting_equipment": {
@@ -2391,7 +2493,7 @@ RANGER = {
     "description": """Rangers are masters of the wilderness, combining martial skill with primal magic. 
         They excel at tracking and hunting dangerous foes, using their deep connection to nature to 
         navigate treacherous terrain and strike with deadly precision.""",
-    "primary_ability": "Dexterity and Wisdom",
+    "primary_ability": ["Dexterity", "Wisdom"],
     "hit_die": "d10",
     "proficiencies": {
         "saving_throws": ["Strength", "Dexterity"],
@@ -2405,6 +2507,20 @@ RANGER = {
         "skills": {
             "granted": [],
             "choose": 3,
+            "options": ["Animal Handling", "Athletics", "Insight", "Investigation", "Nature", "Perception", "Stealth", "Survival"]
+        }
+    },
+    "multiclass_proficiencies": {
+        "armor": ["Light", "Medium", "Shields"],
+        "weapons": ["Martial"],
+        "tools": {
+            "granted": [],
+            "choose": 0,
+            "options": []
+        },
+        "skills": {
+            "granted": [],
+            "choose": 1,
             "options": ["Animal Handling", "Athletics", "Insight", "Investigation", "Nature", "Perception", "Stealth", "Survival"]
         }
     },
@@ -2717,7 +2833,7 @@ ROGUE = {
     "description": """Rogues are masters of stealth, skill, and precision. They excel at exploiting 
         their enemies' weaknesses, striking with deadly accuracy when their foes are distracted, 
         and using a vast array of tools and talents to overcome any obstacle.""",
-    "primary_ability": "Dexterity",
+    "primary_ability": ["Dexterity"],
     "hit_die": "d8",
     "proficiencies": {
         "saving_throws": ["Dexterity", "Intelligence"],
@@ -2731,6 +2847,20 @@ ROGUE = {
         "skills": {
             "granted": [],
             "choose": 4,
+            "options": ["Acrobatics", "Athletics", "Deception", "Insight", "Intimidation", "Investigation", "Perception", "Persuasion", "Sleight of Hand", "Stealth"]
+        }
+    },
+    "multiclass_proficiencies": {
+        "armor": ["Light"],
+        "weapons": [],
+        "tools": {
+            "granted": ["Thieves' Tools"],
+            "choose": 0,
+            "options": []
+        },
+        "skills": {
+            "granted": [],
+            "choose": 1,
             "options": ["Acrobatics", "Athletics", "Deception", "Insight", "Intimidation", "Investigation", "Perception", "Persuasion", "Sleight of Hand", "Stealth"]
         }
     },
@@ -3060,7 +3190,7 @@ SORCERER = {
     "description": """Sorcerers carry a magical birthright conferred upon them by an exotic bloodline, 
         some otherworldly influence, or exposure to unknown cosmic forces. Their magic is not 
         studied but innate, flowing from a wellspring of power within.""",
-    "primary_ability": "Charisma",
+    "primary_ability": ["Charisma"],
     "hit_die": "d6",
     "proficiencies": {
         "saving_throws": ["Constitution", "Charisma"],
@@ -3075,6 +3205,20 @@ SORCERER = {
             "granted": [],
             "choose": 2,
             "options": ["Arcana", "Deception", "Insight", "Intimidation", "Persuasion", "Religion"]
+        }
+    },
+    "multiclass_proficiencies": {
+        "armor": [],
+        "weapons": [],
+        "tools": {
+            "granted": [],
+            "choose": 0,
+            "options": []
+        },
+        "skills": {
+            "granted": [],
+            "choose": 0,
+            "options": []
         }
     },
     "starting_equipment": {
@@ -3318,7 +3462,7 @@ WARLOCK = {
     "description": """Warlocks are seekers of knowledge that lie hidden in the fabric of the multiverse. 
         Through pacts made with mysterious beings of great power, warlocks unlock magical effects, 
         both subtle and spectacular.""",
-    "primary_ability": "Charisma",
+    "primary_ability": ["Charisma"],
     "hit_die": "d8",
     "proficiencies": {
         "saving_throws": ["Wisdom", "Charisma"],
@@ -3333,6 +3477,20 @@ WARLOCK = {
             "granted": [],
             "choose": 2,
             "options": ["Arcana", "Deception", "History", "Intimidation", "Investigation", "Nature", "Religion"]
+        }
+    },
+    "multiclass_proficiencies": {
+        "armor": ["Light"],
+        "weapons": [],
+        "tools": {
+            "granted": [],
+            "choose": 0,
+            "options": []
+        },
+        "skills": {
+            "granted": [],
+            "choose": 0,
+            "options": []
         }
     },
     "starting_equipment": {
@@ -3593,7 +3751,7 @@ WIZARD = {
     "description": """Wizards are supreme magic-users, defined and united as a class by the spells they cast. 
         Drawing on the subtle weave of magic that permeates the cosmos, wizards cast spells of explosive fire, 
         arcing lightning, subtle deception, and brute-force mind control.""",
-    "primary_ability": "Intelligence",
+    "primary_ability": ["Intelligence"],
     "hit_die": "d6",
     "proficiencies": {
         "saving_throws": ["Intelligence", "Wisdom"],
@@ -3608,6 +3766,20 @@ WIZARD = {
             "granted": [],
             "choose": 2,
             "options": ["Arcana", "History", "Insight", "Investigation", "Medicine", "Nature", "Religion"]
+        }
+    },
+    "multiclass_proficiencies": {
+        "armor": [],
+        "weapons": [],
+        "tools": {
+            "granted": [],
+            "choose": 0,
+            "options": []
+        },
+        "skills": {
+            "granted": [],
+            "choose": 0,
+            "options": []
         }
     },
     "starting_equipment": {

@@ -7,6 +7,7 @@ from models import db, Run, Character, User, HostedRun, SessionParticipant, Reco
 from encounter_generator.encounter_logic import generate_all_encounters
 from encounter_generator.generator import generate_divine_blessing
 from encounter_generator.data.rules.classes import BARBARIAN, BARD, CLERIC, DRUID, FIGHTER, MONK, PALADIN, RANGER, ROGUE, SORCERER, WARLOCK, WIZARD
+from encounter_generator.data.rules.multiclass_rules import check_multiclass_prerequisites
 from encounter_generator.data.rules.backgrounds import BACKGROUNDS
 from encounter_generator.data.rules.species import SPECIES
 from encounter_generator.data.rules.feats import ORIGIN_FEATS, GENERAL_FEATS, FIGHTING_STYLE_FEATS, EPIC_BOONS
@@ -348,7 +349,10 @@ def register():
             "username": user.username, 
             "avatar": user.avatar,
             "discord_id": user.discord_id,
-            "is_admin": user.is_admin
+            "is_admin": user.is_admin,
+            "patreon_connected": user.patreon_connected,
+            "patreon_tier": user.patreon_tier,
+            "has_unlimited_access": user.has_unlimited_access()
         }
     }), 201
 
@@ -478,8 +482,27 @@ def login():
             "id": user.id, 
             "username": user.username, 
             "avatar": user.avatar,
-            "is_admin": user.is_admin
+            "is_admin": user.is_admin,
+            "patreon_connected": user.patreon_connected,
+            "patreon_tier": user.patreon_tier,
+            "has_unlimited_access": user.has_unlimited_access()
         }
+    }), 200
+
+@app.route("/api/auth/access-status", methods=["GET"])
+@jwt_required()
+def access_status():
+    current_user_id = get_jwt_identity()
+    
+    user = db.session.get(User, current_user_id)
+    
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+    
+    return jsonify({
+        "has_unlimited_access": user.has_unlimited_access(),
+        "patreon_connected": user.patreon_connected,
+        "patreon_tier": user.patreon_tier
     }), 200
 
 @app.route("/api/auth/verify", methods=["GET"])
@@ -891,20 +914,44 @@ def api_characters():
     current_user_id = get_jwt_identity()
     if request.method == "POST":
         data = request.form
+        user = db.session.get(User, current_user_id)
+        
+        if not user.has_unlimited_access():
+            character_count = Character.query.filter_by(
+                user_id=current_user_id
+            ).count()
+            
+            if character_count >= 10:
+                return jsonify({
+                    "error": "Free accounts are limited to 10 characters. Support the project on Patreon for unlimited access."
+                }), 403
 
         character_data = {
             "class_name": data.get("class_name"),
             "subclass": data.get("subclass"),
             "level": int(data.get("level", 1)),
+            "class_levels": [
+                {
+                    "class_name": data.get("class_name"),
+                    "level": int(data.get("level", 1)),
+                    "subclass": data.get("subclass")
+                }
+            ],
             "abilities": json.loads(data.get("abilities", "{}")),
             "base_abilities": json.loads(data.get("abilities", "{}")),
             "species": data.get("species"),
             "species_variant": data.get("species_variant"),
             "size": data.get("size"),
             "background": data.get("background"),
+            "proficiencies": {
+                "armor": [],
+                "weapons": [],
+                "tools": []
+            },
             "choices": json.loads(data.get("choices", "{}")),
             "xp": XP_THRESHOLDS.get(int(data.get("level", 1)), 0),
-            "level_up_pending": True,  # Show level up UI on fresh character
+            "level_up_pending": False,
+            "level_one_pending": True,
             "hit_dice_remaining": int(data.get("level", 1))
         }
 
@@ -912,6 +959,16 @@ def api_characters():
         prof_list = json.loads(data.get("proficiencies", "[]"))
         if prof_list:
             character_data["skillProficiencies"] = {s.lower().replace(" ", "_"): True for s in prof_list}
+        # Add Class Proficiencies
+        class_name = character_data["class_name"]
+        cls = CLASSES.get(class_name.lower())
+        
+        if cls:
+            class_profs = cls.get("proficiencies", {})
+            character_data["proficiencies"]["armor"] = class_profs.get("armor", [])
+            character_data["proficiencies"]["weapons"] = class_profs.get("weapons", [])
+            tools = class_profs.get("tools", {})
+            character_data["proficiencies"]["tools"] = tools.get("granted", [])
 
         # Initialize Inventory and Gold (Class + Background)
         # 1. Background Equipment
@@ -984,7 +1041,7 @@ def api_characters():
         # Initial HP Calculation
         con_score = character_data["abilities"].get("constitution", 10)
         con_mod = (con_score - 10) // 2
-        character.update_hp(character_data["level"], con_mod, character_data["class_name"])
+        character.update_hp(character_data["level"], con_mod)
 
         try:
             db.session.add(character)
@@ -1110,6 +1167,20 @@ def api_character_detail(char_id):
         "pending_rest": pending_rest
     })
 
+@app.route("/api/classes/multiclass-data", methods=["GET"])
+@jwt_required()
+def get_multiclass_data():
+
+    result = {}
+
+    for class_id, class_rules in CLASSES.items():
+        result[class_id] = {
+            "name": class_rules.get("name"),
+            "primary_ability": class_rules.get("primary_ability")
+        }
+
+    return jsonify(result)
+
 @app.route("/api/characters/<int:char_id>/toggle-privacy", methods=["POST"])
 @jwt_required()
 def api_toggle_character_privacy(char_id):
@@ -1139,6 +1210,10 @@ def api_character_levelup(char_id):
     if str(character.user_id) != str(current_user_id) and not user.is_admin:
         return jsonify({"error": "Unauthorized to level up this character"}), 403
     data = character.get_data()
+    levelup_class = request.json.get("class_name") if request.json else None
+    
+    if not levelup_class:
+        levelup_class = data.get("class_name")
     
     current_level = data.get("level", 1)
     if current_level >= 20:
@@ -1151,11 +1226,87 @@ def api_character_levelup(char_id):
     # To be safe, we'll just allow it if called.
     
     data["level"] = next_level
-    data["level_up_pending"] = True  # Trigger level up reveal
-    data["hit_dice_remaining"] = data.get("hit_dice_remaining", current_level) + 1
-    # Update Spell Slots upon level up
-    class_name = data.get("class_name", "").lower()
+    # Update hit dice for multiclass
+    hit_dice = data.get("hit_dice_remaining", {})
 
+    if isinstance(hit_dice, int):
+        # Convert old characters to multiclass format
+        hit_dice = {
+            data.get("class_name"): hit_dice
+        }
+
+    hit_dice[levelup_class] = hit_dice.get(levelup_class, 0) + 1
+
+    data["hit_dice_remaining"] = hit_dice
+    # Update multiclass progression
+    class_levels = data.get("class_levels", [])
+    
+    # Safety fallback for older characters created before multiclass support
+    if not class_levels:
+        class_levels = [
+            {
+                "class_name": data.get("class_name"),
+                "level": current_level,
+                "subclass": data.get("subclass", "")
+            }
+        ]
+    
+    existing_class = next(
+        (cls for cls in class_levels if cls["class_name"].lower() == levelup_class.lower()),
+        None
+    )
+    
+    if not existing_class:
+        
+        prerequisite = check_multiclass_prerequisites(
+            data,
+            levelup_class,
+            CLASSES
+        )
+        
+        if not prerequisite["allowed"]:
+            return jsonify({
+                "error": "Cannot multiclass",
+                "reason": prerequisite["reason"]
+            }), 400
+    
+    if existing_class:
+        # Taking another level in an existing class
+        existing_class["level"] += 1
+    else:
+        # Starting a new multiclass
+        class_levels.append({
+            "class_name": levelup_class,
+            "level": 1,
+            "subclass": ""
+        })
+        multiclass_prof = CLASSES[levelup_class.lower()].get("multiclass_proficiencies", {})
+        
+        # Armor
+        for armor in multiclass_prof.get("armor", []):
+            if armor not in data["proficiencies"]["armor"]:
+                data["proficiencies"]["armor"].append(armor)
+        
+        # Weapons
+        for weapon in multiclass_prof.get("weapons", []):
+            if weapon not in data["proficiencies"]["weapons"]:
+                data["proficiencies"]["weapons"].append(weapon)
+        
+        # Tools that are automatically granted
+        for tool in multiclass_prof.get("tools", {}).get("granted", []):
+            if tool not in data["proficiencies"]["tools"]:
+                data["proficiencies"]["tools"].append(tool)
+        
+        # Skills that are automatically granted
+        for skill in multiclass_prof.get("skills", {}).get("granted", []):
+            skill_key = skill.lower().replace(".", "_")
+            data["skillProficiencies"][skill_key] = True
+    
+    data["class_levels"] = class_levels
+    
+    # Update Spell Slots upon level up
+    class_name = levelup_class.lower()
+    
     class_rules = CLASSES.get(class_name)
 
     progression = None
@@ -1198,13 +1349,14 @@ def api_character_levelup(char_id):
         data["spell_slots_current"] = updated_slots
         data["spell_slots_max"] = new_max_slots
 
+    data["level_up_pending"] = False
     character.set_data(data)
     
     # Recalculate HP
     abilities = data.get("abilities", {})
     con_score = abilities.get("constitution", 10)
     con_mod = (con_score - 10) // 2
-    character.update_hp(next_level, con_mod, data.get("class_name", "Barbarian"))
+    character.update_hp(next_level, con_mod)
     
     db.session.commit()
     return jsonify({"success": True, "new_level": next_level, "data": character.get_data()})
@@ -2121,7 +2273,7 @@ def api_complete_encounter(session_id):
             current_inv.append(item)
             
     # XP Distribution
-    leveled_up_chars = []
+    level_up_ready_chars = []
     if "xp" in target_enc or "total_xp" in target_enc:
         xp_gain = target_enc.get("xp") or target_enc.get("total_xp", 0)
         connected_participants = [p for p in session.participants if p.role == 'Ascendant' and p.character_id]
@@ -2134,29 +2286,15 @@ def api_complete_encounter(session_id):
                 new_xp = current_xp + xp_gain
                 char_data["xp"] = new_xp
                 
-                # Level up check
+                # Level up check - mark as pending, do not increase level yet
                 current_level = char_data.get("level", 1)
-                new_level = current_level
-                while new_level < 20: 
-                    next_threshold = XP_THRESHOLDS.get(new_level + 1, 999999)
-                    if new_xp >= next_threshold:
-                        new_level += 1
-                    else:
-                        break
-                
-                if new_level > current_level:
-                    char_data["level"] = new_level
+                next_threshold = XP_THRESHOLDS.get(current_level + 1, 999999)
+
+                if new_xp >= next_threshold:
                     char_data["level_up_pending"] = True
-                    
-                    # Update HP
-                    abilities = char_data.get("abilities", {})
-                    con_score = abilities.get("constitution", 10)
-                    con_mod = (con_score - 10) // 2
-                    character.set_data(char_data) # Save XP/Level before update_hp
-                    character.update_hp(new_level, con_mod, char_data.get("class_name", "Barbarian"))
-                    leveled_up_chars.append(character.name)
-                else:
-                    character.set_data(char_data)
+                    level_up_ready_chars.append(character.name)
+
+                character.set_data(char_data)
 
     session.party_inventory = json.dumps(current_inv)
     session.vault_gold = json.dumps(vault_gold)
@@ -2181,9 +2319,9 @@ def api_complete_encounter(session_id):
         "rations_found": rations_found,
         "rations": session.rations
     }
-    if leveled_up_chars:
-        res_data["leveled_up"] = leveled_up_chars
-        res_data["message"] += f". {', '.join(leveled_up_chars)} reached a new level!"
+    if level_up_ready_chars:
+        res_data["leveled_up"] = level_up_ready_chars
+        res_data["message"] += f". {', '.join(level_up_ready_chars)} can now Level Up!"
         
     return jsonify(res_data), 200
 
