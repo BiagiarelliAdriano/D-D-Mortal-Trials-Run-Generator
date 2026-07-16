@@ -13,7 +13,7 @@ from encounter_generator.data.rules.species import SPECIES
 from encounter_generator.data.rules.feats import ORIGIN_FEATS, GENERAL_FEATS, FIGHTING_STYLE_FEATS, EPIC_BOONS
 from encounter_generator.data.items import WEAPONS_DATA, ARMOR_DATA
 from encounter_generator.data.spells import SPELLS
-from encounter_generator.data.rules.spell_tables import FULL_CASTER_SLOTS, HALF_CASTER_SLOTS, THIRD_CASTER_SLOTS, PACT_MAGIC_SLOTS
+from encounter_generator.data.rules.spell_tables import FULL_CASTER_SLOTS, HALF_CASTER_SLOTS, THIRD_CASTER_SLOTS, PACT_MAGIC_SLOTS, MULTICLASS_CASTER_SLOTS
 from encounter_generator.data.rules.game_rules import WEAPON_MASTERY_OPTIONS
 from encounter_generator.data.rules.feature_tables import SORCERER_METAMAGIC, WARLOCK_ELDRITCH_INVOCATIONS
 import json
@@ -211,6 +211,99 @@ def generate_common_shop_items():
         if priced:
             result[category] = priced
     return result
+
+def get_spellcasting_progression(class_data):
+    """
+    Returns the spellcasting progression for a class or None if it has no spellcasting.
+    """
+    if not class_data:
+        return None
+
+    spellcasting = class_data.get("spellcasting")
+    if spellcasting:
+        return spellcasting.get("progression")
+
+    return None
+
+def calculate_multiclass_caster_level(character_data):
+    """
+    Calculates effective caster level for multiclass spell slots.
+
+    Uses:
+    - Full casters: full levels
+    - Half casters: half levels (rounded down)
+    - Third casters: one third levels (rounded down)
+
+    Includes subclass spellcasting such as:
+    - Eldritch Knight
+    - Arcane Trickster
+    """
+
+    class_levels = character_data.get("class_levels", [])
+
+    caster_level = 0
+    has_pact_magic = False
+
+    for class_entry in class_levels:
+
+        class_name = class_entry.get("class_name", "").lower()
+        class_level = class_entry.get("level", 0)
+
+        class_data = CLASSES.get(class_name)
+
+        if not class_data:
+            continue
+
+
+        progression = None
+
+
+        # Check normal class spellcasting
+        if class_data.get("spellcasting"):
+            progression = class_data["spellcasting"].get("progression")
+
+
+        # Check subclass spellcasting
+        subclass_name = class_entry.get("subclass", "").lower()
+
+        if subclass_name and not progression:
+
+            subclass_data = (
+                class_data
+                .get("subclasses", {})
+                .get(subclass_name)
+            )
+
+            if subclass_data:
+
+                for feature_levels in subclass_data.get("features", {}).values():
+
+                    for feature in feature_levels:
+
+                        if (
+                            feature.get("id", "").startswith("eldritch_knight_spellcasting")
+                            or feature.get("id", "").startswith("arcane_trickster_spellcasting")
+                        ):
+                            progression = feature.get("details", {}).get("progression")
+
+
+        if progression == "full":
+            caster_level += class_level
+
+        elif progression == "half":
+            caster_level += class_level // 2
+
+        elif progression == "third":
+            caster_level += class_level // 3
+
+        elif progression in ["pact", "pact_magic"]:
+            has_pact_magic = True
+
+
+    return {
+        "caster_level": caster_level,
+        "has_pact_magic": has_pact_magic
+    }
 
 app = Flask(__name__)
 CORS(app)
@@ -1119,15 +1212,37 @@ def api_character_detail(char_id):
         new_data = data.get("data", {})
         new_level = int(new_data.get("level", old_level))
 
-        # Enforce subclass locking
-        old_subclass = updated_data.get("subclass")
+        # Enforce subclass locking per class
         new_subclass = new_data.get("subclass")
-        if old_subclass and new_subclass and old_subclass != new_subclass:
-            # Prevent overwriting existing subclass
-            new_data.pop("subclass", None)
+        subclass_class = new_data.get("subclass_class")
+        if new_subclass and subclass_class:
+            for class_entry in updated_data.get("class_levels", []):
+                if class_entry["class_name"].lower() == subclass_class.lower():
+                    existing_subclass = class_entry.get("subclass")
+                    
+                    # Prevent changing an already chosen subclass for THIS class only
+                    if existing_subclass and existing_subclass != new_subclass:
+                        new_data.pop("subclass", None)
+                        break
 
         updated_data.update(new_data)
-        character.set_data(updated_data) # Save basic updates first
+        
+        # Keep multiclass class_levels subclasses synchronized
+        if "subclass" in new_data:
+            selected_subclass = new_data["subclass"]
+            subclass_class = new_data.get("subclass_class")
+            class_levels = updated_data.get("class_levels", [])
+            if class_levels and subclass_class:
+                for class_entry in class_levels:
+                    if class_entry["class_name"].lower() == subclass_class.lower():
+                        class_entry["subclass"] = selected_subclass
+                        break
+                
+                updated_data["class_levels"] = class_levels
+        
+        updated_data.pop("subclass_class", None)
+        
+        character.set_data(updated_data)
         
         if new_level != old_level:
             abilities = updated_data.get("abilities", {})
@@ -1153,6 +1268,18 @@ def api_character_detail(char_id):
 
     # GET single character
     data = character.get_data()
+
+    # Recalculate multiclass spell slots when loading character
+    spellcasting_info = calculate_multiclass_caster_level(data)
+
+    caster_level = spellcasting_info["caster_level"]
+
+    if caster_level > 0:
+        data["spell_slots_max"] = MULTICLASS_CASTER_SLOTS.get(
+            caster_level,
+            {}
+        )
+
     return jsonify({
         "id": character.id,
         "name": character.name,
@@ -1161,7 +1288,14 @@ def api_character_detail(char_id):
         "level": data.get("level", 1),
         "class": {
             "name": data.get("class_name"),
-            "subclass": data.get("subclass")
+            "subclass": next(
+                (
+                    cls.get("subclass")
+                    for cls in data.get("class_levels", [])
+                    if cls.get("class_name") == data.get("class_name")
+                ),
+                data.get("subclass")
+            )
         },
         "data": data,
         "pending_rest": pending_rest
@@ -1304,48 +1438,39 @@ def api_character_levelup(char_id):
     
     data["class_levels"] = class_levels
     
-    # Update Spell Slots upon level up
-    class_name = levelup_class.lower()
-    
-    class_rules = CLASSES.get(class_name)
+    # Update Spell Slots upon level up (multiclass spellcasting)
 
-    progression = None
+    spellcasting_info = calculate_multiclass_caster_level(data)
 
-    if class_rules:
-        spellcasting = class_rules.get("spellcasting", {})
-        progression = spellcasting.get("progression")
-    slot_tables = {
-        "full": FULL_CASTER_SLOTS,
-        "half": HALF_CASTER_SLOTS,
-        "third": THIRD_CASTER_SLOTS,
-        "pact": PACT_MAGIC_SLOTS,
-        "pact_magic": PACT_MAGIC_SLOTS
-    }
+    caster_level = spellcasting_info["caster_level"]
 
-    if progression in slot_tables:
-        slots_table = slot_tables[progression]
-        old_max_slots = slots_table.get(current_level, {})
-        new_max_slots = slots_table.get(next_level, {})
-        current_slots = data.get("spell_slots_current", {}).copy()
+    if caster_level > 0:
+
+        new_max_slots = MULTICLASS_CASTER_SLOTS.get(
+            caster_level,
+            {}
+        )
+
+        current_slots = data.get(
+            "spell_slots_current",
+            {}
+        ).copy()
+
         updated_slots = {}
 
-        for level, new_max in new_max_slots.items():
-            old_max = old_max_slots.get(level, 0)
+        for spell_level, maximum in new_max_slots.items():
+
             current_amount = current_slots.get(
-                level,
-                old_max
+                spell_level,
+                maximum
             )
 
-            # New spell level unlocked
-            if level not in old_max_slots:
-                updated_slots[level] = new_max
-            else:
-                gained = new_max - old_max
-                # Add gained slots, but do not restore used slots
-                updated_slots[level] = min(
-                    current_amount + gained,
-                    new_max
-                )
+            updated_slots[spell_level] = min(
+                current_amount,
+                maximum
+            )
+
+
         data["spell_slots_current"] = updated_slots
         data["spell_slots_max"] = new_max_slots
 
@@ -1567,7 +1692,8 @@ def api_character_leveldown(char_id):
         "half": HALF_CASTER_SLOTS,
         "third": THIRD_CASTER_SLOTS,
         "pact": PACT_MAGIC_SLOTS,
-        "pact_magic": PACT_MAGIC_SLOTS
+        "pact_magic": PACT_MAGIC_SLOTS,
+        "multiclass_slots": MULTICLASS_CASTER_SLOTS
     }
 
     if progression in slot_tables:
@@ -1878,19 +2004,39 @@ def api_rules_spell_slots():
         "full": FULL_CASTER_SLOTS,
         "half": HALF_CASTER_SLOTS,
         "third": THIRD_CASTER_SLOTS,
-        "pact_magic": PACT_MAGIC_SLOTS
+        "pact_magic": PACT_MAGIC_SLOTS,
+        "multiclass_slots": MULTICLASS_CASTER_SLOTS
     })
 
 @app.route("/api/spells/<classname>")
 def get_spells(classname):
     class_spells = {}
 
+    classname = classname.lower()
+
     for level, spells_list in SPELLS.items():
         filtered_spells = []
 
         for spell in spells_list:
-            if "classes" in spell and classname.capitalize() in spell["classes"]:
 
+            available = False
+
+            # Normal class spell list
+            for cls in spell.get("classes", []):
+                if cls.lower() == classname:
+                    available = True
+                    break
+
+            # Subclass spell access
+            if not available:
+                for subclass in spell.get("subclasses", []):
+                    subclass_name = subclass.lower()
+
+                    if classname in subclass_name:
+                        available = True
+                        break
+
+            if available:
                 filtered_spells.append({
                     **spell,
                     "level": level

@@ -494,7 +494,7 @@ const CombatWidget = ({ character, inventory, features, profBonus, weaponRules, 
 
 const RichFeature = ({
     feature, isExpanded, onToggle, level, isActive, onActivate, currentUses,
-    characterData, classRules, ruleOptions, featureChoices, onUpdateChoice, availableSpells,
+    characterData, classRules, allClassRules, ruleOptions, featureChoices, onUpdateChoice, availableSpells,
     viewOnly, isAuthorized, featureNotes, setFeatureNotes
 }) => {
     const maxUsesData = feature.details?.uses;
@@ -504,7 +504,7 @@ const RichFeature = ({
 
     const rawChoice = featureChoices?.[feature.id];
     const currentChoices = Array.isArray(rawChoice) ? rawChoice : (rawChoice ? [rawChoice] : []);
-    const options = resolveOptionsForFeature(feature, characterData, classRules, ruleOptions, availableSpells);
+    const options = resolveOptionsForFeature(feature, characterData, classRules, allClassRules, ruleOptions, availableSpells);
     const hasOptions = options.length > 0;
     const choiceLimit = getChoiceLimitForFeature(feature, level);
     const hasChoices = hasOptions && choiceLimit > 0;
@@ -772,7 +772,7 @@ const DEFAULT_LAYOUTS = {
     ],
 };
 
-const resolveOptionsForFeature = (feature, characterData, classRules, ruleOptions, availableSpells, targetChoiceId = null) => {
+const resolveOptionsForFeature = (feature, characterData, classRules, allClassRules, ruleOptions, availableSpells, targetChoiceId = null) => {
     if (!feature) return [];
 
     // Handle sub-choices for a specific chosen option
@@ -829,18 +829,27 @@ const resolveOptionsForFeature = (feature, characterData, classRules, ruleOption
     if (id === 'warlock_eldritch_invocations') return Object.values(ruleOptions.invocations || {});
 
     // 3. Subclasses
-    if (id.endsWith('_subclass')) {
-        const subclasses = classRules?.subclasses || {};
+    if (feature.type === "subclass_choice" || id.includes("_subclass")) {
+        // Use the rules for the class that owns this feature
+        const ownerRules =
+            allClassRules?.[feature.classId] || classRules;
+
+        const subclasses = ownerRules?.subclasses || {};
+
         return Object.keys(subclasses).map(key => {
             let prettyName = subclasses[key].name || key;
-            // Shorten "Path Of The X" to "X" and capitalize properly
             prettyName = prettyName.replace(/^Path Of The /i, '');
-            prettyName = prettyName.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+            prettyName = prettyName
+                .split('_')
+                .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                .join(' ');
 
             return {
                 id: key,
                 name: prettyName,
-                description: subclasses[key].description || subclasses[key].summary
+                description:
+                    subclasses[key].description ||
+                    subclasses[key].summary
             };
         });
     }
@@ -1198,21 +1207,32 @@ const SpellcastingWidget = ({
     const progression = spellcasting.progression;
     const progressionKey = progression === "pact" ? "pact_magic" : progression;
     const slotsTable = spellSlotsRules[progressionKey];
+
     const availableSlotsObj = useMemo(() => {
+        // Backend calculated multiclass spell slots take priority
+        if (
+            character?.data?.spell_slots_max &&
+            Object.keys(character.data.spell_slots_max).length > 0
+        ) {
+            return character.data.spell_slots_max;
+        }
+        // Fallback for characters without multiclass calculations
         let slots = {};
 
         if (slotsTable) {
-            let maxSlotLevel = character.level;
-            while (maxSlotLevel > 0 && !slotsTable[maxSlotLevel]) {
-                maxSlotLevel--;
+            let classLevel = character.level;
+            while (classLevel > 0 && !slotsTable[classLevel]) {
+                classLevel--;
             }
-            if (maxSlotLevel > 0) {
-                slots = slotsTable[maxSlotLevel];
+            if (classLevel > 0) {
+                slots = slotsTable[classLevel];
             }
         }
-
         return slots;
-    }, [slotsTable, character.level]);
+    }, [
+        character,
+        slotsTable
+    ]);
 
     useEffect(() => {
         if (
@@ -1798,12 +1818,17 @@ function CharacterSheet() {
                 name => classFetches[name]
             );
             rulePromises.push(...classRulesPromises);
-            if (data.class?.name) {
+            // Fetch spells for all character classes (multiclass support)
+            const characterClasses = data.data?.class_levels?.length
+                ? data.data.class_levels.map(cls => cls.class_name.toLowerCase())
+                : [data.class?.name?.toLowerCase()].filter(Boolean);
+
+            characterClasses.forEach(className => {
                 rulePromises.push(
-                    fetch(`http://localhost:5000/api/spells/${data.class.name.toLowerCase()}`)
+                    fetch(`http://localhost:5000/api/spells/${className}`)
                         .then(r => r.json())
                 );
-            }
+            });
             if (data.data?.species) {
                 rulePromises.push(fetch(`http://localhost:5000/api/species`).then(r => r.json()));
             }
@@ -1823,7 +1848,35 @@ function CharacterSheet() {
             if (data.class?.name) {
                 resolvedClassRules = loadedClassRules[data.class.name.toLowerCase()];
                 setClassRules(resolvedClassRules);
-                setAvailableSpells(ruleResults[resultIdx++]);
+
+                // Merge spell lists from all classes
+                const mergedSpells = {};
+
+                const characterClasses = data.data?.class_levels?.length
+                    ? data.data.class_levels.map(cls => cls.class_name.toLowerCase())
+                    : [data.class.name.toLowerCase()];
+
+                characterClasses.forEach(() => {
+                    const classSpells = ruleResults[resultIdx++];
+
+                    Object.entries(classSpells).forEach(([level, spells]) => {
+
+                        if (!mergedSpells[level]) {
+                            mergedSpells[level] = [];
+                        }
+
+                        spells.forEach(spell => {
+                            const alreadyExists = mergedSpells[level]
+                                .some(existing => existing.name === spell.name);
+
+                            if (!alreadyExists) {
+                                mergedSpells[level].push(spell);
+                            }
+                        });
+                    });
+                });
+
+                setAvailableSpells(mergedSpells);
             }
 
             if (data.data?.species) {
@@ -1931,13 +1984,6 @@ function CharacterSheet() {
     }, [id, token, currentUser]);
 
     useEffect(() => {
-
-        if (character) {
-            console.log(
-                "Pending:",
-                character.data?.level_up_pending
-            );
-        }
 
         if (
             character &&
@@ -2058,7 +2104,7 @@ function CharacterSheet() {
         }
     }, [showXpEditor, xp]);
 
-    const handleFeatureChoice = useCallback((featureId, choice, isPreview = false) => {
+    const handleFeatureChoice = useCallback((featureId, choice, feature = null, isPreview = false) => {
         if (isPreview) {
             setPreviewChoices(prev => ({ ...prev, [featureId]: choice }));
             return;
@@ -2074,13 +2120,36 @@ function CharacterSheet() {
             if (isSubclassChoice) {
                 const subclassId = Array.isArray(choice) ? (typeof choice[0] === 'string' ? choice[0] : (choice[0].id || choice[0].name)) : (typeof choice === 'string' ? choice : (choice.id || choice.name));
                 updatePayload.subclass = subclassId;
+                updatePayload.subclass_class = feature.classId;
 
                 // Update local state IMMEDIATELY so features appear without reload
                 setCharacter(prevChar => {
                     if (!prevChar) return prevChar;
+
+                    const updatedClassLevels = prevChar.data.class_levels.map(cls => {
+                        if (
+                            feature &&
+                            cls.class_name.toLowerCase() === feature.classId.toLowerCase()
+                        ) {
+                            return {
+                                ...cls,
+                                subclass: subclassId
+                            };
+                        }
+                        return cls;
+                    });
+
                     return {
                         ...prevChar,
-                        class: { ...prevChar.class, subclass: subclassId }
+                        class: {
+                            ...prevChar.class,
+                            subclass: subclassId
+                        },
+                        data: {
+                            ...prevChar.data,
+                            subclass: subclassId,
+                            class_levels: updatedClassLevels
+                        }
                     };
                 });
             }
@@ -2758,17 +2827,31 @@ function CharacterSheet() {
         });
 
         // 2. Add Subclass Features
-        const subclassId = character.class?.subclass;
-        const subclassInfo = classRules?.subclasses?.[subclassId];
-        if (subclassId && subclassInfo?.features) {
-            const scFeatures = subclassInfo.features;
-            const scName = subclassInfo.name?.replace(/^Path Of The /i, '') || subclassId;
-            Object.keys(scFeatures).forEach(lvl => {
-                if (parseInt(lvl) <= currentLevel) {
-                    allFeatures.push(...scFeatures[lvl].map(f => ({ ...f, source: `Subclass: ${scName}`, level: lvl })));
+        classLevels.forEach(classEntry => {
+            const classId = classEntry.class_name.toLowerCase();
+            const subclassId = classEntry.subclass;
+            const rules = allClassRules?.[classId];
+
+            if (!subclassId || !rules?.subclasses) return;
+
+            const subclassInfo = rules.subclasses[subclassId];
+
+            if (!subclassInfo?.features) return;
+
+            Object.keys(subclassInfo.features).forEach(lvl => {
+                if (parseInt(lvl) <= classEntry.level) {
+                    allFeatures.push(
+                        ...subclassInfo.features[lvl].map(f => ({
+                            ...f,
+                            source: `Subclass: ${subclassInfo.name}`,
+                            level: lvl,
+                            classId: classId,
+                            classLevel: parseInt(lvl)
+                        }))
+                    );
                 }
             });
-        }
+        });
 
         // 3. Add Species Features
         if (speciesRules?.features) {
@@ -2857,7 +2940,7 @@ function CharacterSheet() {
         });
 
         return allFeatures;
-    }, [classRules, allClassRules, character, speciesRules, backgroundRules, ruleOptions]);
+    }, [allClassRules, character, speciesRules, backgroundRules, ruleOptions]);
 
     const ac = useMemo(() => {
         if (!character) return 10;
@@ -3062,9 +3145,62 @@ function CharacterSheet() {
         return rules ? { ...rules, source } : null;
     }, [classRules, character, showMulticlassSelection, previewChoices]);
 
+    const spellcastingSources = useMemo(() => {
+        if (!character || !allClassRules) return [];
+
+        const sources = [];
+
+        const classLevels = character.data?.class_levels || [];
+
+        classLevels.forEach(classEntry => {
+            const className = classEntry.class_name.toLowerCase();
+            const level = classEntry.level;
+            const rules = allClassRules[className];
+            if (!rules) return;
+
+            // Base class spellcasting
+            if (rules.spellcasting) {
+                sources.push({
+                    type: "class",
+                    className: classEntry.class_name,
+                    level,
+                    rules: rules.spellcasting
+                });
+            }
+
+            // Subclass spellcasting
+            if (classEntry.subclass) {
+                const subclass =
+                    rules.subclasses?.[classEntry.subclass];
+
+                if (subclass?.features) {
+                    Object.entries(subclass.features).forEach(([featureLevel, features]) => {
+                        if (parseInt(featureLevel) > level) return;
+                        features.forEach(feature => {
+                            if (
+                                feature.name === "Spellcasting" ||
+                                feature.id?.includes("spellcasting")
+                            ) {
+                                sources.push({
+                                    type: "subclass",
+                                    className: classEntry.class_name,
+                                    subclass: classEntry.subclass,
+                                    level,
+                                    rules: feature.details
+                                });
+                            }
+                        });
+                    });
+                }
+            }
+        });
+
+        return sources;
+    }, [character, allClassRules]);
+
     const hasSpellcasting = useMemo(() => {
-        return !!spellcastingRules;
-    }, [spellcastingRules]);
+        return spellcastingSources.length > 0;
+    }, [spellcastingSources]);
 
     if (loading) return <div className="loading-screen">Invoking the Character Sheet...</div>;
 
@@ -3452,6 +3588,7 @@ function CharacterSheet() {
                                 currentUses={featureUses[f.id]}
                                 characterData={character}
                                 classRules={classRules}
+                                allClassRules={allClassRules}
                                 ruleOptions={ruleOptions}
                                 featureChoices={featureChoices}
                                 onUpdateChoice={(feature, options) => setChoiceOverlay({ isOpen: true, feature, options })}
@@ -4158,7 +4295,7 @@ function CharacterSheet() {
                 isOpen={choiceOverlay.isOpen}
                 feature={choiceOverlay.feature}
                 options={choiceOverlay.options || []}
-                onSelect={(fid, c) => handleFeatureChoice(fid, c, choiceOverlay.isPreview)}
+                onSelect={(fid, c) => handleFeatureChoice(fid, c, choiceOverlay.feature, choiceOverlay.isPreview)}
                 currentChoice={choiceOverlay.feature ? (choiceOverlay.isPreview ? previewChoices[choiceOverlay.feature.id] : featureChoices[choiceOverlay.feature.id]) : null}
                 onClose={() => setChoiceOverlay({ isOpen: false, feature: null })}
                 level={choiceOverlay.isPreview ? previewLevel : character.level}
