@@ -1,3 +1,5 @@
+import math
+
 from flask import Flask, request, render_template, redirect, url_for, jsonify
 from datetime import datetime
 from flask_migrate import Migrate
@@ -225,6 +227,51 @@ def get_spellcasting_progression(class_data):
 
     return None
 
+def get_spellcasting_classes(character_data):
+    """
+    Returns all classes that contribute spellcasting.
+    """
+    
+    spellcasting_classes = []
+    for class_entry in character_data.get("class_levels", []):
+        class_name = class_entry.get("class_name", "").lower()
+        class_data = CLASSES.get(class_name)
+        if not class_data:
+            continue
+        progression = None
+        
+        # Normal spellcasting
+        if class_data.get("spellcasting"):
+            progression = class_data["spellcasting"].get("progression")
+        
+        # Subclass spellcasting
+        if not progression:
+            subclass_name = class_entry.get("subclass", "").lower()
+            subclass_data = (
+                class_data
+                .get("subclasses", {})
+                .get(subclass_name)
+            )
+            if subclass_data:
+                for feature_levels in subclass_data.get("features", {}).values():
+                    for feature in feature_levels:
+                        feature_id = feature.get("id", "")
+                        if (
+                            feature_id.startswith("eldritch_knight_spellcasting")
+                            or feature_id.startswith("arcane_trickster_spellcasting")
+                        ):
+                            progression = (
+                                feature
+                                .get("details", {})
+                                .get("progression")
+                            )
+        if progression:
+            spellcasting_classes.append({
+                "class_entry": class_entry,
+                "progression": progression
+            })
+    return spellcasting_classes
+
 def calculate_multiclass_caster_level(character_data):
     """
     Calculates effective caster level for multiclass spell slots.
@@ -291,10 +338,10 @@ def calculate_multiclass_caster_level(character_data):
             caster_level += class_level
 
         elif progression == "half":
-            caster_level += class_level // 2
+            caster_level += math.ceil(class_level / 2)
 
         elif progression == "third":
-            caster_level += class_level // 3
+            caster_level += math.ceil(class_level / 3)
 
         elif progression in ["pact", "pact_magic"]:
             has_pact_magic = True
@@ -304,6 +351,61 @@ def calculate_multiclass_caster_level(character_data):
         "caster_level": caster_level,
         "has_pact_magic": has_pact_magic
     }
+
+def calculate_spell_slots(character_data):
+    """
+    Determines spell slots.
+    Returns:
+    {
+        "spellcasting": {},
+        "pact_magic": {}
+    }
+    """
+    spellcasting_classes = get_spellcasting_classes(character_data)
+    if not spellcasting_classes:
+        return {}
+    spellcasting_slots = {}
+    pact_slots = {}
+    normal_caster_level = 0
+    pact_classes = []
+    for caster in spellcasting_classes:
+        class_entry = caster["class_entry"]
+        progression = caster["progression"]
+        class_level = class_entry.get("level", 0)
+        if progression == "pact":
+            pact_classes.append(
+                {
+                    "level": class_level
+                }
+            )
+        elif progression == "full":
+            normal_caster_level += class_level
+        elif progression == "half":
+            normal_caster_level += math.ceil(class_level / 2)
+        elif progression == "third":
+            normal_caster_level += math.ceil(class_level / 3)
+
+    # Normal multiclass spellcasting
+    if normal_caster_level > 0:
+        spellcasting_slots = MULTICLASS_CASTER_SLOTS.get(
+            normal_caster_level,
+            {}
+        )
+
+    # Warlock Pact Magic
+    # There can only be one Warlock class
+    if pact_classes:
+        pact_level = pact_classes[0]["level"]
+        pact_slots = PACT_MAGIC_SLOTS.get(
+            pact_level,
+            {}
+        )
+    result = {}
+    if spellcasting_slots:
+        result["spellcasting"] = spellcasting_slots
+    if pact_slots:
+        result["pact_magic"] = pact_slots
+    return result
 
 app = Flask(__name__)
 CORS(app)
@@ -1270,15 +1372,7 @@ def api_character_detail(char_id):
     data = character.get_data()
 
     # Recalculate multiclass spell slots when loading character
-    spellcasting_info = calculate_multiclass_caster_level(data)
-
-    caster_level = spellcasting_info["caster_level"]
-
-    if caster_level > 0:
-        data["spell_slots_max"] = MULTICLASS_CASTER_SLOTS.get(
-            caster_level,
-            {}
-        )
+    data["spell_slots_max"] = calculate_spell_slots(data)
 
     return jsonify({
         "id": character.id,
@@ -1340,26 +1434,23 @@ def api_character_levelup(char_id):
     current_user_id = get_jwt_identity()
     user = User.query.get(current_user_id)
     character = db.get_or_404(Character, char_id)
-    
     if str(character.user_id) != str(current_user_id) and not user.is_admin:
         return jsonify({"error": "Unauthorized to level up this character"}), 403
     data = character.get_data()
     levelup_class = request.json.get("class_name") if request.json else None
-    
     if not levelup_class:
         levelup_class = data.get("class_name")
-    
     current_level = data.get("level", 1)
     if current_level >= 20:
         return jsonify({"error": "Character is already at max level"}), 400
-        
     next_level = current_level + 1
     
     # Optional: You could check XP here if you want to enforce threshold
     # But usually this endpoint is for manual overriding or confirmation.
     # To be safe, we'll just allow it if called.
-    
+
     data["level"] = next_level
+
     # Update hit dice for multiclass
     hit_dice = data.get("hit_dice_remaining", {})
 
@@ -1368,10 +1459,9 @@ def api_character_levelup(char_id):
         hit_dice = {
             data.get("class_name"): hit_dice
         }
-
     hit_dice[levelup_class] = hit_dice.get(levelup_class, 0) + 1
-
     data["hit_dice_remaining"] = hit_dice
+
     # Update multiclass progression
     class_levels = data.get("class_levels", [])
     
@@ -1384,26 +1474,21 @@ def api_character_levelup(char_id):
                 "subclass": data.get("subclass", "")
             }
         ]
-    
     existing_class = next(
         (cls for cls in class_levels if cls["class_name"].lower() == levelup_class.lower()),
         None
     )
-    
     if not existing_class:
-        
         prerequisite = check_multiclass_prerequisites(
             data,
             levelup_class,
             CLASSES
         )
-        
         if not prerequisite["allowed"]:
             return jsonify({
                 "error": "Cannot multiclass",
                 "reason": prerequisite["reason"]
             }), 400
-    
     if existing_class:
         # Taking another level in an existing class
         existing_class["level"] += 1
@@ -1435,45 +1520,43 @@ def api_character_levelup(char_id):
         for skill in multiclass_prof.get("skills", {}).get("granted", []):
             skill_key = skill.lower().replace(".", "_")
             data["skillProficiencies"][skill_key] = True
-    
     data["class_levels"] = class_levels
     
     # Update Spell Slots upon level up (multiclass spellcasting)
-
-    spellcasting_info = calculate_multiclass_caster_level(data)
-
-    caster_level = spellcasting_info["caster_level"]
-
-    if caster_level > 0:
-
-        new_max_slots = MULTICLASS_CASTER_SLOTS.get(
-            caster_level,
-            {}
-        )
-
+    new_max_slots = calculate_spell_slots(data)
+    if new_max_slots:
         current_slots = data.get(
             "spell_slots_current",
             {}
         ).copy()
-
+        old_max_slots = data.get(
+            "spell_slots_max",
+            {}
+        )
         updated_slots = {}
-
-        for spell_level, maximum in new_max_slots.items():
-
-            current_amount = current_slots.get(
-                spell_level,
-                maximum
-            )
-
-            updated_slots[spell_level] = min(
-                current_amount,
-                maximum
-            )
-
-
+        for pool_name, slots in new_max_slots.items():
+            if pool_name not in old_max_slots:
+                old_max_slots[pool_name] = {}
+            if pool_name not in current_slots:
+                current_slots[pool_name] = {}
+            updated_slots[pool_name] = {}
+            for spell_level, maximum in slots.items():
+                old_maximum = old_max_slots[pool_name].get(
+                    spell_level,
+                    0
+                )
+                current_amount = current_slots[pool_name].get(
+                    spell_level,
+                    old_maximum
+                )
+                gained_slots = maximum - old_maximum
+                updated_slots[pool_name][spell_level] = min(
+                    current_amount + gained_slots,
+                    maximum
+                )
+    if new_max_slots:
         data["spell_slots_current"] = updated_slots
         data["spell_slots_max"] = new_max_slots
-
     data["level_up_pending"] = False
     character.set_data(data)
     

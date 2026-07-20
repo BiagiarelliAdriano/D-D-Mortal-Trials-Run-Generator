@@ -134,6 +134,7 @@ DEFAULT_CHARACTER_DATA = {
     "inventory": [],
     "gold": 0,
     "spell_slots_current": {},
+    "spell_slots_max": {}
 }
 
 class Character(db.Model):

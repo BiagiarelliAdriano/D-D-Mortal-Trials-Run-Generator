@@ -661,20 +661,20 @@ const RichFeature = ({
                     )}
                     <div className="feature-notes-section">
                         <label className="feature-notes-label">
-                            Notes ({(featureNotes?.[feature.id] || "").replace(/\s/g, "").length}/100)
+                            Notes ({(featureNotes?.[feature.id] || "").replace(/\s/g, "").length}/1000)
                         </label>
 
                         <textarea
                             className="feature-notes-input"
                             value={featureNotes?.[feature.id] || ""}
-                            maxLength={200}
+                            maxLength={2000}
                             placeholder="Write personal notes for this feature..."
                             onChange={(e) => {
                                 const value = e.target.value;
 
                                 const nonSpaceCount = value.replace(/\s/g, "").length;
 
-                                if (nonSpaceCount > 100) return;
+                                if (nonSpaceCount > 1000) return;
 
                                 setFeatureNotes(prev => ({
                                     ...prev,
@@ -1029,7 +1029,8 @@ const SpellCard = ({
     setSpellSlotsCurrent,
     castingSpell,
     setCastingSpell,
-    saveCharacter
+    saveCharacter,
+    sourceClass
 }) => {
     const [isExpanded, setIsExpanded] = useState(false);
 
@@ -1073,13 +1074,19 @@ const SpellCard = ({
         spell.level ??
         0;
 
-    const castableLevels = Object.keys(
-        spellSlotsCurrent
-    ).filter(level => {
-        return (
-            parseInt(level) >= spellLevel &&
-            spellSlotsCurrent[level] > 0
-        );
+    const castableLevels = [];
+    Object.entries(spellSlotsCurrent || {}).forEach(([poolName, slots]) => {
+        Object.entries(slots).forEach(([level, amount]) => {
+            if (
+                parseInt(level) >= spellLevel &&
+                amount > 0
+            ) {
+                castableLevels.push({
+                    poolName,
+                    level
+                });
+            }
+        });
     });
 
     return (
@@ -1090,6 +1097,7 @@ const SpellCard = ({
             <div className="spell-header">
                 <span className="spell-name">
                     {spell.name}
+                    {sourceClass && <span className="spell-source-badge" style={{ fontSize: '0.7em', padding: '2px 6px', background: '#444', borderRadius: '4px', marginLeft: '8px', verticalAlign: 'middle' }}>{sourceClass.charAt(0).toUpperCase() + sourceClass.slice(1)}</span>}
                 </span>
 
                 {(
@@ -1120,25 +1128,29 @@ const SpellCard = ({
 
                         {spellLevel > 0 && castingSpell === spell.name && (
                             <div className="cast-dropdown">
-                                {castableLevels.map(level => (
+                                {castableLevels.map(({ poolName, level }) => (
                                     <button
-                                        key={level}
+                                        key={`${poolName}-${level}`}
                                         className="cast-level-btn"
                                         onClick={() => {
                                             setSpellSlotsCurrent(prev => ({
                                                 ...prev,
-                                                [level]: prev[level] - 1
+                                                [poolName]: {
+                                                    ...prev[poolName],
+                                                    [level]: prev[poolName][level] - 1
+                                                }
                                             }));
-
                                             addAlert(
-                                                `You cast ${spell.name} at level ${level}!`,
+                                                `You cast ${spell.name} using ${poolName === "pact_magic" ? "Pact Magic" : "Spellcasting"} slot level ${level}!`,
                                                 "success"
                                             );
-
                                             setCastingSpell(null);
                                         }}
                                     >
-                                        {level}
+                                        {poolName === "pact_magic"
+                                            ? `Pact Lv ${level}`
+                                            : `Lv ${level}`
+                                        }
                                     </button>
                                 ))}
                             </div>
@@ -1178,6 +1190,55 @@ const SpellCard = ({
     );
 };
 
+
+const getSpellcastingClasses = (character, allClassRules) => {
+    if (!character?.data?.class_levels || !allClassRules) return [];
+    const scClasses = [];
+    for (const classEntry of character.data.class_levels) {
+        const className = classEntry.class_name?.toLowerCase();
+        const classData = allClassRules[className];
+        if (!classData) continue;
+
+        let rules = null;
+        let source = null;
+
+        const subclassName = classEntry.subclass?.toLowerCase();
+        if (subclassName && classData.subclasses?.[subclassName]) {
+            const subclassFeatures = classData.subclasses[subclassName].features;
+            for (const level in subclassFeatures) {
+                const feature = subclassFeatures[level]?.find(f => f.name === "Spellcasting" || f.id?.includes("spellcasting"));
+                if (feature?.details) {
+                    rules = feature.details;
+                    source = "Subclass";
+                    break;
+                }
+            }
+        }
+
+        if (!rules && classData.spellcasting) {
+            rules = classData.spellcasting;
+            source = "Class";
+        }
+
+        if (rules) {
+            scClasses.push({ className, level: classEntry.level, rules: { ...rules, source } });
+        }
+    }
+    return scClasses;
+};
+
+const migrateSpellsData = (spells, scClasses) => {
+    if (Array.isArray(spells)) {
+        if (scClasses.length > 0) {
+            return { [scClasses[0].className]: [...spells] };
+        }
+        return {};
+    }
+    return spells ? { ...spells } : {};
+};
+
+
+
 const SpellcastingWidget = ({
     hasSpellcasting,
     spellcastingRules,
@@ -1191,36 +1252,42 @@ const SpellcastingWidget = ({
     isLayoutLocked,
     currentProficiencyBonus,
     onOpenOverlay,
-    viewOnly
+    viewOnly,
+    allClassRules
 }) => {
     const [castingSpell, setCastingSpell] = useState(null);
     const [spellcastingSearchTerm, setSpellcastingSearchTerm] = useState("");
     const [spellTypeFilter, setSpellTypeFilter] = useState(null);
 
-    const spellcasting = spellcastingRules;
+    const scClasses = useMemo(() => {
+        return getSpellcastingClasses(character, allClassRules);
+    }, [character, allClassRules]);
+
+    const activeRules = scClasses.length > 0 ? scClasses[0].rules : spellcastingRules;
+
+    const spellcasting = activeRules || {};
     const ability = spellcasting.ability || "intelligence";
-    const abilityScore = character.data.abilities[ability.toLowerCase()] || 10;
+    const abilityScore = character?.data?.abilities?.[ability.toLowerCase()] || 10;
     const mod = calculateModifier(abilityScore);
     const saveDC = 8 + currentProficiencyBonus + mod;
     const attackBonus = currentProficiencyBonus + mod;
-
     const progression = spellcasting.progression;
     const progressionKey = progression === "pact" ? "pact_magic" : progression;
-    const slotsTable = spellSlotsRules[progressionKey];
+    const slotsTable = spellSlotsRules?.[progressionKey];
 
     const availableSlotsObj = useMemo(() => {
-        // Backend calculated multiclass spell slots take priority
-        if (
-            character?.data?.spell_slots_max &&
-            Object.keys(character.data.spell_slots_max).length > 0
-        ) {
+        if (character?.data?.spell_slots_max && Object.keys(character.data.spell_slots_max).length > 0) {
             return character.data.spell_slots_max;
         }
-        // Fallback for characters without multiclass calculations
         let slots = {};
-
         if (slotsTable) {
-            let classLevel = character.level;
+            let classLevel = 0;
+            const currentClass = character.data.class_levels.find(
+                cls => cls.class_name.toLowerCase() === character.data.class_name.toLowerCase()
+            );
+            if (currentClass) {
+                classLevel = currentClass.level;
+            }
             while (classLevel > 0 && !slotsTable[classLevel]) {
                 classLevel--;
             }
@@ -1229,41 +1296,30 @@ const SpellcastingWidget = ({
             }
         }
         return slots;
-    }, [
-        character,
-        slotsTable
-    ]);
+    }, [character, slotsTable]);
 
     useEffect(() => {
-        if (
-            !character ||
-            Object.keys(spellSlotsCurrent).length > 0 ||
-            Object.keys(availableSlotsObj).length === 0
-        ) return;
-
+        if (!character || Object.keys(spellSlotsCurrent).length > 0 || Object.keys(availableSlotsObj).length === 0) return;
         setSpellSlotsCurrent(availableSlotsObj);
-
         saveCharacter({
             spell_slots_current: availableSlotsObj,
             spell_slots_max: availableSlotsObj
         });
-
     }, [character, spellSlotsCurrent, setSpellSlotsCurrent, availableSlotsObj, saveCharacter]);
 
     if (!hasSpellcasting || !spellcastingRules || !spellSlotsRules || !character) return null;
 
-    const selectedSpells = character.data.spells || [];
-    const cantripsKnownLimit = resolveScalingValue(spellcasting.cantrips_known, character.level) || 0;
-    const spellsPreparedLimit = resolveScalingValue(spellcasting.spells_prepared, character.level) || 0;
+    const migratedSpells = migrateSpellsData(character.data.spells, scClasses);
 
-    const cantripsCount = selectedSpells.filter(name => {
-        for (const lvl in availableSpells) {
-            if (availableSpells[lvl].some(s => s.name === name && lvl === "0")) return true;
-        }
-        return false;
-    }).length;
+    // Flatten spells for display
+    const flattenedSelectedSpells = [];
+    Object.entries(migratedSpells).forEach(([className, spellList]) => {
+        spellList.forEach(spellName => {
+            flattenedSelectedSpells.push({ name: spellName, sourceClass: className });
+        });
+    });
 
-    const preparedCount = selectedSpells.length - cantripsCount;
+
 
     return (
         <div className="spellcasting-content">
@@ -1277,9 +1333,7 @@ const SpellcastingWidget = ({
                             className="search-input"
                             placeholder="Search prepared spells..."
                             value={spellcastingSearchTerm}
-                            onFocus={() => {
-                                if (spellTypeFilter) setSpellTypeFilter(null);
-                            }}
+                            onFocus={() => { if (spellTypeFilter) setSpellTypeFilter(null); }}
                             onChange={(e) => {
                                 setSpellcastingSearchTerm(e.target.value);
                                 if (e.target.value && spellTypeFilter) setSpellTypeFilter(null);
@@ -1292,12 +1346,8 @@ const SpellcastingWidget = ({
                             <button
                                 key={t}
                                 onClick={() => {
-                                    if (spellTypeFilter === t) {
-                                        setSpellTypeFilter(null);
-                                    } else {
-                                        setSpellTypeFilter(t);
-                                        setSpellcastingSearchTerm("");
-                                    }
+                                    if (spellTypeFilter === t) { setSpellTypeFilter(null); }
+                                    else { setSpellTypeFilter(t); setSpellcastingSearchTerm(""); }
                                 }}
                                 className={spellTypeFilter === t ? "active" : ""}
                             >
@@ -1313,13 +1363,27 @@ const SpellcastingWidget = ({
                 )}
             </div>
 
-            <div className="spell-limits-summary">
-                <span className={`limit-tag ${cantripsCount > cantripsKnownLimit ? 'over' : ''}`}>
-                    Cantrips: {cantripsCount}/{cantripsKnownLimit}
-                </span>
-                <span className={`limit-tag ${preparedCount > spellsPreparedLimit ? 'over' : ''}`}>
-                    Prepared: {preparedCount}/{spellsPreparedLimit}
-                </span>
+            <div className="spell-limits-summary" style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                {scClasses.map(c => {
+                    const selectedList = migratedSpells[c.className] || [];
+                    const cantripsCount = selectedList.filter(name => {
+                        for (const lvl in availableSpells) {
+                            if (availableSpells[lvl].some(s => s.name === name && lvl === "0")) return true;
+                        }
+                        return false;
+                    }).length;
+                    const preparedCount = selectedList.length - cantripsCount;
+                    const limitC = resolveScalingValue(c.rules?.cantrips_known, c.level) || 0;
+                    const limitP = resolveScalingValue(c.rules?.spells_prepared, c.level) || 0;
+                    return (
+                        <div key={c.className} className="spell-stat-box" style={{ padding: '5px 10px' }}>
+                            <span className="spell-stat-label" style={{ marginBottom: '2px' }}>{c.className.charAt(0).toUpperCase() + c.className.slice(1)}</span>
+                            <span style={{ fontSize: '0.85em', opacity: 0.9 }}>
+                                C: {cantripsCount}/{limitC} | P: {preparedCount}/{limitP}
+                            </span>
+                        </div>
+                    );
+                })}
             </div>
 
             <div className="spell-stats-row">
@@ -1338,19 +1402,53 @@ const SpellcastingWidget = ({
             </div>
 
             <div className="spell-slots-row">
-                {Object.keys(availableSlotsObj).map(level => (
-                    <div key={level} className="spell-slot-box">
-                        <span className="slot-lvl">Lv {level}</span>
-                        <span className="slot-count">{spellSlotsCurrent[level] ?? availableSlotsObj[level]}</span>
-                    </div>
-                ))}
-                {Object.keys(availableSlotsObj).length === 0 && <span className="no-slots-msg">No spell slots available yet.</span>}
+                {
+                    Object.entries(availableSlotsObj).map(
+                        ([poolName, slots]) => (
+                            <div
+                                key={poolName}
+                                className={`spell-slot-pool ${poolName === "pact_magic" ? "pact-slot-pool" : "normal-slot-pool"}`}
+                            >
+                                <h4>
+                                    {
+                                        poolName === "pact_magic"
+                                            ? "Pact Magic Slots"
+                                            : "Spell Slots"
+                                    }
+                                </h4>
+                                {
+                                    Object.keys(slots).map(level => (
+                                        <div
+                                            key={`${poolName}-${level}`}
+                                            className="spell-slot-box"
+                                        >
+                                            <span className="slot-lvl">
+                                                Lv {level}
+                                            </span>
+                                            <span className="slot-count">
+                                                {
+                                                    spellSlotsCurrent?.[poolName]?.[level]
+                                                    ?? slots[level]
+                                                }
+                                            </span>
+                                        </div>
+                                    ))
+                                }
+                            </div>
+                        ))
+                }
             </div>
 
             <div className="prepared-spells-list scrollable">
                 {["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"].map(level => {
                     const spellsAtLevel = availableSpells?.[level] || [];
-                    let selectedAtLevel = spellsAtLevel.filter(s => selectedSpells.includes(s.name));
+
+                    let selectedAtLevel = flattenedSelectedSpells.filter(fs =>
+                        spellsAtLevel.some(s => s.name === fs.name)
+                    ).map(fs => {
+                        const spellData = spellsAtLevel.find(s => s.name === fs.name);
+                        return { ...spellData, sourceClass: fs.sourceClass };
+                    });
 
                     const safeString = (val) => {
                         if (!val) return "";
@@ -1369,7 +1467,6 @@ const SpellcastingWidget = ({
 
                     if (spellcastingSearchTerm) {
                         const term = spellcastingSearchTerm.toLowerCase();
-
                         selectedAtLevel = selectedAtLevel.filter(spell => {
                             return (
                                 safeString(spell.name).toLowerCase().includes(term) ||
@@ -1392,9 +1489,9 @@ const SpellcastingWidget = ({
                     return (
                         <div key={level} className="spell-level-group">
                             <h4>{level === "0" ? "Cantrips" : `Level ${level}`}</h4>
-                            {selectedAtLevel.map(spell => (
+                            {selectedAtLevel.map((spell, idx) => (
                                 <SpellCard
-                                    key={spell.name}
+                                    key={`${spell.name}-${spell.sourceClass}-${idx}`}
                                     spell={spell}
                                     availableSlotsObj={availableSlotsObj}
                                     addAlert={addAlert}
@@ -1403,12 +1500,13 @@ const SpellcastingWidget = ({
                                     castingSpell={castingSpell}
                                     setCastingSpell={setCastingSpell}
                                     saveCharacter={saveCharacter}
+                                    sourceClass={spell.sourceClass}
                                 />
                             ))}
                         </div>
                     );
                 })}
-                {selectedSpells.length === 0 && <div className="no-spells-note">No spells selected. Click 'Manage Spells' to choose.</div>}
+                {flattenedSelectedSpells.length === 0 && <div className="no-spells-note">No spells selected. Click 'Manage Spells' to choose.</div>}
             </div>
         </div>
     );
@@ -1424,14 +1522,48 @@ const SpellOverlay = ({
     character,
     spellcastingRules,
     spellSlotsRules,
-    onToggleSpell
+    onToggleSpell,
+    allClassRules
 }) => {
     const [spellSearchTerm, setSpellSearchTerm] = useState("");
+    const [activeSpellClass, setActiveSpellClass] = useState(null);
+
+    const scClasses = useMemo(() => {
+        return getSpellcastingClasses(character, allClassRules);
+    }, [character, allClassRules]);
+
+    useEffect(() => {
+        if (scClasses.length > 0 && (!activeSpellClass || !scClasses.find(c => c.className === activeSpellClass))) {
+            setActiveSpellClass(scClasses[0].className);
+        }
+    }, [scClasses, activeSpellClass]);
+
     if (!show || !availableSpells) return null;
 
-    const selectedSpells = character.data.spells || [];
-    const spellcasting = spellcastingRules;
-    const progression = spellcasting?.progression;
+    const migratedSpells = migrateSpellsData(character.data.spells, scClasses);
+
+    // Total spells selected across all classes
+    let totalCantripsCount = 0;
+    let totalPreparedCount = 0;
+
+    Object.values(migratedSpells).forEach(spellList => {
+        const cantrips = spellList.filter(name => {
+            for (const lvl in availableSpells) {
+                if (availableSpells[lvl].some(s => s.name === name && lvl === "0")) return true;
+            }
+            return false;
+        }).length;
+        totalCantripsCount += cantrips;
+        totalPreparedCount += (spellList.length - cantrips);
+    });
+
+    const activeClassData = scClasses.find(c => c.className === activeSpellClass);
+    const activeRules = activeClassData?.rules || spellcastingRules;
+    const activeLevel = activeClassData?.level || character.level;
+
+    const selectedSpellsActive = migratedSpells[activeSpellClass] || [];
+
+    const progression = activeRules?.progression;
     const progressionKey = progression === "pact" ? "pact_magic" : progression;
     const slotsTable = progressionKey ? spellSlotsRules?.[progressionKey] : null;
 
@@ -1447,20 +1579,20 @@ const SpellOverlay = ({
 
     const hasCantrips = !!(availableSpells?.["0"]?.length);
 
-    const cantripsKnownLimit = resolveScalingValue(spellcasting?.cantrips_known, character.level) || 0;
-    const spellsPreparedLimit = resolveScalingValue(spellcasting?.spells_prepared, character.level) || 0;
+    const cantripsKnownLimit = resolveScalingValue(activeRules?.cantrips_known, activeLevel) || 0;
+    const spellsPreparedLimit = resolveScalingValue(activeRules?.spells_prepared, activeLevel) || 0;
 
-    const cantripsCount = selectedSpells.filter(name => {
+    const cantripsCountActive = selectedSpellsActive.filter(name => {
         for (const lvl in availableSpells) {
             if (availableSpells[lvl].some(s => s.name === name && lvl === "0")) return true;
         }
         return false;
     }).length;
 
-    const preparedCount = selectedSpells.length - cantripsCount;
+    const preparedCountActive = selectedSpellsActive.length - cantripsCountActive;
 
-    const cantripsAtLimit = cantripsCount >= cantripsKnownLimit;
-    const spellsAtLimit = preparedCount >= spellsPreparedLimit;
+    const cantripsAtLimit = cantripsCountActive >= cantripsKnownLimit;
+    const spellsAtLimit = preparedCountActive >= spellsPreparedLimit;
 
     const hintText = hasCantrips
         ? `Filtering by your max available spell slot level (Cantrips to Level ${maxAvailableSlot}). Spells chosen are saved automatically.`
@@ -1486,13 +1618,33 @@ const SpellOverlay = ({
                         <button className="close-btn" onClick={onClose}>✕</button>
                     </div>
                 </div>
+
+                {scClasses.length > 1 && (
+                    <div className="feature-tabs" style={{ margin: '10px 0' }}>
+                        {scClasses.map(c => (
+                            <button
+                                key={c.className}
+                                onClick={() => setActiveSpellClass(c.className)}
+                                className={activeSpellClass === c.className ? "active" : ""}
+                            >
+                                {c.className.charAt(0).toUpperCase() + c.className.slice(1)}
+                            </button>
+                        ))}
+                    </div>
+                )}
+
                 <div className="overlay-stats-bar">
                     <div className={`stat-pill ${cantripsAtLimit ? 'at-limit' : ''}`}>
-                        Cantrips: <strong>{cantripsCount} / {cantripsKnownLimit}</strong>
+                        {activeSpellClass ? activeSpellClass.charAt(0).toUpperCase() + activeSpellClass.slice(1) + ' ' : ''}Cantrips: <strong>{cantripsCountActive} / {cantripsKnownLimit}</strong>
                     </div>
                     <div className={`stat-pill ${spellsAtLimit ? 'at-limit' : ''}`}>
-                        Prepared Spells: <strong>{preparedCount} / {spellsPreparedLimit}</strong>
+                        {activeSpellClass ? activeSpellClass.charAt(0).toUpperCase() + activeSpellClass.slice(1) + ' ' : ''}Prepared: <strong>{preparedCountActive} / {spellsPreparedLimit}</strong>
                     </div>
+                    {scClasses.length > 1 && (
+                        <div className="stat-pill" style={{ opacity: 0.8 }}>
+                            Total Selected: {totalCantripsCount + totalPreparedCount}
+                        </div>
+                    )}
                 </div>
 
                 <div className="search-wrapper spell-search" style={{ margin: '15px 0', maxWidth: 'none' }}>
@@ -1524,19 +1676,31 @@ const SpellOverlay = ({
                                 <h3>{level === "0" ? "Cantrips" : `Level ${level}`}</h3>
                                 <div className="spell-selection-grid">
                                     {spellsAtLevel.map(spell => {
-                                        const isSelected = selectedSpells.includes(spell.name);
+                                        const isSelectedActive = selectedSpellsActive.includes(spell.name);
                                         const isCantrip = level === "0";
-                                        const canSelect = isSelected || (isCantrip ? !cantripsAtLimit : !spellsAtLimit);
+                                        const canSelect = isSelectedActive || (isCantrip ? !cantripsAtLimit : !spellsAtLimit);
+
+                                        const selectedInClasses = Object.keys(migratedSpells).filter(cls => migratedSpells[cls].includes(spell.name));
 
                                         return (
                                             <div
                                                 key={spell.name}
-                                                className={`spell-select-card ${isSelected ? 'selected' : ''} ${!canSelect ? 'disabled' : ''}`}
-                                                onClick={() => canSelect && onToggleSpell(spell.name)}
+                                                className={`spell-select-card ${isSelectedActive ? 'selected' : ''} ${!canSelect ? 'disabled' : ''}`}
+                                                onClick={() => canSelect && onToggleSpell(spell.name, activeSpellClass)}
+                                                style={{ position: 'relative' }}
                                             >
                                                 <div className="spell-name">{spell.name}</div>
                                                 <div className="spell-school">{spell.school}</div>
-                                                {isSelected && <div className="spell-check">✓</div>}
+                                                {selectedInClasses.length > 0 && (
+                                                    <div className="spell-source-tags" style={{ marginTop: '5px', display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                                                        {selectedInClasses.map(cls => (
+                                                            <span key={cls} style={{ fontSize: '0.75em', padding: '2px 6px', background: '#333', color: '#fff', borderRadius: '4px' }}>
+                                                                {cls.charAt(0).toUpperCase() + cls.slice(1)}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                                {isSelectedActive && <div className="spell-check">✓</div>}
                                             </div>
                                         );
                                     })}
@@ -1549,7 +1713,6 @@ const SpellOverlay = ({
         </div>
     );
 };
-
 
 function CharacterSheet() {
     const { id } = useParams();
@@ -1758,6 +1921,7 @@ function CharacterSheet() {
             }
 
             // Set immediate basic state
+            console.log("CHARACTER DATA DEBUG:", data.data);
             setCharacter(data);
             setSkills(data.data.skillProficiencies || {});
             setGold(data.data.gold || 0);
@@ -3054,34 +3218,35 @@ function CharacterSheet() {
         setExpandedFeatures(prev => ({ ...prev, [id]: !prev[id] }));
     };
 
-    const toggleSpellSelection = (name) => {
-        const selectedSpells = character.data.spells || [];
-        const current = [...selectedSpells];
+    const toggleSpellSelection = (name, className) => {
+        const scClasses = getSpellcastingClasses(character, allClassRules);
+        const migratedSpells = migrateSpellsData(character.data.spells, scClasses);
+        const currentList = migratedSpells[className] ? [...migratedSpells[className]] : [];
 
-        if (current.includes(name)) {
+        if (currentList.includes(name)) {
             // Remove
-            const updated = current.filter(n => n !== name);
-            saveCharacter({ spells: updated });
-            setCharacter(prev => ({ ...prev, data: { ...prev.data, spells: updated } }));
+            migratedSpells[className] = currentList.filter(n => n !== name);
+            saveCharacter({ spells: migratedSpells });
+            setCharacter(prev => ({ ...prev, data: { ...prev.data, spells: migratedSpells } }));
         } else {
             // Add
-            // Re-calculate counts for enforcement
-            const spellcasting = spellcastingRules;
-            if (!spellcasting) return;
+            const classData = scClasses.find(c => c.className === className);
+            if (!classData) return;
+            const activeRules = classData.rules;
+            const activeLevel = classData.level;
 
-            const cantripsKnownLimit = resolveScalingValue(spellcasting.cantrips_known, character.level) || 0;
-            const spellsPreparedLimit = resolveScalingValue(spellcasting.spells_prepared, character.level) || 0;
+            const cantripsKnownLimit = resolveScalingValue(activeRules.cantrips_known, activeLevel) || 0;
+            const spellsPreparedLimit = resolveScalingValue(activeRules.spells_prepared, activeLevel) || 0;
 
-            const cantripsCount = current.filter(n => {
+            const cantripsCount = currentList.filter(n => {
                 for (const lvl in availableSpells) {
                     if (availableSpells[lvl].some(s => s.name === n && lvl === "0")) return true;
                 }
                 return false;
             }).length;
 
-            const preparedCount = current.length - cantripsCount;
+            const preparedCount = currentList.length - cantripsCount;
 
-            // Determine if the new spell is a cantrip
             let isNewCantrip = false;
             if (availableSpells["0"]?.some(s => s.name === name)) {
                 isNewCantrip = true;
@@ -3093,114 +3258,66 @@ function CharacterSheet() {
                 if (preparedCount >= spellsPreparedLimit) return;
             }
 
-            current.push(name);
-            saveCharacter({ spells: current });
-            setCharacter(prev => ({ ...prev, data: { ...prev.data, spells: current } }));
+            currentList.push(name);
+            migratedSpells[className] = currentList;
+            saveCharacter({ spells: migratedSpells });
+            setCharacter(prev => ({ ...prev, data: { ...prev.data, spells: migratedSpells } }));
         }
     };
 
     // --- Dynamic Spellcasting Rule Resolution ---
     const spellcastingRules = useMemo(() => {
-        if (!classRules || !character) return null;
-
+        if (!character || !allClassRules) return null;
         let rules = null;
-        let source = 'Class';
-
-        // 1. Check for Subclass Spellcasting (e.g., Eldritch Knight, Arcane Trickster)
-        // In preview mode, prioritize the preview-selected subclass
-        const previewSubclassKey = Object.keys(previewChoices).find(k => k.endsWith('_subclass'));
-        const previewSubclass = previewSubclassKey ? previewChoices[previewSubclassKey] : null;
-        const previewSubclassId = previewSubclass ? (typeof previewSubclass === 'string' ? previewSubclass : (previewSubclass.id || previewSubclass.name)) : null;
-
-        const effectiveSubclassId = showMulticlassSelection ? (previewSubclassId || character.class?.subclass) : character.class?.subclass;
-
-        if (effectiveSubclassId && classRules.subclasses?.[effectiveSubclassId]?.features) {
-            const scFeatures = classRules.subclasses[effectiveSubclassId].features;
-            // Iterate over levels (keys are strings like "1", "3", etc.)
-            for (const lvlKey in scFeatures) {
-                const feature = scFeatures[lvlKey].find(f =>
-                    f.name === "Spellcasting" || f.id?.includes("spellcasting")
-                );
-                if (feature?.details) {
-                    rules = {
-                        ...feature.details,
-                        // Normalize the fields we need
-                        cantrips_known: feature.details.cantrips_known,
-                        spells_prepared: feature.details.spells_prepared ||
-                            feature.details.spells_known_count ||
-                            feature.details.spells_prepared_scaling
-                    };
-                    source = 'Subclass';
-                    break;
-                }
-            }
-        }
-
-        // 2. Fallback to Base Class Spellcasting (e.g., Bard, Cleric, Wizard)
-        if (!rules && classRules.spellcasting) {
-            rules = classRules.spellcasting;
-            source = 'Class';
-        }
-
-        return rules ? { ...rules, source } : null;
-    }, [classRules, character, showMulticlassSelection, previewChoices]);
-
-    const spellcastingSources = useMemo(() => {
-        if (!character || !allClassRules) return [];
-
-        const sources = [];
-
+        let source = null;
         const classLevels = character.data?.class_levels || [];
 
-        classLevels.forEach(classEntry => {
-            const className = classEntry.class_name.toLowerCase();
-            const level = classEntry.level;
-            const rules = allClassRules[className];
-            if (!rules) return;
+        // Check every class the character has
+        for (const classEntry of classLevels) {
+            const className = classEntry.class_name?.toLowerCase();
+            const classData = allClassRules[className];
+            if (!classData) continue;
 
-            // Base class spellcasting
-            if (rules.spellcasting) {
-                sources.push({
-                    type: "class",
-                    className: classEntry.class_name,
-                    level,
-                    rules: rules.spellcasting
-                });
-            }
-
-            // Subclass spellcasting
-            if (classEntry.subclass) {
-                const subclass =
-                    rules.subclasses?.[classEntry.subclass];
-
-                if (subclass?.features) {
-                    Object.entries(subclass.features).forEach(([featureLevel, features]) => {
-                        if (parseInt(featureLevel) > level) return;
-                        features.forEach(feature => {
-                            if (
-                                feature.name === "Spellcasting" ||
-                                feature.id?.includes("spellcasting")
-                            ) {
-                                sources.push({
-                                    type: "subclass",
-                                    className: classEntry.class_name,
-                                    subclass: classEntry.subclass,
-                                    level,
-                                    rules: feature.details
-                                });
-                            }
-                        });
-                    });
+            // Check subclass spellcasting
+            const subclassName = classEntry.subclass?.toLowerCase();
+            if (subclassName && classData.subclasses?.[subclassName]) {
+                const subclassFeatures = classData.subclasses[subclassName].features;
+                for (const level in subclassFeatures) {
+                    const feature = subclassFeatures[level]
+                        .find(f =>
+                            f.name === "Spellcasting" ||
+                            f.id?.includes("spellcasting")
+                        );
+                    if (feature?.details) {
+                        rules = {
+                            ...feature.details
+                        };
+                        source = "Subclass";
+                        break;
+                    }
                 }
             }
-        });
 
-        return sources;
-    }, [character, allClassRules]);
+            // Check normal class spellcasting
+            if (!rules && classData.spellcasting) {
+                rules = {
+                    ...classData.spellcasting
+                };
+                source = "Class";
+            }
+            if (rules) break;
+        }
+        return rules
+            ? {
+                ...rules,
+                source
+            }
+            : null;
+    }, [allClassRules, character]);
 
     const hasSpellcasting = useMemo(() => {
-        return spellcastingSources.length > 0;
-    }, [spellcastingSources]);
+        return spellcastingRules !== null;
+    }, [spellcastingRules]);
 
     if (loading) return <div className="loading-screen">Invoking the Character Sheet...</div>;
 
@@ -3759,7 +3876,7 @@ function CharacterSheet() {
                         )}
                     </div>
                 </div>
-                {hasSpellcasting && (
+                {hasSpellcasting && spellcastingRules && (
                     <div key="spellcasting" className="widget card spellcasting-widget">
                         <SpellcastingWidget
                             hasSpellcasting={hasSpellcasting}
@@ -3775,6 +3892,7 @@ function CharacterSheet() {
                             setSpellSlotsCurrent={setSpellSlotsCurrent}
                             addAlert={addAlert}
                             saveCharacter={saveCharacter}
+                            allClassRules={allClassRules}
                         />
                     </div>
                 )}
@@ -3819,8 +3937,15 @@ function CharacterSheet() {
                 character={spellOverlayPreviewMode ? { ...character, level: previewLevel, data: { ...character.data, spells: previewSpells } } : character}
                 spellcastingRules={spellcastingRules}
                 spellSlotsRules={spellSlotsRules}
-                onToggleSpell={spellOverlayPreviewMode ? (name) => {
-                    setPreviewSpells(prev => prev.includes(name) ? prev.filter(n => n !== name) : [...prev, name]);
+                allClassRules={allClassRules}
+                onToggleSpell={spellOverlayPreviewMode ? (name, className) => {
+                    setPreviewSpells(prev => {
+                        const migrated = migrateSpellsData(prev, getSpellcastingClasses(character, allClassRules));
+                        const current = migrated[className] || [];
+                        if (current.includes(name)) { migrated[className] = current.filter(n => n !== name); }
+                        else { migrated[className] = [...current, name]; }
+                        return migrated;
+                    });
                 } : toggleSpellSelection}
             />
 
