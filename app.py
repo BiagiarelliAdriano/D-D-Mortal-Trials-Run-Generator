@@ -1,4 +1,5 @@
 import math
+import copy
 
 from flask import Flask, request, render_template, redirect, url_for, jsonify
 from datetime import datetime
@@ -1437,6 +1438,8 @@ def api_character_levelup(char_id):
     if str(character.user_id) != str(current_user_id) and not user.is_admin:
         return jsonify({"error": "Unauthorized to level up this character"}), 403
     data = character.get_data()
+    previous_state = copy.deepcopy(data)
+    previous_state["level_history"] = []
     levelup_class = request.json.get("class_name") if request.json else None
     if not levelup_class:
         levelup_class = data.get("class_name")
@@ -1557,6 +1560,11 @@ def api_character_levelup(char_id):
     if new_max_slots:
         data["spell_slots_current"] = updated_slots
         data["spell_slots_max"] = new_max_slots
+    
+    # Store complete snapshot before level up
+    level_history = data.get("level_history", [])
+    level_history.append(previous_state)
+    data["level_history"] = level_history
     data["level_up_pending"] = False
     character.set_data(data)
     
@@ -1743,69 +1751,61 @@ def api_character_leveldown(char_id):
     current_user_id = get_jwt_identity()
     user = User.query.get(current_user_id)
     character = db.get_or_404(Character, char_id)
-    
     if str(character.user_id) != str(current_user_id) and not user.is_admin:
-        return jsonify({"error": "Unauthorized to level down this character"}), 403
-        
+        return jsonify({"error": "Unauthorized"}), 403
     data = character.get_data()
+    history = data.get("level_history", [])
+    if not history:
+        return jsonify({
+            "error": "No previous level available"
+        }), 400
     
-    current_level = data.get("level", 1)
-    if current_level <= 1:
-        return jsonify({"error": "Character is already at level 1"}), 400
-        
-    next_level = current_level - 1
-    # Set XP to the threshold of the NEW level (or keep same, but usually leveling down resets to threshold)
-    # The user said "and a user can modify... with an option to level down"
-    # I'll set it to the threshold of the new level for a clean reset.
-    data["level"] = next_level
-    data["xp"] = XP_THRESHOLDS.get(next_level, 0)
+    # Get previous character state
+    previous_state = history.pop()
     
-    # Update spell slots
-    class_name = data.get("class_name", "").lower()
-
-    class_rules = CLASSES.get(class_name)
-
-    progression = None
-
-    if class_rules:
-        spellcasting = class_rules.get("spellcasting", {})
-        progression = spellcasting.get("progression")
-    slot_tables = {
-        "full": FULL_CASTER_SLOTS,
-        "half": HALF_CASTER_SLOTS,
-        "third": THIRD_CASTER_SLOTS,
-        "pact": PACT_MAGIC_SLOTS,
-        "pact_magic": PACT_MAGIC_SLOTS,
-        "multiclass_slots": MULTICLASS_CASTER_SLOTS
-    }
-
-    if progression in slot_tables:
-        slots_table = slot_tables[progression]
-        old_max_slots = slots_table.get(current_level, {})
-        new_max_slots = slots_table.get(next_level, {})
-        current_slots = data.get("spell_slots_current", {}).copy()
-        updated_slots = {}
-
-        for level, new_max in new_max_slots.items():
-            old_max = old_max_slots.get(level, 0)
-            current_amount = current_slots.get(level, old_max)
-
-            lost = old_max - new_max
-            # Remove lost slots, do not drop below 0
-            updated_slots[level] = max(0, current_amount - lost)
-
-        data["spell_slots_current"] = updated_slots
-        data["spell_slots_max"] = new_max_slots
+    # Preserve spell choicecs
+    previous_state["spell_slots_current"] = data.get(
+        "spell_slots_current",
+        {}
+    )
     
-    character.set_data(data)
+    # Recalculate spell slots based on new level
+    new_slots = calculate_spell_slots(previous_state)
+    previous_state["spell_slots_max"] = new_slots
     
-    # Recalculate HP (models.py handles the truncation of rolls)
-    con_score = data.get("abilities", {}).get("constitution", 10)
+    # Clamp current slots
+    current_slots = previous_state.get(
+        "spell_slots_current",
+        {}
+    )
+    for pool, levels in current_slots.items():
+        for spell_level in list(levels.keys()):
+            if pool not in new_slots:
+                levels[spell_level] = 0
+            elif spell_level not in new_slots[pool]:
+                levels[spell_level] = 0
+            else:
+                levels[spell_level] = min(
+                    levels[spell_level],
+                    new_slots[pool][spell_level]
+                )
+    character.set_data(previous_state)
+    
+    # Recalculate HP
+    con_score = previous_state["abilities"].get(
+        "constitution",
+        10
+    )
     con_mod = (con_score - 10) // 2
-    character.update_hp(next_level, con_mod, data.get("class_name", "Barbarian"))
-    
+    character.update_hp(
+        previous_state["level"],
+        con_mod
+    )
     db.session.commit()
-    return jsonify({"success": True, "new_level": next_level, "data": character.get_data()})
+    return jsonify({
+        "success": True,
+        "data": character.get_data()
+    })
 
 @app.route("/api/characters/<int:char_id>/acknowledge-item", methods=["POST"])
 @jwt_required()

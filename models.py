@@ -73,6 +73,7 @@ DEFAULT_CHARACTER_DATA = {
             "subclass": ""
         }
     ],
+    "level_history": [],
     "xp": 0,
     "level_up_pending": False,
     "level_one_pending": True,

@@ -2148,7 +2148,6 @@ function CharacterSheet() {
     }, [id, token, currentUser]);
 
     useEffect(() => {
-
         if (
             character &&
             character.data?.level_up_pending &&
