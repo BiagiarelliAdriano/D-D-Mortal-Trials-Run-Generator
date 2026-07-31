@@ -5,6 +5,7 @@ import { useNotification } from "../context/NotificationContext";
 import BackToTop from './common/BackToTop';
 import UserProfilePill from './UserProfilePill';
 import '../styles/SavedRuns.css';
+import API_BASE_URL from '../config';
 
 const SavedRuns = () => {
     const [runs, setRuns] = useState([]);
@@ -18,7 +19,7 @@ const SavedRuns = () => {
     const fetchRuns = useCallback(async () => {
         setLoading(true);
         try {
-            const response = await fetch('/api/runs', {
+            const response = await fetch(`${API_BASE_URL}/api/runs`, {
                 headers: {
                     'Authorization': token ? `Bearer ${token}` : ''
                 }
@@ -42,7 +43,7 @@ const SavedRuns = () => {
         if (!(await confirm('Are you sure you want to delete this run?'))) return;
 
         try {
-            const response = await fetch(`/api/runs/${id}`, {
+            const response = await fetch(`${API_BASE_URL}/api/runs/${id}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': token ? `Bearer ${token}` : ''

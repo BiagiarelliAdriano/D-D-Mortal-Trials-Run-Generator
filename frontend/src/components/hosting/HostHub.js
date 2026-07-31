@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import BackToTop from '../common/BackToTop';
 import UserProfilePill from '../UserProfilePill';
 import '../../styles/HostHub.css';
+import API_BASE_URL from '../../config';
 
 const HostHub = () => {
     const navigate = useNavigate();
@@ -17,7 +18,7 @@ const HostHub = () => {
 
     const fetchGames = useCallback(async () => {
         try {
-            const response = await fetch('/api/host/active', {
+            const response = await fetch(`${API_BASE_URL}/api/host/active`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (!response.ok) throw new Error('Failed to fetch trials');
@@ -58,7 +59,7 @@ const HostHub = () => {
         }
         setError('');
         try {
-            const response = await fetch('/api/host/join', {
+            const response = await fetch(`${API_BASE_URL}/api/host/join`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

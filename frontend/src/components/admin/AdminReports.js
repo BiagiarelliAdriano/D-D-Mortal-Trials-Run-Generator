@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useNotification } from '../../context/NotificationContext';
 import '../../styles/Admin.css'; // Assuming we reuse existing admin styles
+import API_BASE_URL from '../../config';
 
 const AdminReports = () => {
     const [reports, setReports] = useState([]);
@@ -17,7 +18,7 @@ const AdminReports = () => {
     const fetchReports = useCallback(async () => {
         setLoading(true);
         try {
-            const res = await fetch('/api/admin/reports', {
+            const res = await fetch(`${API_BASE_URL}/api/admin/reports`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -46,7 +47,7 @@ const AdminReports = () => {
 
         setResolvingId(reportId);
         try {
-            const res = await fetch(`/api/admin/reports/${reportId}/resolve`, {
+            const res = await fetch(`${API_BASE_URL}/api/admin/reports/${reportId}/resolve`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

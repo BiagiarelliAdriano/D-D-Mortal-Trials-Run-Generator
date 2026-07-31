@@ -1,6 +1,7 @@
 import { useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNotification } from '../context/NotificationContext';
+import API_BASE_URL from '../config';
 
 const NotificationPoller = () => {
     const { token, user } = useAuth();
@@ -10,7 +11,7 @@ const NotificationPoller = () => {
         if (!token || !user) return;
 
         try {
-            const res = await fetch('/api/users/notifications', {
+            const res = await fetch(`${API_BASE_URL}/api/users/notifications`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -30,7 +31,7 @@ const NotificationPoller = () => {
                 }
                 
                 // Mark as read
-                fetch(`/api/users/notifications/${notif.id}/read`, {
+                fetch(`${API_BASE_URL}/api/users/notifications/${notif.id}/read`, {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${token}`

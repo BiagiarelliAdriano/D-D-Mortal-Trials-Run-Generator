@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { getDeviceFingerprint } from '../utils/deviceFingerprint';
+import API_BASE_URL from '../config';
 
 const AuthContext = createContext();
 
@@ -36,7 +37,7 @@ export const AuthProvider = ({ children }) => {
 
     const verifyToken = useCallback(async (currentToken) => {
         try {
-            const response = await fetch('/api/auth/verify', {
+            const response = await fetch(`${API_BASE_URL}/api/auth/verify`, {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${currentToken}`
@@ -46,7 +47,7 @@ export const AuthProvider = ({ children }) => {
             if (response.ok) {
                 const data = await response.json();
                 setUser(data.user);
-                const accessResponse = await fetch('/api/auth/access-status', {
+                const accessResponse = await fetch(`${API_BASE_URL}/api/auth/access-status`, {
                     headers: {
                         'Authorization': `Bearer ${currentToken}`
                     }
@@ -98,7 +99,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     const requestRecovery = async (username, requestType) => {
-        const response = await fetch('/api/auth/recovery-request', {
+        const response = await fetch(`${API_BASE_URL}/api/auth/recovery-request`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username, request_type: requestType })
@@ -107,7 +108,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     const getRecoveryRequests = async (masterKey) => {
-        const response = await fetch('/api/admin/recovery-requests', {
+        const response = await fetch(`${API_BASE_URL}/api/admin/recovery-requests`, {
             method: 'POST',
             headers: { 
                 'Content-Type': 'application/json',
@@ -119,7 +120,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     const resolveRecovery = async (requestId, action, masterKey, extraData = {}) => {
-        const response = await fetch('/api/admin/recovery-resolve', {
+        const response = await fetch(`${API_BASE_URL}/api/admin/recovery-resolve`, {
             method: 'POST',
             headers: { 
                 'Content-Type': 'application/json',

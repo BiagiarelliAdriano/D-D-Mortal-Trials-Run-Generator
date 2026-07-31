@@ -5,6 +5,7 @@ import { useNotification } from '../../context/NotificationContext';
 import BackToTop from '../common/BackToTop';
 import UserProfilePill from '../UserProfilePill';
 import '../../styles/HostedRunPage.css';
+import API_BASE_URL from '../../config';
 
 const HostedRunPage = () => {
     const { id } = useParams();
@@ -37,7 +38,7 @@ const HostedRunPage = () => {
 
     const fetchSessionDetails = useCallback(async () => {
         try {
-            const response = await fetch(`/api/host/details/${id}`, {
+            const response = await fetch(`${API_BASE_URL}/api/host/details/${id}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (!response.ok) throw new Error('Failed to fetch session details');
@@ -52,7 +53,7 @@ const HostedRunPage = () => {
 
     const fetchUserCharacters = useCallback(async () => {
         try {
-            const response = await fetch('/api/characters', {
+            const response = await fetch(`${API_BASE_URL}/api/characters`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (response.ok) {
@@ -104,7 +105,7 @@ const HostedRunPage = () => {
 
     const handleLinkCharacter = async (charId) => {
         try {
-            const response = await fetch(`/api/host/${id}/link-character`, {
+            const response = await fetch(`${API_BASE_URL}/api/host/${id}/link-character`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -131,7 +132,7 @@ const HostedRunPage = () => {
             return;
         }
         try {
-            const response = await fetch(`/api/host/${id}/rename`, {
+            const response = await fetch(`${API_BASE_URL}/api/host/${id}/rename`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -152,7 +153,7 @@ const HostedRunPage = () => {
 
     const handleCompleteEncounter = async (num) => {
         try {
-            const response = await fetch(`/api/host/${id}/complete-encounter`, {
+            const response = await fetch(`${API_BASE_URL}/api/host/${id}/complete-encounter`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -185,7 +186,7 @@ const HostedRunPage = () => {
         if (!await confirm(`Spend ${cost} ration${cost === 1 ? '' : 's'} to prepare a party ${label}?`)) return;
 
         try {
-            const response = await fetch(`/api/host/${id}/spend-rations`, {
+            const response = await fetch(`${API_BASE_URL}/api/host/${id}/spend-rations`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -208,7 +209,7 @@ const HostedRunPage = () => {
 
     const handleClaimItem = async (index) => {
         try {
-            const response = await fetch(`/api/host/${id}/claim-item`, {
+            const response = await fetch(`${API_BASE_URL}/api/host/${id}/claim-item`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -230,7 +231,7 @@ const HostedRunPage = () => {
 
     const handleClaimGold = async (shareIndex) => {
         try {
-            const response = await fetch(`/api/host/${id}/claim-gold`, {
+            const response = await fetch(`${API_BASE_URL}/api/host/${id}/claim-gold`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -252,7 +253,7 @@ const HostedRunPage = () => {
 
     const handleCategorySelect = async (category) => {
         try {
-            const response = await fetch(`/api/host/${id}/shop/select-category`, {
+            const response = await fetch(`${API_BASE_URL}/api/host/${id}/shop/select-category`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -274,7 +275,7 @@ const HostedRunPage = () => {
     const handleBuyItem = async () => {
         if (!shopConfirm) return;
         try {
-            const response = await fetch(`/api/host/${id}/shop/buy-item`, {
+            const response = await fetch(`${API_BASE_URL}/api/host/${id}/shop/buy-item`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -302,7 +303,7 @@ const HostedRunPage = () => {
 
     const handleToggleShopLock = async () => {
         try {
-            const response = await fetch(`/api/host/${id}/shop/toggle-lock`, {
+            const response = await fetch(`${API_BASE_URL}/api/host/${id}/shop/toggle-lock`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -332,7 +333,7 @@ const HostedRunPage = () => {
         if (!await confirm("WARNING: This will permanently delete this session and all its progress. This action cannot be undone. Are you sure?")) return;
 
         try {
-            const response = await fetch(`/api/host/${id}`, {
+            const response = await fetch(`${API_BASE_URL}/api/host/${id}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token}`

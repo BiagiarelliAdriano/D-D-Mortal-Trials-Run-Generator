@@ -5,6 +5,7 @@ import { useNotification } from '../context/NotificationContext';
 import BackToTop from './common/BackToTop';
 import UserProfilePill from './UserProfilePill';
 import '../styles/RunGenerator.css';
+import API_BASE_URL from '../config';
 
 const RunGenerator = () => {
     const { token } = useAuth();
@@ -29,7 +30,7 @@ const RunGenerator = () => {
         setLoading(true);
         setError(null);
         try {
-            const response = await fetch('/api/run/generate');
+            const response = await fetch(`${API_BASE_URL}/api/run/generate`);
             if (!response.ok) throw new Error('Failed to generate run');
             const data = await response.json();
             setRunData(data);
@@ -186,7 +187,7 @@ const RunGenerator = () => {
         }
 
         try {
-            const response = await fetch('/api/runs', {
+            const response = await fetch(`${API_BASE_URL}/api/runs`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -220,7 +221,7 @@ const RunGenerator = () => {
             if (!runId) return;
 
             // 2. Create the hosted session
-            const response = await fetch('/api/host/create', {
+            const response = await fetch(`${API_BASE_URL}/api/host/create`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

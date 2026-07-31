@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import '../../styles/Profile.css';
+import API_BASE_URL from '../../config';
 
 const UserProfile = () => {
     const { id } = useParams();
@@ -23,7 +24,7 @@ const UserProfile = () => {
     const fetchProfile = useCallback(async () => {
         setLoading(true);
         try {
-            const response = await fetch(`/api/users/${id}`, {
+            const response = await fetch(`${API_BASE_URL}/api/users/${id}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (!response.ok) throw new Error('Failed to fetch profile');
@@ -62,7 +63,7 @@ const UserProfile = () => {
         if (avatarFile) formData.append('avatar_file', avatarFile);
 
         try {
-            const response = await fetch(`/api/users/${id}`, {
+            const response = await fetch(`${API_BASE_URL}/api/users/${id}`, {
                 method: 'PUT',
                 headers: { 'Authorization': `Bearer ${token}` },
                 body: formData

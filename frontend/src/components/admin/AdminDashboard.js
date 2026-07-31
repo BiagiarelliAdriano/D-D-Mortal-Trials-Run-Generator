@@ -7,6 +7,7 @@ import AdminRecovery from './AdminRecovery';
 import AdminReports from './AdminReports';
 import '../../styles/Auth.css'; // Reuse some base auth styles
 import '../../styles/Admin.css';
+import API_BASE_URL from '../../config';
 
 const AdminDashboard = () => {
     const [stats, setStats] = useState(null);
@@ -22,7 +23,7 @@ const AdminDashboard = () => {
 
     const fetchStats = useCallback(() => {
         setLoading(true);
-        fetch('/api/admin/system', {
+        fetch(`${API_BASE_URL}/api/admin/system`, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
@@ -54,7 +55,7 @@ const AdminDashboard = () => {
         if (!await confirm("Are you sure you want to PERMANENTLY delete this character? This action cannot be undone.")) return;
 
         try {
-            const res = await fetch(`/api/characters/${charId}`, {
+            const res = await fetch(`${API_BASE_URL}/api/characters/${charId}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -102,7 +103,7 @@ const AdminDashboard = () => {
         if (editData.avatar_file) formData.append('avatar_file', editData.avatar_file);
 
         try {
-            const res = await fetch(`/api/users/${userId}`, {
+            const res = await fetch(`${API_BASE_URL}/api/users/${userId}`, {
                 method: 'PUT',
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -128,7 +129,7 @@ const AdminDashboard = () => {
         if (!await confirm(`DANGER: You are about to PERMANENTLY delete the account of "${username}" and ALL their characters and runs. This action is irreversible. Proceed?`)) return;
 
         try {
-            const res = await fetch(`/api/admin/users/${userId}`, {
+            const res = await fetch(`${API_BASE_URL}/api/admin/users/${userId}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token}`

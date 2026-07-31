@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNotification } from '../context/NotificationContext';
 import '../styles/ReportPage.css';
+import API_BASE_URL from '../config';
 
 const ReportPage = () => {
     const [reportType, setReportType] = useState('Feedback');
@@ -25,7 +26,7 @@ const ReportPage = () => {
         };
 
         try {
-            const response = await fetch('/api/reports', {
+            const response = await fetch(`${API_BASE_URL}/api/reports`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
