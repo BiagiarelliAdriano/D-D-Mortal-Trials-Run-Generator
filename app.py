@@ -21,6 +21,9 @@ from encounter_generator.data.rules.game_rules import WEAPON_MASTERY_OPTIONS
 from encounter_generator.data.rules.feature_tables import SORCERER_METAMAGIC, WARLOCK_ELDRITCH_INVOCATIONS
 import json
 import os
+from dotenv import load_dotenv
+import cloudinary
+import cloudinary.uploader
 import uuid
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.sql import func
@@ -408,6 +411,12 @@ def calculate_spell_slots(character_data):
         result["pact_magic"] = pact_slots
     return result
 
+load_dotenv()
+cloudinary.config(
+    cloud_name=os.getenv("CLOUDINARY_CLOUD_NAME"),
+    api_key=os.getenv("CLOUDINARY_API_KEY"),
+    api_secret=os.getenv("CLOUDINARY_API_SECRET")
+)
 app = Flask(__name__)
 CORS(app)
 
@@ -418,7 +427,7 @@ if uri.startswith("postgres://"):
 
 app.config["SQLALCHEMY_DATABASE_URI"] = uri
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY", "fallback-secret-dragon-horde-key")
+app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY")
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = 604800 # 7 days in seconds
 
 db.init_app(app)
@@ -428,7 +437,7 @@ jwt = JWTManager(app)
 # ------------------------
 # Encryption Setup for Recovery
 # ------------------------
-RECOVERY_KEY_SALT = os.getenv("RECOVERY_KEY_SALT", "dnd-mortal-trials-salt-2024")
+RECOVERY_KEY_SALT = os.getenv("RECOVERY_KEY_SALT")
 
 def get_fernet(master_key):
     """Derive a Fernet key from the master key string."""
@@ -437,7 +446,7 @@ def get_fernet(master_key):
 
 # Fallback master key for initial encryption (stored in ENV)
 # In a real production app, this should be very secure.
-SYSTEM_RECOVERY_MASTER = os.getenv("SYSTEM_RECOVERY_MASTER", "change-this-super-secret-key-123!")
+SYSTEM_RECOVERY_MASTER = os.getenv("SYSTEM_RECOVERY_MASTER")
 
 if os.environ.get("FLASK_ENV") != "production":
     with app.app_context():
@@ -620,24 +629,20 @@ def update_user_profile(user_id):
     if 'avatar_file' in request.files:
         file = request.files['avatar_file']
         if file and allowed_file(file.filename):
-            filename = secure_filename(f"{uuid.uuid4().hex}_{file.filename}")
-            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            
-            # Optimization: Resize and compress
             try:
-                img = Image.open(file)
-                # Convert to RGB if necessary (for RGBA/P to JPEG/WEBP compatibility)
-                if img.mode in ("RGBA", "P"):
-                    img = img.convert("RGB")
-                
-                # Resize to max 600x600 while maintaining aspect ratio
-                img.thumbnail((600, 600))
-                img.save(filepath, optimize=True, quality=85)
-                
-                # Delete old custom avatar if it exists (Optional improvement)
-                # if user.avatar.startswith('static/uploads/'): ...
-                
-                user.avatar = f"/{filepath}" # Store with leading slash for web access
+                upload_result = cloudinary.uploader.upload(
+                    file,
+                    folder="mortal_trials/avatars",
+                    transformation=[
+                        {
+                            "width": 600,
+                            "height": 600,
+                            "crop": "limit",
+                            "quality": "auto"
+                        }
+                    ]
+                )
+                user.avatar = upload_result["secure_url"]
             except Exception as e:
                 return jsonify({"error": f"Image processing failed: {str(e)}"}), 500
 

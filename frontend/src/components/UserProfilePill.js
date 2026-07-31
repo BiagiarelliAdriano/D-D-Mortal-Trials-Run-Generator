@@ -32,8 +32,12 @@ const UserProfilePill = () => {
             onClick={() => navigate(`/profile/${user?.id}`)}
         >
             <div className="user-avatar-small">
-                {user?.avatar && (user.avatar.startsWith('/') || user.avatar.startsWith('data:')) ? (
-                    <img src={user.avatar.startsWith('/') ? `${user.avatar}` : user.avatar} alt="P" className="user-avatar-img" />
+                {user?.avatar ? (
+                    <img
+                        src={user.avatar}
+                        alt="Profile"
+                        className="user-avatar-img"
+                    />
                 ) : (
                     user?.username?.substring(0, 2).toUpperCase()
                 )}

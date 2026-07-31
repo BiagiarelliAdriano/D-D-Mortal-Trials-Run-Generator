@@ -13,6 +13,7 @@ import StatModifierOverlay from './StatModifierOverlay';
 import LevelUpOverlay from "./LevelUpOverlay";
 import NotesWidget from "./NotesWidget";
 import BackToTop from "./common/BackToTop";
+import API_BASE_URL from "../config";
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
@@ -1567,13 +1568,17 @@ const SpellOverlay = ({
     const progressionKey = progression === "pact" ? "pact_magic" : progression;
     const slotsTable = progressionKey ? spellSlotsRules?.[progressionKey] : null;
 
-    let maxAvailableSlot = 0;
-    if (slotsTable) {
-        let clvl = character.level;
-        while (clvl > 0 && !slotsTable[clvl]) clvl--;
-        if (clvl > 0) {
-            const slots = slotsTable[clvl];
-            maxAvailableSlot = Math.max(...Object.keys(slots).map(Number));
+    let maxSpellLevelForClass = 0;
+    if (slotsTable && activeClassData) {
+        let classLevel = activeClassData.level;
+        while (classLevel > 0 && !slotsTable[classLevel]) {
+            classLevel--;
+        }
+        if (classLevel > 0) {
+            const slots = slotsTable[classLevel];
+            maxSpellLevelForClass = Math.max(
+                ...Object.keys(slots).map(Number)
+            );
         }
     }
 
@@ -1595,8 +1600,8 @@ const SpellOverlay = ({
     const spellsAtLimit = preparedCountActive >= spellsPreparedLimit;
 
     const hintText = hasCantrips
-        ? `Filtering by your max available spell slot level (Cantrips to Level ${maxAvailableSlot}). Spells chosen are saved automatically.`
-        : `Filtering by your max available spell slot level (Level 1 to Level ${maxAvailableSlot}). Spells chosen are saved automatically.`;
+        ? `Filtering by your max available spell slot level (Cantrips to Level ${maxSpellLevelForClass}). Spells chosen are saved automatically.`
+        : `Filtering by your max available spell slot level (Level 1 to Level ${maxSpellLevelForClass}). Spells chosen are saved automatically.`;
 
     if (minimized) {
         return (
@@ -1661,7 +1666,7 @@ const SpellOverlay = ({
                 <p className="overlay-hint">{hintText}</p>
                 <div className="spell-overlay-list">
                     {Object.keys(availableSpells).map(level => {
-                        if (parseInt(level) > maxAvailableSlot && level !== "0") return null;
+                        if (parseInt(level) > maxSpellLevelForClass && level !== "0") return null;
 
                         const term = spellSearchTerm.toLowerCase();
                         const spellsAtLevel = availableSpells[level].filter(s =>
@@ -1776,7 +1781,7 @@ function CharacterSheet() {
         if (selectedLevelUpClass) {
             const className = selectedLevelUpClass.toLowerCase();
             if (!allClassRules[className]) {
-                fetch(`http://localhost:5000/api/classes/${className}`)
+                fetch(`${API_BASE_URL}/api/classes/${className}`)
                     .then(res => res.json())
                     .then(data => {
                         setAllClassRules(prev => ({
@@ -1889,9 +1894,9 @@ function CharacterSheet() {
         try {
             // 1. Fetch Global Rules first (Optional but good to have ready)
             const [weaponRes, armorRes, spellSlotsRes] = await Promise.all([
-                fetch(`http://localhost:5000/api/rules/weapons`),
-                fetch(`http://localhost:5000/api/rules/armor`),
-                fetch(`http://localhost:5000/api/rules/spell_slots`)
+                fetch(`${API_BASE_URL}/api/rules/weapons`),
+                fetch(`${API_BASE_URL}/api/rules/armor`),
+                fetch(`${API_BASE_URL}/api/rules/spell_slots`)
             ]);
 
             const wRules = await weaponRes.json();
@@ -1903,7 +1908,7 @@ function CharacterSheet() {
             setSpellSlotsRules(sSlotsRules);
 
             // 2. Fetch Character Data
-            const charRes = await fetch(`http://localhost:5000/api/characters/${id}`, {
+            const charRes = await fetch(`${API_BASE_URL}/api/characters/${id}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (!charRes.ok) {
@@ -1967,14 +1972,14 @@ function CharacterSheet() {
                     const className = cls.class_name.toLowerCase();
                     if (!classFetches[className]) {
                         classFetches[className] = fetch(
-                            `http://localhost:5000/api/classes/${className}`
+                            `${API_BASE_URL}/api/classes/${className}`
                         ).then(r => r.json());
                     }
                 });
             } else if (data.class?.name) {
                 const className = data.class.name.toLowerCase();
                 classFetches[className] = fetch(
-                    `http://localhost:5000/api/classes/${className}`
+                    `${API_BASE_URL}/api/classes/${className}`
                 ).then(r => r.json());
             }
             const classNames = Object.keys(classFetches);
@@ -1989,15 +1994,15 @@ function CharacterSheet() {
 
             characterClasses.forEach(className => {
                 rulePromises.push(
-                    fetch(`http://localhost:5000/api/spells/${className}`)
+                    fetch(`${API_BASE_URL}/api/spells/${className}`)
                         .then(r => r.json())
                 );
             });
             if (data.data?.species) {
-                rulePromises.push(fetch(`http://localhost:5000/api/species`).then(r => r.json()));
+                rulePromises.push(fetch(`${API_BASE_URL}/api/species`).then(r => r.json()));
             }
             if (data.data?.background) {
-                rulePromises.push(fetch(`http://localhost:5000/api/backgrounds`).then(r => r.json()));
+                rulePromises.push(fetch(`${API_BASE_URL}/api/backgrounds`).then(r => r.json()));
             }
 
             const ruleResults = await Promise.all(rulePromises);
@@ -2055,7 +2060,7 @@ function CharacterSheet() {
                 if (bg) setBackgroundRules(bg);
             }
 
-            fetch("http://localhost:5000/api/classes/multiclass-data", {
+            fetch(`${API_BASE_URL}/api/classes/multiclass-data`, {
                 headers: {
                     "Authorization": `Bearer ${token}`
                 }
@@ -2066,8 +2071,8 @@ function CharacterSheet() {
                 })
 
             // 4b. Fetch Global Rule Options (Weapon Mastery, Metamagic, Invocations)
-            const optionsRes = await fetch("http://localhost:5000/api/rules/options");
-            const featsRes = await fetch("http://localhost:5000/api/feats");
+            const optionsRes = await fetch(`${API_BASE_URL}/api/rules/options`);
+            const featsRes = await fetch(`${API_BASE_URL}/api/feats`);
 
             if (optionsRes.ok && featsRes.ok) {
                 const optionsData = await optionsRes.json();
@@ -2076,14 +2081,14 @@ function CharacterSheet() {
             }
 
             // 5. Check for Active Session Participation
-            const sessionRes = await fetch(`http://localhost:5000/api/host/active`, {
+            const sessionRes = await fetch(`${API_BASE_URL}/api/host/active`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (sessionRes.ok) {
                 const activeSessions = await sessionRes.json();
                 for (const s of activeSessions) {
                     if (!s.can_enter) continue;
-                    const detailRes = await fetch(`http://localhost:5000/api/host/details/${s.id}`, {
+                    const detailRes = await fetch(`${API_BASE_URL}/api/host/details/${s.id}`, {
                         headers: { 'Authorization': `Bearer ${token}` }
                     });
                     if (detailRes.ok) {
@@ -2232,7 +2237,7 @@ function CharacterSheet() {
     }, [baseMaxHp, maxHpModifier]);
 
     const saveCharacter = useCallback((updates) => {
-        fetch(`http://localhost:5000/api/characters/${id}`, {
+        fetch(`${API_BASE_URL}/api/characters/${id}`, {
             method: "PUT",
             headers: {
                 "Content-Type": "application/json",
@@ -2340,7 +2345,7 @@ function CharacterSheet() {
         const loadingId = addAlert(`Initiating Level Up to Level ${nextLevel}...`, 'loading', 0);
         setLevelingUpAlertId(loadingId);
 
-        fetch(`http://localhost:5000/api/characters/${id}/levelup`, {
+        fetch(`${API_BASE_URL}/api/characters/${id}/levelup`, {
             method: "POST",
             headers: {
                 "Authorization": `Bearer ${token}`,
@@ -2389,7 +2394,7 @@ function CharacterSheet() {
         if (!(await confirm("Are you sure you want to level down? This will reset your stats for the previous level."))) return;
 
         try {
-            const res = await fetch(`http://localhost:5000/api/characters/${id}/leveldown`, {
+            const res = await fetch(`${API_BASE_URL}/api/characters/${id}/leveldown`, {
                 method: "POST",
                 headers: { "Authorization": `Bearer ${token}` }
             });
@@ -2581,8 +2586,6 @@ function CharacterSheet() {
         });
     }, [spellSlotsCurrent, saveCharacter]);
 
-    const API_BASE_URL = "http://localhost:5000";
-
     const applyStatModifier = async (type, statKey, newValue) => {
         setIsApplyingStatMod(true);
         const loadingId = addAlert(`Applying changes to ${statModConfig.label}...`, "loading", 0);
@@ -2695,7 +2698,7 @@ function CharacterSheet() {
         }
 
         try {
-            const res = await fetch(`http://localhost:5000/api/characters/${id}/inventory/remove`, {
+            const res = await fetch(`${API_BASE_URL}/api/characters/${id}/inventory/remove`, {
                 method: "POST",
                 headers: {
                     'Content-Type': 'application/json',
@@ -2740,7 +2743,7 @@ function CharacterSheet() {
     const togglePrivacy = () => {
         if (!isOwner && !isAdmin) return;
 
-        fetch(`http://localhost:5000/api/characters/${id}/toggle-privacy`, {
+        fetch(`${API_BASE_URL}/api/characters/${id}/toggle-privacy`, {
             method: "POST",
             headers: { "Authorization": `Bearer ${token}` }
         })
@@ -2783,7 +2786,7 @@ function CharacterSheet() {
         if (!await confirm(`Are you sure you want to send ${itemToTransfer.name} to this character?`)) return;
 
         try {
-            const res = await fetch(`http://localhost:5000/api/host/${activeSession.id}/transfer-item`, {
+            const res = await fetch(`${API_BASE_URL}/api/host/${activeSession.id}/transfer-item`, {
                 method: "POST",
                 headers: {
                     'Content-Type': 'application/json',
@@ -2812,7 +2815,7 @@ function CharacterSheet() {
         if (!await confirm(`Are you sure you want to send ${goldTransferAmount} GP to this character?`)) return;
 
         try {
-            const res = await fetch(`http://localhost:5000/api/host/${activeSession.id}/transfer-gold`, {
+            const res = await fetch(`${API_BASE_URL}/api/host/${activeSession.id}/transfer-gold`, {
                 method: "POST",
                 headers: {
                     'Content-Type': 'application/json',
@@ -2839,7 +2842,7 @@ function CharacterSheet() {
 
     const handleAcknowledgeGold = async () => {
         try {
-            const res = await fetch(`http://localhost:5000/api/characters/${id}/acknowledge-gold-gift`, {
+            const res = await fetch(`${API_BASE_URL}/api/characters/${id}/acknowledge-gold-gift`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -2874,7 +2877,7 @@ function CharacterSheet() {
 
     const handleAcknowledgeItem = async (itemIndex) => {
         try {
-            const res = await fetch(`http://localhost:5000/api/characters/${id}/acknowledge-item`, {
+            const res = await fetch(`${API_BASE_URL}/api/characters/${id}/acknowledge-item`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

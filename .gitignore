@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual environments
+venv/
+env/
+.venv/
+
+# Environment variables
+.env
+frontend/.env
+
+# Flask instance
+instance/
+
+# Uploads (optional - see note below)
+static/uploads/
+
+# Node
+node_modules/
+frontend/node_modules/
+
+# React build
+frontend/build/
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# VS Code
+.vscode/

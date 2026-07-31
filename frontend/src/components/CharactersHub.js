@@ -5,6 +5,7 @@ import { useNotification } from "../context/NotificationContext";
 import "../styles/CharactersHub.css";
 import UserProfilePill from "./UserProfilePill";
 import BackToTop from "./common/BackToTop";
+import API_BASE_URL from "../config";
 
 function CharactersHub() {
     const [characters, setCharacters] = useState([]);
@@ -16,7 +17,7 @@ function CharactersHub() {
 
     // Fetch function for polling
     const fetchCharacters = useCallback(() => {
-        fetch("http://localhost:5000/api/characters", {
+        fetch(`${API_BASE_URL}/api/characters`, {
             headers: { 'Authorization': `Bearer ${token}` }
         })
             .then(res => res.json())
@@ -65,7 +66,7 @@ function CharactersHub() {
         if (!(await confirm("Are you sure you want to delete this character?"))) return;
 
         try {
-            const response = await fetch(`http://localhost:5000/api/characters/${id}`, {
+            const response = await fetch(`${API_BASE_URL}/api/characters/${id}`, {
                 method: "DELETE",
                 headers: {
                     "Authorization": `Bearer ${token}`

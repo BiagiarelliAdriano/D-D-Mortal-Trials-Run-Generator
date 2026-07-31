@@ -7,12 +7,12 @@ const UserProfile = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const { user: currentUser, token, login } = useAuth();
-    
+
     const [profileData, setProfileData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [editMode, setEditMode] = useState(false);
-    
+
     // Edit form states
     const [newUsername, setNewUsername] = useState('');
     const [newPassword, setNewPassword] = useState('');
@@ -98,10 +98,20 @@ const UserProfile = () => {
 
     const getAvatarDisplay = () => {
         const avatar = avatarPreview || profileData.avatar;
-        if (avatar.startsWith('/') || avatar.startsWith('data:')) {
-            return <img src={avatar.startsWith('/') ? `${avatar}` : avatar} alt="Profile" className="profile-avatar" />;
+        if (avatar) {
+            return (
+                <img
+                    src={avatar}
+                    alt="Profile"
+                    className="profile-avatar"
+                />
+            );
         }
-        return <div className="profile-avatar">{profileData.username.substring(0, 2).toUpperCase()}</div>;
+        return (
+            <div className="profile-avatar">
+                {profileData.username.substring(0, 2).toUpperCase()}
+            </div>
+        );
     };
 
     return (
@@ -144,18 +154,18 @@ const UserProfile = () => {
                     <form className="edit-form" onSubmit={handleSave}>
                         <div className="edit-form-group">
                             <label>Ascendant Name</label>
-                            <input 
-                                type="text" 
-                                value={newUsername} 
+                            <input
+                                type="text"
+                                value={newUsername}
                                 onChange={(e) => setNewUsername(e.target.value)}
                                 placeholder="Change your name..."
                             />
                         </div>
                         <div className="edit-form-group">
                             <label>New Secret Password</label>
-                            <input 
-                                type="password" 
-                                value={newPassword} 
+                            <input
+                                type="password"
+                                value={newPassword}
                                 onChange={(e) => setNewPassword(e.target.value)}
                                 placeholder="Leave empty to keep current..."
                             />
@@ -163,10 +173,10 @@ const UserProfile = () => {
                         <div className="edit-form-group">
                             <label>Update Avatar</label>
                             <div className="file-input-wrapper">
-                                <input 
-                                    type="file" 
-                                    id="avatar-upload" 
-                                    hidden 
+                                <input
+                                    type="file"
+                                    id="avatar-upload"
+                                    hidden
                                     onChange={handleFileChange}
                                     accept="image/*"
                                 />
@@ -188,7 +198,7 @@ const UserProfile = () => {
                                 Cancel
                             </button>
                         </div>
-                        {error && <div className="auth-error" style={{marginTop: '10px'}}>{error}</div>}
+                        {error && <div className="auth-error" style={{ marginTop: '10px' }}>{error}</div>}
                     </form>
                 )}
 
@@ -200,8 +210,8 @@ const UserProfile = () => {
                     {profileData.characters.length > 0 ? (
                         <div className="profile-char-grid">
                             {profileData.characters.map(char => (
-                                <div 
-                                    key={char.id} 
+                                <div
+                                    key={char.id}
                                     className="character-card"
                                     onClick={() => window.open(`/characters/${char.id}`, '_blank')}
                                 >
@@ -220,7 +230,7 @@ const UserProfile = () => {
                             <h3>No characters found.</h3>
                             <p>This Ascendant has yet to forge their first destiny.</p>
                             {isOwner && (
-                                <button className="create-button" onClick={() => navigate('/characters/create')} style={{marginTop: '20px'}}>
+                                <button className="create-button" onClick={() => navigate('/characters/create')} style={{ marginTop: '20px' }}>
                                     ✧ Create First Character
                                 </button>
                             )}

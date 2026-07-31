@@ -2,10 +2,12 @@ alembic==1.15.2
 asgiref==3.8.1
 blinker==1.9.0
 certifi==2025.1.31
+cffi==2.0.0
 charset-normalizer==3.4.1
 click==8.1.8
 cloudinary==1.42.2
 colorama==0.4.6
+cryptography==48.0.0
 dj-database-url==0.5.0
 dj-rest-auth==2.2.5
 Django==3.2.24
@@ -14,6 +16,8 @@ django-cors-headers==3.13.0
 djangorestframework==3.13.1
 djangorestframework-simplejwt==5.2.2
 Flask==3.1.0
+flask-cors==6.0.2
+Flask-JWT-Extended==4.7.1
 Flask-Migrate==4.1.0
 Flask-SQLAlchemy==3.1.1
 greenlet==3.2.1
@@ -27,10 +31,11 @@ packaging==24.2
 pillow==11.1.0
 psycopg2==2.9.10
 psycopg2-binary==2.9.10
+pycparser==3.0
 PyJWT==2.10.1
+python-dotenv==1.2.2
 pytz==2025.1
 requests==2.32.3
-setuptools==75.8.0
 six==1.17.0
 SQLAlchemy==2.0.40
 sqlparse==0.5.3

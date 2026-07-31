@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import API_BASE_URL from "../config";
 
 function CharacterForm() {
     const { id } = useParams();
@@ -74,17 +75,17 @@ function CharacterForm() {
     const [previewLevel, setPreviewLevel] = useState(1);
 
     useEffect(() => {
-        fetch("http://localhost:5000/api/backgrounds")
+        fetch(`${API_BASE_URL}/api/backgrounds`)
             .then(res => res.json())
             .then(data => setBackgrounds(data))
             .catch(err => console.error("Failed to load backgrounds", err));
 
-        fetch("http://localhost:5000/api/species")
+        fetch(`${API_BASE_URL}/api/species`)
             .then(res => res.json())
             .then(data => setSpeciesData(data))
             .catch(err => console.error("Failed to load species", err));
 
-        fetch("http://localhost:5000/api/feats")
+        fetch(`${API_BASE_URL}/api/feats`)
             .then(res => res.json())
             .then(data => setFeats(data))
             .catch(err => console.error("Failed to load feats", err));
@@ -100,7 +101,7 @@ function CharacterForm() {
     useEffect(() => {
         if (!isEditMode) return;
 
-        fetch(`http://localhost:5000/api/characters/${id}`, {
+        fetch(`${API_BASE_URL}/api/characters/${id}`, {
             headers: { 'Authorization': `Bearer ${token}` }
         })
             .then(res => res.json())
@@ -120,14 +121,14 @@ function CharacterForm() {
                 }
 
                 if (data.class.name) {
-                    fetch(`http://localhost:5000/api/classes/${data.class.name.toLowerCase()}`)
+                    fetch(`${API_BASE_URL}/api/classes/${data.class.name.toLowerCase()}`)
                         .then(res => res.json())
                         .then(classData => setClassDetails(classData))
                         .catch(err => console.error("Failed to load class details during edit", err));
                 }
 
                 if (data.data.species) {
-                    fetch(`http://localhost:5000/api/species`)
+                    fetch(`${API_BASE_URL}/api/species`)
                         .then(res => res.json())
                         .then(speciesList => {
                             const found = speciesList.find(s => s.name === data.data.species);
@@ -148,7 +149,7 @@ function CharacterForm() {
         setPreviewLevel(1); // Reset preview level
 
         // Fetch class details
-        fetch(`http://localhost:5000/api/classes/${className.toLowerCase()}`)
+        fetch(`${API_BASE_URL}/api/classes/${className.toLowerCase()}`)
             .then(res => res.json())
             .then(data => setClassDetails(data))
             .catch(err => console.error("Failed to load class details", err));
@@ -478,8 +479,8 @@ function CharacterForm() {
 
     const handleSubmit = () => {
         const url = isEditMode
-            ? `http://localhost:5000/api/characters/${id}`
-            : "http://localhost:5000/api/characters";
+            ? `${API_BASE_URL}/api/characters/${id}`
+            : `${API_BASE_URL}/api/characters`;
 
         const payload = new FormData();
         payload.append("name", formData.name);
