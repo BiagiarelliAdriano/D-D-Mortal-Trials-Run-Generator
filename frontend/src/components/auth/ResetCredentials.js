@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import '../../styles/Auth.css';
+import API_BASE_URL from '../../config';
 
 const ResetCredentials = () => {
     const location = useLocation();
@@ -45,7 +46,7 @@ const ResetCredentials = () => {
         setLoading(true);
 
         try {
-            const response = await fetch('/api/auth/reset-credentials', {
+            const response = await fetch(`${API_BASE_URL}/api/auth/reset-credentials`, {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json',

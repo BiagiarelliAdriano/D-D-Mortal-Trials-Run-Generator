@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import '../../styles/Auth.css';
+import API_BASE_URL from '../../config';
 
 const RecoveryRequest = () => {
     const [activeTab, setActiveTab] = useState('self_service'); // 'self_service', 'manual', 'code'
@@ -32,7 +33,7 @@ const RecoveryRequest = () => {
         setFetchingQuestion(true);
         setStatus({ type: '', message: '' });
         try {
-            const response = await fetch(`/api/auth/security-question?username=${encodeURIComponent(selfUsername.trim())}`);
+            const response = await fetch(`${API_BASE_URL}/api/auth/security-question?username=${encodeURIComponent(selfUsername.trim())}`);
             const data = await response.json();
             if (response.ok) {
                 setQuestion(data.security_question);
@@ -52,7 +53,7 @@ const RecoveryRequest = () => {
         setIsSubmitting(true);
         setStatus({ type: '', message: '' });
         try {
-            const response = await fetch('/api/auth/verify-security-answer', {
+            const response = await fetch(`${API_BASE_URL}/api/auth/verify-security-answer`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -109,7 +110,7 @@ const RecoveryRequest = () => {
         setStatus({ type: '', message: '' });
 
         try {
-            const response = await fetch('/api/auth/redeem-recovery', {
+            const response = await fetch(`${API_BASE_URL}/api/auth/redeem-recovery`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

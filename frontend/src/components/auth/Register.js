@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import '../../styles/Auth.css';
+import API_BASE_URL from '../../config';
 
 const Register = () => {
     const [username, setUsername] = useState('');
@@ -42,7 +43,7 @@ const Register = () => {
         setLoading(true);
 
         try {
-            const response = await fetch('/api/auth/register', {
+            const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

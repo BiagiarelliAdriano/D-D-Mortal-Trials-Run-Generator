@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { needsSecurityChallenge } from '../../utils/deviceFingerprint';
 import '../../styles/Auth.css';
+import API_BASE_URL from '../../config';
 
 const Login = () => {
     const [step, setStep] = useState(1); // 1 = credentials, 2 = security challenge
@@ -26,7 +27,7 @@ const Login = () => {
                 body.security_answer = secAnswer;
             }
 
-            const response = await fetch('/api/auth/login', {
+            const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(body)
@@ -59,7 +60,7 @@ const Login = () => {
             setLoading(true);
             try {
                 const res = await fetch(
-                    `/api/auth/security-question?username=${encodeURIComponent(username.trim())}`
+                    `${API_BASE_URL}/api/auth/security-question?username=${encodeURIComponent(username.trim())}`
                 );
                 if (!res.ok) {
                     // Username doesn't exist — show a generic error to avoid enumeration
