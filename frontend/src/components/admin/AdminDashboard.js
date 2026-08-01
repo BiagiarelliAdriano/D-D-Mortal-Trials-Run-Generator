@@ -212,19 +212,19 @@ const AdminDashboard = () => {
                                     <React.Fragment key={u.id}>
                                         <tr className={`${u.is_admin ? 'admin-row' : ''} ${expandedUser === u.id ? 'expanded-row' : ''}`} onClick={() => toggleExpand(u)}>
                                             <td className="center">
-                                                {u.avatar.startsWith('static/') || u.avatar.startsWith('/') ? (
+                                                {u.avatar ? (
                                                     <img 
-                                                        src={`${u.avatar}`} 
+                                                        src={u.avatar} 
                                                         alt="Avatar" 
                                                         className="admin-avatar-mini"
                                                         onError={(e) => {
                                                             e.target.onerror = null;
-                                                            e.target.src = '';
-                                                            e.target.innerText = u.username.substring(0, 2).toUpperCase();
+                                                            e.target.style.display = 'none';
+                                                            e.target.parentNode.innerHTML = `<div class="admin-avatar-mini">${u.username.substring(0, 2).toUpperCase()}</div>`;
                                                         }}
                                                     />
                                                 ) : (
-                                                    <div className="admin-avatar-mini" title={u.avatar}>
+                                                    <div className="admin-avatar-mini">
                                                         {u.username.substring(0, 2).toUpperCase()}
                                                     </div>
                                                 )}
@@ -249,8 +249,17 @@ const AdminDashboard = () => {
                                                     <div className="admin-user-management">
                                                         <div className="management-header">
                                                             <div className="user-profile-preview">
-                                                                {u.avatar.startsWith('/') ? (
-                                                                    <img src={`${u.avatar}`} alt="Avatar Large" className="admin-avatar-large" />
+                                                                {u.avatar ? (
+                                                                    <img 
+                                                                        src={u.avatar} 
+                                                                        alt="Avatar Large" 
+                                                                        className="admin-avatar-large"
+                                                                        onError={(e) => {
+                                                                            e.target.onerror = null;
+                                                                            e.target.style.display = 'none';
+                                                                            e.target.parentNode.innerHTML = `<div class="admin-avatar-large">${u.username.substring(0, 2).toUpperCase()}</div>`;
+                                                                        }}
+                                                                    />
                                                                 ) : (
                                                                     <div className="admin-avatar-large">{u.username.substring(0, 2).toUpperCase()}</div>
                                                                 )}

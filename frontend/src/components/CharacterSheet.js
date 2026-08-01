@@ -1309,12 +1309,19 @@ const SpellcastingWidget = ({
     const [castingSpell, setCastingSpell] = useState(null);
     const [spellcastingSearchTerm, setSpellcastingSearchTerm] = useState("");
     const [spellTypeFilter, setSpellTypeFilter] = useState(null);
+    const [selectedStatClass, setSelectedStatClass] = useState(null);
 
     const scClasses = useMemo(() => {
         return getSpellcastingClasses(character, allClassRules);
     }, [character, allClassRules]);
 
-    const activeRules = scClasses.length > 0 ? scClasses[0].rules : spellcastingRules;
+    const activeClassData = useMemo(() => {
+        if (scClasses.length === 0) return null;
+        return scClasses.find(c => c.className === selectedStatClass) || scClasses[0];
+    }, [scClasses, selectedStatClass]);
+
+    const activeRules = activeClassData?.rules || spellcastingRules;
+    const activeClassName = activeClassData?.className || scClasses[0]?.className;
 
     const spellcasting = activeRules || {};
     const ability = spellcasting.ability || "intelligence";
@@ -1415,6 +1422,7 @@ const SpellcastingWidget = ({
 
             <div className="spell-limits-summary" style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
                 {scClasses.map(c => {
+                    const isSelected = (activeClassName === c.className);
                     const selectedList = migratedSpells[c.className] || [];
                     const cantripsCount = selectedList.filter(name => {
                         for (const lvl in availableSpells) {
@@ -1426,19 +1434,40 @@ const SpellcastingWidget = ({
                     const limitC = resolveScalingValue(c.rules?.cantrips_known, c.level) || 0;
                     const limitP = resolveScalingValue(c.rules?.spells_prepared, c.level) || 0;
                     return (
-                        <div key={c.className} className="spell-stat-box" style={{ padding: '5px 10px' }}>
-                            <span className="spell-stat-label" style={{ marginBottom: '2px' }}>{c.className.charAt(0).toUpperCase() + c.className.slice(1)}</span>
-                            <span style={{ fontSize: '0.85em', opacity: 0.9 }}>
+                        <button
+                            type="button"
+                            key={c.className}
+                            className={`spell-stat-box spell-class-selector-btn ${isSelected ? 'active' : ''}`}
+                            onClick={() => setSelectedStatClass(c.className)}
+                            title={`Click to view ${c.className.charAt(0).toUpperCase() + c.className.slice(1)} spellcasting stats`}
+                            style={{
+                                padding: '6px 14px',
+                                cursor: 'pointer',
+                                color: isSelected ? '#ffffff' : '#e0e0e0',
+                                background: isSelected ? 'rgba(255, 215, 0, 0.2)' : 'rgba(255, 255, 255, 0.08)',
+                                border: isSelected ? '1px solid var(--accent)' : '1px solid rgba(255, 255, 255, 0.2)',
+                                borderRadius: '6px',
+                                textAlign: 'left',
+                                transition: 'all 0.2s ease',
+                                outline: 'none'
+                            }}
+                        >
+                            <span className="spell-stat-label" style={{ marginBottom: '2px', display: 'block', color: isSelected ? '#ffd700' : '#e0e0e0', fontWeight: 'bold' }}>
+                                {c.className.charAt(0).toUpperCase() + c.className.slice(1)} {scClasses.length > 1 && isSelected ? '★' : ''}
+                            </span>
+                            <span style={{ fontSize: '0.85em', color: isSelected ? '#ffffff' : '#b0b0b0', opacity: 0.95 }}>
                                 C: {cantripsCount}/{limitC} | P: {preparedCount}/{limitP}
                             </span>
-                        </div>
+                        </button>
                     );
                 })}
             </div>
 
             <div className="spell-stats-row">
                 <div className="spell-stat-box">
-                    <span className="spell-stat-label">Ability</span>
+                    <span className="spell-stat-label">
+                        Ability {activeClassName ? `(${activeClassName.charAt(0).toUpperCase() + activeClassName.slice(1)})` : ''}
+                    </span>
                     <span className="spell-stat-val">{ability.slice(0, 3).toUpperCase()}</span>
                 </div>
                 <div className="spell-stat-box">
