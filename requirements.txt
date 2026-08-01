@@ -9,12 +9,6 @@ cloudinary==1.42.2
 colorama==0.4.6
 cryptography==48.0.0
 dj-database-url==0.5.0
-dj-rest-auth==2.2.5
-Django==3.2.24
-django-cloudinary-storage==0.3.0
-django-cors-headers==3.13.0
-djangorestframework==3.13.1
-djangorestframework-simplejwt==5.2.2
 Flask==3.1.0
 flask-cors==6.0.2
 Flask-JWT-Extended==4.7.1
