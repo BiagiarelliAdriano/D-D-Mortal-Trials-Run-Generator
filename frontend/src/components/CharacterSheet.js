@@ -1098,7 +1098,16 @@ const SpellCard = ({
             <div className="spell-header">
                 <span className="spell-name">
                     {spell.name}
-                    {sourceClass && <span className="spell-source-badge" style={{ fontSize: '0.7em', padding: '2px 6px', background: '#444', borderRadius: '4px', marginLeft: '8px', verticalAlign: 'middle' }}>{sourceClass.charAt(0).toUpperCase() + sourceClass.slice(1)}</span>}
+                    {sourceClass && (
+                        <span className="spell-source-badge" style={{ fontSize: '0.7em', padding: '2px 6px', background: '#444', borderRadius: '4px', marginLeft: '8px', verticalAlign: 'middle' }}>
+                            {sourceClass.charAt(0).toUpperCase() + sourceClass.slice(1)}
+                        </span>
+                    )}
+                    {spell.isUnpreparedRitual && (
+                        <span className="spell-source-badge ritual-unprepared-badge" style={{ fontSize: '0.7em', padding: '2px 6px', background: '#6b21a8', color: '#fff', borderRadius: '4px', marginLeft: '8px', verticalAlign: 'middle' }}>
+                            📜 Ritual (Spellbook)
+                        </span>
+                    )}
                 </span>
 
                 {(
@@ -1106,29 +1115,53 @@ const SpellCard = ({
                         className="cast-wrapper"
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <button
-                            className="cast-spell-btn"
-                            onClick={() => {
-                                if (spellLevel === 0) {
-                                    addAlert(
-                                        `You cast ${spell.name}!`,
-                                        "success"
+                        {spell.isUnpreparedRitual ? (
+                            <button
+                                className="cast-spell-btn ritual-btn"
+                                style={{ background: 'linear-gradient(135deg, #7b1fa2, #4a148c)', color: '#fff' }}
+                                onClick={() => {
+                                    addAlert(`You cast ${spell.name} as a Ritual (takes +10 min, no spell slot used)!`, "info");
+                                }}
+                            >
+                                Cast Ritual (10m)
+                            </button>
+                        ) : (
+                            <button
+                                className="cast-spell-btn"
+                                onClick={() => {
+                                    if (spellLevel === 0) {
+                                        addAlert(
+                                            `You cast ${spell.name}!`,
+                                            "success"
+                                        );
+                                        return;
+                                    }
+
+                                    setCastingSpell(
+                                        castingSpell === spell.name
+                                            ? null
+                                            : spell.name
                                     );
-                                    return;
-                                }
+                                }}
+                            >
+                                Cast
+                            </button>
+                        )}
 
-                                setCastingSpell(
-                                    castingSpell === spell.name
-                                        ? null
-                                        : spell.name
-                                );
-                            }}
-                        >
-                            Cast
-                        </button>
-
-                        {spellLevel > 0 && castingSpell === spell.name && (
+                        {!spell.isUnpreparedRitual && spellLevel > 0 && castingSpell === spell.name && (
                             <div className="cast-dropdown">
+                                {isRitualSpell(spell) && (
+                                    <button
+                                        className="cast-level-btn"
+                                        style={{ background: '#6b21a8', color: '#fff' }}
+                                        onClick={() => {
+                                            addAlert(`You cast ${spell.name} as a Ritual (takes +10 min, no spell slot used)!`, "info");
+                                            setCastingSpell(null);
+                                        }}
+                                    >
+                                        Cast as Ritual (+10m)
+                                    </button>
+                                )}
                                 {castableLevels.map(({ poolName, level }) => (
                                     <button
                                         key={`${poolName}-${level}`}
@@ -1228,14 +1261,31 @@ const getSpellcastingClasses = (character, allClassRules) => {
     return scClasses;
 };
 
+const isRitualSpell = (spell) => {
+    if (!spell) return false;
+    if (spell.ritual) return true;
+    if (Array.isArray(spell.action) && spell.action.includes("Ritual")) return true;
+    if (typeof spell.action === "string" && spell.action.includes("Ritual")) return true;
+    return false;
+};
+
 const migrateSpellsData = (spells, scClasses) => {
+    let result = {};
     if (Array.isArray(spells)) {
         if (scClasses.length > 0) {
-            return { [scClasses[0].className]: [...spells] };
+            result = { [scClasses[0].className]: [...spells] };
         }
-        return {};
+    } else if (spells) {
+        result = { ...spells };
     }
-    return spells ? { ...spells } : {};
+
+    if (scClasses.some(c => c.className === 'wizard')) {
+        const wizardPrepped = result.wizard || [];
+        if (!result.wizard_spellbook) {
+            result.wizard_spellbook = [...wizardPrepped];
+        }
+    }
+    return result;
 };
 
 
@@ -1312,15 +1362,14 @@ const SpellcastingWidget = ({
 
     const migratedSpells = migrateSpellsData(character.data.spells, scClasses);
 
-    // Flatten spells for display
+    // Flatten spells for display (exclude non-class metadata like wizard_spellbook)
     const flattenedSelectedSpells = [];
     Object.entries(migratedSpells).forEach(([className, spellList]) => {
+        if (className === 'wizard_spellbook' || !Array.isArray(spellList)) return;
         spellList.forEach(spellName => {
             flattenedSelectedSpells.push({ name: spellName, sourceClass: className });
         });
     });
-
-
 
     return (
         <div className="spellcasting-content">
@@ -1451,6 +1500,8 @@ const SpellcastingWidget = ({
                         return { ...spellData, sourceClass: fs.sourceClass };
                     });
 
+                    let combinedAtLevel = [...selectedAtLevel];
+
                     const safeString = (val) => {
                         if (!val) return "";
                         if (typeof val === "string") return val;
@@ -1461,14 +1512,14 @@ const SpellcastingWidget = ({
 
                     if (spellTypeFilter) {
                         const filterTerm = spellTypeFilter.toLowerCase();
-                        selectedAtLevel = selectedAtLevel.filter(spell =>
+                        combinedAtLevel = combinedAtLevel.filter(spell =>
                             safeString(spell.spell_type).toLowerCase().includes(filterTerm)
                         );
                     }
 
                     if (spellcastingSearchTerm) {
                         const term = spellcastingSearchTerm.toLowerCase();
-                        selectedAtLevel = selectedAtLevel.filter(spell => {
+                        combinedAtLevel = combinedAtLevel.filter(spell => {
                             return (
                                 safeString(spell.name).toLowerCase().includes(term) ||
                                 safeString(spell.school).toLowerCase().includes(term) ||
@@ -1485,14 +1536,14 @@ const SpellcastingWidget = ({
                         });
                     }
 
-                    if (selectedAtLevel.length === 0) return null;
+                    if (combinedAtLevel.length === 0) return null;
 
                     return (
                         <div key={level} className="spell-level-group">
                             <h4>{level === "0" ? "Cantrips" : `Level ${level}`}</h4>
-                            {selectedAtLevel.map((spell, idx) => (
+                            {combinedAtLevel.map((spell, idx) => (
                                 <SpellCard
-                                    key={`${spell.name}-${spell.sourceClass}-${idx}`}
+                                    key={`${spell.name}-${spell.sourceClass || 'sc'}-${idx}`}
                                     spell={spell}
                                     availableSlotsObj={availableSlotsObj}
                                     addAlert={addAlert}
@@ -1528,6 +1579,7 @@ const SpellOverlay = ({
 }) => {
     const [spellSearchTerm, setSpellSearchTerm] = useState("");
     const [activeSpellClass, setActiveSpellClass] = useState(null);
+    const [wizardSubTab, setWizardSubTab] = useState("spellbook");
 
     const scClasses = useMemo(() => {
         return getSpellcastingClasses(character, allClassRules);
@@ -1548,6 +1600,7 @@ const SpellOverlay = ({
     let totalPreparedCount = 0;
 
     Object.values(migratedSpells).forEach(spellList => {
+        if (!Array.isArray(spellList)) return;
         const cantrips = spellList.filter(name => {
             for (const lvl in availableSpells) {
                 if (availableSpells[lvl].some(s => s.name === name && lvl === "0")) return true;
@@ -1563,6 +1616,7 @@ const SpellOverlay = ({
     const activeLevel = activeClassData?.level || character.level;
 
     const selectedSpellsActive = migratedSpells[activeSpellClass] || [];
+    const wizardSpellbookActive = migratedSpells.wizard_spellbook || [];
 
     const progression = activeRules?.progression;
     const progressionKey = progression === "pact" ? "pact_magic" : progression;
@@ -1599,9 +1653,13 @@ const SpellOverlay = ({
     const cantripsAtLimit = cantripsCountActive >= cantripsKnownLimit;
     const spellsAtLimit = preparedCountActive >= spellsPreparedLimit;
 
-    const hintText = hasCantrips
-        ? `Filtering by your max available spell slot level (Cantrips to Level ${maxSpellLevelForClass}). Spells chosen are saved automatically.`
-        : `Filtering by your max available spell slot level (Level 1 to Level ${maxSpellLevelForClass}). Spells chosen are saved automatically.`;
+    const hintText = activeSpellClass === "wizard"
+        ? (wizardSubTab === "spellbook"
+            ? "Spellbook Tab: Choose Level 1+ Wizard spells to learn and record in your Spellbook (starts with 6 at Lv 1, +2 per level up, plus transcribed spells)."
+            : "Prepared Spells Tab: Choose Level 1+ spells from your active Spellbook to prepare for daily casting.")
+        : (hasCantrips
+            ? `Filtering by your max available spell slot level (Cantrips to Level ${maxSpellLevelForClass}). Spells chosen are saved automatically.`
+            : `Filtering by your max available spell slot level (Level 1 to Level ${maxSpellLevelForClass}). Spells chosen are saved automatically.`);
 
     if (minimized) {
         return (
@@ -1638,19 +1696,55 @@ const SpellOverlay = ({
                     </div>
                 )}
 
-                <div className="overlay-stats-bar">
-                    <div className={`stat-pill ${cantripsAtLimit ? 'at-limit' : ''}`}>
-                        {activeSpellClass ? activeSpellClass.charAt(0).toUpperCase() + activeSpellClass.slice(1) + ' ' : ''}Cantrips: <strong>{cantripsCountActive} / {cantripsKnownLimit}</strong>
+                {activeSpellClass === "wizard" && (
+                    <div className="wizard-tab-toggle" style={{ display: 'flex', justifyContent: 'center', gap: '10px', margin: '12px 0' }}>
+                        <button
+                            type="button"
+                            className={`wizard-subtab-btn ${wizardSubTab === 'spellbook' ? 'active' : ''}`}
+                            onClick={() => setWizardSubTab('spellbook')}
+                        >
+                            📖 Spellbook
+                        </button>
+                        <button
+                            type="button"
+                            className={`wizard-subtab-btn ${wizardSubTab === 'prepared' ? 'active' : ''}`}
+                            onClick={() => setWizardSubTab('prepared')}
+                        >
+                            ✨ Prepared Spells
+                        </button>
                     </div>
-                    <div className={`stat-pill ${spellsAtLimit ? 'at-limit' : ''}`}>
-                        {activeSpellClass ? activeSpellClass.charAt(0).toUpperCase() + activeSpellClass.slice(1) + ' ' : ''}Prepared: <strong>{preparedCountActive} / {spellsPreparedLimit}</strong>
-                    </div>
-                    {scClasses.length > 1 && (
-                        <div className="stat-pill" style={{ opacity: 0.8 }}>
-                            Total Selected: {totalCantripsCount + totalPreparedCount}
+                )}
+
+                {activeSpellClass === "wizard" ? (
+                    <div className="overlay-stats-bar">
+                        <div className={`stat-pill ${cantripsAtLimit ? 'at-limit' : ''}`}>
+                            Cantrips: <strong>{cantripsCountActive} / {cantripsKnownLimit}</strong>
                         </div>
-                    )}
-                </div>
+                        {wizardSubTab === "spellbook" ? (
+                            <div className="stat-pill">
+                                Spellbook Spells: <strong>{wizardSpellbookActive.length} Learned</strong> (min {6 + 2 * (activeLevel - 1)})
+                            </div>
+                        ) : (
+                            <div className={`stat-pill ${spellsAtLimit ? 'at-limit' : ''}`}>
+                                Wizard Prepared: <strong>{preparedCountActive} / {spellsPreparedLimit}</strong>
+                            </div>
+                        )}
+                    </div>
+                ) : (
+                    <div className="overlay-stats-bar">
+                        <div className={`stat-pill ${cantripsAtLimit ? 'at-limit' : ''}`}>
+                            {activeSpellClass ? activeSpellClass.charAt(0).toUpperCase() + activeSpellClass.slice(1) + ' ' : ''}Cantrips: <strong>{cantripsCountActive} / {cantripsKnownLimit}</strong>
+                        </div>
+                        <div className={`stat-pill ${spellsAtLimit ? 'at-limit' : ''}`}>
+                            {activeSpellClass ? activeSpellClass.charAt(0).toUpperCase() + activeSpellClass.slice(1) + ' ' : ''}Prepared: <strong>{preparedCountActive} / {spellsPreparedLimit}</strong>
+                        </div>
+                        {scClasses.length > 1 && (
+                            <div className="stat-pill" style={{ opacity: 0.8 }}>
+                                Total Selected: {totalCantripsCount + totalPreparedCount}
+                            </div>
+                        )}
+                    </div>
+                )}
 
                 <div className="search-wrapper spell-search" style={{ margin: '15px 0', maxWidth: 'none' }}>
                     <input
@@ -1664,39 +1758,85 @@ const SpellOverlay = ({
                 </div>
 
                 <p className="overlay-hint">{hintText}</p>
+
+                {activeSpellClass === "wizard" && wizardSubTab === "prepared" && wizardSpellbookActive.length === 0 && (
+                    <div style={{ background: 'rgba(255, 167, 38, 0.15)', border: '1px solid #ffa726', padding: '12px 16px', borderRadius: '8px', margin: '15px 0', color: '#ffb74d', textAlign: 'center', fontSize: '0.9rem' }}>
+                        <i className="fa-solid fa-book-open" style={{ marginRight: '8px' }}></i>
+                        Your Spellbook is currently empty! Switch to the <strong>📖 Spellbook</strong> tab above to select spells you have learned before preparing them.
+                    </div>
+                )}
+
                 <div className="spell-overlay-list">
                     {Object.keys(availableSpells).map(level => {
                         if (parseInt(level) > maxSpellLevelForClass && level !== "0") return null;
 
                         const term = spellSearchTerm.toLowerCase();
-                        const spellsAtLevel = availableSpells[level].filter(s =>
+                        let spellsAtLevel = availableSpells[level].filter(s =>
                             s.name.toLowerCase().includes(term) ||
                             (s.description || "").toLowerCase().includes(term)
                         );
 
-                        if (spellsAtLevel.length === 0 && spellSearchTerm) return null;
+                        if (activeSpellClass === "wizard" && wizardSubTab === "prepared" && level !== "0") {
+                            spellsAtLevel = spellsAtLevel.filter(s => wizardSpellbookActive.includes(s.name));
+                        }
+
+                        if (spellsAtLevel.length === 0 && (spellSearchTerm || (activeSpellClass === "wizard" && wizardSubTab === "prepared"))) return null;
 
                         return (
                             <div key={level} className="overlay-level-group">
                                 <h3>{level === "0" ? "Cantrips" : `Level ${level}`}</h3>
                                 <div className="spell-selection-grid">
                                     {spellsAtLevel.map(spell => {
-                                        const isSelectedActive = selectedSpellsActive.includes(spell.name);
                                         const isCantrip = level === "0";
-                                        const canSelect = isSelectedActive || (isCantrip ? !cantripsAtLimit : !spellsAtLimit);
+                                        let isSelectedActive = false;
+                                        let canSelect = false;
 
-                                        const selectedInClasses = Object.keys(migratedSpells).filter(cls => migratedSpells[cls].includes(spell.name));
+                                        if (activeSpellClass === "wizard") {
+                                            if (isCantrip) {
+                                                isSelectedActive = selectedSpellsActive.includes(spell.name);
+                                                canSelect = isSelectedActive || !cantripsAtLimit;
+                                            } else if (wizardSubTab === "spellbook") {
+                                                isSelectedActive = wizardSpellbookActive.includes(spell.name);
+                                                canSelect = true;
+                                            } else {
+                                                isSelectedActive = selectedSpellsActive.includes(spell.name);
+                                                canSelect = isSelectedActive || !spellsAtLimit;
+                                            }
+                                        } else {
+                                            isSelectedActive = selectedSpellsActive.includes(spell.name);
+                                            canSelect = isSelectedActive || (isCantrip ? !cantripsAtLimit : !spellsAtLimit);
+                                        }
+
+                                        const isPreparedInWizard = (migratedSpells.wizard || []).includes(spell.name);
+                                        const isInSpellbookWizard = (migratedSpells.wizard_spellbook || []).includes(spell.name);
+                                        const selectedInClasses = Object.keys(migratedSpells).filter(cls => cls !== 'wizard_spellbook' && Array.isArray(migratedSpells[cls]) && migratedSpells[cls].includes(spell.name));
 
                                         return (
                                             <div
                                                 key={spell.name}
                                                 className={`spell-select-card ${isSelectedActive ? 'selected' : ''} ${!canSelect ? 'disabled' : ''}`}
-                                                onClick={() => canSelect && onToggleSpell(spell.name, activeSpellClass)}
+                                                onClick={() => canSelect && onToggleSpell(spell.name, activeSpellClass, activeSpellClass === "wizard" ? wizardSubTab : "prepared")}
                                                 style={{ position: 'relative' }}
                                             >
                                                 <div className="spell-name">{spell.name}</div>
                                                 <div className="spell-school">{spell.school}</div>
-                                                {selectedInClasses.length > 0 && (
+
+                                                {activeSpellClass === "wizard" && !isCantrip && (
+                                                    <div style={{ marginTop: '6px', display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                                                        {isInSpellbookWizard && (
+                                                            <span style={{ fontSize: '0.7em', padding: '2px 6px', background: '#2e7d32', color: '#fff', borderRadius: '4px' }}>
+                                                                📖 In Book
+                                                            </span>
+                                                        )}
+                                                        {isPreparedInWizard && (
+                                                            <span style={{ fontSize: '0.7em', padding: '2px 6px', background: '#1565c0', color: '#fff', borderRadius: '4px' }}>
+                                                                ✨ Prepared
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                )}
+
+                                                {selectedInClasses.length > 0 && activeSpellClass !== "wizard" && (
                                                     <div className="spell-source-tags" style={{ marginTop: '5px', display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
                                                         {selectedInClasses.map(cls => (
                                                             <span key={cls} style={{ fontSize: '0.75em', padding: '2px 6px', background: '#333', color: '#fff', borderRadius: '4px' }}>
@@ -3220,9 +3360,78 @@ function CharacterSheet() {
         setExpandedFeatures(prev => ({ ...prev, [id]: !prev[id] }));
     };
 
-    const toggleSpellSelection = (name, className) => {
+    const toggleSpellSelection = (name, className, mode = "prepared") => {
         const scClasses = getSpellcastingClasses(character, allClassRules);
         const migratedSpells = migrateSpellsData(character.data.spells, scClasses);
+
+        if (className === "wizard" && mode === "spellbook") {
+            const spellbookList = migratedSpells.wizard_spellbook ? [...migratedSpells.wizard_spellbook] : [];
+            const preparedList = migratedSpells.wizard ? [...migratedSpells.wizard] : [];
+
+            const isCantrip = availableSpells["0"]?.some(s => s.name === name);
+            if (isCantrip) {
+                const classData = scClasses.find(c => c.className === "wizard");
+                const activeRules = classData?.rules || spellcastingRules;
+                const activeLevel = classData?.level || character.level;
+                const cantripsKnownLimit = resolveScalingValue(activeRules?.cantrips_known, activeLevel) || 0;
+                const cantripsCount = preparedList.filter(n => availableSpells["0"]?.some(s => s.name === n)).length;
+
+                if (preparedList.includes(name)) {
+                    migratedSpells.wizard = preparedList.filter(n => n !== name);
+                } else if (cantripsCount < cantripsKnownLimit) {
+                    migratedSpells.wizard = [...preparedList, name];
+                }
+            } else {
+                if (spellbookList.includes(name)) {
+                    migratedSpells.wizard_spellbook = spellbookList.filter(n => n !== name);
+                    migratedSpells.wizard = preparedList.filter(n => n !== name);
+                } else {
+                    migratedSpells.wizard_spellbook = [...spellbookList, name];
+                }
+            }
+            saveCharacter({ spells: migratedSpells });
+            setCharacter(prev => ({ ...prev, data: { ...prev.data, spells: migratedSpells } }));
+            return;
+        }
+
+        if (className === "wizard" && mode === "prepared") {
+            const preparedList = migratedSpells.wizard ? [...migratedSpells.wizard] : [];
+            const spellbookList = migratedSpells.wizard_spellbook ? [...migratedSpells.wizard_spellbook] : [];
+            const isCantrip = availableSpells["0"]?.some(s => s.name === name);
+
+            if (isCantrip) {
+                const classData = scClasses.find(c => c.className === "wizard");
+                const activeRules = classData?.rules || spellcastingRules;
+                const activeLevel = classData?.level || character.level;
+                const cantripsKnownLimit = resolveScalingValue(activeRules?.cantrips_known, activeLevel) || 0;
+                const cantripsCount = preparedList.filter(n => availableSpells["0"]?.some(s => s.name === n)).length;
+
+                if (preparedList.includes(name)) {
+                    migratedSpells.wizard = preparedList.filter(n => n !== name);
+                } else if (cantripsCount < cantripsKnownLimit) {
+                    migratedSpells.wizard = [...preparedList, name];
+                }
+            } else {
+                if (!spellbookList.includes(name)) return;
+
+                const classData = scClasses.find(c => c.className === "wizard");
+                const activeRules = classData?.rules || spellcastingRules;
+                const activeLevel = classData?.level || character.level;
+                const spellsPreparedLimit = resolveScalingValue(activeRules?.spells_prepared, activeLevel) || 0;
+                const cantripsCount = preparedList.filter(n => availableSpells["0"]?.some(s => s.name === n)).length;
+                const preparedCount = preparedList.length - cantripsCount;
+
+                if (preparedList.includes(name)) {
+                    migratedSpells.wizard = preparedList.filter(n => n !== name);
+                } else if (preparedCount < spellsPreparedLimit) {
+                    migratedSpells.wizard = [...preparedList, name];
+                }
+            }
+            saveCharacter({ spells: migratedSpells });
+            setCharacter(prev => ({ ...prev, data: { ...prev.data, spells: migratedSpells } }));
+            return;
+        }
+
         const currentList = migratedSpells[className] ? [...migratedSpells[className]] : [];
 
         if (currentList.includes(name)) {
