@@ -2016,6 +2016,10 @@ function CharacterSheet() {
     const [featureNotes, setFeatureNotes] = useState({});
     const [spellSlotsCurrent, setSpellSlotsCurrent] = useState({});
 
+    // Character Name Editing State
+    const [isEditingName, setIsEditingName] = useState(false);
+    const [nameInput, setNameInput] = useState("");
+
     // Level Up Overlay State
     const [showLevelUpOverlay, setShowLevelUpOverlay] = useState(false);
     const [levelUpMinimized, setLevelUpMinimized] = useState(false);
@@ -2024,6 +2028,33 @@ function CharacterSheet() {
 
     // Drag and Drop state for Inventory
     const [draggedItemIndex, setDraggedItemIndex] = useState(null);
+
+    // Handle character rename
+    const handleRenameName = async (newName) => {
+        const trimmed = newName.trim();
+        if (!trimmed || trimmed === character.name) {
+            setIsEditingName(false);
+            return;
+        }
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/characters/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ name: trimmed })
+            });
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to rename character');
+            }
+            setCharacter(prev => prev ? { ...prev, name: trimmed } : prev);
+            setIsEditingName(false);
+        } catch (err) {
+            addAlert(err.message, 'error');
+        }
+    };
     const [dragOverItemIndex, setDragOverItemIndex] = useState(null);
 
     // New HP related states
@@ -3663,7 +3694,41 @@ function CharacterSheet() {
                     <div className="header-content">
                         <div className="header-main">
                             <div>
-                                <h2>{character.name} <span className="level-badge">Lvl {character.level}</span></h2>
+                                {!viewOnly && isEditingName ? (
+                                    <div className="char-name-edit-container">
+                                        <input
+                                            className="char-name-input"
+                                            type="text"
+                                            value={nameInput}
+                                            autoFocus
+                                            maxLength={30}
+                                            onChange={e => setNameInput(e.target.value)}
+                                            onKeyDown={e => {
+                                                if (e.key === 'Enter') handleRenameName(nameInput);
+                                                if (e.key === 'Escape') setIsEditingName(false);
+                                            }}
+                                        />
+                                        <span className="level-badge">Lvl {character.level}</span>
+                                        <div className="char-name-actions">
+                                            <button className="icon-btn save" onClick={() => handleRenameName(nameInput)} title="Save Name"><i className="fa-solid fa-check"></i></button>
+                                            <button className="icon-btn cancel" onClick={() => setIsEditingName(false)} title="Cancel"><i className="fa-solid fa-xmark"></i></button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <h2
+                                        className={!viewOnly ? 'char-name-editable' : ''}
+                                        onClick={() => {
+                                            if (!viewOnly) {
+                                                setNameInput(character.name);
+                                                setIsEditingName(true);
+                                            }
+                                        }}
+                                        title={!viewOnly ? 'Click to rename' : ''}
+                                    >
+                                        {character.name} <span className="level-badge">Lvl {character.level}</span>
+                                        {!viewOnly && <i className="fa-solid fa-pen-to-square char-name-edit-icon"></i>}
+                                    </h2>
+                                )}
                                 <div
                                     className="xp-bar-container"
                                     onClick={() => !viewOnly && setShowXpEditor(true)}

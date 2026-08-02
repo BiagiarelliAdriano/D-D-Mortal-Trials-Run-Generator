@@ -150,10 +150,21 @@
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), 0 0 15px rgba(255, 215, 0, 0.2);
 }
 
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+}
+
 .card-header h3 {
     margin: 0;
     font-size: 1.5rem;
     color: var(--accent);
+    flex: 1;
+    min-width: 0;
+    overflow-wrap: anywhere;
+    word-break: break-word;
 }
 
 .card-info {

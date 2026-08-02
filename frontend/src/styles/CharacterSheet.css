@@ -4847,3 +4847,86 @@ h3,
 
 .rest-column.dimmed { opacity: 0.4; filter: grayscale(50%); }
 
+/* ── Character Name Inline Editing ──────────────────────────── */
+.char-name-editable {
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: opacity 0.2s;
+}
+
+.char-name-editable:hover {
+    opacity: 0.8;
+}
+
+.char-name-edit-icon {
+    font-size: 0.65em;
+    color: var(--accent);
+    opacity: 0.6;
+    transition: opacity 0.2s;
+}
+
+.char-name-editable:hover .char-name-edit-icon {
+    opacity: 1;
+}
+
+.char-name-edit-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.char-name-input {
+    background: rgba(0, 0, 0, 0.45);
+    border: 1px solid var(--accent);
+    color: white;
+    font-size: 1.4rem;
+    font-family: var(--font-serif);
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 6px;
+    outline: none;
+    min-width: 180px;
+    max-width: 320px;
+    box-shadow: 0 0 10px var(--primary-glow);
+    transition: box-shadow 0.2s;
+}
+
+.char-name-input:focus {
+    box-shadow: 0 0 16px var(--primary-glow);
+}
+
+.char-name-actions {
+    display: flex;
+    gap: 5px;
+}
+
+.char-name-actions .icon-btn {
+    background: transparent;
+    border: 1px solid var(--border, rgba(255,255,255,0.2));
+    border-radius: 6px;
+    color: var(--text-dim, rgba(255,255,255,0.6));
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.8rem;
+}
+
+.char-name-actions .icon-btn.save:hover {
+    background: rgba(46, 204, 113, 0.2);
+    color: #2ecc71;
+    border-color: #2ecc71;
+}
+
+.char-name-actions .icon-btn.cancel:hover {
+    background: rgba(231, 76, 60, 0.2);
+    color: #e74c3c;
+    border-color: #e74c3c;
+}
+
