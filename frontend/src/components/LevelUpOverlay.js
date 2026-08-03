@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNotification } from "../context/NotificationContext";
 import '../styles/CharacterSheet.css'; // Assuming styles are added here
+import { ValueRenderer } from "./CharacterSheet";
 
 /**
  * Computes the scaling value for a given dictionary at a specific level
@@ -117,7 +118,8 @@ const LevelUpOverlay = ({
     featureChoices,
     onUpdateChoice, // Trigger choice modal
     resolveOptionsForFeature, // Function passed down
-    classRules
+    classRules,
+    ruleOptions
 }) => {
     const { confirm } = useNotification();
     const [expandedFeatures, setExpandedFeatures] = useState({});
@@ -351,6 +353,7 @@ const LevelUpOverlay = ({
                                         resolveOptionsForFeature={resolveOptionsForFeature}
                                         character={character}
                                         classRules={classRules}
+                                        ruleOptions={ruleOptions}
                                     />
                                 ))}
                             </div>
@@ -385,7 +388,7 @@ const LevelUpOverlay = ({
 };
 
 // Internal reusable card
-const LuFeatureCard = ({ feature, isExpanded, onToggle, currentLevel, upgrades, featureChoices, onUpdateChoice, resolveOptionsForFeature, character, classRules }) => {
+const LuFeatureCard = ({ feature, isExpanded, onToggle, currentLevel, upgrades, featureChoices, onUpdateChoice, resolveOptionsForFeature, character, classRules, ruleOptions }) => {
 
     // Check if choice needed
     let hasChoices = false;
@@ -393,8 +396,19 @@ const LuFeatureCard = ({ feature, isExpanded, onToggle, currentLevel, upgrades, 
     let currentChoice = null;
 
     if (resolveOptionsForFeature && onUpdateChoice) {
-        options = resolveOptionsForFeature(feature);
-        if (options && options.length > 0) {
+        const resolvedOptions = resolveOptionsForFeature(
+            feature,
+            character,
+            classRules,
+            null,
+            ruleOptions,
+            []
+        );
+        options = Array.isArray(resolvedOptions)
+            ? resolvedOptions
+            : Object.values(resolvedOptions || {}).flat();
+
+        if (options.length > 0) {
             hasChoices = true;
             currentChoice = featureChoices?.[feature.id];
         }
@@ -496,9 +510,35 @@ const LuFeatureCard = ({ feature, isExpanded, onToggle, currentLevel, upgrades, 
                                                     ))}
                                                 </div>
                                             )}
-                                            {opt.description && <p>{processRichText(opt.description)}</p>}
-                                            {opt.benefit && <p>{processRichText(opt.benefit)}</p>}
-                                            {opt.summary && <p className="option-summary-line">{processRichText(opt.summary)}</p>}
+                                            {opt.summary && (
+                                                <p className="option-summary-line">
+                                                    {processRichText(opt.summary)}
+                                                </p>
+                                            )}
+                                            {opt.description && (
+                                                <div className="chosen-feat-description">
+                                                    {opt.description.split("\n").map((line, i) => (
+                                                        <p key={i}>{processRichText(line)}</p>
+                                                    ))}
+                                                </div>
+                                            )}
+                                            {opt.effects && Array.isArray(opt.effects) && (
+                                                <div className="chosen-feat-effects">
+                                                    {opt.effects.map((effect, i) => (
+                                                        <p key={i} className="chosen-feat-effect">
+                                                            {processRichText(effect)}
+                                                        </p>
+                                                    ))}
+                                                </div>
+                                            )}
+                                            {opt.benefit && (
+                                                <p>{processRichText(opt.benefit)}</p>
+                                            )}
+                                            {opt.details && (
+                                                <div className="option-details">
+                                                    <ValueRenderer value={opt.details} level={currentLevel} />
+                                                </div>
+                                            )}
                                         </div>
                                     );
                                 })}

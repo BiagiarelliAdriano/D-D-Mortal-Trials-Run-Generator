@@ -331,7 +331,7 @@ const calculateAttack = (name, abilities, profBonus, features = [], level = 1, w
 
 // --- Sub-Components ---
 
-const ValueRenderer = ({ value, label, level }) => {
+export const ValueRenderer = ({ value, level, themeRole, label }) => {
     if (value === null || value === undefined) return null;
 
     // 1. Detect and Resolve Scaling Dictionaries
@@ -506,13 +506,16 @@ const RichFeature = ({
     const rawChoice = featureChoices?.[feature.id];
     const currentChoices = Array.isArray(rawChoice) ? rawChoice : (rawChoice ? [rawChoice] : []);
     const options = resolveOptionsForFeature(feature, characterData, classRules, allClassRules, ruleOptions, availableSpells);
-    const hasOptions = options.length > 0;
+    const flatOptions = Array.isArray(options)
+        ? options
+        : Object.values(options).flat();
+    const hasOptions = flatOptions.length > 0;
     const choiceLimit = getChoiceLimitForFeature(feature, level);
     const hasChoices = hasOptions && choiceLimit > 0;
 
     // Resolve the chosen options details
     const chosenOptionsDetails = currentChoices.map(choice => {
-        const found = options.find(o => (typeof o === 'string' ? o : (o.id || o.name)) === choice);
+        const found = flatOptions.find(o => (typeof o === 'string' ? o : (o.id || o.name)) === choice);
         return found ? (typeof found === 'string' ? { name: found } : found) : { name: choice };
     });
 
@@ -584,7 +587,6 @@ const RichFeature = ({
                             </div>
                         );
                     })()}
-
                     {feature.effects && Array.isArray(feature.effects) && (
                         <div className="feat-effects-list">
                             {feature.effects.map((eff, i) => (
@@ -592,7 +594,6 @@ const RichFeature = ({
                             ))}
                         </div>
                     )}
-
                     {feature.description && (
                         <div className="feature-description">
                             {feature.description.split('\n').map((para, i) => (
@@ -600,17 +601,14 @@ const RichFeature = ({
                             ))}
                         </div>
                     )}
-
                     {chosenOptionsDetails.length > 0 && (
                         <div className="chosen-options-list">
                             {chosenOptionsDetails.map((opt, idx) => {
                                 const subChoiceId = `${feature.id}_sub_${idx}`;
                                 const rawSubChoice = featureChoices?.[subChoiceId];
                                 const currentSubChoices = Array.isArray(rawSubChoice) ? rawSubChoice : (rawSubChoice ? [rawSubChoice] : []);
-
                                 // Check if this option (feat) has its own choices
                                 const hasSubChoices = !!opt.choice;
-
                                 return (
                                     <div key={idx} className="chosen-option-block">
                                         <div className="chosen-option-header">
@@ -641,9 +639,30 @@ const RichFeature = ({
                                                 ))}
                                             </div>
                                         )}
-                                        {opt.description && <p>{processRichText(opt.description)}</p>}
-                                        {opt.benefit && <p>{processRichText(opt.benefit)}</p>}
-                                        {opt.summary && <p className="option-summary-line">{processRichText(opt.summary)}</p>}
+                                        {opt.summary && (
+                                            <p className="option-summary-line">
+                                                {processRichText(opt.summary)}
+                                            </p>
+                                        )}
+                                        {opt.description && (
+                                            <div className="chosen-feat-description">
+                                                {opt.description.split("\n").map((line, i) => (
+                                                    <p key={i}>{processRichText(line)}</p>
+                                                ))}
+                                            </div>
+                                        )}
+                                        {opt.effects && Array.isArray(opt.effects) && (
+                                            <div className="chosen-feat-effects">
+                                                {opt.effects.map((effect, i) => (
+                                                    <p key={i} className="chosen-feat-effect">
+                                                        {processRichText(effect)}
+                                                    </p>
+                                                ))}
+                                            </div>
+                                        )}
+                                        {opt.benefit && (
+                                            <p>{processRichText(opt.benefit)}</p>
+                                        )}
                                         {opt.details && (
                                             <div className="option-details">
                                                 <ValueRenderer value={opt.details} level={level} />
@@ -857,9 +876,11 @@ const resolveOptionsForFeature = (feature, characterData, classRules, allClassRu
 
     // 4. Feats/Boons
     if ((id.includes('feat_or_asi') || id.includes('epic_boon')) && !id.startsWith('chosen_feat_')) {
-        let pool = [...(ruleOptions.origin || []), ...(ruleOptions.general || [])];
-        if (id.includes('epic_boon')) pool = [...pool, ...(ruleOptions.epic_boon || [])];
-        return pool;
+        return {
+            origin: ruleOptions.origin || [],
+            general: ruleOptions.general || [],
+            epic_boon: id.includes('epic_boon') ? (ruleOptions.epic_boon || []) : []
+        };
     }
 
     // 5. Dynamic Lists (Expertise, Spells)
@@ -893,7 +914,7 @@ const resolveOptionsForFeature = (feature, characterData, classRules, allClassRu
     return [];
 };
 
-const FeatureChoiceOverlay = ({ isOpen, onClose, feature, options, onSelect, currentChoice, level }) => {
+const FeatureChoiceOverlay = ({ isOpen, onClose, feature, options, onSelect, currentChoice, level, character }) => {
     const [tempChoices, setTempChoices] = useState([]);
     const limit = getChoiceLimitForFeature(feature, level);
     const isMulti = limit > 1;
@@ -911,6 +932,7 @@ const FeatureChoiceOverlay = ({ isOpen, onClose, feature, options, onSelect, cur
     }, [isOpen, currentChoice]);
 
     if (!isOpen || !feature) return null;
+    const groupedOptions = !Array.isArray(options);
 
     const allowDuplicates = feature?.details?.choice?.allow_duplicates;
 
@@ -958,6 +980,76 @@ const FeatureChoiceOverlay = ({ isOpen, onClose, feature, options, onSelect, cur
         onClose();
     };
 
+    const renderChoiceOption = (opt, idx) => {
+        const optKey = typeof opt === 'string' ? opt : (opt.id || opt.name);
+        const count = tempChoices.filter(k => k === optKey).length;
+        const isSelected = count > 0;
+        const optName = typeof opt === 'string' ? opt : opt.name;
+        const prerequisiteWarning = opt.prerequisite
+            ? checkPrerequisites(opt.prerequisite, character, level)
+            : null;
+        const prerequisiteBlocked = !!prerequisiteWarning;
+        const optDescRaw = typeof opt === 'string'
+            ? null
+            : (opt.description || opt.summary || opt.benefit || (opt.effects && opt.effects.join(' ')));
+        return (
+            <div
+                key={idx}
+                className={`choice-option-card
+                    ${isSelected ? 'selected' : ''}
+                    ${isLocked ? 'locked' : ''}
+                    ${prerequisiteBlocked ? 'disabled' : ''}
+                `}
+                onClick={() => !allowDuplicates && !prerequisiteBlocked && handleToggleOption(optKey)}
+            >
+                <div className="option-name">
+                    {optName}
+                </div>
+                {opt.prerequisite && (
+                    <div className="feat-prerequisite">
+                        Need: {
+                            Array.isArray(opt.prerequisite)
+                                ? opt.prerequisite.join(" • ")
+                                : opt.prerequisite
+                        }
+                    </div>
+                )}
+                {optDescRaw && (
+                    <div className="option-desc">
+                        {processRichText(optDescRaw)}
+                    </div>
+                )}
+                {allowDuplicates ? (
+                    <div className="duplicate-counter">
+                        <button
+                            className="dup-btn"
+                            onClick={(e) => handleRemoveDuplicate(optKey, e)}
+                            disabled={count === 0 || isLocked}
+                        >
+                            -
+                        </button>
+                        <span className="dup-count">
+                            {count}
+                        </span>
+                        <button
+                            className="dup-btn"
+                            onClick={(e) => handleAddDuplicate(optKey, e)}
+                            disabled={tempChoices.length >= limit || isLocked}
+                        >
+                            +
+                        </button>
+                    </div>
+                ) : (
+                    isSelected && (
+                        <div className="selected-tag">
+                            {isLocked ? 'LOCKED' : 'SELECTED'}
+                        </div>
+                    )
+                )}
+            </div>
+        );
+    };
+
     return (
         <div className="choice-overlay-backdrop" onClick={onClose}>
             <div className="choice-overlay-card" onClick={(e) => e.stopPropagation()}>
@@ -981,34 +1073,25 @@ const FeatureChoiceOverlay = ({ isOpen, onClose, feature, options, onSelect, cur
                     <button className="close-btn" onClick={onClose}>✕</button>
                 </div>
                 <div className="choice-options-container">
-                    {options.length === 0 && <p className="no-options">No options available at this time.</p>}
-                    {options.map((opt, idx) => {
-                        const optKey = typeof opt === 'string' ? opt : (opt.id || opt.name);
-                        const count = tempChoices.filter(k => k === optKey).length;
-                        const isSelected = count > 0;
-                        const optName = typeof opt === 'string' ? opt : opt.name;
-                        const optDescRaw = typeof opt === 'string' ? null : (opt.description || opt.summary || opt.benefit || (opt.effects && opt.effects.join(' ')));
+                    {!groupedOptions ? (
+                        options.map((opt, idx) => (
+                            renderChoiceOption(opt, idx)
+                        ))
+                    ) : (
+                        Object.entries(options).map(([category, feats]) => (
+                            <div key={category} className="feat-category-group">
+                                <h3 className="feat-category-title">
+                                    {category === "origin" && "Origin Feats"}
+                                    {category === "general" && "General Feats"}
+                                    {category === "epic_boon" && "Epic Boons"}
+                                </h3>
 
-                        return (
-                            <div
-                                key={idx}
-                                className={`choice-option-card ${isSelected ? 'selected' : ''} ${isLocked ? 'locked' : ''}`}
-                                onClick={() => !allowDuplicates && handleToggleOption(optKey)}
-                            >
-                                <div className="option-name">{optName}</div>
-                                {optDescRaw && <div className="option-desc">{processRichText(optDescRaw)}</div>}
-                                {allowDuplicates ? (
-                                    <div className="duplicate-counter">
-                                        <button className="dup-btn" onClick={(e) => handleRemoveDuplicate(optKey, e)} disabled={count === 0 || isLocked}>-</button>
-                                        <span className="dup-count">{count}</span>
-                                        <button className="dup-btn" onClick={(e) => handleAddDuplicate(optKey, e)} disabled={tempChoices.length >= limit || isLocked}>+</button>
-                                    </div>
-                                ) : (
-                                    isSelected && <div className="selected-tag">{isLocked ? 'LOCKED' : 'SELECTED'}</div>
-                                )}
+                                {feats.map((opt, idx) => (
+                                    renderChoiceOption(opt, idx)
+                                ))}
                             </div>
-                        );
-                    })}
+                        ))
+                    )}
                 </div>
                 {isMulti && (
                     <div className="choice-overlay-footer">
@@ -2477,23 +2560,39 @@ function CharacterSheet() {
             setPreviewChoices(prev => ({ ...prev, [featureId]: choice }));
             return;
         }
-
         setFeatureChoices(prev => {
-            const next = { ...prev, [featureId]: choice };
-
+            const next = { ...prev };
+            // If the main feat/boon choice changes, remove any old sub-choices
+            if (
+                feature &&
+                (featureId.includes("feat_or_asi") || featureId.includes("epic_boon")) &&
+                !featureId.includes("_sub_")
+            ) {
+                Object.keys(next).forEach(key => {
+                    if (key.startsWith(`${featureId}_sub_`)) {
+                        delete next[key];
+                    }
+                });
+            }
+            // Save the new choice
+            next[featureId] = choice;
             // Check if this choice is a subclass choice
             const updatePayload = { featureChoices: next };
             const isSubclassChoice = featureId.includes('_subclass');
-
             if (isSubclassChoice) {
-                const subclassId = Array.isArray(choice) ? (typeof choice[0] === 'string' ? choice[0] : (choice[0].id || choice[0].name)) : (typeof choice === 'string' ? choice : (choice.id || choice.name));
+                const subclassId = Array.isArray(choice)
+                    ? (typeof choice[0] === 'string'
+                        ? choice[0]
+                        : (choice[0].id || choice[0].name))
+                    : (typeof choice === 'string'
+                        ? choice
+                        : (choice.id || choice.name));
+
                 updatePayload.subclass = subclassId;
                 updatePayload.subclass_class = feature.classId;
-
                 // Update local state IMMEDIATELY so features appear without reload
                 setCharacter(prevChar => {
                     if (!prevChar) return prevChar;
-
                     const updatedClassLevels = prevChar.data.class_levels.map(cls => {
                         if (
                             feature &&
@@ -2506,7 +2605,6 @@ function CharacterSheet() {
                         }
                         return cls;
                     });
-
                     return {
                         ...prevChar,
                         class: {
@@ -2521,7 +2619,6 @@ function CharacterSheet() {
                     };
                 });
             }
-
             saveCharacter(updatePayload);
             return next;
         });
@@ -4224,8 +4321,18 @@ function CharacterSheet() {
                         if (levelUpMinimized) setLevelUpMinimized(false);
                         setChoiceOverlay({ isOpen: true, feature: feat, options });
                     }}
-                    resolveOptionsForFeature={(feat) => resolveOptionsForFeature(feat, character, classRules, ruleOptions, availableSpells)}
+                    resolveOptionsForFeature={(feat) =>
+                        resolveOptionsForFeature(
+                            feat,
+                            character,
+                            classRules,
+                            allClassRules,
+                            ruleOptions,
+                            availableSpells
+                        )
+                    }
                     classRules={classRules}
+                    ruleOptions={ruleOptions}
                 />
             )}
 
@@ -4729,6 +4836,7 @@ function CharacterSheet() {
                 currentChoice={choiceOverlay.feature ? (choiceOverlay.isPreview ? previewChoices[choiceOverlay.feature.id] : featureChoices[choiceOverlay.feature.id]) : null}
                 onClose={() => setChoiceOverlay({ isOpen: false, feature: null })}
                 level={choiceOverlay.isPreview ? previewLevel : character.level}
+                character={character}
             />
 
             {showGoldTransferModal && (
