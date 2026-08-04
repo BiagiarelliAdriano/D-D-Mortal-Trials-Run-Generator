@@ -2209,7 +2209,6 @@ function CharacterSheet() {
             }
 
             // Set immediate basic state
-            console.log("CHARACTER DATA DEBUG:", data.data);
             setCharacter(data);
             setSkills(data.data.skillProficiencies || {});
             setGold(data.data.gold || 0);

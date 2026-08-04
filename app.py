@@ -1242,7 +1242,7 @@ def api_characters():
         # Initial HP Calculation
         con_score = character_data["abilities"].get("constitution", 10)
         con_mod = (con_score - 10) // 2
-        character.update_hp(character_data["level"], con_mod)
+        character.update_hp(character_data, character_data["level"], con_mod)
 
         try:
             db.session.add(character)
@@ -1356,7 +1356,7 @@ def api_character_detail(char_id):
             abilities = updated_data.get("abilities", {})
             con_score = abilities.get("constitution", 10)
             con_mod = (con_score - 10) // 2
-            character.update_hp(new_level, con_mod, updated_data.get("class_name", "Barbarian"))
+            character.update_hp(updated_data, new_level, con_mod)
             # Note: update_hp saves internally, so we don't need to call set_data again ideally, 
             # but update_hp calls set_data, so it's fine.
         db.session.commit()
@@ -1444,7 +1444,6 @@ def api_character_levelup(char_id):
         return jsonify({"error": "Unauthorized to level up this character"}), 403
     data = character.get_data()
     previous_state = copy.deepcopy(data)
-    previous_state["level_history"] = []
     levelup_class = request.json.get("class_name") if request.json else None
     if not levelup_class:
         levelup_class = data.get("class_name")
@@ -1458,17 +1457,6 @@ def api_character_levelup(char_id):
     # To be safe, we'll just allow it if called.
 
     data["level"] = next_level
-
-    # Update hit dice for multiclass
-    hit_dice = data.get("hit_dice_remaining", {})
-
-    if isinstance(hit_dice, int):
-        # Convert old characters to multiclass format
-        hit_dice = {
-            data.get("class_name"): hit_dice
-        }
-    hit_dice[levelup_class] = hit_dice.get(levelup_class, 0) + 1
-    data["hit_dice_remaining"] = hit_dice
 
     # Update multiclass progression
     class_levels = data.get("class_levels", [])
@@ -1568,16 +1556,20 @@ def api_character_levelup(char_id):
     
     # Store complete snapshot before level up
     level_history = data.get("level_history", [])
-    level_history.append(previous_state)
+
+    # Prevent recursive history growth
+    snapshot = copy.deepcopy(previous_state)
+    snapshot.pop("level_history", None)
+    level_history.append(snapshot)
     data["level_history"] = level_history
     data["level_up_pending"] = False
     character.set_data(data)
-    
+
     # Recalculate HP
     abilities = data.get("abilities", {})
     con_score = abilities.get("constitution", 10)
     con_mod = (con_score - 10) // 2
-    character.update_hp(next_level, con_mod)
+    character.update_hp(data, next_level, con_mod)
     
     db.session.commit()
     return jsonify({"success": True, "new_level": next_level, "data": character.get_data()})
@@ -1767,8 +1759,9 @@ def api_character_leveldown(char_id):
     
     # Get previous character state
     previous_state = history.pop()
+    previous_state["level_history"] = history
     
-    # Preserve spell choicecs
+    # Preserve spell choices
     previous_state["spell_slots_current"] = data.get(
         "spell_slots_current",
         {}
@@ -1803,6 +1796,7 @@ def api_character_leveldown(char_id):
     )
     con_mod = (con_score - 10) // 2
     character.update_hp(
+        previous_state,
         previous_state["level"],
         con_mod
     )

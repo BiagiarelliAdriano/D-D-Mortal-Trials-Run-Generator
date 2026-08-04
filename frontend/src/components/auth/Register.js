@@ -149,7 +149,7 @@ const Register = () => {
                                 pattern="\d+"
                                 title="Discord ID must be a sequence of numbers."
                                 maxLength="19"
-                                minLength="19"
+                                minLength="17"
                             />
                             <small className="help-text" style={{ fontSize: '0.75rem', opacity: 0.7, marginTop: '4px', display: 'block' }}>
                                 Used by the Admin to verify your identity on Discord for account recovery. NOT SHOWN ANYWHERE WITHIN SITE.

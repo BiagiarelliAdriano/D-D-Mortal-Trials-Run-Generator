@@ -164,21 +164,23 @@ class Character(db.Model):
         
         self.data = json.dumps(merged)
 
-    def update_hp(self, new_level, con_mod):
+    def update_hp(self, data, new_level, con_mod):
         """
         Calculates HP using multiclass rules.
         Each class contributes its own Hit Dice pool.
+
+        Receives the already updated character data so that
+        level up/down changes are preserved.
         """
-        data = self.get_data()
+
         class_levels = data.get("class_levels", [])
         hp_rolls = data.get("hp_rolls", {})
-        
+
         # Convert old characters using the previous system
         if isinstance(hp_rolls, list):
             hp_rolls = {
                 data.get("class_name", "Barbarian"): hp_rolls
             }
-        
         total_character_levels = sum(
             cls.get("level", 0)
             for cls in class_levels
@@ -192,7 +194,7 @@ class Character(db.Model):
             if class_name not in hp_rolls:
                 hp_rolls[class_name] = []
             current_rolls = hp_rolls[class_name]
-            
+
             # Add missing levels
             while len(current_rolls) < class_level:
                 # First level of entire character gets max HP
@@ -200,32 +202,29 @@ class Character(db.Model):
                     roll = hit_die
                 else:
                     roll = random.randint(1, hit_die)
-                
                 current_rolls.append(roll)
-            
-            # Remove extra rolls if needed
+
+            # Remove extra rolls if leveling down
             while len(current_rolls) > class_level:
                 current_rolls.pop()
-        
+
         # Calculate HP
-        base_hp = 0
-        
-        for rolls in hp_rolls.values():
-            base_hp += sum(rolls)
+        base_hp = sum(
+            sum(rolls)
+            for rolls in hp_rolls.values()
+        )
         con_bonus = new_level * con_mod
         hp_max_base = base_hp + con_bonus
         data["hp_rolls"] = hp_rolls
         data["hp_max_base"] = hp_max_base
-        
-        # Hit dice remaining equals total character level
+
+        # Hit dice remaining equals the number of stored rolls
         data["hit_dice_remaining"] = {
             class_name: len(rolls)
             for class_name, rolls in hp_rolls.items()
         }
-        
         if data.get("hp_current", 0) == 0:
             data["hp_current"] = hp_max_base + data.get("hp_modifier", 0)
-        
         self.set_data(data)
 
     def get_data(self):
