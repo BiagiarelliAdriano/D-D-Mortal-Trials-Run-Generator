@@ -174,7 +174,19 @@ def get_item_price(item_name, rarity, category):
             return 50
         # Higher spell-level scrolls → use rarity default
     # Fall back to rarity + category default
-    return RARITY_CATEGORY_PRICES.get(rarity, {}).get(category, 100)
+    return RARITY_CATEGORY_PRICES.get(rarity, {}).get(category, 10)
+
+def get_item_sell_price(item_name, rarity, category):
+    """
+    Determines the amount of gold a player receives when selling an item.
+    Common items sell for full price.
+    All other rarities sell for half price.
+    """
+    buy_price = get_item_price(item_name, rarity, category)
+    if (rarity or "common").lower() == "common":
+        return buy_price
+
+    return max(1, buy_price // 2)
 
 def determine_item_rarity(item_name, category, possible_rarities):
     """Detect which rarity pool an item belongs to by lookup."""
@@ -2808,6 +2820,122 @@ def api_shop_buy_item(session_id):
         "message": f"{character.name} purchased {item['name']} for {cost} gp",
         "new_gold": char_data["gold"],
         "shop_state": shop_state
+    }), 200
+
+@app.route("/api/host/<int:session_id>/shop/sell-items", methods=["POST"])
+@jwt_required()
+def api_shop_sell_items(session_id):
+    current_user_id = get_jwt_identity()
+    data = request.json
+    if not data or "items" not in data:
+        return jsonify({"error": "Missing items"}), 400
+    session = db.get_or_404(HostedRun, session_id)
+    participant = SessionParticipant.query.filter_by(
+        user_id=current_user_id,
+        hosted_run_id=session_id
+    ).first()
+    if not participant:
+        return jsonify({"error": "Access denied"}), 403
+    if participant.role == "DM":
+        return jsonify({"error": "Dungeon Masters cannot sell items"}), 403
+    if not participant.character_id:
+        return jsonify({"error": "You must link a character before selling"}), 400
+    if not session.shop_state:
+        return jsonify({"error": "No active shop"}), 400
+    shop_state = json.loads(session.shop_state)
+    if shop_state.get("locked"):
+        return jsonify({"error": "The shop is currently locked"}), 403
+    if shop_state.get("phase") != "shopping":
+        return jsonify({"error": "Shop is not open"}), 400
+    character = db.session.get(Character, participant.character_id)
+    if not character:
+        return jsonify({"error": "Character not found"}), 404
+    char_data = character.get_data()
+    inventory = char_data.get("inventory", [])
+    selected_items = data["items"]
+    
+    total_gold = 0
+
+    for sale in selected_items:
+        idx = sale["index"]
+        quantity_to_sell = sale["quantity"]
+        if idx < 0 or idx >= len(inventory):
+            return jsonify({"error": "Invalid inventory index"}), 400
+        raw_item = inventory[idx]
+        if isinstance(raw_item, str):
+            item = {
+                "name": raw_item,
+                "rarity": "common",
+                "category": "Other",
+                "quantity": 1
+            }
+
+            inventory[idx] = item
+        else:
+            item = raw_item
+        current_quantity = item.get("quantity", 1)
+        if quantity_to_sell <= 0 or quantity_to_sell > current_quantity:
+            return jsonify({"error": "Selling too many items"}), 400
+        unit_price = get_item_sell_price(
+            item.get("name"),
+            item.get("rarity", "common"),
+            item.get("category", "Other")
+        )
+        total_gold += unit_price * quantity_to_sell
+        item["quantity"] = current_quantity - quantity_to_sell
+    # Remove empty stacks
+    inventory = [
+        item for item in inventory
+        if not isinstance(item, dict)
+        or item.get("quantity", 1) > 0
+    ]
+    char_data["inventory"] = inventory
+    current_gold = int(char_data.get("gold",0))
+    char_data["gold"] = current_gold + total_gold
+    character.set_data(char_data)
+    db.session.commit()
+    
+    return jsonify({
+        "success": True,
+        "gold_gained": total_gold,
+        "new_gold": char_data["gold"],
+        "inventory": inventory
+    }), 200
+
+@app.route("/api/host/<int:session_id>/shop/sell-price", methods=["POST"])
+@jwt_required()
+def api_shop_sell_price(session_id):
+    current_user_id = get_jwt_identity()
+    session = db.get_or_404(HostedRun, session_id)
+    participant = SessionParticipant.query.filter_by(
+        user_id=current_user_id,
+        hosted_run_id=session_id
+    ).first()
+    if not participant:
+        return jsonify({"error": "Access denied"}), 403
+    data = request.json
+    if not data or "items" not in data:
+        return jsonify({"error": "Missing items"}), 400
+    prices = {}
+    for index, raw_item in enumerate(data["items"]):
+        if isinstance(raw_item, str):
+            item = {
+                "name": raw_item,
+                "rarity": "common",
+                "category": "Other",
+                "quantity": 1
+            }
+        else:
+            item = raw_item
+        sell_price = get_item_sell_price(
+            item.get("name"),
+            item.get("rarity", "common"),
+            item.get("category", "Other")
+        )
+        quantity = item.get("quantity", 1)
+        prices[index] = sell_price * quantity
+    return jsonify({
+        "prices": prices
     }), 200
 
 @app.route("/api/host/<int:session_id>/shop/toggle-lock", methods=["POST"])

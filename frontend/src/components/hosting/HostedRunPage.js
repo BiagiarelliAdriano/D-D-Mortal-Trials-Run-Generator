@@ -25,6 +25,9 @@ const HostedRunPage = () => {
     const [notice, setNotice] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [shopConfirm, setShopConfirm] = useState(null);
+    const [showSellModal, setShowSellModal] = useState(false);
+    const [selectedSellItems, setSelectedSellItems] = useState({});
+    const [sellPrices, setSellPrices] = useState({});
     const [isBuildingShop, setIsBuildingShop] = useState(false);
     const [shopPrevPhase, setShopPrevPhase] = useState(null);
     const [showCommonItems, setShowCommonItems] = useState(false);
@@ -78,7 +81,6 @@ const HostedRunPage = () => {
             const currentPhase = session.shop_state.phase;
             if (shopPrevPhase === 'selection' && currentPhase === 'shopping') {
                 setIsBuildingShop(true);
-                
                 // Check for Wondrous category and notify
                 if (session.shop_state.items && session.shop_state.items.Wondrous) {
                     addAlert("A rare Wondrous category has appeared in the shop!", "info");
@@ -93,7 +95,6 @@ const HostedRunPage = () => {
     // Handle Level Up Detection
     useEffect(() => {
         if (!session || !currentUser) return;
-        
         const myChar = session.participants.find(p => p.user_id === currentUser.id && p.character_id)?.character;
         if (myChar && myChar.data?.level_up_pending) {
             const levelKey = `${myChar.id}_${myChar.level}`;
@@ -301,6 +302,85 @@ const HostedRunPage = () => {
         }
     };
 
+    const fetchSellPrices = async () => {
+        const myParticipant =
+            session.participants.find(
+                p => p.user_id === currentUser.id
+            );
+        const inventory =
+            myParticipant?.character?.data?.inventory || [];
+        try {
+            const res = await fetch(
+                `${API_BASE_URL}/api/host/${session.id}/shop/sell-price`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        items: inventory
+                    })
+                }
+            );
+            const data = await res.json();
+            if (res.ok) {
+                setSellPrices(data.prices);
+            }
+        }
+        catch (err) {
+            console.error(
+                "Failed fetching sell prices:",
+                err
+            );
+        }
+    };
+
+    const handleSellItems = async () => {
+        try {
+            const items = Object.entries(selectedSellItems).map(([index, quantity]) => ({
+                index: Number(index),
+                quantity
+            }));
+            const res = await fetch(
+                `${API_BASE_URL}/api/host/${session.id}/shop/sell-items`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        items
+                    })
+                }
+            );
+            const data = await res.json();
+            if (res.ok) {
+                addAlert(
+                    `Sold items for ${data.gold_gained} gp`,
+                    "success"
+                );
+
+                setShowSellModal(false);
+                setSelectedSellItems({});
+                fetchSessionDetails();
+            }
+            else {
+                addAlert(
+                    data.error || "Selling failed",
+                    "error"
+                );
+            }
+        }
+        catch (err) {
+            addAlert(
+                "Error selling items",
+                "error"
+            );
+        }
+    };
+
     const handleToggleShopLock = async () => {
         try {
             const response = await fetch(`${API_BASE_URL}/api/host/${id}/shop/toggle-lock`, {
@@ -374,14 +454,13 @@ const HostedRunPage = () => {
 
             const isDMOrAdmin = currentUser.id === session.dm_id || isAdmin;
             const isLocked = !!state.locked;
-
             return (
                 <div className={`shop-phase-container ${isLocked ? 'is-locked' : ''}`}>
                     <div className="shop-header-box">
                         <div className="shb-title-row">
                             <h3><i className="fa-solid fa-cart-shopping"></i>The Chamber of Brief Mercy {isLocked && <span className="locked-badge"><i className="fa-solid fa-lock"></i> LOCKED</span>}</h3>
                             {isDMOrAdmin && (
-                                <button 
+                                <button
                                     className={`shop-lock-toggle-btn ${isLocked ? 'locked' : 'unlocked'}`}
                                     onClick={(e) => { e.stopPropagation(); handleToggleShopLock(); }}
                                     title={isLocked ? "Unlock Shop for players" : "Lock Shop interactions"}
@@ -488,14 +567,38 @@ const HostedRunPage = () => {
                 <div className={`shop-phase-container ${isLocked ? 'is-locked' : ''}`}>
                     <div className="shop-header-box border-bottom">
                         <div className="shb-title-row">
-                            <h3><i className="fa-solid fa-cart-shopping"></i>The Chamber of Brief Mercy {isLocked && <span className="locked-badge"><i className="fa-solid fa-lock"></i> LOCKED</span>}</h3>
+                            <h3>
+                                <i className="fa-solid fa-cart-shopping"></i>
+                                The Chamber of Brief Mercy
+                                {isLocked && (
+                                    <span className="locked-badge">
+                                        <i className="fa-solid fa-lock"></i> LOCKED
+                                    </span>
+                                )}
+                            </h3>
+                            {!isDMOrAdmin && !isLocked && (
+                                <button
+                                    className="shop-sell-btn"
+                                    onClick={() => {
+                                        fetchSellPrices();
+                                        setShowSellModal(true);
+                                    }}
+                                >
+                                    <i className="fa-solid fa-coins"></i>
+                                    Sell Items
+                                </button>
+                            )}
                             {isDMOrAdmin && (
-                                <button 
+                                <button
                                     className={`shop-lock-toggle-btn ${isLocked ? 'locked' : 'unlocked'}`}
-                                    onClick={(e) => { e.stopPropagation(); handleToggleShopLock(); }}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleToggleShopLock();
+                                    }}
                                     title={isLocked ? "Unlock Shop for players" : "Lock Shop interactions"}
                                 >
-                                    <i className={`fa-solid fa-lock${isLocked ? '-open' : ''}`}></i> {isLocked ? 'Unlock' : 'Lock'}
+                                    <i className={`fa-solid fa-lock${isLocked ? '-open' : ''}`}></i>
+                                    {isLocked ? "Unlock" : "Lock"}
                                 </button>
                             )}
                         </div>
@@ -808,7 +911,7 @@ const HostedRunPage = () => {
                                     </div>
                                     {p.character ? (
                                         <div className="p-char-preview">
-                                             <p className="char-name">
+                                            <p className="char-name">
                                                 {p.character.name}
                                                 {p.character.data?.level_up_pending && (
                                                     <span className="level-up-badge-small" title="Level Up Pending!">✧</span>
@@ -956,10 +1059,10 @@ const HostedRunPage = () => {
                 const myParticipant = session.participants.find(p => p.user_id === currentUser.id);
                 const currentGold = myParticipant?.character?.data?.gold || 0;
                 const charInventoryRaw = myParticipant?.character?.data?.inventory || [];
-                const charInventory = charInventoryRaw.map(it => 
+                const charInventory = charInventoryRaw.map(it =>
                     typeof it === 'string' ? { name: it, rarity: 'common', category: 'Other' } : it
                 );
-                
+
                 const RARITY_VALS = { 'common': 50, 'uncommon': 400, 'rare': 4000, 'very rare': 40000, 'legendary': 400000 };
                 const getItemVal = (it) => {
                     const r = it.rarity?.toLowerCase() || 'common';
@@ -970,7 +1073,7 @@ const HostedRunPage = () => {
                 const itemToBuy = shopConfirm.item;
                 const isWondrous = shopConfirm.category === 'Wondrous';
                 const baseCost = itemToBuy.cost;
-                
+
                 // Calculate discount from selected trade-ins
                 const selectedIndices = shopConfirm.tradeIns || [];
                 const totalDiscount = selectedIndices.reduce((acc, idx) => acc + getItemVal(charInventory[idx]), 0);
@@ -1005,8 +1108,8 @@ const HostedRunPage = () => {
                                         <div className="trade-in-grid">
                                             {eligibleItems.length > 0 ? (
                                                 eligibleItems.map((it) => (
-                                                    <div 
-                                                        key={it.originalIndex} 
+                                                    <div
+                                                        key={it.originalIndex}
                                                         className={`trade-in-item ${selectedIndices.includes(it.originalIndex) ? 'selected' : ''}`}
                                                         onClick={() => toggleTradeIn(it.originalIndex)}
                                                     >
@@ -1051,8 +1154,8 @@ const HostedRunPage = () => {
                                 </div>
                             </div>
                             <div className="shop-modal-actions">
-                                <button 
-                                    className="confirm-btn gold" 
+                                <button
+                                    className="confirm-btn gold"
                                     onClick={handleBuyItem}
                                     disabled={remainingGold < 0}
                                 >
@@ -1063,6 +1166,185 @@ const HostedRunPage = () => {
                         </div>
                     </div>
                 );
+            })()}
+            {showSellModal && (() => {
+                const myParticipant =
+                    session.participants.find(
+                        p => p.user_id === currentUser.id
+                    );
+                const inventory =
+                    myParticipant?.character?.data?.inventory || [];
+                const normalized =
+                    inventory.map((it, idx) => {
+                        if (typeof it === "string") {
+                            return {
+                                name: it,
+                                rarity: "common",
+                                category: "Other",
+                                originalIndex: idx
+                            };
+                        }
+                        return {
+                            ...it,
+                            originalIndex: idx
+                        };
+                    });
+                const total = Object.entries(selectedSellItems)
+                    .reduce(
+                        (sum, [index, quantity]) =>
+                            sum + ((sellPrices[index] || 0) / (normalized[index]?.quantity || 1)) * quantity,
+                        0
+                    );
+
+                return (
+                    <div className="modal-overlay">
+                        <div className="shop-confirm-modal sell-items-modal">
+                            <h2>Sell Items</h2>
+                            <div className="shop-modal-body">
+                                <div className="trade-in-grid">
+                                    {
+                                        normalized.map((item, index) => (
+                                            <div
+                                                key={index}
+                                                className={
+                                                    `trade-in-item ${selectedSellItems[index]
+                                                        ? "selected"
+                                                        : ""
+                                                    }`
+                                                }
+                                                onClick={() => {
+                                                    setSelectedSellItems(prev => {
+                                                        const next = { ...prev };
+                                                        if (next[index]) {
+                                                            delete next[index];
+                                                        }
+                                                        else {
+                                                            next[index] = item.quantity || 1;
+                                                        }
+                                                        return next;
+                                                    });
+                                                }}
+                                            >
+                                                <div className="tii-info">
+                                                    <span className="tii-name">
+                                                        {item.name}
+                                                        {item.quantity > 1 && ` ×${item.quantity}`}
+                                                    </span>
+                                                    <span className="tii-rarity">
+                                                        {item.rarity} • {item.category}
+                                                    </span>
+                                                </div>
+                                                <div className="tii-value">
+                                                    {item.quantity > 1 && (
+                                                        <>
+                                                            <button
+                                                                type="button"
+                                                                className="sell-quantity-btn"
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    setSelectedSellItems(prev => {
+                                                                        const next = { ...prev };
+                                                                        if (!next[index]) {
+                                                                            next[index] = item.quantity;
+                                                                        }
+                                                                        next[index] = Math.max(
+                                                                            1,
+                                                                            next[index] - 1
+                                                                        );
+                                                                        return next;
+                                                                    });
+                                                                }}
+                                                            >
+                                                                -
+                                                            </button>
+                                                            <input
+                                                                className="sell-quantity-input"
+                                                                type="number"
+                                                                min="1"
+                                                                max={item.quantity}
+                                                                value={
+                                                                    selectedSellItems[index] || item.quantity
+                                                                }
+                                                                onClick={(e) => e.stopPropagation()}
+                                                                onChange={(e) => {
+                                                                    const value = Math.min(
+                                                                        item.quantity,
+                                                                        Math.max(1, Number(e.target.value))
+                                                                    );
+                                                                    setSelectedSellItems(prev => ({
+                                                                        ...prev,
+                                                                        [index]: value
+                                                                    }));
+                                                                }}
+                                                            />
+                                                            <button
+                                                                type="button"
+                                                                className="sell-quantity-btn"
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    setSelectedSellItems(prev => {
+                                                                        const next = { ...prev };
+                                                                        if (!next[index]) {
+                                                                            next[index] = item.quantity;
+                                                                        }
+                                                                        next[index] = Math.min(
+                                                                            item.quantity,
+                                                                            next[index] + 1
+                                                                        );
+                                                                        return next;
+                                                                    });
+                                                                }}
+                                                            >
+                                                                +
+                                                            </button>
+                                                        </>
+                                                    )}
+                                                    +{
+                                                        Math.floor(
+                                                            (sellPrices[index] / (item.quantity || 1))
+                                                            *
+                                                            (selectedSellItems[index] || item.quantity || 1)
+                                                        )
+                                                    } gp
+                                                </div>
+                                            </div>
+                                        ))
+                                    }
+                                </div>
+                                <div className="shop-gold-summary">
+                                    <div className="sgs-row">
+                                        <span>
+                                            Total:
+                                        </span>
+                                        <span>
+                                            {total}
+                                            <i className="fa-solid fa-coins" />
+                                        </span>
+                                    </div>
+                                </div>
+                                <div className="shop-modal-actions">
+                                    <button
+                                        className="confirm-btn gold"
+                                        disabled={Object.keys(selectedSellItems).length === 0}
+                                        onClick={handleSellItems}
+                                    >
+                                        <i className="fa-solid fa-hand-holding-dollar"></i>
+                                        Confirm Sale
+                                    </button>
+                                    <button
+                                        className="close-modal"
+                                        onClick={() => {
+                                            setShowSellModal(false)
+                                            setSelectedSellItems({})
+                                        }}
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )
             })()}
             {levelUpReveal && (
                 <div className="modal-overlay level-up-reveal-overlay">
