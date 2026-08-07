@@ -84,7 +84,7 @@ DEFAULT_CHARACTER_DATA = {
     "hp_max_original": 0,
     "hp_modifier": 0,
     "hp_rolls": {},
-    "hit_dice_remaining": 0,
+    "hit_dice_remaining": {},
 
     "heroicInspiration": False,
     

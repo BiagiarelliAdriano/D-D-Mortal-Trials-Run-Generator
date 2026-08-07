@@ -53,7 +53,14 @@ const RestOverlay = ({
     const { confirm } = useNotification();
 
     const conMod = Math.floor(((character?.data?.abilities?.constitution || 10) - 10) / 2);
-    const availableDice = character?.data?.hit_dice_remaining || 0;
+    const hitDiceData = character?.data?.hit_dice_remaining;
+    const availableDice =
+        typeof hitDiceData === "object"
+            ? Object.values(hitDiceData).reduce(
+                (sum, value) => sum + value,
+                0
+            )
+            : Number(hitDiceData) || 0;
     const hitDieValue = parseInt(classRules?.hit_die?.replace('d', '') || 8);
     const tempHp = Math.min(maxHp, currentHp + hpRegained);
 

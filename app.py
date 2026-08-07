@@ -1625,7 +1625,27 @@ def api_character_short_rest(char_id):
     data["hp_current"] = min(max_hp, data.get("hp_current", 0) + hp_regained)
     
     # Update Hit Dice
-    data["hit_dice_remaining"] = max(0, data.get("hit_dice_remaining", 0) - dice_spent)
+    hit_dice_remaining = data.get("hit_dice_remaining", {})
+
+    if isinstance(hit_dice_remaining, dict):
+        remaining_to_spend = dice_spent
+        for class_name in hit_dice_remaining:
+            if remaining_to_spend <= 0:
+                break
+            available = hit_dice_remaining[class_name]
+            spent = min(
+                available,
+                remaining_to_spend
+            )
+            hit_dice_remaining[class_name] -= spent
+            remaining_to_spend -= spent
+        data["hit_dice_remaining"] = hit_dice_remaining
+    else:
+        # Backwards compatibility for old characters
+        data["hit_dice_remaining"] = max(
+            0,
+            hit_dice_remaining - dice_spent
+        )
     
     recharged_features = req_data.get("recharged_features", req_data.get("rechargedFeatures", []))
     if recharged_features:
@@ -1676,7 +1696,16 @@ def api_character_long_rest(char_id):
     data["hp_current"] = max_hp
     
     # 2. Full Hit Dice replenishment
-    data["hit_dice_remaining"] = data.get("level", 1)
+    hp_rolls = data.get("hp_rolls", {})
+
+    if isinstance(hp_rolls, dict):
+        data["hit_dice_remaining"] = {
+            class_name: len(rolls)
+            for class_name, rolls in hp_rolls.items()
+        }
+    else:
+        # Backwards compatibility for old characters
+        data["hit_dice_remaining"] = data.get("level", 1)
     
     # 3. Reset modified Ability Scores to Base
     if "base_abilities" in data:
