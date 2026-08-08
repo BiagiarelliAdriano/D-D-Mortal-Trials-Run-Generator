@@ -393,6 +393,7 @@ const LuFeatureCard = ({ feature, isExpanded, onToggle, currentLevel, upgrades, 
     // Check if choice needed
     let hasChoices = false;
     let options = [];
+    let lookupOptions = [];
     let currentChoice = null;
 
     if (resolveOptionsForFeature && onUpdateChoice) {
@@ -404,11 +405,20 @@ const LuFeatureCard = ({ feature, isExpanded, onToggle, currentLevel, upgrades, 
             ruleOptions,
             []
         );
-        options = Array.isArray(resolvedOptions)
-            ? resolvedOptions
-            : Object.values(resolvedOptions || {}).flat();
 
-        if (options.length > 0) {
+        // IMPORTANT:
+        // Preserve grouped options so FeatureChoiceOverlay can display
+        // Origin Feats / General Feats / Epic Boons separately.
+        options = resolvedOptions || [];
+
+        // For internal lookups, use a flattened version.
+        // This lets us search for the currently selected option regardless
+        // of whether the options are grouped or not.
+        lookupOptions = Array.isArray(options)
+            ? options
+            : Object.values(options).flat();
+
+        if (lookupOptions.length > 0) {
             hasChoices = true;
             currentChoice = featureChoices?.[feature.id];
         }
@@ -422,8 +432,13 @@ const LuFeatureCard = ({ feature, isExpanded, onToggle, currentLevel, upgrades, 
                     {(() => {
                         const currentChoices = Array.isArray(currentChoice) ? currentChoice : (currentChoice ? [currentChoice] : []);
                         const resolvedChoices = currentChoices.map(c => {
-                            const found = options.find(o => (typeof o === 'string' ? o : (o.id || o.name)) === c);
-                            return found ? (typeof found === 'string' ? { name: found } : found) : { name: c };
+                            const found = lookupOptions.find(
+                                o => (typeof o === 'string' ? o : (o.id || o.name)) === c
+                            );
+
+                            return found
+                                ? (typeof found === 'string' ? { name: found } : found)
+                                : { name: c };
                         });
                         return resolvedChoices.map((rc, idx) => (
                             <span key={idx} className="feature-choice-badge">{rc.name}</span>
@@ -466,8 +481,13 @@ const LuFeatureCard = ({ feature, isExpanded, onToggle, currentLevel, upgrades, 
                     {(() => {
                         const currentChoices = Array.isArray(currentChoice) ? currentChoice : (currentChoice ? [currentChoice] : []);
                         const chosenOptionsDetails = currentChoices.map(c => {
-                            const found = options.find(o => (typeof o === 'string' ? o : (o.id || o.name)) === c);
-                            return found ? (typeof found === 'string' ? { name: found } : found) : { name: c };
+                            const found = lookupOptions.find(
+                                o => (typeof o === 'string' ? o : (o.id || o.name)) === c
+                            );
+
+                            return found
+                                ? (typeof found === 'string' ? { name: found } : found)
+                                : { name: c };
                         });
 
                         if (chosenOptionsDetails.length === 0) return null;

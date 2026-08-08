@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { Responsive, WidthProvider } from "react-grid-layout/legacy";
 import { useAuth } from "../context/AuthContext";
@@ -2010,6 +2010,7 @@ function CharacterSheet() {
     // eslint-disable-next-line no-unused-vars
     const [levelUpPreviewMode, setLevelUpPreviewMode] = useState(false);
     const [allClassRules, setAllClassRules] = useState({});
+    const levelUpAutoOpened = useRef(false);
 
     // Level Up Preview State
     const [previewLevel, setPreviewLevel] = useState(1);
@@ -2439,15 +2440,14 @@ function CharacterSheet() {
             character &&
             character.data?.level_up_pending &&
             isOwner &&
-            !showXpEditor
+            !levelUpAutoOpened.current
         ) {
+            levelUpAutoOpened.current = true;
             openLevelUpSelection();
         }
-
     }, [
         character,
         isOwner,
-        showXpEditor,
         openLevelUpSelection
     ]);
 
@@ -3255,7 +3255,21 @@ function CharacterSheet() {
 
     const handleDismissLevelUp = () => {
         setShowLevelUpOverlay(false);
-        saveCharacter({ level_up_pending: false, level_one_pending: false });
+        setCharacter(prev => {
+            if (!prev) return prev;
+            return {
+                ...prev,
+                data: {
+                    ...prev.data,
+                    level_up_pending: false,
+                    level_one_pending: false
+                }
+            };
+        });
+        saveCharacter({
+            level_up_pending: false,
+            level_one_pending: false
+        });
     };
 
     // --- Rich Rendering Components ---
