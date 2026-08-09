@@ -511,7 +511,7 @@ const RichFeature = ({
         : Object.values(options).flat();
     const hasOptions = flatOptions.length > 0;
     const choiceLimit = getChoiceLimitForFeature(feature, level);
-    const hasChoices = hasOptions && choiceLimit > 0;
+    const hasChoices = hasOptions && choiceLimit > 0 && feature.type !== 'subclass_feature';
 
     // Resolve the chosen options details
     const chosenOptionsDetails = currentChoices.map(choice => {
@@ -848,14 +848,17 @@ const resolveOptionsForFeature = (feature, characterData, classRules, allClassRu
     if (id === 'sorcerer_metamagic') return Object.values(ruleOptions.metamagic || {});
     if (id === 'warlock_eldritch_invocations') return Object.values(ruleOptions.invocations || {});
 
-    // 3. Subclasses
-    if (feature.type === "subclass_choice" || id.includes("_subclass")) {
+    // 3. Subclass Selection
+    // ONLY the actual level-3 subclass_choice feature can select a subclass.
+    // Later subclass_feature entries must never expose the subclass picker.
+    const isLevel3SubclassChoice =
+        feature.type === "subclass_choice" &&
+        Number(feature.level) === 3;
+    if (isLevel3SubclassChoice) {
         // Use the rules for the class that owns this feature
         const ownerRules =
             allClassRules?.[feature.classId] || classRules;
-
         const subclasses = ownerRules?.subclasses || {};
-
         return Object.keys(subclasses).map(key => {
             let prettyName = subclasses[key].name || key;
             prettyName = prettyName.replace(/^Path Of The /i, '');
@@ -863,7 +866,6 @@ const resolveOptionsForFeature = (feature, characterData, classRules, allClassRu
                 .split('_')
                 .map(word => word.charAt(0).toUpperCase() + word.slice(1))
                 .join(' ');
-
             return {
                 id: key,
                 name: prettyName,
