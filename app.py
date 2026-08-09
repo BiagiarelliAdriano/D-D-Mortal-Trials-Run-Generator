@@ -3222,11 +3222,20 @@ def api_admin_delete_user(user_id):
     hosted_runs = HostedRun.query.filter_by(dm_id=user_to_delete.id).all()
     for hr in hosted_runs:
         db.session.delete(hr)
-        
+
     # Manual cleanup for participations in other sessions
-    SessionParticipant.query.filter_by(user_id=user_to_delete.id).delete()
-    
-    # Character deletion will handle characters via cascade
+    SessionParticipant.query.filter_by(user_id=user_to_delete.id).delete(
+        synchronize_session=False
+    )
+
+    # Delete all Runs owned by this user.
+    # HostedRun records referencing these runs have already been removed above.
+    Run.query.filter_by(user_id=user_to_delete.id).delete(
+        synchronize_session=False
+    )
+
+    # Character deletion, reports, and notifications are handled
+    # by the User relationships' cascade settings.
     db.session.delete(user_to_delete)
     db.session.commit()
     
