@@ -141,6 +141,8 @@ export const AuthProvider = ({ children }) => {
         token,
         loading,
         hasUnlimitedAccess,
+        patreonConnected: user?.patreon_connected || false,
+        patreonTier: user?.patreon_tier || null,
         login,
         logout,
         isAdmin: user?.is_admin || false,

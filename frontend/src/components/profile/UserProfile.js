@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useNotification } from '../../context/NotificationContext';
 import '../../styles/Profile.css';
 import API_BASE_URL from '../../config';
 
@@ -8,6 +9,7 @@ const UserProfile = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const { user: currentUser, token, login } = useAuth();
+    const { confirm, addAlert } = useNotification();
 
     const [profileData, setProfileData] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -41,6 +43,35 @@ const UserProfile = () => {
     useEffect(() => {
         fetchProfile();
     }, [fetchProfile]);
+
+    useEffect(() => {
+        const handleOAuthMessage = (event) => {
+            if (event.data && event.data.success && event.data.patreon_connected) {
+                fetchProfile();
+                
+                // Update local profile data state
+                setProfileData(prev => ({
+                    ...prev,
+                    patreon_connected: true,
+                    patreon_tier: event.data.patreon_tier,
+                    has_unlimited_access: true
+                }));
+                
+                // Update AuthContext
+                if (currentUser && currentUser.id === parseInt(id)) {
+                    login(token, {
+                        ...currentUser,
+                        patreon_connected: true,
+                        patreon_tier: event.data.patreon_tier,
+                        has_unlimited_access: true
+                    });
+                }
+                addAlert("Patreon connected successfully!", "success");
+            }
+        };
+        window.addEventListener('message', handleOAuthMessage);
+        return () => window.removeEventListener('message', handleOAuthMessage);
+    }, [fetchProfile, currentUser, id, token, login, addAlert]);
 
     const handleFileChange = (e) => {
         const file = e.target.files[0];
@@ -78,7 +109,6 @@ const UserProfile = () => {
             setAvatarPreview(null);
             setNewPassword('');
 
-            // If updating self, refresh AuthContext
             if (currentUser.id === parseInt(id)) {
                 login(token, result.user);
             }
@@ -86,6 +116,88 @@ const UserProfile = () => {
             setError(err.message);
         } finally {
             setSaving(false);
+        }
+    };
+
+    const handleConnectPatreon = () => {
+        const width = 600;
+        const height = 700;
+        const left = window.screen.width / 2 - width / 2;
+        const top = window.screen.height / 2 - height / 2;
+        
+        window.open(
+            `${API_BASE_URL}/auth/patreon?token=${token}`,
+            'patreon-connect',
+            `width=${width},height=${height},left=${left},top=${top},scrollbars=yes,status=no`
+        );
+    };
+
+    const handleDisconnectPatreon = async () => {
+        if (!(await confirm("Are you sure you want to disconnect your Patreon account?"))) {
+            return;
+        }
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/auth/patreon/disconnect`, {
+                method: 'POST',
+                headers: { 
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            if (!response.ok) throw new Error("Failed to disconnect");
+            const result = await response.json();
+            
+            setProfileData(prev => ({
+                ...prev,
+                patreon_connected: false,
+                patreon_tier: null,
+                has_unlimited_access: result.user.has_unlimited_access
+            }));
+            
+            if (currentUser.id === parseInt(id)) {
+                login(token, {
+                    ...currentUser,
+                    patreon_connected: false,
+                    patreon_tier: null,
+                    has_unlimited_access: result.user.has_unlimited_access
+                });
+            }
+            addAlert("Patreon disconnected successfully.", "info");
+        } catch (err) {
+            setError(err.message);
+        }
+    };
+
+    const handleRefreshPatreon = async () => {
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/auth/patreon/refresh-status`, {
+                method: 'POST',
+                headers: { 
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            if (!response.ok) throw new Error("Failed to refresh status");
+            const result = await response.json();
+            
+            setProfileData(prev => ({
+                ...prev,
+                patreon_connected: result.patreon_connected,
+                patreon_tier: result.patreon_tier,
+                has_unlimited_access: result.has_unlimited_access
+            }));
+            
+            if (currentUser.id === parseInt(id)) {
+                login(token, {
+                    ...currentUser,
+                    patreon_connected: result.patreon_connected,
+                    patreon_tier: result.patreon_tier,
+                    has_unlimited_access: result.has_unlimited_access
+                });
+            }
+            addAlert("Patreon subscription status updated.", "success");
+        } catch (err) {
+            setError(err.message);
         }
     };
 
@@ -99,17 +211,26 @@ const UserProfile = () => {
 
     const getAvatarDisplay = () => {
         const avatar = avatarPreview || profileData.avatar;
+        let tierClass = "free-tier";
+        if (profileData.patreon_connected && profileData.patreon_tier) {
+            const tierLower = profileData.patreon_tier.toLowerCase();
+            if (tierLower.includes("warden")) tierClass = "tier-warden";
+            else if (tierLower.includes("ascended")) tierClass = "tier-ascended";
+            else if (tierLower.includes("chosen")) tierClass = "tier-chosen";
+            else tierClass = "tier-supporter";
+        }
+        
         if (avatar) {
             return (
                 <img
                     src={avatar}
                     alt="Profile"
-                    className="profile-avatar"
+                    className={`profile-avatar ${tierClass}`}
                 />
             );
         }
         return (
-            <div className="profile-avatar">
+            <div className={`profile-avatar ${tierClass}`}>
                 {profileData.username.substring(0, 2).toUpperCase()}
             </div>
         );
@@ -121,6 +242,14 @@ const UserProfile = () => {
                 <div className="profile-header">
                     <div className="profile-avatar-container">
                         {getAvatarDisplay()}
+                        {profileData.patreon_connected && (
+                            <div 
+                                className={`patreon-avatar-badge ${profileData.patreon_tier ? 'active' : 'inactive'}`} 
+                                title={profileData.patreon_tier || "Patreon Connected"}
+                            >
+                                <i className="fa-brands fa-patreon"></i>
+                            </div>
+                        )}
                     </div>
                     <div className="profile-info">
                         <h1>{profileData.username}</h1>
@@ -128,9 +257,32 @@ const UserProfile = () => {
                         {profileData.is_admin && <span className="level-tag">Creator</span>}
                     </div>
                     {canEdit && !editMode && (
-                        <button className="edit-profile-btn" onClick={() => setEditMode(true)}>
-                            ⚙ Edit Profile
-                        </button>
+                        <div className="profile-actions-wrapper">
+                            <button className="edit-profile-btn" onClick={() => setEditMode(true)}>
+                                ⚙ Edit Profile
+                            </button>
+                            {isOwner && (
+                                <div className="patreon-connect-section">
+                                    {!profileData.patreon_connected ? (
+                                        <button className="patreon-connect-btn" onClick={handleConnectPatreon}>
+                                            <i className="fa-brands fa-patreon"></i> Connect Patreon
+                                        </button>
+                                    ) : (
+                                        <div className="patreon-status-wrapper">
+                                            <span className={`patreon-badge-status ${profileData.patreon_tier ? 'active' : 'inactive'}`}>
+                                                <i className="fa-brands fa-patreon"></i> {profileData.patreon_tier ? `Patron: ${profileData.patreon_tier}` : 'Connected (No Subscription)'}
+                                            </span>
+                                            <button className="patreon-refresh-btn" onClick={handleRefreshPatreon} title="Sync status with Patreon">
+                                                <i className="fa-solid fa-arrows-rotate"></i>
+                                            </button>
+                                            <button className="patreon-disconnect-btn" onClick={handleDisconnectPatreon}>
+                                                Disconnect
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
                     )}
                 </div>
 

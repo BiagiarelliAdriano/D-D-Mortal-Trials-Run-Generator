@@ -579,13 +579,19 @@ def register():
 def get_user_profile(user_id):
     user = db.get_or_404(User, user_id)
     
-    # Return basic profile info + characters
+    current_user_id = get_jwt_identity()
+    if str(current_user_id) == str(user_id):
+        sync_patreon_status(user)
+        
     return jsonify({
         "id": user.id,
         "username": user.username,
         "avatar": user.avatar,
         "is_admin": user.is_admin,
         "created_at": user.created_at.isoformat(),
+        "patreon_connected": user.patreon_connected,
+        "patreon_tier": user.patreon_tier,
+        "has_unlimited_access": user.has_unlimited_access(),
         "characters": [{
             "id": c.id,
             "name": c.name,
@@ -666,7 +672,10 @@ def update_user_profile(user_id):
             "id": user.id,
             "username": user.username,
             "avatar": user.avatar,
-            "is_admin": user.is_admin
+            "is_admin": user.is_admin,
+            "patreon_connected": user.patreon_connected,
+            "patreon_tier": user.patreon_tier,
+            "has_unlimited_access": user.has_unlimited_access()
         }
     }), 200
 
@@ -702,20 +711,292 @@ def login():
         }
     }), 200
 
+def sync_patreon_status(user, force=False):
+    import requests
+    from datetime import datetime, timedelta
+    
+    if not user.patreon_connected or not user.patreon_access_token:
+        return
+        
+    now = datetime.utcnow()
+    # Check if checked in the last 24 hours, unless force=True
+    if not force and user.patreon_last_checked:
+        if (now - user.patreon_last_checked) < timedelta(hours=24):
+            return
+            
+    campaign_id = os.getenv("PATREON_CAMPAIGN_ID")
+    if not campaign_id:
+        return
+        
+    def fetch_data(token):
+        url = "https://www.patreon.com/api/oauth2/v2/identity"
+        params = {
+            "include": "memberships,memberships.currently_entitled_tiers,memberships.campaign",
+            "fields[member]": "patron_status",
+            "fields[tier]": "title"
+        }
+        headers = {
+            "Authorization": f"Bearer {token}"
+        }
+        return requests.get(url, params=params, headers=headers)
+        
+    try:
+        resp = fetch_data(user.patreon_access_token)
+        
+        # If expired (401), try refresh
+        if resp.status_code == 401 and user.patreon_refresh_token:
+            refresh_data = {
+                "grant_type": "refresh_token",
+                "refresh_token": user.patreon_refresh_token,
+                "client_id": os.getenv("PATREON_CLIENT_ID"),
+                "client_secret": os.getenv("PATREON_CLIENT_SECRET")
+            }
+            refresh_headers = {
+                "Content-Type": "application/x-www-form-urlencoded"
+            }
+            refresh_resp = requests.post("https://www.patreon.com/api/oauth2/token", data=refresh_data, headers=refresh_headers)
+            if refresh_resp.status_code == 200:
+                tokens = refresh_resp.json()
+                user.patreon_access_token = tokens.get("access_token")
+                user.patreon_refresh_token = tokens.get("refresh_token")
+                db.session.add(user)
+                db.session.commit()
+                # Retry call with new access token
+                resp = fetch_data(user.patreon_access_token)
+            else:
+                user.patreon_connected = False
+                user.patreon_tier = None
+                user.patreon_access_token = None
+                user.patreon_refresh_token = None
+                user.patreon_last_checked = now
+                db.session.add(user)
+                db.session.commit()
+                return
+                
+        if resp.status_code == 200:
+            json_data = resp.json()
+            included = json_data.get("included", [])
+            active_member_obj = None
+            
+            for item in included:
+                if item.get("type") == "member":
+                    campaign_rel = item.get("relationships", {}).get("campaign", {}).get("data", {})
+                    if campaign_rel and campaign_rel.get("id") == campaign_id:
+                        if item.get("attributes", {}).get("patron_status") == "active_patron":
+                            active_member_obj = item
+                            break
+                            
+            if active_member_obj:
+                tier_ids = []
+                tiers_data = active_member_obj.get("relationships", {}).get("currently_entitled_tiers", {}).get("data", [])
+                for t in tiers_data:
+                    if t.get("type") == "tier":
+                        tier_ids.append(t.get("id"))
+                        
+                tier_title = None
+                if tier_ids:
+                    for item in included:
+                        if item.get("type") == "tier" and item.get("id") in tier_ids:
+                            title = item.get("attributes", {}).get("title")
+                            if title:
+                                tier_title = title
+                                break
+                if not tier_title:
+                    tier_title = "Patreon Supporter"
+                user.patreon_tier = tier_title
+            else:
+                user.patreon_tier = None
+                
+            user.patreon_last_checked = now
+            db.session.add(user)
+            db.session.commit()
+        elif resp.status_code in (403, 401):
+            user.patreon_connected = False
+            user.patreon_tier = None
+            user.patreon_access_token = None
+            user.patreon_refresh_token = None
+            user.patreon_last_checked = now
+            db.session.add(user)
+            db.session.commit()
+    except Exception as e:
+        print(f"Error syncing Patreon status for user {user.id}: {e}")
+
 @app.route("/api/auth/access-status", methods=["GET"])
 @jwt_required()
 def access_status():
     current_user_id = get_jwt_identity()
-    
     user = db.session.get(User, current_user_id)
     
     if not user:
         return jsonify({"error": "User not found"}), 404
+        
+    sync_patreon_status(user)
     
     return jsonify({
         "has_unlimited_access": user.has_unlimited_access(),
         "patreon_connected": user.patreon_connected,
         "patreon_tier": user.patreon_tier
+    }), 200
+
+@app.route("/auth/patreon")
+def patreon_auth():
+    token = request.args.get("token")
+    if not token:
+        return "Missing token", 400
+        
+    try:
+        from flask_jwt_extended import decode_token
+        decoded = decode_token(token)
+        user_id = decoded["sub"]
+    except Exception as e:
+        return "Invalid or expired token", 401
+        
+    user = db.session.get(User, user_id)
+    if not user:
+        return "User not found", 404
+        
+    from itsdangerous import URLSafeTimedSerializer
+    serializer = URLSafeTimedSerializer(app.config["JWT_SECRET_KEY"])
+    state = serializer.dumps({"user_id": user.id})
+    
+    client_id = os.getenv("PATREON_CLIENT_ID")
+    scheme = request.headers.get("X-Forwarded-Proto", request.scheme)
+    redirect_uri = f"{scheme}://{request.host}/auth/patreon/callback"
+    
+    patreon_auth_url = (
+        f"https://www.patreon.com/oauth2/authorize"
+        f"?response_type=code"
+        f"&client_id={client_id}"
+        f"&redirect_uri={redirect_uri}"
+        f"&scope=identity identity.memberships"
+        f"&state={state}"
+    )
+    return redirect(patreon_auth_url)
+
+@app.route("/auth/patreon/callback")
+def patreon_callback():
+    code = request.args.get("code")
+    state = request.args.get("state")
+    
+    if not code or not state:
+        return "Authorization code or state missing from request.", 400
+        
+    from itsdangerous import URLSafeTimedSerializer
+    serializer = URLSafeTimedSerializer(app.config["JWT_SECRET_KEY"])
+    try:
+        data = serializer.loads(state, max_age=600)
+        user_id = data["user_id"]
+    except Exception as e:
+        return "Invalid or expired authorization state.", 400
+        
+    user = db.session.get(User, user_id)
+    if not user:
+        return "User not found.", 404
+        
+    client_id = os.getenv("PATREON_CLIENT_ID")
+    client_secret = os.getenv("PATREON_CLIENT_SECRET")
+    scheme = request.headers.get("X-Forwarded-Proto", request.scheme)
+    redirect_uri = f"{scheme}://{request.host}/auth/patreon/callback"
+    
+    token_url = "https://www.patreon.com/api/oauth2/token"
+    payload = {
+        "code": code,
+        "grant_type": "authorization_code",
+        "client_id": client_id,
+        "client_secret": client_secret,
+        "redirect_uri": redirect_uri
+    }
+    headers = {
+        "Content-Type": "application/x-www-form-urlencoded"
+    }
+    
+    try:
+        import requests
+        resp = requests.post(token_url, data=payload, headers=headers)
+        if resp.status_code != 200:
+            return f"Error exchanging code with Patreon: {resp.text}", 400
+            
+        token_data = resp.json()
+        access_token = token_data.get("access_token")
+        refresh_token = token_data.get("refresh_token")
+        
+        user.patreon_connected = True
+        user.patreon_access_token = access_token
+        user.patreon_refresh_token = refresh_token
+        
+        sync_patreon_status(user, force=True)
+        
+        db.session.commit()
+        
+        html_success = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Patreon Connected Successfully</title>
+            <script>
+                if (window.opener) {{
+                    window.opener.postMessage({{
+                        success: true,
+                        patreon_connected: true,
+                        patreon_tier: {json.dumps(user.patreon_tier)}
+                    }}, "*");
+                }}
+                window.close();
+            </script>
+        </head>
+        <body>
+            <p>Patreon connected successfully! You may close this window.</p>
+        </body>
+        </html>
+        """
+        return html_success
+    except Exception as e:
+        return f"Error completing Patreon authorization: {str(e)}", 500
+
+@app.route("/api/auth/patreon/disconnect", methods=["POST"])
+@jwt_required()
+def patreon_disconnect():
+    current_user_id = get_jwt_identity()
+    user = db.session.get(User, current_user_id)
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+        
+    user.patreon_id = None
+    user.patreon_connected = False
+    user.patreon_tier = None
+    user.patreon_access_token = None
+    user.patreon_refresh_token = None
+    user.patreon_last_checked = None
+    db.session.add(user)
+    db.session.commit()
+    
+    return jsonify({
+        "success": True,
+        "user": {
+            "patreon_connected": False,
+            "patreon_tier": None,
+            "has_unlimited_access": user.has_unlimited_access()
+        }
+    }), 200
+
+@app.route("/api/auth/patreon/refresh-status", methods=["POST"])
+@jwt_required()
+def patreon_refresh_status():
+    current_user_id = get_jwt_identity()
+    user = db.session.get(User, current_user_id)
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+        
+    if not user.patreon_connected or not user.patreon_access_token:
+        return jsonify({"error": "Patreon not connected"}), 400
+        
+    sync_patreon_status(user, force=True)
+    
+    return jsonify({
+        "success": True,
+        "patreon_connected": user.patreon_connected,
+        "patreon_tier": user.patreon_tier,
+        "has_unlimited_access": user.has_unlimited_access()
     }), 200
 
 @app.route("/api/auth/verify", methods=["GET"])
@@ -727,13 +1008,18 @@ def verify_token():
     if not user:
         return jsonify({"error": "User not found"}), 404
         
+    sync_patreon_status(user)
+        
     return jsonify({
         "success": True,
         "user": {
             "id": user.id, 
             "username": user.username, 
             "avatar": user.avatar,
-            "is_admin": user.is_admin
+            "is_admin": user.is_admin,
+            "patreon_connected": user.patreon_connected,
+            "patreon_tier": user.patreon_tier,
+            "has_unlimited_access": user.has_unlimited_access()
         }
     }), 200
 
@@ -1965,22 +2251,75 @@ def run_generator():
     return render_template("run_generator.html")
 
 @app.route("/api/run/generate", methods=["GET"])
+@jwt_required()
 def api_generate_run():
-    # Use 39 as the standard number of encounters from legacy code
+    current_user_id = get_jwt_identity()
+    user = db.session.get(User, current_user_id)
+
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    # Admins and active Patreon supporters have unlimited Run generation.
+    has_unlimited_access = user.has_unlimited_access()
+
+    # Free-user daily limit
+    DAILY_RUN_LIMIT = 3
+
+    if not has_unlimited_access:
+        today = datetime.utcnow().date()
+
+        # Reset the counter if this is a new calendar day.
+        if user.run_generation_date != today:
+            user.run_generation_date = today
+            user.run_generations_today = 0
+
+        # Stop generation if the user has reached the daily limit.
+        if user.run_generations_today >= DAILY_RUN_LIMIT:
+            return jsonify({
+                "error": "Daily Run generation limit reached. Subscribe to the Patreon for more immediately!",
+                "generations_remaining": 0,
+                "daily_limit": DAILY_RUN_LIMIT,
+                "reset_date": str(today)
+            }), 429
+
     try:
+        # Generate the Run.
         encounters = generate_all_encounters(39)
         blessing = generate_divine_blessing()
-        
-        # Format encounters for JSON (matching the legacy tuple-style indexing)
+
+        # Format encounters for JSON.
         formatted_encounters = []
         for i, enc in enumerate(encounters, 1):
             formatted_encounters.append([i, enc])
-            
+
+        # Only count a generation if generation itself succeeded.
+        if not has_unlimited_access:
+            user.run_generations_today += 1
+
+        db.session.commit()
+
+        if has_unlimited_access:
+            generations_remaining = None
+        else:
+            generations_remaining = (
+                DAILY_RUN_LIMIT - user.run_generations_today
+            )
+
         return jsonify({
             "encounters": formatted_encounters,
-            "divine_blessing": blessing
+            "divine_blessing": blessing,
+            "generations_remaining": generations_remaining,
+            "daily_limit": DAILY_RUN_LIMIT,
+            "unlimited_access": has_unlimited_access,
+            "reset_date": (
+                str(user.run_generation_date)
+                if not has_unlimited_access
+                else None
+            )
         }), 200
+
     except Exception as e:
+        db.session.rollback()
         return jsonify({"error": str(e)}), 500
 
 @app.route("/save", methods=["POST"])

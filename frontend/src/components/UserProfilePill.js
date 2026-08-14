@@ -25,13 +25,22 @@ const UserProfilePill = () => {
         );
     }
 
+    let tierClass = "free-tier";
+    if (user?.patreon_connected && user?.patreon_tier) {
+        const tierLower = user.patreon_tier.toLowerCase();
+        if (tierLower.includes("warden")) tierClass = "tier-warden";
+        else if (tierLower.includes("ascended")) tierClass = "tier-ascended";
+        else if (tierLower.includes("chosen")) tierClass = "tier-chosen";
+        else tierClass = "tier-supporter";
+    }
+
     return (
         <div
             className="user-profile-pill clickable"
             title="View your ascendant's profile"
             onClick={() => navigate(`/profile/${user?.id}`)}
         >
-            <div className="user-avatar-small">
+            <div className={`user-avatar-small ${tierClass}`}>
                 {user?.avatar ? (
                     <img
                         src={user.avatar}

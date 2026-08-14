@@ -34,6 +34,13 @@ class User(db.Model):
     patreon_id = db.Column(db.String(100), nullable=True)
     patreon_connected = db.Column(db.Boolean, default=False)
     patreon_tier = db.Column(db.String(50), nullable=True)
+    patreon_access_token = db.Column(db.Text, nullable=True)
+    patreon_refresh_token = db.Column(db.Text, nullable=True)
+    patreon_last_checked = db.Column(db.DateTime, nullable=True)
+    # Daily Run Generator limit for free users
+    run_generations_today = db.Column(db.Integer, default=0, nullable=False)
+    run_generation_date = db.Column(db.Date, nullable=True)
+    
     created_at = db.Column(db.DateTime, default=func.now(), nullable=False)
     
     # Relationship: A user can have many characters
@@ -57,9 +64,10 @@ class User(db.Model):
         return check_password_hash(self.security_answer_hash, clean_answer)
     
     def has_unlimited_access(self):
+        """Admins always have access. Patreon users need to be connected AND have an active tier."""
         return self.is_admin or (
             self.patreon_connected and
-            self.patreon_tier == "website"
+            self.patreon_tier is not None
         )
 
 DEFAULT_CHARACTER_DATA = {
