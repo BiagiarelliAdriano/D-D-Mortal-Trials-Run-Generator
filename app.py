@@ -1023,43 +1023,6 @@ def verify_token():
         }
     }), 200
 
-@app.route("/api/admin/reset-my-security-answer", methods=["POST"])
-def reset_my_security_answer():
-    data = request.get_json()
-
-    if not data or not data.get("username"):
-        return jsonify({"error": "Username is required"}), 400
-
-    username = data["username"].strip()
-    user = User.query.filter_by(username=username).first()
-
-    if not user:
-        return jsonify({"error": "User not found"}), 404
-
-    # Only allow administrators to use this temporary endpoint.
-    if not user.is_admin:
-        return jsonify({"error": "Administrator access required"}), 403
-
-    data = request.get_json()
-
-    if not data or not data.get("security_answer"):
-        return jsonify({"error": "A new security answer is required"}), 400
-
-    new_security_answer = data["security_answer"].strip()
-
-    if not new_security_answer:
-        return jsonify({"error": "Security answer cannot be empty"}), 400
-
-    # Hash the new security answer using the same method
-    # used when security answers are normally created.
-    user.set_security_answer(new_security_answer)
-
-    db.session.commit()
-
-    return jsonify({
-        "message": "Security answer successfully reset."
-    }), 200
-
 @app.route("/api/auth/security-question", methods=["GET"])
 def get_security_question():
     """Public endpoint: returns a user's security question text by username.
