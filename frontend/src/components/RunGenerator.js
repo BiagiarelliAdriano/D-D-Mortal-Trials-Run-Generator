@@ -14,6 +14,12 @@ const RunGenerator = () => {
     const [runData, setRunData] = useState(location.state?.savedRunData || null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [generationLimit, setGenerationLimit] = useState(null);
+    const [generationsRemaining, setGenerationsRemaining] = useState(null);
+    const [dailyLimit, setDailyLimit] = useState(null);
+    const [resetDate, setResetDate] = useState(null);
+    const [unlimitedAccess, setUnlimitedAccess] = useState(false);
+    const [timeUntilReset, setTimeUntilReset] = useState(null);
     const [expandedEncounters, setExpandedEncounters] = useState({});
     const [wildSurgeVisible, setWildSurgeVisible] = useState({});
     const navigate = useNavigate();
@@ -26,18 +32,95 @@ const RunGenerator = () => {
         }
     }, [location.state]);
 
+    useEffect(() => {
+        // No countdown is needed for unlimited users.
+        if (unlimitedAccess || !resetDate) {
+            setTimeUntilReset(null);
+            return;
+        }
+
+        const updateCountdown = () => {
+            const now = new Date();
+
+            // The backend gives us the date on which the daily limit resets.
+            // The reset happens at the start of that date.
+            const reset = new Date(`${resetDate}T00:00:00Z`);
+            let difference = reset.getTime() - now.getTime();
+
+            // If the reset date has already passed, the next reset is tomorrow.
+            if (difference <= 0) {
+                const nextReset = new Date(reset);
+                nextReset.setDate(nextReset.getDate() + 1);
+                difference = nextReset.getTime() - now.getTime();
+            }
+            const totalSeconds = Math.max(0, Math.floor(difference / 1000));
+            const hours = Math.floor(totalSeconds / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = totalSeconds % 60;
+            setTimeUntilReset({
+                hours,
+                minutes,
+                seconds
+            });
+        };
+
+        // Calculate immediately instead of waiting one second.
+        updateCountdown();
+
+        // Keep the countdown updated every second.
+        const timer = setInterval(updateCountdown, 1000);
+
+        // Clean up the interval when the component unmounts
+        // or when the reset date/access level changes.
+        return () => clearInterval(timer);
+    }, [resetDate, unlimitedAccess]);
+
     const generateRun = async () => {
         setLoading(true);
         setError(null);
         try {
-            const response = await fetch(`${API_BASE_URL}/api/run/generate`);
-            if (!response.ok) throw new Error('Failed to generate run');
+            const response = await fetch(`${API_BASE_URL}/api/run/generate`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
             const data = await response.json();
+            if (!response.ok) {
+                const error = new Error(data.error || 'Failed to generate run');
+                error.responseData = data;
+                throw error;
+            }
             setRunData(data);
+
+            // Store the current Run generation limit information.
+            setGenerationsRemaining(data.generations_remaining);
+            setDailyLimit(data.daily_limit);
+            setUnlimitedAccess(data.unlimited_access);
+            setResetDate(data.reset_date);
+
+            setGenerationLimit({
+                remaining: data.generations_remaining,
+                dailyLimit: data.daily_limit,
+                unlimited: data.unlimited_access,
+                resetDate: data.reset_date
+            });
+
             // Auto-expand first 3 encounters for better UX
             setExpandedEncounters({ 1: true, 2: true, 3: true });
         } catch (err) {
             setError(err.message);
+
+            // If the daily generation limit was reached,
+            // refresh the limit information from the backend response.
+            if (err.responseData) {
+                setGenerationLimit({
+                    remaining: err.responseData.generations_remaining,
+                    dailyLimit: err.responseData.daily_limit,
+                    unlimited: err.responseData.unlimited_access,
+                    resetDate: err.responseData.reset_date
+                });
+            }
         } finally {
             setLoading(false);
         }
@@ -172,7 +255,7 @@ const RunGenerator = () => {
         if (!silent) {
             title = await prompt("Enter a name for this Run (max 24 characters):");
             if (!title) return null; // Cancelled or empty
-            
+
             if (title.length > 24) {
                 addAlert("Run name must be 24 characters or less. Truncating to 24 characters.", "warning");
                 title = title.substring(0, 24);
@@ -260,9 +343,20 @@ const RunGenerator = () => {
                 </div>
                 <h1 className="serif-text">Run Generator</h1>
                 <div className="header-actions">
-                    <button className="action-btn primary" onClick={generateRun} disabled={loading}>
+                    <button
+                        className="action-btn primary"
+                        onClick={generateRun}
+                        disabled={loading || (generationLimit && !generationLimit.unlimited && generationLimit.remaining <= 0)}
+                    >
                         {loading ? <i className="fa-solid fa-spinner fa-spin"></i> : <i className="fa-solid fa-dice"></i>}
-                        {runData ? 'Generate New Run' : 'Generate Run'}
+                        {generationLimit &&
+                            generationLimit.remaining <= 0 &&
+                            !generationLimit.unlimited
+                            ? 'Daily Limit Reached'
+                            : runData
+                                ? 'Generate New Run'
+                                : 'Generate Run'
+                        }
                     </button>
                     {runData && (
                         <>
@@ -286,6 +380,41 @@ const RunGenerator = () => {
             </header>
 
             {error && <div className="error-message">{error}</div>}
+
+            {generationLimit && !generationLimit.unlimited && (
+                <div className="generation-limit-bar">
+                    <div className="generation-limit-info">
+                        <i className="fa-solid fa-dice"></i>
+                        <span>
+                            <strong>{generationLimit.remaining}</strong> of {generationLimit.dailyLimit} Run generations remaining today
+                        </span>
+                    </div>
+                    {generationLimit.resetDate && timeUntilReset && (
+                        <div className="generation-limit-reset">
+                            <i className="fa-solid fa-clock"></i>
+                            {generationLimit.remaining <= 0 ? (
+                                <span>
+                                    New Runs available in{' '}
+                                    <strong>
+                                        {String(timeUntilReset.hours).padStart(2, '0')}:
+                                        {String(timeUntilReset.minutes).padStart(2, '0')}:
+                                        {String(timeUntilReset.seconds).padStart(2, '0')}
+                                    </strong>
+                                </span>
+                            ) : (
+                                <span>
+                                    Limit resets in{' '}
+                                    <strong>
+                                        {String(timeUntilReset.hours).padStart(2, '0')}:
+                                        {String(timeUntilReset.minutes).padStart(2, '0')}:
+                                        {String(timeUntilReset.seconds).padStart(2, '0')}
+                                    </strong>
+                                </span>
+                            )}
+                        </div>
+                    )}
+                </div>
+            )}
 
             {!runData && !loading && (
                 <div className="empty-state">

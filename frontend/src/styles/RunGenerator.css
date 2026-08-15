@@ -444,3 +444,61 @@
     font-size: 0.95rem;
     backdrop-filter: blur(5px);
 }
+
+/* Run Generation Limit */
+.generation-limit-bar {
+    background: rgba(142, 68, 173, 0.12);
+    border: 1px solid rgba(142, 68, 173, 0.35);
+    border-radius: 12px;
+    padding: 0.9rem 1.25rem;
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    color: var(--text-main);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+}
+
+.generation-limit-info,
+.generation-limit-reset {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.generation-limit-info i {
+    color: var(--accent);
+}
+
+.generation-limit-info strong {
+    color: var(--accent);
+}
+
+.generation-limit-reset {
+    color: var(--text-dim);
+    white-space: nowrap;
+}
+
+.generation-limit-reset i {
+    color: var(--accent);
+}
+
+.generation-limit-reset strong {
+    color: var(--text-main);
+    font-family: monospace;
+    font-size: 1rem;
+    letter-spacing: 0.05rem;
+}
+
+@media (max-width: 768px) {
+    .generation-limit-bar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+
+    .generation-limit-reset {
+        white-space: normal;
+    }
+}
