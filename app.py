@@ -1052,7 +1052,7 @@ def reset_my_security_answer():
 
     # Hash the new security answer using the same method
     # used when security answers are normally created.
-    user.security_answer_hash = generate_password_hash(new_security_answer)
+    user.set_security_answer(new_security_answer)
 
     db.session.commit()
 
