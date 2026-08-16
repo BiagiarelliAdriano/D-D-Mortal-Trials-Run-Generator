@@ -2295,6 +2295,32 @@ def api_generate_run():
         # Only count a generation if generation itself succeeded.
         if not has_unlimited_access:
             user.run_generations_today += 1
+        
+        # Automatically save the generated Run if the user enabled
+        # the auto-save preference.
+        auto_saved_run_id = None
+        if user.auto_save_generated_runs:
+            base_title = f"Trial {datetime.utcnow().strftime('%m/%d/%Y %H:%M:%S')}"
+            auto_save_title = base_title
+            existing_run = Run.query.filter_by(title_run=auto_save_title).first()
+            if existing_run:
+                counter = 2
+                while Run.query.filter_by(
+                    title_run=f"{base_title} ({counter})"
+                ).first():
+                    counter += 1
+                auto_save_title = f"{base_title} ({counter})"
+            auto_saved_run = Run(
+                title_run=auto_save_title,
+                data=json.dumps({
+                    "divine_blessing": blessing,
+                    "encounters": formatted_encounters
+                }),
+                user_id=user.id
+            )
+            db.session.add(auto_saved_run)
+            db.session.flush()
+            auto_saved_run_id = auto_saved_run.id
 
         db.session.commit()
 
@@ -2315,8 +2341,17 @@ def api_generate_run():
                 str(user.run_generation_date)
                 if not has_unlimited_access
                 else None
-            )
+            ),
+            "auto_saved": auto_saved_run_id is not None,
+            "auto_saved_run_id": auto_saved_run_id
         }), 200
+
+    except IntegrityError:
+        db.session.rollback()
+
+        return jsonify({
+            "error": "Generating Runs too fast, cannot auto-save."
+        }), 409
 
     except Exception as e:
         db.session.rollback()
@@ -2433,6 +2468,73 @@ def api_delete_run_json(run_id):
         return jsonify({"error": "This Run is connected to a hosted game. To delete this Run, you must first delete the hosted game."}), 400
 
     return jsonify({"message": "Run deleted successfully"}), 200
+
+@app.route("/api/user/auto-save-generated-runs", methods=["GET", "POST"])
+@jwt_required()
+def auto_save_generated_runs():
+    current_user_id = get_jwt_identity()
+    user = db.session.get(User, current_user_id)
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+    if request.method == "GET":
+        return jsonify({
+            "auto_save_generated_runs": user.auto_save_generated_runs
+        }), 200
+    data = request.get_json()
+    if not data or "auto_save_generated_runs" not in data:
+        return jsonify({
+            "error": "Missing auto-save preference"
+        }), 400
+    user.auto_save_generated_runs = bool(data["auto_save_generated_runs"])
+    db.session.commit()
+    return jsonify({
+        "auto_save_generated_runs": user.auto_save_generated_runs
+    }), 200
+
+@app.route("/api/runs/<int:run_id>", methods=["PUT"])
+@jwt_required()
+def api_update_run(run_id):
+    current_user_id = get_jwt_identity()
+
+    run = Run.query.filter_by(
+        id=run_id,
+        user_id=current_user_id
+    ).first()
+
+    if not run:
+        return jsonify({"error": "Run not found"}), 404
+
+    data = request.json
+
+    if not data or not data.get("title"):
+        return jsonify({"error": "Missing title"}), 400
+
+    new_title = data["title"].strip()
+
+    if not new_title:
+        return jsonify({"error": "Run name cannot be empty."}), 400
+
+    if len(new_title) > 24:
+        return jsonify({
+            "error": "Run name cannot be longer than 24 characters."
+        }), 400
+
+    run.title_run = new_title
+
+    try:
+        db.session.commit()
+
+        return jsonify({
+            "message": "Run renamed successfully",
+            "title": run.title_run
+        }), 200
+
+    except IntegrityError:
+        db.session.rollback()
+
+        return jsonify({
+            "error": "A trial with this name already exists. Please choose a unique title."
+        }), 400
 
 @app.route("/api/rules/armor")
 def api_rules_armor():

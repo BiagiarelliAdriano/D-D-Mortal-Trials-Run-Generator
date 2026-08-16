@@ -40,6 +40,8 @@ class User(db.Model):
     # Daily Run Generator limit for free users
     run_generations_today = db.Column(db.Integer, default=0, nullable=False)
     run_generation_date = db.Column(db.Date, nullable=True)
+    # Run Generator preferences
+    auto_save_generated_runs = db.Column(db.Boolean, default=False, nullable=False)
     
     created_at = db.Column(db.DateTime, default=func.now(), nullable=False)
     

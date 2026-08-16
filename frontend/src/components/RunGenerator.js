@@ -8,15 +8,17 @@ import '../styles/RunGenerator.css';
 import API_BASE_URL from '../config';
 
 const RunGenerator = () => {
-    const { token } = useAuth();
+    const {
+        token,
+        autoSaveGeneratedRuns,
+        toggleAutoSaveGeneratedRuns
+    } = useAuth();
     const { addAlert, prompt } = useNotification();
     const location = useLocation();
     const [runData, setRunData] = useState(location.state?.savedRunData || null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [generationLimit, setGenerationLimit] = useState(null);
-    const [generationsRemaining, setGenerationsRemaining] = useState(null);
-    const [dailyLimit, setDailyLimit] = useState(null);
     const [resetDate, setResetDate] = useState(null);
     const [unlimitedAccess, setUnlimitedAccess] = useState(false);
     const [timeUntilReset, setTimeUntilReset] = useState(null);
@@ -94,8 +96,6 @@ const RunGenerator = () => {
             setRunData(data);
 
             // Store the current Run generation limit information.
-            setGenerationsRemaining(data.generations_remaining);
-            setDailyLimit(data.daily_limit);
             setUnlimitedAccess(data.unlimited_access);
             setResetDate(data.reset_date);
 
@@ -340,6 +340,42 @@ const RunGenerator = () => {
                         </button>
                     )}
                     <UserProfilePill />
+
+                    {token && (
+                        <button
+                            className={`auto-save-btn ${autoSaveGeneratedRuns ? 'active' : ''}`}
+                            onClick={async () => {
+                                const newValue = !autoSaveGeneratedRuns;
+
+                                try {
+                                    await toggleAutoSaveGeneratedRuns();
+
+                                    addAlert(
+                                        newValue
+                                            ? 'Auto-save generated Runs enabled.'
+                                            : 'Auto-save generated Runs disabled.',
+                                        'success'
+                                    );
+                                } catch (err) {
+                                    addAlert(
+                                        'Could not update auto-save preference.',
+                                        'error'
+                                    );
+                                }
+                            }}
+                            title={
+                                autoSaveGeneratedRuns
+                                    ? 'Automatically save generated Runs - ON'
+                                    : 'Automatically save generated Runs - OFF'
+                            }
+                        >
+                            <i className={"fa-solid fa-floppy-disk"}></i>
+                            Auto-save Generated Runs
+                            <span className="auto-save-status">
+                                {autoSaveGeneratedRuns ? 'ON' : 'OFF'}
+                            </span>
+                        </button>
+                    )}
                 </div>
                 <h1 className="serif-text">Run Generator</h1>
                 <div className="header-actions">

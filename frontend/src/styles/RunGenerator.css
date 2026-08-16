@@ -502,3 +502,47 @@
         white-space: normal;
     }
 }
+
+.auto-save-btn {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.6rem 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    transition: all 0.3s ease;
+}
+
+.auto-save-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-main);
+    transform: translateY(-2px);
+}
+
+.auto-save-btn.active {
+    background: rgba(50, 205, 117, 0.12);
+    border-color: var(--success);
+    color: var(--success);
+    box-shadow: 0 0 12px rgba(50, 205, 117, 0.15);
+}
+
+.auto-save-btn-active:hover {
+    background: rgba(50, 205, 117, 0.18);
+    transform: translateY(-2px);
+}
+
+.auto-save-status {
+    font-size: 0.7rem;
+    padding: 0.15rem 0.4rem;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.08);
+    letter-spacing: 0.05rem;
+}
+
+.auto-save-btn.active .auto-save-status {
+    background: rgba(50, 205, 117, 0.2);
+}

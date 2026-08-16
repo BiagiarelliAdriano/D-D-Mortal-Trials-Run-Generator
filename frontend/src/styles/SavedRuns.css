@@ -133,6 +133,97 @@
     color: var(--accent);
 }
 
+/* Edit Runs */
+
+.edit-runs-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.65rem 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.06);
+    color: inherit;
+    font-family: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.edit-runs-btn:hover {
+    background: rgba(255, 255, 255, 0.12);
+    transform: translateY(-1px);
+}
+
+.edit-runs-btn.active {
+    background: rgba(255, 255, 255, 0.14);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Editing card */
+
+.run-summary-card.editing {
+    cursor: default;
+}
+
+.run-title-editor {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1;
+    min-width: 0;
+}
+
+.run-title-input {
+    flex: 1;
+    min-width: 0;
+    padding: 0.5rem 0.65rem;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.25);
+    color: inherit;
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: 600;
+    outline: none;
+    transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.run-title-input:focus {
+    border-color: rgba(255, 255, 255, 0.55);
+    background: rgba(0, 0, 0, 0.35);
+}
+
+.run-title-input:disabled {
+    opacity: 0.6;
+    cursor: wait;
+}
+
+.save-title-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.08);
+    color: inherit;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.save-title-btn:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.16);
+    transform: translateY(-1px);
+}
+
+.save-title-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
 @media (max-width: 600px) {
     .saved-runs-header {
         flex-direction: column;
