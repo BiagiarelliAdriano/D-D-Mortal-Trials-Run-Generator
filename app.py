@@ -860,8 +860,7 @@ def patreon_auth():
     state = serializer.dumps({"user_id": user.id})
     
     client_id = os.getenv("PATREON_CLIENT_ID")
-    scheme = request.headers.get("X-Forwarded-Proto", request.scheme)
-    redirect_uri = f"{scheme}://{request.host}/auth/patreon/callback"
+    redirect_uri = os.getenv("PATREON_REDIRECT_URI")
     
     patreon_auth_url = (
         f"https://www.patreon.com/oauth2/authorize"
@@ -895,8 +894,7 @@ def patreon_callback():
         
     client_id = os.getenv("PATREON_CLIENT_ID")
     client_secret = os.getenv("PATREON_CLIENT_SECRET")
-    scheme = request.headers.get("X-Forwarded-Proto", request.scheme)
-    redirect_uri = f"{scheme}://{request.host}/auth/patreon/callback"
+    redirect_uri = os.getenv("PATREON_REDIRECT_URI")
     
     token_url = "https://www.patreon.com/api/oauth2/token"
     payload = {
@@ -1420,9 +1418,9 @@ def api_characters():
                 user_id=current_user_id
             ).count()
             
-            if character_count >= 10:
+            if character_count >= 5:
                 return jsonify({
-                    "error": "Free accounts are limited to 10 characters. Support the project on Patreon for unlimited access."
+                    "error": "Free accounts are limited to 5 characters. Support the project on Patreon for unlimited access."
                 }), 403
 
         character_data = {
