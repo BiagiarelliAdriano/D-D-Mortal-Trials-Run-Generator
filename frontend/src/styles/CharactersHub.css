@@ -320,11 +320,11 @@
     .hub-header h1 {
         font-size: 1.8rem;
     }
-    
+
     .create-button {
         width: 100%;
     }
-    
+
     .card-actions {
         flex-direction: column;
     }
@@ -341,4 +341,106 @@
     display: flex;
     align-items: center;
     gap: 8px;
+}
+
+/* =========================================
+   Character Slot Limit
+   ========================================= */
+
+.character-limit-display {
+    width: fit-content;
+    margin: -10px auto 28px;
+    padding: 8px 18px;
+    border-radius: 999px;
+    background:
+        linear-gradient(135deg,
+            rgba(142, 68, 173, 0.18),
+            rgba(255, 215, 0, 0.08));
+    border: 1px solid rgba(255, 215, 0, 0.28);
+    color: var(--text-main);
+    font-family: var(--font-serif);
+    font-size: 0.95rem;
+    letter-spacing: 0.04em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow:
+        0 4px 14px rgba(0, 0, 0, 0.28),
+        inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.character-limit-display::before {
+    content: "✦";
+    color: var(--accent);
+    margin-right: 8px;
+    text-shadow: 0 0 8px rgba(255, 215, 0, 0.55);
+}
+
+/* =========================================
+   Character Limit Reached Button
+   ========================================= */
+
+.create-button.character-limit-reached {
+    background:
+        linear-gradient(135deg,
+            rgba(120, 40, 60, 0.95),
+            rgba(80, 25, 45, 0.95));
+    border-color: rgba(231, 76, 60, 0.65);
+    color: #ffdede;
+    cursor: not-allowed;
+    box-shadow:
+        0 4px 16px rgba(0, 0, 0, 0.28),
+        0 0 14px rgba(231, 76, 60, 0.16);
+    opacity: 0.95;
+}
+
+.create-button.character-limit-reached:hover {
+    transform: none;
+    background:
+        linear-gradient(135deg,
+            rgba(120, 40, 60, 0.95),
+            rgba(80, 25, 45, 0.95));
+    box-shadow:
+        0 4px 16px rgba(0, 0, 0, 0.28),
+        0 0 18px rgba(231, 76, 60, 0.22);
+}
+
+/* Subtle warning pulse so it feels alive */
+@keyframes character-limit-glow {
+    0% {
+        box-shadow:
+            0 4px 16px rgba(0, 0, 0, 0.28),
+            0 0 8px rgba(231, 76, 60, 0.10);
+        border-color: rgba(231, 76, 60, 0.55);
+        filter: brightness(1);
+    }
+
+    50% {
+        box-shadow:
+            0 4px 16px rgba(0, 0, 0, 0.28),
+            0 0 25px rgba(231, 76, 60, 0.45);
+        border-color: rgba(255, 100, 80, 0.95);
+        filter: brightness(1.08);
+    }
+
+    100% {
+        box-shadow:
+            0 4px 16px rgba(0, 0, 0, 0.28),
+            0 0 8px rgba(231, 76, 60, 0.10);
+        border-color: rgba(231, 76, 60, 0.55);
+        filter: brightness(1);
+    }
+}
+
+.create-button.character-limit-reached {
+    animation: character-limit-glow 2.8s ease-in-out infinite;
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+    .character-limit-display {
+        margin-bottom: 24px;
+        font-size: 0.9rem;
+        padding: 7px 15px;
+    }
 }

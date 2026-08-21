@@ -241,6 +241,29 @@
     transform: scale(1.1);
 }
 
+.leave-session-header-btn {
+    background: rgba(231, 76, 60, 0.15);
+    border: 1px solid rgba(231, 76, 60, 0.35);
+    color: #ff9999;
+    font-size: 0.85rem;
+    font-family: var(--font-serif);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    padding: 6px 14px;
+    border-radius: 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.leave-session-header-btn:hover {
+    background: rgba(231, 76, 60, 0.3);
+    border-color: #e74c3c;
+    color: #ffffff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(231, 76, 60, 0.25);
+}
+
 .invite-badge {
     background: rgba(255, 215, 0, 0.1);
     border: 1px solid var(--accent);

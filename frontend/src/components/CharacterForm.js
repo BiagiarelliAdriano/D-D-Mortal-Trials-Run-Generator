@@ -1,13 +1,15 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useNotification } from "../context/NotificationContext";
 import API_BASE_URL from "../config";
 
 function CharacterForm() {
     const { id } = useParams();
     const isEditMode = Boolean(id);
     const navigate = useNavigate();
-    const { token } = useAuth();
+    const { user, token, hasUnlimitedAccess } = useAuth();
+    const { addAlert } = useNotification();
 
     // Import CSS
     require("../styles/CharacterForm.css");
@@ -97,6 +99,28 @@ function CharacterForm() {
         "Warlock", "Wizard"
     ];
 
+
+    useEffect(() => {
+        if (isEditMode || hasUnlimitedAccess || !token || !user) return;
+
+        fetch(`${API_BASE_URL}/api/characters`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (Array.isArray(data)) {
+                    const myCount = data.filter(c => c.user_id === user.id).length;
+                    if (myCount >= 5) {
+                        addAlert(
+                            "Free accounts are limited to 5 characters. Support the project on Patreon for unlimited access.",
+                            "error"
+                        );
+                        navigate("/characters");
+                    }
+                }
+            })
+            .catch(err => console.error("Failed to check character limit:", err));
+    }, [isEditMode, hasUnlimitedAccess, token, user, navigate, addAlert]);
 
     useEffect(() => {
         if (!isEditMode) return;
@@ -477,7 +501,7 @@ function CharacterForm() {
         );
     }
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         const url = isEditMode
             ? `${API_BASE_URL}/api/characters/${id}`
             : `${API_BASE_URL}/api/characters`;
@@ -555,12 +579,21 @@ function CharacterForm() {
         const combinedProficiencies = [...new Set([...proficiencies, ...bgSkills, ...clsSkills])];
         payload.append("proficiencies", JSON.stringify(combinedProficiencies));
 
-        fetch(url, { 
-            method: "POST", 
-            body: payload,
-            headers: { 'Authorization': `Bearer ${token}` }
-        })
-            .then(() => navigate("/characters"));
+        try {
+            const res = await fetch(url, { 
+                method: "POST", 
+                body: payload,
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                throw new Error(data.error || "Failed to save character");
+            }
+            addAlert(isEditMode ? "Character updated successfully!" : "Character forged successfully!", "success");
+            navigate("/characters");
+        } catch (err) {
+            addAlert(err.message, "error");
+        }
     };
 
     // Render steps

@@ -10,7 +10,7 @@ import API_BASE_URL from "../config";
 function CharactersHub() {
     const [characters, setCharacters] = useState([]);
     const [loading, setLoading] = useState(true);
-    const { user, token } = useAuth();
+    const { user, token, hasUnlimitedAccess } = useAuth();
     const { addAlert, confirm } = useNotification();
     const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState("");
@@ -41,7 +41,7 @@ function CharactersHub() {
     // Partition and Sort characters with search filtering
     const { myCharacters, communityCharacters } = useMemo(() => {
         const term = searchTerm.toLowerCase();
-        const filtered = characters.filter(c => 
+        const filtered = characters.filter(c =>
             (c.name?.toLowerCase() || "").includes(term) ||
             (c.class_name?.toLowerCase() || "").includes(term) ||
             (c.species?.toLowerCase() || "").includes(term)
@@ -84,6 +84,14 @@ function CharactersHub() {
             addAlert("An error occurred while deleting the character", "error");
         }
     };
+
+    const FREE_CHARACTER_LIMIT = 5;
+    const myCharacterCount = characters.filter(
+        character => character.user_id === user?.id
+    ).length;
+    const characterLimitReached =
+        !hasUnlimitedAccess &&
+        myCharacterCount >= FREE_CHARACTER_LIMIT;
 
     const renderCharacterCard = (char, showAttribution) => (
         <div
@@ -145,7 +153,7 @@ function CharactersHub() {
                         ✎ Edit
                     </button>
                 )}
-                
+
                 {(char.user_id === user?.id || user?.is_admin) && (
                     <button
                         className="action-btn btn-delete"
@@ -166,17 +174,31 @@ function CharactersHub() {
                 <div className="hub-titles">
                     <h1>Characters Hub</h1>
                     <div className="search-wrapper">
-                        <input 
-                            type="text" 
-                            className="search-input" 
-                            placeholder="Locate an ascendant..." 
+                        <input
+                            type="text"
+                            className="search-input"
+                            placeholder="Locate an ascendant..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
                         <i className="fa-solid fa-magnifying-glass"></i>
                     </div>
-                    <button className="create-button" onClick={() => navigate("/characters/create")}>
-                        ✧ Create New Ascendant
+                    <button
+                        className={`create-button ${characterLimitReached ? "character-limit-reached" : ""}`}
+                        onClick={() => {
+                            if (characterLimitReached) {
+                                addAlert(
+                                    "Free accounts are limited to 5 characters. Support the project on Patreon for unlimited access.",
+                                    "error"
+                                );
+                                return;
+                            }
+                            navigate("/characters/create");
+                        }}
+                    >
+                        {characterLimitReached
+                            ? "✧ Character Limit Reached"
+                            : "✧ Create New Ascendant"}
                     </button>
                     <button className="create-button secondary-hub-btn" onClick={() => navigate("/")}>
                         <i className="fa-solid fa-house"></i> Home
@@ -190,6 +212,11 @@ function CharactersHub() {
                 {/* Section 1: My Characters */}
                 <section className="hub-section">
                     <h2 className="hub-section-title">✧ Your Chosen Ascendants ✧</h2>
+                    <div className="character-limit-display">
+                        {hasUnlimitedAccess
+                            ? "Unlimited Ascendants"
+                            : `${myCharacterCount} / ${FREE_CHARACTER_LIMIT} Ascendants`}
+                    </div>
                     <div className="character-grid">
                         {myCharacters.length === 0 ? (
                             <div className="empty-state">

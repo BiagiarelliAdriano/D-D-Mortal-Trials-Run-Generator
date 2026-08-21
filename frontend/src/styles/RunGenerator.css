@@ -546,3 +546,230 @@
 .auto-save-btn.active .auto-save-status {
     background: rgba(50, 205, 117, 0.2);
 }
+
+/* ─── Host-mode: Use a Saved Run button ─────────────────────────────────────── */
+.action-btn.saved-run-pick-btn {
+    background: rgba(142, 68, 173, 0.12);
+    color: var(--primary-light);
+    border: 1px solid rgba(142, 68, 173, 0.4);
+}
+
+.action-btn.saved-run-pick-btn:hover:not(:disabled) {
+    background: rgba(142, 68, 173, 0.22);
+    border-color: var(--primary-light);
+    transform: translateY(-2px);
+}
+
+/* ─── Guest Upsell Banner ────────────────────────────────────────────────────── */
+.guest-upsell-banner {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    background: linear-gradient(135deg, rgba(212, 121, 19, 0.12) 0%, rgba(142, 68, 173, 0.08) 100%);
+    border: 1px solid rgba(212, 121, 19, 0.35);
+    border-radius: 16px;
+    padding: 1.5rem 2rem;
+    margin-bottom: 2rem;
+    animation: fadeInDown 0.3s ease;
+}
+
+.guest-upsell-icon {
+    font-size: 2.2rem;
+    color: #d47913;
+    flex-shrink: 0;
+}
+
+.guest-upsell-content {
+    flex: 1;
+}
+
+.guest-upsell-content strong {
+    font-size: 1.1rem;
+    color: var(--text-main);
+    display: block;
+    margin-bottom: 0.3rem;
+}
+
+.guest-upsell-content p {
+    color: var(--text-dim);
+    font-size: 0.93rem;
+    margin: 0;
+    line-height: 1.5;
+}
+
+.guest-upsell-content p strong {
+    color: #d47913;
+    display: inline;
+    font-size: inherit;
+    margin: 0;
+}
+
+.guest-upsell-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    flex-shrink: 0;
+}
+
+@media (max-width: 700px) {
+    .guest-upsell-banner {
+        flex-direction: column;
+        align-items: flex-start;
+        text-align: left;
+    }
+
+    .guest-upsell-actions {
+        flex-direction: row;
+        width: 100%;
+    }
+
+    .guest-upsell-actions .action-btn {
+        flex: 1;
+        justify-content: center;
+    }
+}
+
+/* ─── Saved Run Picker Panel ─────────────────────────────────────────────────── */
+.saved-run-picker {
+    background: var(--bg-card);
+    border: 1px solid rgba(142, 68, 173, 0.35);
+    border-radius: 16px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    animation: fadeInDown 0.25s ease;
+}
+
+@keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-10px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.saved-run-picker-header {
+    margin-bottom: 1.5rem;
+}
+
+.saved-run-picker-header h2 {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 1.4rem;
+    color: var(--text-main);
+    margin-bottom: 0.4rem;
+}
+
+.saved-run-picker-header h2 i {
+    color: var(--primary-glow);
+}
+
+.saved-run-picker-header p {
+    color: var(--text-dim);
+    font-size: 0.95rem;
+    margin: 0;
+}
+
+.saved-run-picker-loading,
+.saved-run-picker-empty {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    color: var(--text-dim);
+    font-size: 1rem;
+    padding: 1.5rem 0;
+}
+
+.saved-run-picker-empty i,
+.saved-run-picker-loading i {
+    font-size: 1.4rem;
+    color: var(--primary-glow);
+}
+
+.saved-run-picker-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1rem;
+}
+
+.saved-run-picker-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.1rem 1.2rem;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    position: relative;
+}
+
+.saved-run-picker-card:hover {
+    background: rgba(142, 68, 173, 0.1);
+    border-color: rgba(142, 68, 173, 0.5);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(142, 68, 173, 0.15);
+}
+
+.saved-run-picker-card.selected {
+    background: rgba(142, 68, 173, 0.16);
+    border-color: var(--primary-glow);
+    box-shadow: 0 0 0 2px rgba(142, 68, 173, 0.35), 0 4px 16px rgba(142, 68, 173, 0.2);
+}
+
+.picker-card-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--text-main);
+}
+
+.picker-card-title i:first-child {
+    color: var(--primary-glow);
+    flex-shrink: 0;
+}
+
+.picker-card-title span {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.picker-selected-icon {
+    color: #32cd75 !important;
+    font-size: 1rem;
+    flex-shrink: 0;
+    animation: popIn 0.2s ease;
+}
+
+@keyframes popIn {
+    from { transform: scale(0.5); opacity: 0; }
+    to   { transform: scale(1);   opacity: 1; }
+}
+
+.picker-card-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 0.8rem;
+    font-size: 0.8rem;
+    color: var(--text-dim);
+}
+
+.picker-card-meta span {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.picker-card-meta i {
+    color: var(--primary-glow);
+    font-size: 0.75rem;
+}
+
+@media (max-width: 600px) {
+    .saved-run-picker-grid {
+        grid-template-columns: 1fr;
+    }
+}

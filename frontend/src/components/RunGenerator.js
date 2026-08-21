@@ -24,6 +24,11 @@ const RunGenerator = () => {
     const [timeUntilReset, setTimeUntilReset] = useState(null);
     const [expandedEncounters, setExpandedEncounters] = useState({});
     const [wildSurgeVisible, setWildSurgeVisible] = useState({});
+    // Host-mode saved run picker
+    const [selectedSavedRunId, setSelectedSavedRunId] = useState(null);
+    const [savedRuns, setSavedRuns] = useState([]);
+    const [savedRunsLoading, setSavedRunsLoading] = useState(false);
+    const [showSavedRunPicker, setShowSavedRunPicker] = useState(false);
     const navigate = useNavigate();
 
     // Reset expanded states if a saved run is loaded
@@ -77,15 +82,90 @@ const RunGenerator = () => {
         return () => clearInterval(timer);
     }, [resetDate, unlimitedAccess]);
 
+    // Fetch daily run limit status on mount
+    useEffect(() => {
+        if (!token) return;
+        const fetchStatus = async () => {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/run/status`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    setUnlimitedAccess(data.unlimited_access);
+                    setResetDate(data.reset_date);
+                    setGenerationLimit({
+                        remaining: data.generations_remaining,
+                        dailyLimit: data.daily_limit,
+                        unlimited: data.unlimited_access,
+                        resetDate: data.reset_date
+                    });
+                }
+            } catch (err) {
+                console.error('Failed to fetch run status:', err);
+            }
+        };
+        fetchStatus();
+    }, [token]);
+
+    const isHostMode = new URLSearchParams(location.search).get('host') === 'true';
+
+    // In host mode, fetch the user's saved runs so they can pick one to host
+    const fetchSavedRuns = async () => {
+        if (!token) return;
+        setSavedRunsLoading(true);
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/runs`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (response.ok) {
+                const data = await response.json();
+                setSavedRuns(data);
+            }
+        } catch (err) {
+            console.error('Failed to fetch saved runs:', err);
+        } finally {
+            setSavedRunsLoading(false);
+        }
+    };
+
+    // When in host mode and limit is known, pre-load saved runs for the picker
+    useEffect(() => {
+        if (isHostMode && token) {
+            fetchSavedRuns();
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isHostMode, token]);
+
+    const handlePickSavedRun = (run) => {
+        setSelectedSavedRunId(run.id);
+        setRunData(run.data);
+        setExpandedEncounters({ 1: true, 2: true, 3: true });
+        setShowSavedRunPicker(false);
+        setError(null);
+    };
+
     const generateRun = async () => {
+        // ── Guest path: allow one free run per browser session ────────────────
+        if (!token) {
+            const alreadyUsed = sessionStorage.getItem('guest_run_used') === 'true';
+            if (alreadyUsed) {
+                addAlert(
+                    'You\'ve used your free preview run! Create a free account to get 3 runs per day, save your trials, and more.',
+                    'info'
+                );
+                return;
+            }
+        }
+
         setLoading(true);
         setError(null);
         try {
             const response = await fetch(`${API_BASE_URL}/api/run/generate`, {
                 method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
+                headers: token ? { 'Authorization': `Bearer ${token}` } : {}
             });
             const data = await response.json();
             if (!response.ok) {
@@ -94,6 +174,12 @@ const RunGenerator = () => {
                 throw error;
             }
             setRunData(data);
+
+            // If this was a guest generation, mark it used and show the upsell
+            if (!token) {
+                sessionStorage.setItem('guest_run_used', 'true');
+                setGenerationLimit({ remaining: 0, dailyLimit: 1, unlimited: false, resetDate: null });
+            }
 
             // Store the current Run generation limit information.
             setUnlimitedAccess(data.unlimited_access);
@@ -299,11 +385,18 @@ const RunGenerator = () => {
     const handleStartHosting = async () => {
         setLoading(true);
         try {
-            // 1. Save the run first to get a run_id
-            const runId = await saveRun(true);
-            if (!runId) return;
+            let runId;
 
-            // 2. Create the hosted session
+            if (selectedSavedRunId) {
+                // User picked an existing saved run — no need to save a new copy
+                runId = selectedSavedRunId;
+            } else {
+                // Freshly generated run — save it first to get an ID
+                runId = await saveRun(true);
+                if (!runId) return;
+            }
+
+            // Create the hosted session
             const response = await fetch(`${API_BASE_URL}/api/host/create`, {
                 method: 'POST',
                 headers: {
@@ -316,16 +409,15 @@ const RunGenerator = () => {
             const data = await response.json();
             if (!response.ok) throw new Error(data.error || 'Failed to create host session');
 
-            // 3. Navigate to the session page
+            // Navigate to the session page
             navigate(`/hosting/${data.session_id}`);
         } catch (err) {
             setError(err.message);
+            addAlert(err.message, 'error');
         } finally {
             setLoading(false);
         }
     };
-
-    const isHostMode = new URLSearchParams(location.search).get('host') === 'true';
 
     return (
         <div className="generator-container">
@@ -388,12 +480,24 @@ const RunGenerator = () => {
                         {generationLimit &&
                             generationLimit.remaining <= 0 &&
                             !generationLimit.unlimited
-                            ? 'Daily Limit Reached'
+                            ? (!token ? 'Free Preview Used' : 'Daily Limit Reached')
                             : runData
                                 ? 'Generate New Run'
                                 : 'Generate Run'
                         }
                     </button>
+                    {/* In host mode, offer the option to pick a saved run instead */}
+                    {isHostMode && token && (
+                        <button
+                            className="action-btn saved-run-pick-btn"
+                            onClick={() => setShowSavedRunPicker(v => !v)}
+                            disabled={loading}
+                            title="Use one of your saved runs to start hosting"
+                        >
+                            <i className="fa-solid fa-list-ul"></i>
+                            {showSavedRunPicker ? 'Hide Saved Runs' : 'Use a Saved Run'}
+                        </button>
+                    )}
                     {runData && (
                         <>
                             {token && (
@@ -422,7 +526,10 @@ const RunGenerator = () => {
                     <div className="generation-limit-info">
                         <i className="fa-solid fa-dice"></i>
                         <span>
-                            <strong>{generationLimit.remaining}</strong> of {generationLimit.dailyLimit} Run generations remaining today
+                            {!token
+                                ? <><strong>Free preview</strong> — 1 run per session</>
+                                : <><strong>{generationLimit.remaining}</strong> of {generationLimit.dailyLimit} Run generations remaining today</>
+                            }
                         </span>
                     </div>
                     {generationLimit.resetDate && timeUntilReset && (
@@ -452,10 +559,95 @@ const RunGenerator = () => {
                 </div>
             )}
 
-            {!runData && !loading && (
+            {/* Guest upsell banner — shown after the free preview run is used */}
+            {!token && generationLimit && generationLimit.remaining <= 0 && (
+                <div className="guest-upsell-banner">
+                    <div className="guest-upsell-icon">
+                        <i className="fa-solid fa-tower-observation"></i>
+                    </div>
+                    <div className="guest-upsell-content">
+                        <strong>Want more trials?</strong>
+                        <p>
+                            Create a free account to get <strong>3 runs per day</strong>, save your favourite trials, build characters, and join Hosted Runs — or subscribe to our Patreon for unlimited access!
+                        </p>
+                    </div>
+                    <div className="guest-upsell-actions">
+                        <button className="action-btn primary" onClick={() => navigate('/register')}>
+                            <i className="fa-solid fa-user-plus"></i> Create Free Account
+                        </button>
+                        <button className="action-btn secondary" onClick={() => navigate('/login')}>
+                            <i className="fa-solid fa-right-to-bracket"></i> Log In
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {/* Saved run picker panel (host mode only) */}
+            {isHostMode && showSavedRunPicker && (
+                <div className="saved-run-picker">
+                    <div className="saved-run-picker-header">
+                        <h2 className="serif-text">
+                            <i className="fa-solid fa-scroll"></i> Choose a Saved Trial to Host
+                        </h2>
+                        <p>Select one of your saved runs below. It will be loaded as the run for your new Hosted Trial.</p>
+                    </div>
+                    {savedRunsLoading ? (
+                        <div className="saved-run-picker-loading">
+                            <i className="fa-solid fa-spinner fa-spin"></i>
+                            <span>Retrieving your trials...</span>
+                        </div>
+                    ) : savedRuns.length === 0 ? (
+                        <div className="saved-run-picker-empty">
+                            <i className="fa-solid fa-box-open"></i>
+                            <p>You have no saved runs yet. Generate a run first to save it.</p>
+                        </div>
+                    ) : (
+                        <div className="saved-run-picker-grid">
+                            {savedRuns.map(run => (
+                                <button
+                                    key={run.id}
+                                    className={`saved-run-picker-card ${selectedSavedRunId === run.id ? 'selected' : ''}`}
+                                    onClick={() => handlePickSavedRun(run)}
+                                >
+                                    <div className="picker-card-title">
+                                        <i className="fa-solid fa-scroll"></i>
+                                        <span>{run.title}</span>
+                                        {selectedSavedRunId === run.id && (
+                                            <i className="fa-solid fa-circle-check picker-selected-icon"></i>
+                                        )}
+                                    </div>
+                                    <div className="picker-card-meta">
+                                        <span>
+                                            <i className="fa-solid fa-calendar-days"></i>{' '}
+                                            {new Date(run.created_at).toLocaleDateString()}
+                                        </span>
+                                        <span>
+                                            <i className="fa-solid fa-skull"></i>{' '}
+                                            {run.data.encounters?.length || 0} Encounters
+                                        </span>
+                                        {run.data.divine_blessing && (
+                                            <span>
+                                                <i className="fa-solid fa-sun"></i>{' '}
+                                                {run.data.divine_blessing.name}
+                                            </span>
+                                        )}
+                                    </div>
+                                </button>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {!runData && !loading && !showSavedRunPicker && (
                 <div className="empty-state">
                     <i className="fa-solid fa-scroll"></i>
-                    <p>Begin your trial. Generate a new run to see your destiny.</p>
+                    <p>
+                        {isHostMode
+                            ? 'Generate a new run or choose a saved run above to begin hosting your trial.'
+                            : 'Begin your trial. Generate a new run to see your destiny.'
+                        }
+                    </p>
                 </div>
             )}
 

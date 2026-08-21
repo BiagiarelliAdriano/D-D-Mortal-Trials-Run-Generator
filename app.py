@@ -2248,10 +2248,64 @@ def run_generator():
 
     return render_template("run_generator.html")
 
-@app.route("/api/run/generate", methods=["GET"])
+@app.route("/api/run/status", methods=["GET"])
 @jwt_required()
+def api_run_status():
+    current_user_id = get_jwt_identity()
+    user = db.session.get(User, current_user_id)
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    has_unlimited_access = user.has_unlimited_access()
+    DAILY_RUN_LIMIT = 3
+
+    if not has_unlimited_access:
+        today = datetime.utcnow().date()
+        if user.run_generation_date != today:
+            user.run_generation_date = today
+            user.run_generations_today = 0
+            db.session.commit()
+
+        generations_remaining = max(0, DAILY_RUN_LIMIT - user.run_generations_today)
+        reset_date = str(user.run_generation_date)
+    else:
+        generations_remaining = None
+        reset_date = None
+
+    return jsonify({
+        "generations_remaining": generations_remaining,
+        "daily_limit": DAILY_RUN_LIMIT,
+        "unlimited_access": has_unlimited_access,
+        "reset_date": reset_date
+    }), 200
+
+@app.route("/api/run/generate", methods=["GET"])
+@jwt_required(optional=True)
 def api_generate_run():
     current_user_id = get_jwt_identity()
+
+    # ── Guest (unauthenticated) path ──────────────────────────────────────────
+    # The frontend enforces the single-run-per-session limit; the backend just
+    # generates and returns without any persistence for guests.
+    if not current_user_id:
+        try:
+            encounters = generate_all_encounters(39)
+            blessing   = generate_divine_blessing()
+            formatted_encounters = [[i, enc] for i, enc in enumerate(encounters, 1)]
+            return jsonify({
+                "encounters":           formatted_encounters,
+                "divine_blessing":      blessing,
+                "generations_remaining": 0,
+                "daily_limit":          1,
+                "unlimited_access":     False,
+                "reset_date":           None,
+                "auto_saved":           False,
+                "auto_saved_run_id":    None,
+                "guest":                True,
+            }), 200
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+
     user = db.session.get(User, current_user_id)
 
     if not user:
@@ -2636,6 +2690,17 @@ def api_create_hosted_run():
     if not user:
         return jsonify({"error": "User not found"}), 404
 
+    # Free accounts can host only 1 active trial as DM
+    if not user.has_unlimited_access():
+        active_dm_count = HostedRun.query.filter_by(
+            dm_id=current_user_id,
+            is_active=True
+        ).count()
+        if active_dm_count >= 1:
+            return jsonify({
+                "error": "Free accounts are limited to 1 active Hosted Run as Dungeon Master. Complete or delete your existing session, or subscribe to Patreon for unlimited hosting."
+            }), 403
+
     run = db.session.get(Run, data["run_id"])
     if not run:
         return jsonify({"error": "Run not found"}), 404
@@ -2680,6 +2745,9 @@ def api_join_hosted_run():
         return jsonify({"error": "Session not found or inactive"}), 404
     
     current_user_id = get_jwt_identity()
+    user = db.session.get(User, current_user_id)
+    if not user:
+        return jsonify({"error": "User not found"}), 404
     
     # Check if user is already a participant
     existing = SessionParticipant.query.filter_by(
@@ -2693,7 +2761,19 @@ def api_join_hosted_run():
             "session_id": hosted_run.id
         }), 200
 
-    # Max 5 players (DM counts as one? Or DM + 5? I'll assume 5 total for now)
+    # Free accounts can join up to 5 active trials as players
+    if not user.has_unlimited_access():
+        active_joined_count = SessionParticipant.query.join(HostedRun).filter(
+            SessionParticipant.user_id == current_user_id,
+            SessionParticipant.role == 'Ascendant',
+            HostedRun.is_active == True
+        ).count()
+        if active_joined_count >= 5:
+            return jsonify({
+                "error": "Free accounts can join up to 5 active Trials as a player. Leave an active trial, or subscribe to Patreon for unlimited access."
+            }), 403
+
+    # Max 5 players (DM + 4 Ascendants, or max 5 total participants)
     participant_count = SessionParticipant.query.filter_by(hosted_run_id=hosted_run.id).count()
     if participant_count >= 5:
         return jsonify({"error": "Session is full (Max 5 participants)"}), 400
@@ -2710,6 +2790,29 @@ def api_join_hosted_run():
         "message": "Joined session successfully",
         "session_id": hosted_run.id
     }), 201
+
+@app.route("/api/host/<int:session_id>/leave", methods=["POST"])
+@jwt_required()
+def api_leave_hosted_run(session_id):
+    current_user_id = get_jwt_identity()
+    hosted_run = db.session.get(HostedRun, session_id)
+    if not hosted_run:
+        return jsonify({"error": "Session not found"}), 404
+
+    participant = SessionParticipant.query.filter_by(
+        user_id=current_user_id,
+        hosted_run_id=session_id
+    ).first()
+
+    if not participant:
+        return jsonify({"error": "You are not a participant in this session"}), 400
+
+    if participant.role == 'DM':
+        return jsonify({"error": "Dungeon Masters cannot leave their own session. You can delete the session instead."}), 400
+
+    db.session.delete(participant)
+    db.session.commit()
+    return jsonify({"success": True, "message": "Successfully left the session"}), 200
 
 @app.route("/api/host/active", methods=["GET"])
 @jwt_required()

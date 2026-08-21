@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { useNotification } from '../../context/NotificationContext';
 import BackToTop from '../common/BackToTop';
 import UserProfilePill from '../UserProfilePill';
 import '../../styles/HostHub.css';
@@ -8,7 +9,8 @@ import API_BASE_URL from '../../config';
 
 const HostHub = () => {
     const navigate = useNavigate();
-    const { token } = useAuth();
+    const { token, hasUnlimitedAccess } = useAuth();
+    const { addAlert, confirm } = useNotification();
     const [activeGames, setActiveGames] = useState([]);
     const [joinCode, setJoinCode] = useState('');
     const [loading, setLoading] = useState(true);
@@ -35,6 +37,12 @@ const HostHub = () => {
         fetchGames();
     }, [fetchGames]);
 
+    // Limit calculations
+    const myHostedCount = activeGames.filter(g => g.role === 'DM').length;
+    const myJoinedCount = activeGames.filter(g => g.role === 'Ascendant').length;
+    const dmLimitReached = !hasUnlimitedAccess && myHostedCount >= 1;
+    const joinLimitReached = !hasUnlimitedAccess && myJoinedCount >= 5;
+
     // Partition and Sort trials with search filtering
     const { myTrials, communityTrials } = useMemo(() => {
         const term = searchTerm.toLowerCase();
@@ -54,9 +62,17 @@ const HostHub = () => {
 
     const handleJoin = async () => {
         if (joinCode.length !== 6) {
-            setError('Invite code must be 6 digits');
+            addAlert('Invite code must be 6 digits', 'error');
             return;
         }
+
+        // If user is already in this game, let them in without limit check
+        const alreadyInGame = activeGames.some(g => g.invite_code === joinCode && g.can_enter);
+        if (!alreadyInGame && joinLimitReached) {
+            addAlert('Free accounts can join up to 5 active Trials as a player. Leave an active trial, or subscribe to Patreon for unlimited access.', 'error');
+            return;
+        }
+
         setError('');
         try {
             const response = await fetch(`${API_BASE_URL}/api/host/join`, {
@@ -70,9 +86,30 @@ const HostHub = () => {
             const data = await response.json();
             if (!response.ok) throw new Error(data.error || 'Failed to join trial');
 
+            addAlert('Joined trial successfully!', 'success');
             navigate(`/hosting/${data.session_id}`);
         } catch (err) {
             setError(err.message);
+            addAlert(err.message, 'error');
+        }
+    };
+
+    const handleLeaveTrial = async (e, sessionId) => {
+        e.stopPropagation();
+        if (!(await confirm('Are you sure you want to leave this trial?'))) return;
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/host/${sessionId}/leave`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || 'Failed to leave trial');
+
+            addAlert('Left trial successfully', 'success');
+            fetchGames();
+        } catch (err) {
+            addAlert(err.message, 'error');
         }
     };
 
@@ -130,9 +167,20 @@ const HostHub = () => {
                             <small>{copiedCode === game.invite_code ? 'COPIED!' : 'CODE'}</small>
                             <strong>{game.invite_code}</strong>
                         </div>
-                        <button className="enter-trial-btn">
-                            Enter Spire <i className="fa-solid fa-arrow-right"></i>
-                        </button>
+                        <div className="card-action-buttons">
+                            {game.role === 'Ascendant' && (
+                                <button
+                                    className="leave-trial-btn"
+                                    onClick={(e) => handleLeaveTrial(e, game.id)}
+                                    title="Leave Trial"
+                                >
+                                    <i className="fa-solid fa-right-from-bracket"></i> Leave
+                                </button>
+                            )}
+                            <button className="enter-trial-btn">
+                                Enter Spire <i className="fa-solid fa-arrow-right"></i>
+                            </button>
+                        </div>
                     </>
                 ) : (
                     <div className="card-visitor-badge">
@@ -168,8 +216,21 @@ const HostHub = () => {
                 </div>
 
                 <div className="host-actions">
-                    <button className="host-primary-btn" onClick={() => navigate('/run-generator?host=true')}>
-                        <i className="fa-solid fa-plus-circle"></i> Host New Run
+                    <button
+                        className={`host-primary-btn ${dmLimitReached ? 'host-limit-reached' : ''}`}
+                        onClick={() => {
+                            if (dmLimitReached) {
+                                addAlert(
+                                    "Free accounts are limited to 1 active Hosted Run as Dungeon Master. Complete or delete your existing session, or subscribe to Patreon for unlimited hosting.",
+                                    "error"
+                                );
+                                return;
+                            }
+                            navigate('/run-generator?host=true');
+                        }}
+                    >
+                        <i className={dmLimitReached ? "fa-solid fa-lock" : "fa-solid fa-plus-circle"}></i>
+                        {dmLimitReached ? "✧ Hosted Run Limit Reached" : "Host New Run"}
                     </button>
 
                     <div className="join-code-section">
@@ -189,6 +250,25 @@ const HostHub = () => {
                     {/* Section 1: Your Active Trials */}
                     <section className="hub-section">
                         <h2 className="hub-section-title">✧ Your Active Trials ✧</h2>
+                        <div className="hosting-limits-bar">
+                            <div className="hosting-limit-pill">
+                                <i className="fa-solid fa-crown"></i>
+                                <span>
+                                    {hasUnlimitedAccess
+                                        ? "Unlimited Hosted Trials"
+                                        : `Hosted Trials: ${myHostedCount} / 1`}
+                                </span>
+                            </div>
+                            <div className="hosting-limit-pill">
+                                <i className="fa-solid fa-shield-halved"></i>
+                                <span>
+                                    {hasUnlimitedAccess
+                                        ? "Unlimited Joined Trials"
+                                        : `Joined Trials: ${myJoinedCount} / 5`}
+                                </span>
+                            </div>
+                        </div>
+
                         {loading ? (
                             <div className="loading-mini">Seeking your path...</div>
                         ) : myTrials.length > 0 ? (

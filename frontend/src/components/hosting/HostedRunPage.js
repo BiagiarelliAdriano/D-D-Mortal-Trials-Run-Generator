@@ -431,6 +431,28 @@ const HostedRunPage = () => {
         }
     };
 
+    const handleLeaveSession = async () => {
+        if (!await confirm("Are you sure you want to leave this trial?")) return;
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/host/${id}/leave`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            const data = await response.json();
+            if (response.ok) {
+                addAlert("Left trial successfully", "success");
+                navigate('/hosting');
+            } else {
+                addAlert(data.error || "Failed to leave trial", "error");
+            }
+        } catch (err) {
+            addAlert(err.message, "error");
+        }
+    };
+
     const toggleEncounter = (num) => {
         setExpandedEncounters(prev => ({ ...prev, [num]: !prev[num] }));
     };
@@ -761,13 +783,19 @@ const HostedRunPage = () => {
                     ) : (
                         <h1 className="editable-title">
                             {session.run.title}
-                            {isDM && (
+                            {isDM ? (
                                 <div className="dm-actions">
                                     <button className="edit-title-btn" onClick={startEditingTitle} title="Rename Run">
                                         <i className="fa-solid fa-pen-to-square"></i>
                                     </button>
                                     <button className="delete-session-btn" onClick={handleDeleteSession} title="Delete Run">
                                         <i className="fa-solid fa-trash-can"></i>
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="dm-actions">
+                                    <button className="leave-session-header-btn" onClick={handleLeaveSession} title="Leave Trial">
+                                        <i className="fa-solid fa-right-from-bracket"></i> Leave Trial
                                     </button>
                                 </div>
                             )}

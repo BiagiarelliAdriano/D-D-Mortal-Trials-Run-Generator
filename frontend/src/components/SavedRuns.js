@@ -131,10 +131,20 @@ const SavedRuns = () => {
     };
 
     const handleTitleChange = (id, value) => {
-        setEditingTitles(prev => ({
-            ...prev,
-            [id]: value
-        }));
+        const currentRun = runs.find(run => run.id === id);
+        setEditingTitles(prev => {
+            const updated = { ...prev };
+
+            // If the user changed the title back to its original value,
+            // there is no longer an unsaved change for this Run.
+            if (currentRun && value === currentRun.title) {
+                delete updated[id];
+            } else {
+                updated[id] = value;
+            }
+
+            return updated;
+        });
     };
 
     const cancelTitleEdit = (id) => {
@@ -143,6 +153,37 @@ const SavedRuns = () => {
             delete updated[id];
             return updated;
         });
+    };
+
+    const handleEditModeToggle = async () => {
+        // If we're currently editing, simply enter Edit Mode.
+        if (!editMode) {
+            setEditMode(true);
+            return;
+        }
+
+        // Check whether there are any unsaved title changes.
+        const hasUnsavedChanges = Object.keys(editingTitles).length > 0;
+
+        // No unsaved changes, so we can safely leave Edit Mode.
+        if (!hasUnsavedChanges) {
+            setEditMode(false);
+            return;
+        }
+
+        // Ask the user whether they want to discard their unsaved changes.
+        const shouldDiscard = await confirm(
+            'Oops! Looks like you have some unsaved changes. Would you still like to leave Edit Mode and discard them?'
+        );
+
+        // User chose to keep editing.
+        if (!shouldDiscard) {
+            return;
+        }
+
+        // User chose to discard the unsaved changes.
+        setEditingTitles({});
+        setEditMode(false);
     };
 
     const viewRun = (run) => {
@@ -163,7 +204,7 @@ const SavedRuns = () => {
                     <UserProfilePill />
                     <button
                         className={`edit-runs-btn ${editMode ? 'active' : ''}`}
-                        onClick={() => setEditMode(prev => !prev)}
+                        onClick={handleEditModeToggle}
                     >
                         <i className={`fa-solid ${editMode ? 'fa-check' : 'fa-pen-to-square'}`}></i>
                         {editMode ? 'Done Editing' : 'Edit Runs'}
