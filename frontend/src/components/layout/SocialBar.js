@@ -4,6 +4,13 @@ import '../../styles/SocialBar.css';
 const SocialBar = () => {
     return (
         <div className="global-social-bar">
+            <button
+                onClick={() => window.open('/informations', '_blank')}
+                className="social-icon information"
+                title="The Mortal Trials Information"
+            >
+                <i className="fa-solid fa-circle-info"></i>
+            </button>
             <a 
                 href="https://discord.gg/CmNqX7Mrtp" 
                 target="_blank" 

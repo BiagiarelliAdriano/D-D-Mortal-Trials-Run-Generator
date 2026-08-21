@@ -17,6 +17,7 @@ import HostHub from "./components/hosting/HostHub";
 import HostedRunPage from "./components/hosting/HostedRunPage";
 import SocialBar from "./components/layout/SocialBar";
 import ReportPage from "./components/ReportPage";
+import InformationPage from "./components/InformationPage";
 import NotificationPoller from "./components/NotificationPoller";
 import "./App.css";
 import "./styles/theme.css";
@@ -55,6 +56,7 @@ function App() {
           <Routes>
             <Route path="/" element={<LandingPage />} />
             <Route path="/run-generator" element={<RunGenerator />} />
+            <Route path="/informations" element={<InformationPage />} />
             <Route path="/saved-runs" element={<ProtectedRoute><SavedRuns /></ProtectedRoute>} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
