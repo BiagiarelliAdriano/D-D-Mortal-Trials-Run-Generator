@@ -52,6 +52,18 @@ h3,
     font-family: var(--font-serif);
 }
 
+.ability-name {
+    font-size: 1.2rem;
+}
+
+.ability-mod {
+    font-size: 1.8rem;
+}
+
+.ability-score {
+    font-size: 1.4rem;
+}
+
 .character-sheet-container.premium-theme {
     padding: 20px;
     background: radial-gradient(circle at top, #2e2e40 0%, #1e1e2f 100%);

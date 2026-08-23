@@ -2833,7 +2833,6 @@ function CharacterSheet() {
             ? targetClass.primary_ability
             : [targetClass.primary_ability];
 
-
         const hasRequirement = requiredAbilities.some(ability => {
             const abilityKey = ability.toLowerCase();
 
@@ -2841,7 +2840,6 @@ function CharacterSheet() {
 
             return score >= 13;
         });
-
 
         if (!hasRequirement) {
             return "blocked";

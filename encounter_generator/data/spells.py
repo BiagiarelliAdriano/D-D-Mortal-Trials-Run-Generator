@@ -15,11 +15,7 @@ SPELLS = {
             "damage": ["1d6"],
             "damage_type": ["Acid"],
             "spell_type": "Area of Effect",
-            "scaling": {
-                "5": {"value": "2d6"},
-                "11": {"value": "3d6"},
-                "17": {"value": "4d6"}
-            },
+            "scaling": "The damage increases by 1d6 when you reach levels 5 (2d6), 11 (3d6), and 17 (4d6).",
             "level_upgrade": None
         },
         {
@@ -53,11 +49,7 @@ SPELLS = {
             "damage": ["1d10"],
             "damage_type": ["Necrotic"],
             "spell_type": "Melee Attack",
-            "scaling": {
-                "5": {"value": "2d10"},
-                "11": {"value": "3d10"},
-                "17": {"value": "4d10"}
-            },
+            "scaling": "The damage increases by 1d10 when you reach levels 5 (2d10), 11 (3d10), and 17 (4d10).",
             "level_upgrade": None
         },
         {
@@ -91,20 +83,7 @@ SPELLS = {
             "damage": ["1d10"],
             "damage_type": ["Force"],
             "spell_type": "Ranged Attack",
-            "scaling": {
-                "5": {
-                    "value": "2 beams",
-                    "desc_add": "You can direct the beams at the same target or at different ones. Make a separate Attack Roll for each beam."
-                },
-                "11": {
-                    "value": "3 beams",
-                    "desc_add": "You can direct the beams at the same target or at different ones. Make a separate Attack Roll for each beam."
-                },
-                "17": {
-                    "value": "4 beams",
-                    "desc_add": "You can direct the beams at the same target or at different ones. Make a separate Attack Roll for each beam."
-                }
-            },
+            "scaling": "The spell creates two beams at level 5, three beams at level 11, and four beams at level 17. You can direct the beams at the same target or at different ones. Make a separate attack roll for each beam.",
             "level_upgrade": None
         },
         {
@@ -122,11 +101,7 @@ SPELLS = {
             "damage": ["1d10"],
             "damage_type": ["Fire"],
             "spell_type": "Ranged Attack",
-            "scaling": {
-                "5": {"value": "2d10"},
-                "11": {"value": "3d10"},
-                "17": {"value": "4d10"}
-            },
+            "scaling": "The damage increases by 1d10 when you reach levels 5 (2d10), 11 (3d10), and 17 (4d10).",
             "level_upgrade": None
         },
         {
@@ -211,11 +186,7 @@ SPELLS = {
             "damage": ["1d6"],
             "damage_type": ["Psychic"],
             "spell_type": "Target Save",
-            "scaling": {
-                "5": {"value": "2d6"},
-                "11": {"value": "3d6"},
-                "17": {"value": "4d6"}
-            },
+            "scaling": "The damage increases by 1d6 when you reach levels 5 (2d6), 11 (3d6), and 17 (4d6).",
             "level_upgrade": None
         },
         {
@@ -232,11 +203,7 @@ SPELLS = {
             "damage": ["1d12"],
             "damage_type": ["Poison"],
             "spell_type": "Ranged Attack",
-            "scaling": {
-                "5": {"value": "2d12"},
-                "11": {"value": "3d12"},
-                "17": {"value": "4d12"}
-            },
+            "scaling": "The damage increases by 1d12 when you reach levels 5 (2d12), 11 (3d12), and 17 (4d12).",
             "level_upgrade": None
         },
         {
@@ -253,11 +220,7 @@ SPELLS = {
             "damage": ["1d8"],
             "damage_type": ["Fire"],
             "spell_type": "Ranged Attack",
-            "scaling": {
-                "5": {"value": "2d8"},
-                "11": {"value": "3d8"},
-                "17": {"value": "4d8"}
-            },
+            "scaling": "The damage increases by 1d8 when you reach levels 5 (2d8), 11 (3d8), and 17 (4d8).",
             "level_upgrade": None
         },
         {
@@ -274,11 +237,7 @@ SPELLS = {
             "damage": ["1d8"],
             "damage_type": ["Cold"],
             "spell_type": "Ranged Attack",
-            "scaling": {
-                "5": {"value": "2d8"},
-                "11": {"value": "3d8"},
-                "17": {"value": "4d8"}
-            },
+            "scaling": "The damage increases by 1d8 when you reach levels 5 (2d8), 11 (3d8), and 17 (4d8).",
             "level_upgrade": None
         },
         {
@@ -312,11 +271,7 @@ SPELLS = {
             "damage": ["1d8"],
             "damage_type": ["Radiant"],
             "spell_type": "Target Save",
-            "scaling": {
-                "5": {"value": "2d8"},
-                "11": {"value": "3d8"},
-                "17": {"value": "4d8"}
-            },
+            "scaling": "The damage increases by 1d8 when you reach levels 5 (2d8), 11 (3d8), and 17 (4d8).",
             "level_upgrade": None
         },
         {
@@ -333,11 +288,7 @@ SPELLS = {
             "damage": ["1d8"],
             "damage_type": ["Force", "Weapon"],
             "spell_type": "Buff",
-            "scaling": {
-                "5": {"value": "d10"},
-                "11": {"value": "d12"},
-                "17": {"value": "2d6"}
-            },
+            "scaling": "The damage die changes when you reach levels 5 (1d10), 11 (1d12), and 17 (2d6).",
             "level_upgrade": None
         },
         {
@@ -354,11 +305,7 @@ SPELLS = {
             "damage": ["1d8"],
             "damage_type": ["Lightning"],
             "spell_type": "Melee Attack",
-            "scaling": {
-                "5": {"value": "2d8"},
-                "11": {"value": "3d8"},
-                "17": {"value": "4d8"}
-            },
+            "scaling": "The damage increases by 1d8 when you reach levels 5 (2d8), 11 (3d8), and 17 (4d8).",
             "level_upgrade": None
         },
         {
@@ -375,11 +322,7 @@ SPELLS = {
             "damage": ["1d8"],
             "damage_type": ["Acid", "Cold", "Fire", "Lightning", "Poison", "Psychic", "Thunder"],
             "spell_type": "Ranged Attack",
-            "scaling": {
-                "5": {"value": "2d8"},
-                "11": {"value": "3d8"},
-                "17": {"value": "4d8"}
-            },
+            "scaling": "The damage increases by 1d8 when you reach levels 5 (2d8), 11 (3d8), and 17 (4d8).",
             "level_upgrade": None
         },
         {
@@ -396,11 +339,7 @@ SPELLS = {
             "damage": [],
             "damage_type": [],
             "spell_type": "Buff",
-            "scaling": {
-                "5": {"value": "30ft"},
-                "11": {"value": "60ft"},
-                "17": {"value": "120ft"}
-            },
+            "scaling": "The range doubles when you reach levels 5 (30ft), 11 (60ft), and 17 (120ft).",
             "level_upgrade": None
         },
         {
@@ -417,11 +356,7 @@ SPELLS = {
             "damage": ["1d8"],
             "damage_type": ["Radiant"],
             "spell_type": "Ranged Attack",
-            "scaling": {
-                "5": {"value": "2d8"},
-                "11": {"value": "3d8"},
-                "17": {"value": "4d8"}
-            },
+            "scaling": "The damage increases by 1d8 when you reach levels 5 (2d8), 11 (3d8), and 17 (4d8).",
             "level_upgrade": None
         },
         {
@@ -438,11 +373,7 @@ SPELLS = {
             "damage": ["1d6"],
             "damage_type": ["Piercing"],
             "spell_type": "Melee Attack",
-            "scaling": {
-                "5": {"value": "2d6"},
-                "11": {"value": "3d6"},
-                "17": {"value": "4d6"}
-            },
+            "scaling": "The damage increases by 1d6 when you reach levels 5 (2d6), 11 (3d6), and 17 (4d6).",
             "level_upgrade": None
         },
         {
@@ -459,11 +390,7 @@ SPELLS = {
             "damage": ["1d6"],
             "damage_type": ["Thunder"],
             "spell_type": "Area of Effect",
-            "scaling": {
-                "5": {"value": "2d6"},
-                "11": {"value": "3d6"},
-                "17": {"value": "4d6"}
-            },
+            "scaling": "The damage increases by 1d6 when you reach levels 5 (2d6), 11 (3d6), and 17 (4d6).",
             "level_upgrade": None
         },
         {
@@ -480,11 +407,7 @@ SPELLS = {
             "damage": ["1d8", "1d12"],
             "damage_type": ["Necrotic"],
             "spell_type": "Target Save",
-            "scaling": {
-                "5": {"value": "2d8 or 2d12"},
-                "11": {"value": "3d8 or 3d12"},
-                "17": {"value": "4d8 or 4d12"}
-            },
+            "scaling": "The damage increases by one die when you reach levels 5 (2d8 or 2d12), 11 (3d8 or 3d12), and 17 (4d8 or 4d12).",
             "level_upgrade": None
         },
         {
@@ -501,11 +424,7 @@ SPELLS = {
             "damage": ["Weapon"],
             "damage_type": ["Radiant", "Weapon"],
             "spell_type": "Buff",
-            "scaling": {
-                "5": {"value": "1d6 extra Radiant"},
-                "11": {"value": "2d6 extra Radiant"},
-                "17": {"value": "3d6 extra Radiant"}
-            },
+            "scaling": "Whether you deal Radiant damage or the weapon's normal damage type, the attack deals extra Radiant damage when you reach levels 5 (1d6), 11 (2d6), and 17 (3d6).",
             "level_upgrade": None
         },
         {
@@ -522,11 +441,7 @@ SPELLS = {
             "damage": ["1d6"],
             "damage_type": ["Psychic"],
             "spell_type": "Target Save",
-            "scaling": {
-                "5": {"value": "2d6"},
-                "11": {"value": "3d6"},
-                "17": {"value": "4d6"}
-            },
+            "scaling": "The damage increases by 1d6 when you reach levels 5 (2d6), 11 (3d6), and 17 (4d6).",
             "level_upgrade": None
         },
         {
@@ -543,11 +458,7 @@ SPELLS = {
             "damage": ["1d6"],
             "damage_type": ["Radiant"],
             "spell_type": "Area of Effect",
-            "scaling": {
-                "5": {"value": "2d6"},
-                "11": {"value": "3d6"},
-                "17": {"value": "4d6"}
-            },
+            "scaling": "The damage increases by 1d6 when you reach levels 5 (2d6), 11 (3d6), and 17 (4d6).",
             "level_upgrade": None
         },
     ],

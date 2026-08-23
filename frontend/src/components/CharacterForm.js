@@ -356,7 +356,7 @@ function CharacterForm() {
 
     useEffect(() => {
         if (!isAutoRandomizing) return;
-        
+
         const timeoutId = setTimeout(() => {
             if (step === 0) {
                 if (!formData.class_name) {
@@ -393,7 +393,7 @@ function CharacterForm() {
                         }, 1000);
                     }
                 }
-            } 
+            }
             else if (step === 1) {
                 if (allStatsAssigned) {
                     setStep(2);
@@ -404,7 +404,7 @@ function CharacterForm() {
                     } else {
                         const abilities = ["strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma"];
                         const shuffledAbilities = [...abilities].sort(() => Math.random() - 0.5);
-                        
+
                         setAssignedStats(prev => {
                             const newStats = { ...prev };
                             initialRolledStats.forEach((roll, i) => {
@@ -427,14 +427,14 @@ function CharacterForm() {
                     const isSizeMissing = Array.isArray(selectedSpeciesDetails.size) && !formData.size;
                     const variations = selectedSpeciesDetails.variations || [];
                     const isVariantMissing = variations.length > 0 && !formData.species_variant;
-                    
+
                     if (isSizeMissing) {
                         updates.size = selectedSpeciesDetails.size[Math.floor(Math.random() * selectedSpeciesDetails.size.length)];
                     }
                     if (isVariantMissing) {
                         updates.species_variant = variations[Math.floor(Math.random() * variations.length)];
                     }
-                    
+
                     if (Object.keys(updates).length > 0) {
                         setFormData(prev => ({ ...prev, ...updates }));
                         setTimeout(() => {
@@ -452,11 +452,11 @@ function CharacterForm() {
                     setTimeout(() => flashPicked(`.background-button[data-bg="${randomBg.name}"]`), 150);
                 } else if (!bgChoices.plus2 && !bgChoices.plus1_a) {
                     document.querySelector('.background-button.selected')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    
+
                     setTimeout(() => {
                         const is21 = Math.random() > 0.5;
                         const mode = is21 ? "2_1" : "1_1_1";
-                        
+
                         if (mode === "2_1") {
                             const selectedBg = backgrounds.find(bg => bg.name === formData.background);
                             const availableAbilities = selectedBg?.ability_scores || ["Strength", "Dexterity", "Constitution", "Intelligence", "Wisdom", "Charisma"];
@@ -580,8 +580,8 @@ function CharacterForm() {
         payload.append("proficiencies", JSON.stringify(combinedProficiencies));
 
         try {
-            const res = await fetch(url, { 
-                method: "POST", 
+            const res = await fetch(url, {
+                method: "POST",
                 body: payload,
                 headers: { 'Authorization': `Bearer ${token}` }
             });
@@ -798,12 +798,12 @@ function CharacterForm() {
                                 )}
                             </p>
                             {initialRolledStats.length > 0 && (
-                                <button 
-                                    className={`randomize-button ${isRandomizing ? 'loading' : ''}`} 
-                                    onClick={randomizeStats} 
+                                <button
+                                    className={`randomize-button ${isRandomizing ? 'loading' : ''}`}
+                                    onClick={randomizeStats}
                                     disabled={isRandomizing}
                                 >
-                                    <span className="random-icon">{isRandomizing ? '⏳' : '✨'}</span> 
+                                    <span className="random-icon">{isRandomizing ? '⏳' : '✨'}</span>
                                     {isRandomizing ? 'Randomizing...' : 'Randomize'}
                                 </button>
                             )}
@@ -871,11 +871,12 @@ function CharacterForm() {
                 const speciesOptions = speciesData.map(s => s.name);
                 const speciesVariants = selectedSpeciesDetails?.variations || [];
                 const requiresVariant = speciesVariants.length > 0;
-
                 return (
                     <div className="step-container step-2">
                         <h2>Select your Species</h2>
                         <div className="class-selection-layout">
+
+                            {/*Species List*/}
                             <div className="class-list-column">
                                 <div className="button-group">
                                     {speciesOptions.map(s => (
@@ -883,15 +884,19 @@ function CharacterForm() {
                                             key={s}
                                             data-species={s}
                                             onClick={() => {
-                                                const details = speciesData.find(sd => sd.name === s);
+                                                const details = speciesData.find(
+                                                    sd => sd.name === s
+                                                );
                                                 setFormData({
                                                     ...formData,
                                                     species: s,
-                                                    species_variant: ""
+                                                    species_variant: "",
+                                                    size: ""
                                                 });
                                                 setSelectedSpeciesDetails(details);
                                             }}
-                                            className={`selection-button ${formData.species === s ? "selected" : ""}`}
+                                            className={`selection-button ${formData.species === s ? "selected" : ""
+                                                }`}
                                         >
                                             {s}
                                         </button>
@@ -899,59 +904,121 @@ function CharacterForm() {
                                 </div>
                             </div>
 
+                            {/*Species Details*/}
                             <div className="class-details-column">
                                 {selectedSpeciesDetails ? (
                                     <>
+
+                                        {/*Species Header / Lore*/}
                                         <div className="class-details-header">
-                                            <h3>{selectedSpeciesDetails.name}</h3>
-                                            <p className="species-summary-text">{selectedSpeciesDetails.summary}</p>
+                                            <h3>
+                                                {selectedSpeciesDetails.name}
+                                            </h3>
+                                            {selectedSpeciesDetails.summary && (
+                                                <p className="species-summary-text">
+                                                    {selectedSpeciesDetails.summary}
+                                                </p>
+                                            )}
+                                            {selectedSpeciesDetails.description && (
+                                                <div className="species-description-text">
+                                                    {selectedSpeciesDetails.description}
+                                                </div>
+                                            )}
                                         </div>
 
+                                        {/*Basic Species Facts*/}
                                         <div className="class-facts-grid">
                                             <div className="fact-item">
-                                                <span className="fact-label">Creature Type</span>
-                                                <span className="value-bubble">{selectedSpeciesDetails.creature_type}</span>
+                                                <span className="fact-label">
+                                                    Creature Type
+                                                </span>
+                                                <span className="value-bubble">
+                                                    {selectedSpeciesDetails.creature_type}
+                                                </span>
                                             </div>
                                             <div className="fact-item">
-                                                <span className="fact-label">Size</span>
+                                                <span className="fact-label">
+                                                    Size
+                                                </span>
                                                 <span className="value-bubble">
-                                                    {Array.isArray(selectedSpeciesDetails.size)
-                                                        ? (formData.size || selectedSpeciesDetails.size.join(" / "))
+                                                    {Array.isArray(
+                                                        selectedSpeciesDetails.size
+                                                    )
+                                                        ? (
+                                                            formData.size ||
+                                                            selectedSpeciesDetails.size.join(
+                                                                " / "
+                                                            )
+                                                        )
                                                         : selectedSpeciesDetails.size}
                                                 </span>
                                             </div>
                                             <div className="fact-item">
-                                                <span className="fact-label">Speed</span>
-                                                <span className="value-bubble">{selectedSpeciesDetails.speed}</span>
+                                                <span className="fact-label">
+                                                    Speed
+                                                </span>
+                                                <span className="value-bubble">
+                                                    {selectedSpeciesDetails.speed}
+                                                </span>
                                             </div>
                                         </div>
 
+                                        {/*Size Selection*/}
                                         {Array.isArray(selectedSpeciesDetails.size) && (
                                             <div className="bg-choice-section">
-                                                <h4>Select Size (Optional)</h4>
+                                                <h4>
+                                                    Select Size
+                                                    <span className="optional-label">
+                                                        Optional
+                                                    </span>
+                                                </h4>
                                                 <div className="skill-picker-grid">
-                                                    {selectedSpeciesDetails.size.map(sz => (
-                                                        <button
-                                                            key={sz}
-                                                            onClick={() => setFormData({ ...formData, size: formData.size === sz ? "" : sz })}
-                                                            className={`skill-item-button ${formData.size === sz ? "selected" : ""}`}
-                                                        >
-                                                            {sz}
-                                                        </button>
-                                                    ))}
+                                                    {selectedSpeciesDetails.size.map(
+                                                        sz => (
+                                                            <button
+                                                                key={sz}
+                                                                onClick={() =>
+                                                                    setFormData({
+                                                                        ...formData,
+                                                                        size:
+                                                                            formData.size === sz
+                                                                                ? ""
+                                                                                : sz
+                                                                    })
+                                                                }
+                                                                className={`skill-item-button ${formData.size === sz
+                                                                    ? "selected"
+                                                                    : ""
+                                                                    }`}
+                                                            >
+                                                                {sz}
+                                                            </button>
+                                                        )
+                                                    )}
                                                 </div>
                                             </div>
                                         )}
 
+                                        {/*Species Variant*/}
                                         {requiresVariant && (
                                             <div className="bg-choice-section">
-                                                <h4>Select Heritage / Kindred</h4>
+                                                <h4>
+                                                    Select Heritage / Kindred
+                                                </h4>
                                                 <div className="skill-picker-grid">
                                                     {speciesVariants.map(v => (
                                                         <button
                                                             key={v}
-                                                            onClick={() => setFormData({ ...formData, species_variant: v })}
-                                                            className={`skill-item-button ${formData.species_variant === v ? "selected" : ""}`}
+                                                            onClick={() =>
+                                                                setFormData({
+                                                                    ...formData,
+                                                                    species_variant: v
+                                                                })
+                                                            }
+                                                            className={`skill-item-button ${formData.species_variant === v
+                                                                ? "selected"
+                                                                : ""
+                                                                }`}
                                                         >
                                                             {v}
                                                         </button>
@@ -960,39 +1027,173 @@ function CharacterForm() {
                                             </div>
                                         )}
 
+                                        {/*Species Traits*/}
                                         <div className="level-preview-section">
                                             <h4>Species Traits</h4>
-                                            {selectedSpeciesDetails.features.map(feature => (
-                                                <div key={feature.id} className="feature-preview-card">
-                                                    <h6>{feature.name}</h6>
-                                                    <p>{feature.description}</p>
-                                                    {feature.details && (
-                                                        <div className="feature-details-mini">
-                                                            {Object.entries(feature.details).map(([key, val]) => (
-                                                                <span key={key} className="detail-tag">
-                                                                    <strong>{key}:</strong> {typeof val === 'object' ? JSON.stringify(val) : val}
-                                                                </span>
-                                                            ))}
+                                            <div className="species-traits-list">
+                                                {selectedSpeciesDetails.features?.map(
+                                                    feature => (
+                                                        <div
+                                                            key={feature.id}
+                                                            className="feature-preview-card"
+                                                        >
+
+                                                            {/* FEATURE HEADER */}
+                                                            <div className="feature-preview-header">
+
+                                                                <h6>
+                                                                    {feature.name}
+                                                                </h6>
+                                                                {feature.summary && (
+                                                                    <p className="feature-preview-summary">
+                                                                        {feature.summary}
+                                                                    </p>
+                                                                )}
+                                                            </div>
+
+                                                            {/* FEATURE DESCRIPTION */}
+                                                            {feature.description && (
+                                                                <div className="feature-preview-description">
+                                                                    {feature.description
+                                                                        .split("\n")
+                                                                        .map(
+                                                                            (
+                                                                                paragraph,
+                                                                                index
+                                                                            ) =>
+                                                                                paragraph.trim() && (
+                                                                                    <p
+                                                                                        key={
+                                                                                            index
+                                                                                        }
+                                                                                    >
+                                                                                        {
+                                                                                            paragraph
+                                                                                        }
+                                                                                    </p>
+                                                                                )
+                                                                        )}
+                                                                </div>
+                                                            )}
+
+                                                            {/* FEATURE DETAILS */}
+                                                            {feature.details && (
+                                                                <div className="feature-details-mini">
+                                                                    {Object.entries(feature.details).map(([key, val]) => {
+
+                                                                        /* Options */
+                                                                        if (key === "Options" && Array.isArray(val)) {
+                                                                            return (
+                                                                                <div
+                                                                                    key={key}
+                                                                                    className="feature-options-section"
+                                                                                >
+                                                                                    <h6 className="feature-options-title">
+                                                                                        Options
+                                                                                    </h6>
+                                                                                    <div className="feature-options-list">
+                                                                                        {val.map((option, index) => (
+                                                                                            <div
+                                                                                                key={index}
+                                                                                                className="feature-option-card"
+                                                                                            >
+                                                                                                <strong className="feature-option-name">
+                                                                                                    {option.name}
+                                                                                                </strong>
+                                                                                                {option.description && (
+                                                                                                    <p className="feature-option-description">
+                                                                                                        {option.description}
+                                                                                                    </p>
+                                                                                                )}
+                                                                                            </div>
+                                                                                        ))}
+                                                                                    </div>
+                                                                                </div>
+                                                                            );
+                                                                        }
+
+                                                                        // Level-based scaling details
+                                                                        if (
+                                                                            typeof val === "object" &&
+                                                                            !Array.isArray(val) &&
+                                                                            Object.keys(val).every(k => /^\d+$/.test(k))
+                                                                        ) {
+                                                                            return (
+                                                                                <div key={key} className="feature-scaling-section">
+                                                                                    <strong className="feature-scaling-title">
+                                                                                        {key}
+                                                                                    </strong>
+                                                                                    <div className="feature-scaling-list">
+                                                                                        {Object.entries(val).map(([level, value]) => (
+                                                                                            <div
+                                                                                                key={level}
+                                                                                                className="feature-scaling-item"
+                                                                                            >
+                                                                                                <span className="feature-scaling-level">
+                                                                                                    Level {level}
+                                                                                                </span>
+                                                                                                <span className="feature-scaling-value">
+                                                                                                    {value}
+                                                                                                </span>
+                                                                                            </div>
+                                                                                        ))}
+                                                                                    </div>
+                                                                                </div>
+                                                                            );
+                                                                        }
+
+                                                                        // Normal primitive details
+                                                                        return (
+                                                                            <div
+                                                                                key={key}
+                                                                                className="feature-detail-row"
+                                                                            >
+                                                                                <span className="feature-detail-label">
+                                                                                    {key}
+                                                                                </span>
+
+                                                                                <span className="feature-detail-value">
+                                                                                    {typeof val === "object"
+                                                                                        ? JSON.stringify(val)
+                                                                                        : val}
+                                                                                </span>
+                                                                            </div>
+                                                                        );
+                                                                    })}
+                                                                </div>
+                                                            )}
                                                         </div>
-                                                    )}
-                                                </div>
-                                            ))}
+                                                    )
+                                                )}
+                                            </div>
                                         </div>
                                     </>
                                 ) : (
-                                    <div className="background-prompt">Select a species to see its traits and lore</div>
+                                    <div className="background-prompt">
+                                        Select a species to see its traits and lore
+                                    </div>
                                 )}
                             </div>
                         </div>
 
-                        {formData.species && (!requiresVariant || formData.species_variant) && (
-                            <div className="navigation-buttons compact">
-                                <button className="nav-button" onClick={() => setStep(1)}>Back</button>
-                                <button className="nav-button" onClick={() => setStep(3)}>
-                                    Next: Background
-                                </button>
-                            </div>
-                        )}
+                        {/* Navigation */}
+                        {formData.species &&
+                            (!requiresVariant || formData.species_variant) && (
+                                <div className="navigation-buttons compact">
+                                    <button
+                                        className="nav-button"
+                                        onClick={() => setStep(1)}
+                                    >
+                                        Back
+                                    </button>
+                                    <button
+                                        className="nav-button"
+                                        onClick={() => setStep(3)}
+                                    >
+                                        Next: Background
+                                    </button>
+                                </div>
+                            )}
                     </div>
                 );
 
@@ -1243,7 +1444,7 @@ function CharacterForm() {
 
     return (
         <div className={`character-form-container ${isAutoRandomizing ? 'auto-randomizing' : ''}`}>
-            <button 
+            <button
                 className={`global-randomize-btn ${isAutoRandomizing ? 'active' : ''}`}
                 onClick={() => setIsAutoRandomizing(!isAutoRandomizing)}
             >
