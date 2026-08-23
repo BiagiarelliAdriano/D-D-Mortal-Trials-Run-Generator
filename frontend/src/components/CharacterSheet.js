@@ -334,17 +334,16 @@ const calculateAttack = (name, abilities, profBonus, features = [], level = 1, w
 export const ValueRenderer = ({ value, level, themeRole, label }) => {
     if (value === null || value === undefined) return null;
 
-    // 1. Detect and Resolve Scaling Dictionaries
+    // 1. Level-scaling dictionaries
     const isScaling =
         typeof value === 'object' &&
         !Array.isArray(value) &&
-        Object.keys(value).some(k => k.match(/^\d+(-?\d+)?$/));
+        Object.keys(value).length > 0 &&
+        Object.keys(value).every(k => /^\d+$/.test(k));
     if (isScaling) {
         const currentVal = resolveScalingValue(value, level);
 
         // Scaling values can themselves be objects.
-        // Render them recursively instead of trying to render
-        // the object directly as a React child.
         if (typeof currentVal === 'object' && currentVal !== null) {
             return (
                 <div className="resolved-scaling-value">
@@ -358,12 +357,12 @@ export const ValueRenderer = ({ value, level, themeRole, label }) => {
         }
         return (
             <span className="resolved-scaling-value">
-                {currentVal}
+                {processRichText(currentVal)}
             </span>
         );
     }
 
-    // 2. Custom Renderers for special categories
+    // 2. Special badge categories
     const category = label?.toLowerCase() || "";
     const isBadgeCategory = [
         "resists",
@@ -386,7 +385,7 @@ export const ValueRenderer = ({ value, level, themeRole, label }) => {
                     <span key={idx} className="benefit-badge">
                         {typeof item === 'object'
                             ? JSON.stringify(item)
-                            : item}
+                            : processRichText(item)}
                     </span>
                 ))}
             </div>
@@ -417,8 +416,8 @@ export const ValueRenderer = ({ value, level, themeRole, label }) => {
     // 4. Objects
     if (typeof value === 'object') {
 
-        // Check if it's an options list
-        if (value.Options) {
+        // Options
+        if (Array.isArray(value.Options)) {
             return (
                 <div className="options-list">
                     {value.Options.map((opt, idx) => (
@@ -426,22 +425,25 @@ export const ValueRenderer = ({ value, level, themeRole, label }) => {
                             <span className="option-name">
                                 {opt.name}
                             </span>
-                            <span className="option-desc">
-                                {opt.description}
-                            </span>
+                            {opt.description && (
+                                <span className="option-desc">
+                                    {processRichText(opt.description)}
+                                </span>
+                            )}
                         </div>
                     ))}
                 </div>
             );
         }
 
-        // Regular key-value pairs
+        // Regular key/value details
         return (
             <div className="detail-pairs">
                 {Object.entries(value).map(([l, val]) => (
                     <div key={l} className="detail-pair">
+
                         <span className="detail-label">
-                            {l}:
+                            {l}
                         </span>
                         <span className="detail-value">
                             <ValueRenderer
