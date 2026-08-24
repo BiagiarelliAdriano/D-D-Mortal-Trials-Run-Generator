@@ -785,7 +785,7 @@ const LAYOUT_CONSTRAINTS = {
     features: { minW: 4, maxW: 12, minH: 4, maxH: 20 },
     species: { minW: 4, maxW: 12, minH: 7, maxH: 9 },
     combat: { minW: 6, maxW: 12, minH: 5, maxH: 15 },
-    inventory: { minW: 12, maxW: 12, minH: 3, maxH: 20 },
+    inventory: { minW: 4, maxW: 12, minH: 3, maxH: 20 },
     spellcasting: { minW: 6, maxW: 12, minH: 12, maxH: 15 },
     notes: { minW: 2, maxW: 4, minH: 11, maxH: 11 },
 };

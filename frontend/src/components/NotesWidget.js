@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import DOMPurify from 'dompurify';
 import { useNotification } from '../context/NotificationContext';
 
 const NotesWidget = ({ notes, onUpdateNotes, isEditMode, viewOnly }) => {
@@ -118,6 +119,130 @@ const NoteCard = ({ note, isEditMode, viewOnly, onUpdate, onDelete, execCommand 
     const [localTitle, setLocalTitle] = useState(note.title);
     const saveTimeout = useRef(null);
     const titleTimeout = useRef(null);
+    const sanitizePastedHtml = (html) => {
+        return DOMPurify.sanitize(html, {
+            ALLOWED_TAGS: [
+                'p',
+                'br',
+                'div',
+                'span',
+                'strong',
+                'b',
+                'em',
+                'i',
+                'u',
+                's',
+                'strike',
+                'del',
+                'h1',
+                'h2',
+                'h3',
+                'h4',
+                'h5',
+                'h6',
+                'blockquote',
+                'ul',
+                'ol',
+                'li',
+                'table',
+                'thead',
+                'tbody',
+                'tfoot',
+                'tr',
+                'th',
+                'td',
+                'a',
+                'hr',
+                'sup',
+                'sub'
+            ],
+            ALLOWED_ATTR: [
+                'href',
+                'title',
+                'target',
+                'rel',
+                'colspan',
+                'rowspan',
+                'align'
+            ],
+            FORBID_ATTR: [
+                'style',
+                'class',
+                'id',
+                'onclick',
+                'onload',
+                'onerror',
+                'onmouseover',
+                'onmousedown',
+                'onmouseup',
+                'onmouseenter',
+                'onmouseleave',
+                'data-packed-dice',
+                'data-vet-page',
+                'data-vet-source',
+                'data-vet-hash',
+                'data-vet-is-faux-page',
+                'data-roll-name-ancestor',
+                'data-name',
+                'data-page',
+                'data-source',
+                'data-hash'
+            ],
+            ALLOW_DATA_ATTR: false
+        });
+    };
+
+    const handlePaste = (e) => {
+        if (viewOnly) return;
+        e.preventDefault();
+        const clipboardData = e.clipboardData || window.clipboardData;
+        if (!clipboardData) return;
+        const html = clipboardData.getData('text/html');
+        const plainText = clipboardData.getData('text/plain');
+        let sanitizedHtml;
+        if (html) {
+            sanitizedHtml = sanitizePastedHtml(html);
+            sanitizedHtml = sanitizedHtml.replace(
+                /<a\b([^>]*)>/gi,
+                (match, attrs) => {
+                    if (!/\btarget=/i.test(attrs)) {
+                        attrs += ' target="_blank"';
+                    }
+                    if (!/\brel=/i.test(attrs)) {
+                        attrs += ' rel="noopener noreferrer"';
+                    }
+                    return `<a${attrs}>`;
+                }
+            );
+        } else {
+            sanitizedHtml = plainText
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/\n/g, '<br>');
+        }
+        if (!sanitizedHtml) return;
+        document.execCommand('insertHTML', false, sanitizedHtml);
+        if (contentRef.current) {
+            localStorage.setItem(
+                `unsaved_note_content_${note.id}`,
+                contentRef.current.innerHTML
+            );
+        }
+        if (saveTimeout.current) {
+            clearTimeout(saveTimeout.current);
+        }
+        saveTimeout.current = setTimeout(() => {
+            if (contentRef.current) {
+                onUpdate(
+                    note.id,
+                    'content',
+                    contentRef.current.innerHTML
+                );
+            }
+            saveTimeout.current = null;
+        }, 1000);
+    };
 
     // Sync contenteditable with note.content
     useEffect(() => {
@@ -145,6 +270,7 @@ const NoteCard = ({ note, isEditMode, viewOnly, onUpdate, onDelete, execCommand 
         if (saveTimeout.current) clearTimeout(saveTimeout.current);
 
         if (contentRef.current) {
+            console.log(contentRef.current.innerHTML);
             localStorage.setItem(`unsaved_note_content_${note.id}`, contentRef.current.innerHTML);
         }
 
@@ -261,6 +387,7 @@ const NoteCard = ({ note, isEditMode, viewOnly, onUpdate, onDelete, execCommand 
                 contentEditable={!viewOnly}
                 onBlur={handleContentChange}
                 onInput={handleInput}
+                onPaste={handlePaste}
                 placeholder="Write your note here..."
                 style={{
                     minHeight: (note.height ? note.height - 80 : 100) + 'px',
