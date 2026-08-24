@@ -2144,9 +2144,9 @@ function CharacterSheet() {
     const [ruleOptions, setRuleOptions] = useState({});
     const [choiceOverlay, setChoiceOverlay] = useState({ isOpen: false, feature: null });
 
-    const [skills, setSkills] = useState({}); // Renamed from skillProficiencies
-    const [maxHpModifier] = useState(0); // Renamed from damageModInput
-    const [inventoryItems, setInventoryItems] = useState([]); // Renamed from inventory
+    const [skills, setSkills] = useState({});
+    const [maxHpModifier] = useState(0);
+    const [inventoryItems, setInventoryItems] = useState([]);
     const [gold, setGold] = useState(0);
     const [inventoryFilter, setInventoryFilter] = useState("All");
     const [classRules, setClassRules] = useState(null);
@@ -2884,17 +2884,58 @@ function CharacterSheet() {
 
     // Proactive: Get proficient saves from class rules if available
     const proficientSaves = useMemo(() => {
+        if (character?.data?.proficientSaves) {
+            return character.data.proficientSaves;
+        }
         if (classRules?.proficiencies?.saving_throws) {
             return classRules.proficiencies.saving_throws.map(s => s.toLowerCase());
         }
-        return ["strength", "constitution"]; // Fallback
-    }, [classRules]);
+        return ["strength", "constitution"];
+    }, [character?.data?.proficientSaves, classRules]);
 
     const toggleSkillProficiency = (skillKey) => {
         setSkills(prev => {
             const newState = { ...prev, [skillKey]: !prev[skillKey] };
             saveCharacter({ skillProficiencies: newState });
             return newState;
+        });
+    };
+
+    const toggleSkillExpertise = (skillKey) => {
+        const currentExpertise = character.data?.skillExpertise || {};
+        const newExpertise = {
+            ...currentExpertise,
+            [skillKey]: !currentExpertise[skillKey]
+        };
+        saveCharacter({
+            skillExpertise: newExpertise
+        });
+        setCharacter(prev => ({
+            ...prev,
+            data: {
+                ...prev.data,
+                skillExpertise: newExpertise
+            }
+        }));
+    };
+
+    const toggleSaveProficiency = (abilityKey) => {
+        const newSaves = proficientSaves.includes(abilityKey)
+            ? proficientSaves.filter(key => key !== abilityKey)
+            : [...proficientSaves, abilityKey];
+
+        // Update the local character state immediately
+        setCharacter(prev => ({
+            ...prev,
+            data: {
+                ...prev.data,
+                proficientSaves: newSaves
+            }
+        }));
+
+        // Persist the change to the database
+        saveCharacter({
+            proficientSaves: newSaves
         });
     };
 
@@ -4115,7 +4156,11 @@ function CharacterSheet() {
                                 key === "strength";
                             return (
                                 <div key={key} className={`save-row ${hasAdvantage ? 'has-adv' : ''}`}>
-                                    <span className={`prof-dot ${isProficient ? "fill" : ""}`}></span>
+                                    <span
+                                        className={`prof-dot ${isProficient ? "fill" : ""}`}
+                                        onClick={() => !viewOnly && toggleSaveProficiency(key)}
+                                        title={viewOnly ? "" : "Toggle saving throw proficiency"}
+                                    ></span>
                                     <span className="save-name">{name}</span>
                                     <span className="save-total">
                                         {total >= 0 ? "+" : ""}{total}
@@ -4133,16 +4178,22 @@ function CharacterSheet() {
                     <div className="skills-container scrollable">
                         {SKILL_LIST.map(skill => {
                             const isProficient = skills[skill.key] ?? false;
+                            const isExpertise = character.data?.skillExpertise?.[skill.key] ?? false;
                             const abilityScore = character.data.abilities[skill.ability];
                             const mod = calculateModifier(abilityScore);
-                            const bonus = mod + (isProficient ? currentProficiencyBonus : 0);
+                            const proficiencyMultiplier = isExpertise ? 2 : (isProficient ? 1 : 0);
+                            const bonus = mod + (currentProficiencyBonus * proficiencyMultiplier);
 
                             // Check if this skill is from the background
                             const bgSkills = (character.data?.choices?.background_skills || []).map(s => s.toLowerCase().replace(/\s+/g, '_'));
                             const isFromBackground = bgSkills.includes(skill.key);
 
                             return (
-                                <div key={skill.key} className={`skill-row ${isFromBackground || viewOnly ? 'is-locked' : ''}`} title={isFromBackground ? `Gained from background (${character.data.background})` : ""}>
+                                <div
+                                    key={skill.key}
+                                    className={`skill-row ${isFromBackground || viewOnly ? 'is-locked' : ''}`}
+                                    title={isFromBackground ? `Gained from background (${character.data.background})` : ""}
+                                >
                                     <span
                                         className={`prof-toggle ${isProficient ? "is-prof" : ""} ${isFromBackground || viewOnly ? "locked" : ""}`}
                                         onClick={() => !isFromBackground && !viewOnly && toggleSkillProficiency(skill.key)}
@@ -4150,7 +4201,24 @@ function CharacterSheet() {
                                         {(isFromBackground || viewOnly) && <span className="lock-icon-tiny">🔒</span>}
                                     </span>
                                     <span className="skill-name">{skill.name}</span>
-                                    <span className="skill-bonus">{bonus >= 0 ? "+" : ""}{bonus}</span>
+                                    <span className="skill-bonus">
+                                        {bonus >= 0 ? "+" : ""}{bonus}
+                                    </span>
+                                    {isProficient && (
+                                        <button
+                                            type="button"
+                                            className={`expertise-toggle ${isExpertise ? "is-expertise" : ""}`}
+                                            onClick={() => !viewOnly && toggleSkillExpertise(skill.key)}
+                                            title={
+                                                isExpertise
+                                                    ? "Remove Expertise"
+                                                    : "Grant Expertise"
+                                            }
+                                            disabled={viewOnly}
+                                        >
+                                            ✦
+                                        </button>
+                                    )}
                                 </div>
                             );
                         })}

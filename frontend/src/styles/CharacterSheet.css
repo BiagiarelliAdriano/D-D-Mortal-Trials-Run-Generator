@@ -1771,6 +1771,13 @@ h3,
     border: 1px solid var(--accent);
     border-radius: 50%;
     display: inline-block;
+    cursor: pointer;
+    transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.prof-dot:hover,
+.prof-toggle:hover {
+    transform: scale(1.15);
 }
 
 .prof-dot.fill,
@@ -2294,6 +2301,54 @@ h3,
 .inventory-container {
     display: flex;
     flex-direction: column;
+}
+
+.expertise-toggle {
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    margin-left: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(255, 215, 0, 0.15);
+    border-radius: 5px;
+    background: rgba(255, 215, 0, 0.04);
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    line-height: 1;
+    cursor: pointer;
+    transition:
+        color 0.2s ease,
+        background 0.2s ease,
+        border-color 0.2s ease,
+        transform 0.15s ease,
+        box-shadow 0.2s ease;
+}
+
+.expertise-toggle:hover:not(:disabled) {
+    color: var(--accent);
+    background: rgba(255, 215, 0, 0.12);
+    border-color: rgba(255, 215, 0, 0.4);
+    transform: scale(1.1);
+}
+
+.expertise-toggle.is-expertise {
+    color: var(--accent);
+    background: rgba(255, 215, 0, 0.16);
+    border-color: var(--accent-dim);
+    box-shadow: 0 0 8px rgba(255, 215, 0, 0.18);
+    text-shadow: 0 0 6px rgba(255, 215, 0, 0.5);
+}
+
+.expertise-toggle.is-expertise:hover:not(:disabled) {
+    background: rgba(255, 215, 0, 0.22);
+    box-shadow: 0 0 12px rgba(255, 215, 0, 0.28);
+}
+
+.expertise-toggle:disabled {
+    cursor: default;
+    opacity: 0.55;
 }
 
 /* Feature Details */
