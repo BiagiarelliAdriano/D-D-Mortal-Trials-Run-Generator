@@ -2893,6 +2893,21 @@ function CharacterSheet() {
         return ["strength", "constitution"];
     }, [character?.data?.proficientSaves, classRules]);
 
+    const toggleHeroicInspiration = () => {
+        if (viewOnly || loading) return;
+        const newValue = !character.data.heroicInspiration;
+        setCharacter(prev => ({
+            ...prev,
+            data: {
+                ...prev.data,
+                heroicInspiration: newValue
+            }
+        }));
+        saveCharacter({
+            heroicInspiration: newValue
+        });
+    };
+
     const toggleSkillProficiency = (skillKey) => {
         setSkills(prev => {
             const newState = { ...prev, [skillKey]: !prev[skillKey] };
@@ -3963,25 +3978,40 @@ function CharacterSheet() {
                                     )}
                                 </div>
                             </div>
-                            {!viewOnly && (
-                                <div className="header-actions">
+                            <div className="header-actions">
+                                <button
+                                    className={`heroic-inspiration-btn ${character.data?.heroicInspiration ? "active" : ""} ${viewOnly ? "view-only" : ""}`}
+                                    onClick={() => !viewOnly && toggleHeroicInspiration()}
+                                    disabled={viewOnly}
+                                    title={
+                                        viewOnly
+                                            ? "Heroic Inspiration"
+                                            : character.data?.heroicInspiration
+                                                ? "You have Heroic Inspiration - click to remove it"
+                                                : "Click to gain Heroic Inspiration"
+                                    }
+                                >
+                                    <i className={`fa-solid ${character.data?.heroicInspiration ? "fa-star" : "fa-star-half-stroke"}`}></i>
+                                    <span>Heroic Inspiration</span>
+                                </button>
+                                {!viewOnly && (
                                     <button
                                         className="rest-trigger-btn"
                                         onClick={() => setShowRestOverlay(true)}
                                     >
                                         <i className="fa-solid fa-campground"></i> Take a Rest
                                     </button>
-                                    {character?.level < 20 && (isOwner || isAdmin) && (
-                                        <button
-                                            className={`levelup-button ${xp >= (XP_THRESHOLDS[character.level + 1] || 0) ? "available" : "locked"}`}
-                                            onClick={openLevelUpSelection}
-                                            disabled={xp < (XP_THRESHOLDS[character.level + 1] || 0)}
-                                        >
-                                            {xp >= (XP_THRESHOLDS[character.level + 1] || 0) ? "✧ LEVEL UP ✧" : "Level Up"}
-                                        </button>
-                                    )}
-                                </div>
-                            )}
+                                )}
+                                {character?.level < 20 && (isOwner || isAdmin) && (
+                                    <button
+                                        className={`levelup-button ${xp >= (XP_THRESHOLDS[character.level + 1] || 0) ? "available" : "locked"}`}
+                                        onClick={openLevelUpSelection}
+                                        disabled={xp < (XP_THRESHOLDS[character.level + 1] || 0)}
+                                    >
+                                        {xp >= (XP_THRESHOLDS[character.level + 1] || 0) ? "✧ LEVEL UP ✧" : "Level Up"}
+                                    </button>
+                                )}
+                            </div>
                         </div>
                         <div className="header-details">
                             {character.data.class_levels?.map((cls, index) => (
@@ -4425,27 +4455,29 @@ function CharacterSheet() {
                         )}
                     </div>
                 </div>
-                {hasSpellcasting && spellcastingRules && (
-                    <div key="spellcasting" className="widget card spellcasting-widget">
-                        <SpellcastingWidget
-                            hasSpellcasting={hasSpellcasting}
-                            spellcastingRules={spellcastingRules}
-                            spellSlotsRules={spellSlotsRules}
-                            character={character}
-                            availableSpells={availableSpells}
-                            isLayoutLocked={isLayoutLocked}
-                            currentProficiencyBonus={currentProficiencyBonus}
-                            onOpenOverlay={() => { setShowSpellOverlay(true); setSpellOverlayMinimized(false); }}
-                            viewOnly={viewOnly}
-                            spellSlotsCurrent={spellSlotsCurrent}
-                            setSpellSlotsCurrent={setSpellSlotsCurrent}
-                            addAlert={addAlert}
-                            saveCharacter={saveCharacter}
-                            allClassRules={allClassRules}
-                        />
-                    </div>
-                )}
-            </ResponsiveGridLayout>
+                {
+                    hasSpellcasting && spellcastingRules && (
+                        <div key="spellcasting" className="widget card spellcasting-widget">
+                            <SpellcastingWidget
+                                hasSpellcasting={hasSpellcasting}
+                                spellcastingRules={spellcastingRules}
+                                spellSlotsRules={spellSlotsRules}
+                                character={character}
+                                availableSpells={availableSpells}
+                                isLayoutLocked={isLayoutLocked}
+                                currentProficiencyBonus={currentProficiencyBonus}
+                                onOpenOverlay={() => { setShowSpellOverlay(true); setSpellOverlayMinimized(false); }}
+                                viewOnly={viewOnly}
+                                spellSlotsCurrent={spellSlotsCurrent}
+                                setSpellSlotsCurrent={setSpellSlotsCurrent}
+                                addAlert={addAlert}
+                                saveCharacter={saveCharacter}
+                                allClassRules={allClassRules}
+                            />
+                        </div>
+                    )
+                }
+            </ResponsiveGridLayout >
 
             {(isOwner || isAdmin) && (
                 <LevelUpOverlay
@@ -4481,7 +4513,8 @@ function CharacterSheet() {
                     classRules={classRules}
                     ruleOptions={ruleOptions}
                 />
-            )}
+            )
+            }
 
             <SpellOverlay
                 show={showSpellOverlay}
@@ -4528,452 +4561,454 @@ function CharacterSheet() {
                 isApplying={isApplyingStatMod}
             />
 
-            {showXpEditor && (
-                <div className="xp-editor-overlay" onClick={() => {
-                    setIsFeatureListTransitioning(true);
-                    setTimeout(() => {
-                        setShowXpEditor(false);
-                        setIsFeatureListTransitioning(false);
-                        setIsFeatureListTransitioning(false);
-                        setShowMulticlassSelection(false);
-                        setSelectedLevelUpClass(null);
-                        setPreviewChoices({});
-                    }, 300);
-                }}>
-                    <div className={`xp-editor-panel ${showMulticlassSelection ? 'is-preview-active' : ''}`} onClick={e => e.stopPropagation()}>
-                        <div className="xp-editor-header">
-                            <h3>✧ Experience Editor ✧</h3>
-                            <button className="close-btn" onClick={() => {
-                                setIsFeatureListTransitioning(true);
-                                setTimeout(() => {
-                                    setShowXpEditor(false);
-                                    setShowMulticlassSelection(false);
-                                    setShowMulticlassSelection(false);
-                                    setSelectedLevelUpClass(null);
-                                    setIsFeatureListTransitioning(false);
-                                    setPreviewChoices({});
-                                }, 300);
-                            }}>×</button>
-                        </div>
+            {
+                showXpEditor && (
+                    <div className="xp-editor-overlay" onClick={() => {
+                        setIsFeatureListTransitioning(true);
+                        setTimeout(() => {
+                            setShowXpEditor(false);
+                            setIsFeatureListTransitioning(false);
+                            setIsFeatureListTransitioning(false);
+                            setShowMulticlassSelection(false);
+                            setSelectedLevelUpClass(null);
+                            setPreviewChoices({});
+                        }, 300);
+                    }}>
+                        <div className={`xp-editor-panel ${showMulticlassSelection ? 'is-preview-active' : ''}`} onClick={e => e.stopPropagation()}>
+                            <div className="xp-editor-header">
+                                <h3>✧ Experience Editor ✧</h3>
+                                <button className="close-btn" onClick={() => {
+                                    setIsFeatureListTransitioning(true);
+                                    setTimeout(() => {
+                                        setShowXpEditor(false);
+                                        setShowMulticlassSelection(false);
+                                        setShowMulticlassSelection(false);
+                                        setSelectedLevelUpClass(null);
+                                        setIsFeatureListTransitioning(false);
+                                        setPreviewChoices({});
+                                    }, 300);
+                                }}>×</button>
+                            </div>
 
-                        <div className={`xp-editor-body ${showMulticlassSelection ? 'xp-editor-layout' : ''}`}>
-                            {showMulticlassSelection && (
-                                <div className="preview-section multiclass-selection-panel">
-                                    <div className="preview-features-container">
-                                        <h3>
-                                            Choose Your Next Class
-                                        </h3>
+                            <div className={`xp-editor-body ${showMulticlassSelection ? 'xp-editor-layout' : ''}`}>
+                                {showMulticlassSelection && (
+                                    <div className="preview-section multiclass-selection-panel">
+                                        <div className="preview-features-container">
+                                            <h3>
+                                                Choose Your Next Class
+                                            </h3>
 
-                                        <div className="multiclass-class-grid">
-                                            {[
-                                                "Barbarian",
-                                                "Bard",
-                                                "Cleric",
-                                                "Druid",
-                                                "Fighter",
-                                                "Monk",
-                                                "Paladin",
-                                                "Ranger",
-                                                "Rogue",
-                                                "Sorcerer",
-                                                "Warlock",
-                                                "Wizard"
-                                            ].map(cls => (
-                                                <button
-                                                    key={cls}
-                                                    className={`multiclass-btn ${getMulticlassStatus(cls)}`}
-                                                    onClick={() => {
-                                                        const status = getMulticlassStatus(cls);
+                                            <div className="multiclass-class-grid">
+                                                {[
+                                                    "Barbarian",
+                                                    "Bard",
+                                                    "Cleric",
+                                                    "Druid",
+                                                    "Fighter",
+                                                    "Monk",
+                                                    "Paladin",
+                                                    "Ranger",
+                                                    "Rogue",
+                                                    "Sorcerer",
+                                                    "Warlock",
+                                                    "Wizard"
+                                                ].map(cls => (
+                                                    <button
+                                                        key={cls}
+                                                        className={`multiclass-btn ${getMulticlassStatus(cls)}`}
+                                                        onClick={() => {
+                                                            const status = getMulticlassStatus(cls);
 
-                                                        if (status === "blocked") {
-                                                            const classData = multiclassRules?.[cls.toLowerCase()];
+                                                            if (status === "blocked") {
+                                                                const classData = multiclassRules?.[cls.toLowerCase()];
 
-                                                            if (!classData) {
+                                                                if (!classData) {
+                                                                    addAlert(
+                                                                        `Unable to check requirements for ${cls}.`,
+                                                                        "warning"
+                                                                    );
+                                                                    return;
+                                                                }
+
+                                                                const requiredAbilities = Array.isArray(classData.primary_ability)
+                                                                    ? classData.primary_ability
+                                                                    : [classData.primary_ability];
+
+                                                                const missing = requiredAbilities
+                                                                    .filter(ability => {
+                                                                        const score = character?.data?.abilities?.[ability.toLowerCase()] || 0;
+                                                                        return score < 13;
+                                                                    })
+                                                                    .map(ability => `${ability} 13+`)
+                                                                    .join(" or ");
+
                                                                 addAlert(
-                                                                    `Unable to check requirements for ${cls}.`,
+                                                                    `You do not meet the requirements for ${cls}. Required: ${missing}`,
                                                                     "warning"
                                                                 );
+
                                                                 return;
                                                             }
 
-                                                            const requiredAbilities = Array.isArray(classData.primary_ability)
-                                                                ? classData.primary_ability
-                                                                : [classData.primary_ability];
+                                                            setSelectedLevelUpClass(cls);
 
-                                                            const missing = requiredAbilities
-                                                                .filter(ability => {
-                                                                    const score = character?.data?.abilities?.[ability.toLowerCase()] || 0;
-                                                                    return score < 13;
-                                                                })
-                                                                .map(ability => `${ability} 13+`)
-                                                                .join(" or ");
-
-                                                            addAlert(
-                                                                `You do not meet the requirements for ${cls}. Required: ${missing}`,
-                                                                "warning"
+                                                            // Auto-set preview level to the level the character would actually gain
+                                                            const existingClasses = character?.data?.class_levels || [];
+                                                            const existingEntry = existingClasses.find(
+                                                                c => c.class_name.toLowerCase() === cls.toLowerCase()
                                                             );
+                                                            const nextLevelForClass = existingEntry
+                                                                ? (existingEntry.level || 0) + 1
+                                                                : 1;
+                                                            handlePreviewLevelChange(nextLevelForClass);
+                                                        }}
+                                                    >
+                                                        {cls}
+                                                    </button>
+                                                ))}
+                                            </div>
 
-                                                            return;
-                                                        }
+                                            {selectedLevelUpClass && (
+                                                <div className="preview-section">
+                                                    <h4>Preview Level: {previewLevel}</h4>
 
-                                                        setSelectedLevelUpClass(cls);
+                                                    <div className="level-selector">
+                                                        {Array.from({ length: 20 }, (_, i) => i + 1).map(lvl => (
+                                                            <button
+                                                                key={lvl}
+                                                                className={`level-btn ${previewLevel === lvl ? 'active' : ''}`}
+                                                                onClick={() => handlePreviewLevelChange(lvl)}
+                                                            >
+                                                                {lvl}
+                                                            </button>
+                                                        ))}
+                                                    </div>
 
-                                                        // Auto-set preview level to the level the character would actually gain
-                                                        const existingClasses = character?.data?.class_levels || [];
-                                                        const existingEntry = existingClasses.find(
-                                                            c => c.class_name.toLowerCase() === cls.toLowerCase()
-                                                        );
-                                                        const nextLevelForClass = existingEntry
-                                                            ? (existingEntry.level || 0) + 1
-                                                            : 1;
-                                                        handlePreviewLevelChange(nextLevelForClass);
-                                                    }}
-                                                >
-                                                    {cls}
-                                                </button>
-                                            ))}
-                                        </div>
+                                                    <div className="preview-features-container">
+                                                        {spellcastingRules && (
+                                                            <button
+                                                                className="preview-choice-btn preview-spell-launcher"
+                                                                onClick={() => {
+                                                                    setSpellOverlayPreviewMode(true);
+                                                                    setPreviewSpells(character.data.spells || []);
+                                                                    setShowSpellOverlay(true);
+                                                                }}
+                                                            >
+                                                                📖 Manage Spells (Preview - Level {previewLevel})
+                                                            </button>
+                                                        )}
+                                                        <div className={`preview-features-list ${isFeatureListTransitioning ? 'transitioning' : 'active'}`}>
+                                                            {(() => {
+                                                                const levelFeatures = [];
+                                                                const previewClassRules = selectedLevelUpClass ? allClassRules[selectedLevelUpClass.toLowerCase()] : classRules;
 
-                                        {selectedLevelUpClass && (
-                                            <div className="preview-section">
-                                                <h4>Preview Level: {previewLevel}</h4>
-
-                                                <div className="level-selector">
-                                                    {Array.from({ length: 20 }, (_, i) => i + 1).map(lvl => (
-                                                        <button
-                                                            key={lvl}
-                                                            className={`level-btn ${previewLevel === lvl ? 'active' : ''}`}
-                                                            onClick={() => handlePreviewLevelChange(lvl)}
-                                                        >
-                                                            {lvl}
-                                                        </button>
-                                                    ))}
-                                                </div>
-
-                                                <div className="preview-features-container">
-                                                    {spellcastingRules && (
-                                                        <button
-                                                            className="preview-choice-btn preview-spell-launcher"
-                                                            onClick={() => {
-                                                                setSpellOverlayPreviewMode(true);
-                                                                setPreviewSpells(character.data.spells || []);
-                                                                setShowSpellOverlay(true);
-                                                            }}
-                                                        >
-                                                            📖 Manage Spells (Preview - Level {previewLevel})
-                                                        </button>
-                                                    )}
-                                                    <div className={`preview-features-list ${isFeatureListTransitioning ? 'transitioning' : 'active'}`}>
-                                                        {(() => {
-                                                            const levelFeatures = [];
-                                                            const previewClassRules = selectedLevelUpClass ? allClassRules[selectedLevelUpClass.toLowerCase()] : classRules;
-
-                                                            // 1. Resolve Class features
-                                                            if (previewClassRules?.features?.[previewLevel.toString()]) {
-                                                                levelFeatures.push(...previewClassRules.features[previewLevel.toString()].map(f => ({ ...f, source: previewClassRules.name })));
-                                                            }
-
-                                                            // 2. Resolve Subclass features (handling preview choices)
-                                                            const previewSubclassKey = Object.keys(previewChoices).find(k => k.endsWith('_subclass'));
-                                                            const previewSubclassChoice = previewSubclassKey ? previewChoices[previewSubclassKey] : null;
-                                                            const previewSubclassId = previewSubclassChoice ? (typeof previewSubclassChoice === 'string' ? previewSubclassChoice : (previewSubclassChoice.id || previewSubclassChoice.name)) : null;
-
-                                                            const effectiveSubclassId = previewSubclassId || character.class?.subclass;
-                                                            const scInfo = previewClassRules?.subclasses?.[effectiveSubclassId];
-
-                                                            if (effectiveSubclassId && scInfo?.features?.[previewLevel.toString()]) {
-                                                                levelFeatures.push(...scInfo.features[previewLevel.toString()].map(f => ({ ...f, source: scInfo.name })));
-                                                            }
-
-                                                            // 3. Resolve Chosen Feats (from previewChoices or saved featureChoices)
-                                                            const combinedChoices = { ...(character.data?.featureChoices || {}), ...previewChoices };
-                                                            Object.keys(combinedChoices).forEach(choiceId => {
-                                                                if (choiceId.includes('feat_or_asi') || choiceId.includes('epic_boon')) {
-                                                                    const choices = combinedChoices[choiceId];
-                                                                    const choiceArr = Array.isArray(choices) ? choices : (choices ? [choices] : []);
-
-                                                                    const levelMatch = choiceId.match(/_(\d+)$/);
-                                                                    const featLevel = levelMatch ? parseInt(levelMatch[1]) : 1;
-
-                                                                    if (featLevel === previewLevel) {
-                                                                        choiceArr.forEach(choiceName => {
-                                                                            const skipStats = ['Feat', 'Strength', 'Dexterity', 'Constitution', 'Intelligence', 'Wisdom', 'Charisma'];
-                                                                            if (skipStats.includes(choiceName)) return;
-
-                                                                            const pools = [...(ruleOptions.origin || []), ...(ruleOptions.general || []), ...(ruleOptions.epic_boon || [])];
-                                                                            const featData = pools.find(f => (f.name || f.id) === choiceName);
-
-                                                                            if (featData) {
-                                                                                levelFeatures.push({
-                                                                                    id: `chosen_feat_${choiceId}_${choiceName.replace(/\s+/g, '')}`,
-                                                                                    name: `Feat: ${featData.name}`,
-                                                                                    description: featData.description || (featData.effects ? featData.effects.join("\n\n") : ""),
-                                                                                    source: 'Selected Feat (Preview)',
-                                                                                    level: featLevel.toString(),
-                                                                                    details: featData.details || {},
-                                                                                    effects: featData.effects,
-                                                                                    prerequisite: featData.prerequisite
-                                                                                });
-                                                                            }
-                                                                        });
-                                                                    }
+                                                                // 1. Resolve Class features
+                                                                if (previewClassRules?.features?.[previewLevel.toString()]) {
+                                                                    levelFeatures.push(...previewClassRules.features[previewLevel.toString()].map(f => ({ ...f, source: previewClassRules.name })));
                                                                 }
-                                                            });
 
-                                                            if (levelFeatures.length === 0) {
-                                                                return <div className="no-features-msg">No new features at this level.</div>;
-                                                            }
+                                                                // 2. Resolve Subclass features (handling preview choices)
+                                                                const previewSubclassKey = Object.keys(previewChoices).find(k => k.endsWith('_subclass'));
+                                                                const previewSubclassChoice = previewSubclassKey ? previewChoices[previewSubclassKey] : null;
+                                                                const previewSubclassId = previewSubclassChoice ? (typeof previewSubclassChoice === 'string' ? previewSubclassChoice : (previewSubclassChoice.id || previewSubclassChoice.name)) : null;
 
-                                                            const ITEMS_PER_PAGE = 3;
-                                                            const totalPages = Math.ceil(levelFeatures.length / ITEMS_PER_PAGE);
-                                                            const startIndex = (previewPage - 1) * ITEMS_PER_PAGE;
-                                                            const visibleFeatures = levelFeatures.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+                                                                const effectiveSubclassId = previewSubclassId || character.class?.subclass;
+                                                                const scInfo = previewClassRules?.subclasses?.[effectiveSubclassId];
 
-                                                            return (
-                                                                <>
-                                                                    {visibleFeatures.map(feature => {
-                                                                        const options = resolveOptionsForFeature(feature, character, previewClassRules, ruleOptions, availableSpells);
-                                                                        const choiceLimit = getChoiceLimitForFeature(feature, previewLevel);
-                                                                        const hasChoices = options.length > 0 && choiceLimit > 0;
-                                                                        const choice = previewChoices[feature.id];
-                                                                        const isExpanded = previewExpandedFeatures[feature.id];
+                                                                if (effectiveSubclassId && scInfo?.features?.[previewLevel.toString()]) {
+                                                                    levelFeatures.push(...scInfo.features[previewLevel.toString()].map(f => ({ ...f, source: scInfo.name })));
+                                                                }
 
-                                                                        return (
-                                                                            <div key={feature.id} className={`preview-feature-card ${isExpanded ? 'expanded' : 'collapsed'}`}>
-                                                                                <div
-                                                                                    className="preview-feature-header"
-                                                                                    onClick={() => setPreviewExpandedFeatures(prev => ({ ...prev, [feature.id]: !prev[feature.id] }))}
-                                                                                >
-                                                                                    <div className="preview-feature-header-left">
-                                                                                        <span className="preview-feature-name">{feature.name}</span>
-                                                                                        {(() => {
-                                                                                            const currentChoices = Array.isArray(choice) ? choice : (choice ? [choice] : []);
-                                                                                            const resolvedChoices = currentChoices.map(c => {
-                                                                                                const found = options.find(o => (typeof o === 'string' ? o : (o.id || o.name)) === c);
-                                                                                                return found ? (typeof found === 'string' ? { name: found } : found) : { name: c };
-                                                                                            });
-                                                                                            return resolvedChoices.map((rc, idx) => (
-                                                                                                <span key={idx} className="feature-choice-badge">{rc.name}</span>
-                                                                                            ));
-                                                                                        })()}
+                                                                // 3. Resolve Chosen Feats (from previewChoices or saved featureChoices)
+                                                                const combinedChoices = { ...(character.data?.featureChoices || {}), ...previewChoices };
+                                                                Object.keys(combinedChoices).forEach(choiceId => {
+                                                                    if (choiceId.includes('feat_or_asi') || choiceId.includes('epic_boon')) {
+                                                                        const choices = combinedChoices[choiceId];
+                                                                        const choiceArr = Array.isArray(choices) ? choices : (choices ? [choices] : []);
+
+                                                                        const levelMatch = choiceId.match(/_(\d+)$/);
+                                                                        const featLevel = levelMatch ? parseInt(levelMatch[1]) : 1;
+
+                                                                        if (featLevel === previewLevel) {
+                                                                            choiceArr.forEach(choiceName => {
+                                                                                const skipStats = ['Feat', 'Strength', 'Dexterity', 'Constitution', 'Intelligence', 'Wisdom', 'Charisma'];
+                                                                                if (skipStats.includes(choiceName)) return;
+
+                                                                                const pools = [...(ruleOptions.origin || []), ...(ruleOptions.general || []), ...(ruleOptions.epic_boon || [])];
+                                                                                const featData = pools.find(f => (f.name || f.id) === choiceName);
+
+                                                                                if (featData) {
+                                                                                    levelFeatures.push({
+                                                                                        id: `chosen_feat_${choiceId}_${choiceName.replace(/\s+/g, '')}`,
+                                                                                        name: `Feat: ${featData.name}`,
+                                                                                        description: featData.description || (featData.effects ? featData.effects.join("\n\n") : ""),
+                                                                                        source: 'Selected Feat (Preview)',
+                                                                                        level: featLevel.toString(),
+                                                                                        details: featData.details || {},
+                                                                                        effects: featData.effects,
+                                                                                        prerequisite: featData.prerequisite
+                                                                                    });
+                                                                                }
+                                                                            });
+                                                                        }
+                                                                    }
+                                                                });
+
+                                                                if (levelFeatures.length === 0) {
+                                                                    return <div className="no-features-msg">No new features at this level.</div>;
+                                                                }
+
+                                                                const ITEMS_PER_PAGE = 3;
+                                                                const totalPages = Math.ceil(levelFeatures.length / ITEMS_PER_PAGE);
+                                                                const startIndex = (previewPage - 1) * ITEMS_PER_PAGE;
+                                                                const visibleFeatures = levelFeatures.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+
+                                                                return (
+                                                                    <>
+                                                                        {visibleFeatures.map(feature => {
+                                                                            const options = resolveOptionsForFeature(feature, character, previewClassRules, ruleOptions, availableSpells);
+                                                                            const choiceLimit = getChoiceLimitForFeature(feature, previewLevel);
+                                                                            const hasChoices = options.length > 0 && choiceLimit > 0;
+                                                                            const choice = previewChoices[feature.id];
+                                                                            const isExpanded = previewExpandedFeatures[feature.id];
+
+                                                                            return (
+                                                                                <div key={feature.id} className={`preview-feature-card ${isExpanded ? 'expanded' : 'collapsed'}`}>
+                                                                                    <div
+                                                                                        className="preview-feature-header"
+                                                                                        onClick={() => setPreviewExpandedFeatures(prev => ({ ...prev, [feature.id]: !prev[feature.id] }))}
+                                                                                    >
+                                                                                        <div className="preview-feature-header-left">
+                                                                                            <span className="preview-feature-name">{feature.name}</span>
+                                                                                            {(() => {
+                                                                                                const currentChoices = Array.isArray(choice) ? choice : (choice ? [choice] : []);
+                                                                                                const resolvedChoices = currentChoices.map(c => {
+                                                                                                    const found = options.find(o => (typeof o === 'string' ? o : (o.id || o.name)) === c);
+                                                                                                    return found ? (typeof found === 'string' ? { name: found } : found) : { name: c };
+                                                                                                });
+                                                                                                return resolvedChoices.map((rc, idx) => (
+                                                                                                    <span key={idx} className="feature-choice-badge">{rc.name}</span>
+                                                                                                ));
+                                                                                            })()}
+                                                                                        </div>
+                                                                                        <div className="preview-feature-header-right">
+                                                                                            {hasChoices && (
+                                                                                                <button
+                                                                                                    className="preview-choice-btn-compact"
+                                                                                                    onClick={(e) => {
+                                                                                                        e.stopPropagation();
+                                                                                                        setChoiceOverlay({
+                                                                                                            isOpen: true,
+                                                                                                            feature,
+                                                                                                            options,
+                                                                                                            isPreview: true
+                                                                                                        });
+                                                                                                    }}
+                                                                                                >
+                                                                                                    {choice ? "Change" : "Choose"}
+                                                                                                </button>
+                                                                                            )}
+                                                                                            <i className={`fa-solid fa-chevron-${isExpanded ? 'up' : 'down'}`}></i>
+                                                                                        </div>
                                                                                     </div>
-                                                                                    <div className="preview-feature-header-right">
-                                                                                        {hasChoices && (
-                                                                                            <button
-                                                                                                className="preview-choice-btn-compact"
-                                                                                                onClick={(e) => {
-                                                                                                    e.stopPropagation();
-                                                                                                    setChoiceOverlay({
-                                                                                                        isOpen: true,
-                                                                                                        feature,
-                                                                                                        options,
-                                                                                                        isPreview: true
-                                                                                                    });
-                                                                                                }}
-                                                                                            >
-                                                                                                {choice ? "Change" : "Choose"}
-                                                                                            </button>
-                                                                                        )}
-                                                                                        <i className={`fa-solid fa-chevron-${isExpanded ? 'up' : 'down'}`}></i>
-                                                                                    </div>
-                                                                                </div>
-                                                                                {isExpanded && (
-                                                                                    <div className="preview-feature-desc-container">
-                                                                                        <PreviewChoiceDetails
-                                                                                            feature={feature}
-                                                                                            choice={choice}
-                                                                                            character={character}
-                                                                                            level={previewLevel}
-                                                                                        />
-                                                                                        {/* Render chosen feat details for feat_or_asi features */}
-                                                                                        {feature.id?.includes('feat_or_asi') && choice && (() => {
-                                                                                            const currentChoices = Array.isArray(choice) ? choice : [choice];
-                                                                                            const chosenFeats = currentChoices.map(c => {
-                                                                                                const found = options.find(o => (typeof o === 'string' ? o : (o.id || o.name)) === c);
-                                                                                                return found ? (typeof found === 'string' ? { name: found } : found) : { name: c };
-                                                                                            });
-                                                                                            return (
-                                                                                                <div className="chosen-options-list">
-                                                                                                    {chosenFeats.map((opt, idx) => {
-                                                                                                        const subChoiceId = `${feature.id}_sub_${idx}`;
-                                                                                                        const rawSubChoice = previewChoices[subChoiceId];
-                                                                                                        const currentSubChoices = Array.isArray(rawSubChoice) ? rawSubChoice : (rawSubChoice ? [rawSubChoice] : []);
-                                                                                                        const hasSubChoices = !!opt.choice;
+                                                                                    {isExpanded && (
+                                                                                        <div className="preview-feature-desc-container">
+                                                                                            <PreviewChoiceDetails
+                                                                                                feature={feature}
+                                                                                                choice={choice}
+                                                                                                character={character}
+                                                                                                level={previewLevel}
+                                                                                            />
+                                                                                            {/* Render chosen feat details for feat_or_asi features */}
+                                                                                            {feature.id?.includes('feat_or_asi') && choice && (() => {
+                                                                                                const currentChoices = Array.isArray(choice) ? choice : [choice];
+                                                                                                const chosenFeats = currentChoices.map(c => {
+                                                                                                    const found = options.find(o => (typeof o === 'string' ? o : (o.id || o.name)) === c);
+                                                                                                    return found ? (typeof found === 'string' ? { name: found } : found) : { name: c };
+                                                                                                });
+                                                                                                return (
+                                                                                                    <div className="chosen-options-list">
+                                                                                                        {chosenFeats.map((opt, idx) => {
+                                                                                                            const subChoiceId = `${feature.id}_sub_${idx}`;
+                                                                                                            const rawSubChoice = previewChoices[subChoiceId];
+                                                                                                            const currentSubChoices = Array.isArray(rawSubChoice) ? rawSubChoice : (rawSubChoice ? [rawSubChoice] : []);
+                                                                                                            const hasSubChoices = !!opt.choice;
 
-                                                                                                        return (
-                                                                                                            <div key={idx} className="chosen-option-block">
-                                                                                                                <div className="chosen-option-header">
-                                                                                                                    <h4>Selected: {opt.name}</h4>
-                                                                                                                    {hasSubChoices && (
-                                                                                                                        <button
-                                                                                                                            className="feature-choice-btn sub-choice-btn"
-                                                                                                                            onClick={(e) => {
-                                                                                                                                e.stopPropagation();
-                                                                                                                                const virtualFeature = {
-                                                                                                                                    ...feature,
-                                                                                                                                    id: subChoiceId,
-                                                                                                                                    name: `${opt.name} Choice`,
-                                                                                                                                    details: { choice: opt.choice }
-                                                                                                                                };
-                                                                                                                                setChoiceOverlay({
-                                                                                                                                    isOpen: true,
-                                                                                                                                    feature: virtualFeature,
-                                                                                                                                    options: opt.choice.options,
-                                                                                                                                    isPreview: true
-                                                                                                                                });
-                                                                                                                            }}
-                                                                                                                        >
-                                                                                                                            {currentSubChoices.length > 0 ? 'Change' : 'Choose'}
-                                                                                                                        </button>
+                                                                                                            return (
+                                                                                                                <div key={idx} className="chosen-option-block">
+                                                                                                                    <div className="chosen-option-header">
+                                                                                                                        <h4>Selected: {opt.name}</h4>
+                                                                                                                        {hasSubChoices && (
+                                                                                                                            <button
+                                                                                                                                className="feature-choice-btn sub-choice-btn"
+                                                                                                                                onClick={(e) => {
+                                                                                                                                    e.stopPropagation();
+                                                                                                                                    const virtualFeature = {
+                                                                                                                                        ...feature,
+                                                                                                                                        id: subChoiceId,
+                                                                                                                                        name: `${opt.name} Choice`,
+                                                                                                                                        details: { choice: opt.choice }
+                                                                                                                                    };
+                                                                                                                                    setChoiceOverlay({
+                                                                                                                                        isOpen: true,
+                                                                                                                                        feature: virtualFeature,
+                                                                                                                                        options: opt.choice.options,
+                                                                                                                                        isPreview: true
+                                                                                                                                    });
+                                                                                                                                }}
+                                                                                                                            >
+                                                                                                                                {currentSubChoices.length > 0 ? 'Change' : 'Choose'}
+                                                                                                                            </button>
+                                                                                                                        )}
+                                                                                                                    </div>
+                                                                                                                    {currentSubChoices.length > 0 && (
+                                                                                                                        <div className="sub-choice-badges">
+                                                                                                                            {currentSubChoices.map((c, i) => (
+                                                                                                                                <span key={i} className="feature-choice-badge sub-badge">{c}</span>
+                                                                                                                            ))}
+                                                                                                                        </div>
                                                                                                                     )}
                                                                                                                 </div>
-                                                                                                                {currentSubChoices.length > 0 && (
-                                                                                                                    <div className="sub-choice-badges">
-                                                                                                                        {currentSubChoices.map((c, i) => (
-                                                                                                                            <span key={i} className="feature-choice-badge sub-badge">{c}</span>
-                                                                                                                        ))}
-                                                                                                                    </div>
-                                                                                                                )}
-                                                                                                            </div>
-                                                                                                        );
-                                                                                                    })}
-                                                                                                </div>
-                                                                                            );
-                                                                                        })()}
-                                                                                        <div className="preview-feature-desc">
-                                                                                            {feature.prerequisite && (() => {
-                                                                                                const warning = checkPrerequisites(feature.prerequisite, character, previewLevel, classRules);
-                                                                                                return (
-                                                                                                    <div className={`feat-prerequisite-line ${warning ? 'unmet' : 'met'}`}>
-                                                                                                        <span className="prereq-icon">{warning ? '⚠' : '✓'}</span>
-                                                                                                        <span className="prereq-text">
-                                                                                                            Prerequisite: {Array.isArray(feature.prerequisite) ? feature.prerequisite.flat().join(', ') : feature.prerequisite}
-                                                                                                        </span>
-                                                                                                        {warning && (
-                                                                                                            <span className="prereq-warning-inline"> — Not met: {warning}</span>
-                                                                                                        )}
+                                                                                                            );
+                                                                                                        })}
                                                                                                     </div>
                                                                                                 );
                                                                                             })()}
+                                                                                            <div className="preview-feature-desc">
+                                                                                                {feature.prerequisite && (() => {
+                                                                                                    const warning = checkPrerequisites(feature.prerequisite, character, previewLevel, classRules);
+                                                                                                    return (
+                                                                                                        <div className={`feat-prerequisite-line ${warning ? 'unmet' : 'met'}`}>
+                                                                                                            <span className="prereq-icon">{warning ? '⚠' : '✓'}</span>
+                                                                                                            <span className="prereq-text">
+                                                                                                                Prerequisite: {Array.isArray(feature.prerequisite) ? feature.prerequisite.flat().join(', ') : feature.prerequisite}
+                                                                                                            </span>
+                                                                                                            {warning && (
+                                                                                                                <span className="prereq-warning-inline"> — Not met: {warning}</span>
+                                                                                                            )}
+                                                                                                        </div>
+                                                                                                    );
+                                                                                                })()}
 
-                                                                                            {feature.effects && Array.isArray(feature.effects) && (
-                                                                                                <div className="feat-effects-list">
-                                                                                                    {feature.effects.map((eff, i) => (
-                                                                                                        <p key={i} className="feat-effect-item">{processRichText(eff)}</p>
-                                                                                                    ))}
-                                                                                                </div>
-                                                                                            )}
-                                                                                            {feature.description}
+                                                                                                {feature.effects && Array.isArray(feature.effects) && (
+                                                                                                    <div className="feat-effects-list">
+                                                                                                        {feature.effects.map((eff, i) => (
+                                                                                                            <p key={i} className="feat-effect-item">{processRichText(eff)}</p>
+                                                                                                        ))}
+                                                                                                    </div>
+                                                                                                )}
+                                                                                                {feature.description}
+                                                                                            </div>
                                                                                         </div>
-                                                                                    </div>
-                                                                                )}
+                                                                                    )}
+                                                                                </div>
+                                                                            );
+                                                                        })}
+
+                                                                        {totalPages > 1 && (
+                                                                            <div className="preview-pagination">
+                                                                                {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+                                                                                    <button
+                                                                                        key={p}
+                                                                                        className={`page-dot ${previewPage === p ? 'active' : ''}`}
+                                                                                        onClick={() => handlePreviewPageChange(p)}
+                                                                                    />
+                                                                                ))}
                                                                             </div>
-                                                                        );
-                                                                    })}
+                                                                        )}
+                                                                    </>
+                                                                );
+                                                            })()}
+                                                        </div>
 
-                                                                    {totalPages > 1 && (
-                                                                        <div className="preview-pagination">
-                                                                            {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
-                                                                                <button
-                                                                                    key={p}
-                                                                                    className={`page-dot ${previewPage === p ? 'active' : ''}`}
-                                                                                    onClick={() => handlePreviewPageChange(p)}
-                                                                                />
-                                                                            ))}
-                                                                        </div>
-                                                                    )}
-                                                                </>
-                                                            );
-                                                        })()}
-                                                    </div>
+                                                        <div className="selected-class-info" style={{ marginTop: '20px', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '15px' }}>
+                                                            <span style={{ fontSize: '1.2em', color: '#ffb347' }}>
+                                                                Selected: {selectedLevelUpClass} (Level {previewLevel})
+                                                            </span>
 
-                                                    <div className="selected-class-info" style={{ marginTop: '20px', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '15px' }}>
-                                                        <span style={{ fontSize: '1.2em', color: '#ffb347' }}>
-                                                            Selected: {selectedLevelUpClass} (Level {previewLevel})
-                                                        </span>
-
-                                                        <button
-                                                            className="action-btn levelup-btn"
-                                                            onClick={handleLevelUp}
-                                                            disabled={xp < (XP_THRESHOLDS[character.level + 1] || 0) || character.level >= 20}
-                                                        >
-                                                            ✧ Confirm Level Up ✧
-                                                        </button>
+                                                            <button
+                                                                className="action-btn levelup-btn"
+                                                                onClick={handleLevelUp}
+                                                                disabled={xp < (XP_THRESHOLDS[character.level + 1] || 0) || character.level >= 20}
+                                                            >
+                                                                ✧ Confirm Level Up ✧
+                                                            </button>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+
+                                <div className={showMulticlassSelection ? 'xp-editor-main' : ''}>
+                                    <div className="xp-status">
+                                        <span>Current Level: <strong>{character.level}</strong></span>
+                                        <span>Current XP: <strong>{xp}</strong></span>
+                                    </div>
+
+                                    <div className="xp-controls">
+                                        <label>Adjust Experience</label>
+                                        <div className="xp-adjust-row">
+                                            <button onClick={() => handleXpAdjust(-10)}>-10</button>
+                                            <button onClick={() => handleXpAdjust(-1)}>-1</button>
+                                            <input
+                                                type="text"
+                                                inputMode="numeric"
+                                                pattern="[0-9]*"
+                                                value={tempXp}
+                                                onChange={(e) => {
+                                                    let rawVal = e.target.value.replace(/\D/g, "");
+                                                    if (rawVal.length > 7) rawVal = rawVal.slice(0, 7);
+                                                    // Handle multiple zeros or leading zeros during typing
+                                                    if (rawVal.length > 1 && rawVal.startsWith("0")) {
+                                                        rawVal = rawVal.replace(/^0+/, "") || "0";
+                                                    }
+                                                    setTempXp(rawVal);
+                                                }}
+                                                onBlur={handleXpBlur}
+                                            />
+                                            <button onClick={() => handleXpAdjust(1)}>+1</button>
+                                            <button onClick={() => handleXpAdjust(10)}>+10</button>
+                                        </div>
+                                        <div className="xp-threshold-hint">
+                                            Next Level: {XP_THRESHOLDS[character.level + 1] || "None"} XP
+                                        </div>
+                                    </div>
+
+                                    <div className="xp-actions">
+                                        {(isOwner || isAdmin) && (
+                                            <button
+                                                className="action-btn levelup-btn"
+                                                onClick={() => {
+                                                    if (showMulticlassSelection) {
+                                                        setShowMulticlassSelection(false);
+                                                        setSelectedLevelUpClass(null);
+                                                    } else {
+                                                        openLevelUpSelection();
+                                                    }
+                                                }}
+                                            >
+                                                {showMulticlassSelection ? "Cancel Level Up" : "✧ Level Up ✧"}
+                                            </button>
+                                        )}
+                                        {(isOwner || isAdmin) && (
+                                            <button
+                                                className="action-btn leveldown-btn"
+                                                onClick={handleLevelDown}
+                                                disabled={character.level <= 1 || xp !== (XP_THRESHOLDS[character.level] || 0)}
+                                                title={xp !== (XP_THRESHOLDS[character.level] || 0) ? `Reset XP to ${XP_THRESHOLDS[character.level]} to Level Down` : ""}
+                                            >
+                                                ⚠ Level Down
+                                            </button>
                                         )}
                                     </div>
-                                </div>
-                            )}
-
-                            <div className={showMulticlassSelection ? 'xp-editor-main' : ''}>
-                                <div className="xp-status">
-                                    <span>Current Level: <strong>{character.level}</strong></span>
-                                    <span>Current XP: <strong>{xp}</strong></span>
-                                </div>
-
-                                <div className="xp-controls">
-                                    <label>Adjust Experience</label>
-                                    <div className="xp-adjust-row">
-                                        <button onClick={() => handleXpAdjust(-10)}>-10</button>
-                                        <button onClick={() => handleXpAdjust(-1)}>-1</button>
-                                        <input
-                                            type="text"
-                                            inputMode="numeric"
-                                            pattern="[0-9]*"
-                                            value={tempXp}
-                                            onChange={(e) => {
-                                                let rawVal = e.target.value.replace(/\D/g, "");
-                                                if (rawVal.length > 7) rawVal = rawVal.slice(0, 7);
-                                                // Handle multiple zeros or leading zeros during typing
-                                                if (rawVal.length > 1 && rawVal.startsWith("0")) {
-                                                    rawVal = rawVal.replace(/^0+/, "") || "0";
-                                                }
-                                                setTempXp(rawVal);
-                                            }}
-                                            onBlur={handleXpBlur}
-                                        />
-                                        <button onClick={() => handleXpAdjust(1)}>+1</button>
-                                        <button onClick={() => handleXpAdjust(10)}>+10</button>
-                                    </div>
-                                    <div className="xp-threshold-hint">
-                                        Next Level: {XP_THRESHOLDS[character.level + 1] || "None"} XP
-                                    </div>
-                                </div>
-
-                                <div className="xp-actions">
-                                    {(isOwner || isAdmin) && (
-                                        <button
-                                            className="action-btn levelup-btn"
-                                            onClick={() => {
-                                                if (showMulticlassSelection) {
-                                                    setShowMulticlassSelection(false);
-                                                    setSelectedLevelUpClass(null);
-                                                } else {
-                                                    openLevelUpSelection();
-                                                }
-                                            }}
-                                        >
-                                            {showMulticlassSelection ? "Cancel Level Up" : "✧ Level Up ✧"}
-                                        </button>
-                                    )}
-                                    {(isOwner || isAdmin) && (
-                                        <button
-                                            className="action-btn leveldown-btn"
-                                            onClick={handleLevelDown}
-                                            disabled={character.level <= 1 || xp !== (XP_THRESHOLDS[character.level] || 0)}
-                                            title={xp !== (XP_THRESHOLDS[character.level] || 0) ? `Reset XP to ${XP_THRESHOLDS[character.level]} to Level Down` : ""}
-                                        >
-                                            ⚠ Level Down
-                                        </button>
-                                    )}
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )
+            }
 
             <FeatureChoiceOverlay
                 isOpen={choiceOverlay.isOpen}
@@ -4986,100 +5021,104 @@ function CharacterSheet() {
                 character={character}
             />
 
-            {showGoldTransferModal && (
-                <div className="modal-overlay gold-transfer-overlay" onClick={() => setShowGoldTransferModal(false)}>
-                    <div className="transfer-modal card premium-theme gold-modal" onClick={e => e.stopPropagation()}>
-                        <div className="modal-header">
-                            <h3><i className="fa-solid fa-money-bill-transfer"></i> Transfer Gold</h3>
-                            <button className="close-btn" onClick={() => setShowGoldTransferModal(false)}>✕</button>
-                        </div>
-                        <div className="gold-transfer-content">
-                            <div className="gold-stats">
-                                <div className="stat-item">
-                                    <span className="label">Current Balance:</span>
-                                    <span className="value">{gold} GP</span>
-                                </div>
-                                <div className="stat-item highlight">
-                                    <span className="label">New Balance:</span>
-                                    <span className="value">{gold - (parseInt(goldTransferAmount) || 0)} GP</span>
-                                </div>
+            {
+                showGoldTransferModal && (
+                    <div className="modal-overlay gold-transfer-overlay" onClick={() => setShowGoldTransferModal(false)}>
+                        <div className="transfer-modal card premium-theme gold-modal" onClick={e => e.stopPropagation()}>
+                            <div className="modal-header">
+                                <h3><i className="fa-solid fa-money-bill-transfer"></i> Transfer Gold</h3>
+                                <button className="close-btn" onClick={() => setShowGoldTransferModal(false)}>✕</button>
                             </div>
-
-                            <div className="amount-input-group">
-                                <label>Amount to Send:</label>
-                                <div className="input-with-unit">
-                                    <input
-                                        type="number"
-                                        min="1"
-                                        max={gold}
-                                        value={goldTransferAmount}
-                                        onChange={(e) => setGoldTransferAmount(Math.max(1, Math.min(gold, parseInt(e.target.value) || 0)))}
-                                    />
-                                    <span>GP</span>
-                                </div>
-                            </div>
-
-                            <div className="transfer-target-list">
-                                <p className="notice">Select a recipient:</p>
-                                {sessionParticipants.map(participant => (
-                                    <div
-                                        key={participant.character.id}
-                                        className={`recipient-option ${goldTransferRecipient === participant.character.id ? 'selected' : ''}`}
-                                        onClick={() => setGoldTransferRecipient(participant.character.id)}
-                                    >
-                                        <div className="recipient-info">
-                                            <span className="char-name">{participant.character.name}</span>
-                                            <span className="owner-name">Owner: {participant.username}</span>
-                                        </div>
-                                        {goldTransferRecipient === participant.character.id && <i className="fa-solid fa-circle-check"></i>}
+                            <div className="gold-transfer-content">
+                                <div className="gold-stats">
+                                    <div className="stat-item">
+                                        <span className="label">Current Balance:</span>
+                                        <span className="value">{gold} GP</span>
                                     </div>
-                                ))}
-                            </div>
+                                    <div className="stat-item highlight">
+                                        <span className="label">New Balance:</span>
+                                        <span className="value">{gold - (parseInt(goldTransferAmount) || 0)} GP</span>
+                                    </div>
+                                </div>
 
-                            <button
-                                className="confirm-transfer-btn"
-                                disabled={!goldTransferRecipient || goldTransferAmount <= 0 || goldTransferAmount > gold}
-                                onClick={() => transferGold(goldTransferRecipient)}
-                            >
-                                <i className="fa-solid fa-paper-plane"></i> Confirm Gold Transfer
-                            </button>
+                                <div className="amount-input-group">
+                                    <label>Amount to Send:</label>
+                                    <div className="input-with-unit">
+                                        <input
+                                            type="number"
+                                            min="1"
+                                            max={gold}
+                                            value={goldTransferAmount}
+                                            onChange={(e) => setGoldTransferAmount(Math.max(1, Math.min(gold, parseInt(e.target.value) || 0)))}
+                                        />
+                                        <span>GP</span>
+                                    </div>
+                                </div>
+
+                                <div className="transfer-target-list">
+                                    <p className="notice">Select a recipient:</p>
+                                    {sessionParticipants.map(participant => (
+                                        <div
+                                            key={participant.character.id}
+                                            className={`recipient-option ${goldTransferRecipient === participant.character.id ? 'selected' : ''}`}
+                                            onClick={() => setGoldTransferRecipient(participant.character.id)}
+                                        >
+                                            <div className="recipient-info">
+                                                <span className="char-name">{participant.character.name}</span>
+                                                <span className="owner-name">Owner: {participant.username}</span>
+                                            </div>
+                                            {goldTransferRecipient === participant.character.id && <i className="fa-solid fa-circle-check"></i>}
+                                        </div>
+                                    ))}
+                                </div>
+
+                                <button
+                                    className="confirm-transfer-btn"
+                                    disabled={!goldTransferRecipient || goldTransferAmount <= 0 || goldTransferAmount > gold}
+                                    onClick={() => transferGold(goldTransferRecipient)}
+                                >
+                                    <i className="fa-solid fa-paper-plane"></i> Confirm Gold Transfer
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )
+            }
 
-            {(isGiftsLoading || revealedGifts.gold.length > 0 || revealedGifts.items.length > 0) && (
-                <div className="gifts-notice-container">
-                    {isGiftsLoading && (
-                        <div className="gift-loading-notice">
-                            <i className="fa-solid fa-spinner fa-spin"></i>
-                            <span>Processing incoming gifts...</span>
-                        </div>
-                    )}
-
-                    {character?.data?.gold_gifts?.filter(g => revealedGifts.gold.includes(g.id || `${g.amount}-${g.from_character_name}`)).map((gift, idx) => (
-                        <div key={`gold-${idx}`} className="gold-gift-notice">
-                            <div className="gift-text">
-                                <i className="fa-solid fa-coins"></i>
-                                <span>You received <strong>{gift.amount} GP</strong> from <strong>{gift.from_character_name}</strong>!</span>
+            {
+                (isGiftsLoading || revealedGifts.gold.length > 0 || revealedGifts.items.length > 0) && (
+                    <div className="gifts-notice-container">
+                        {isGiftsLoading && (
+                            <div className="gift-loading-notice">
+                                <i className="fa-solid fa-spinner fa-spin"></i>
+                                <span>Processing incoming gifts...</span>
                             </div>
-                            <button className="gold-accept-btn" onClick={handleAcknowledgeGold}>Accept</button>
-                        </div>
-                    ))}
+                        )}
 
-                    {inventoryItems.filter(item => item.is_new_gift && revealedGifts.items.includes(item.originalIndex)).map((item, idx) => (
-                        <div key={`item-${idx}`} className="item-gift-notice">
-                            <div className="gift-text">
-                                <i className="fa-solid fa-gift"></i>
-                                <span>Received <strong>{item.name}</strong> from <strong>{item.from_character_name}</strong>!</span>
+                        {character?.data?.gold_gifts?.filter(g => revealedGifts.gold.includes(g.id || `${g.amount}-${g.from_character_name}`)).map((gift, idx) => (
+                            <div key={`gold-${idx}`} className="gold-gift-notice">
+                                <div className="gift-text">
+                                    <i className="fa-solid fa-coins"></i>
+                                    <span>You received <strong>{gift.amount} GP</strong> from <strong>{gift.from_character_name}</strong>!</span>
+                                </div>
+                                <button className="gold-accept-btn" onClick={handleAcknowledgeGold}>Accept</button>
                             </div>
-                            <button className="item-accept-btn" onClick={() => handleAcceptItemWithScroll(item.originalIndex)}>Accept</button>
-                        </div>
-                    ))}
-                </div>
-            )}
+                        ))}
+
+                        {inventoryItems.filter(item => item.is_new_gift && revealedGifts.items.includes(item.originalIndex)).map((item, idx) => (
+                            <div key={`item-${idx}`} className="item-gift-notice">
+                                <div className="gift-text">
+                                    <i className="fa-solid fa-gift"></i>
+                                    <span>Received <strong>{item.name}</strong> from <strong>{item.from_character_name}</strong>!</span>
+                                </div>
+                                <button className="item-accept-btn" onClick={() => handleAcceptItemWithScroll(item.originalIndex)}>Accept</button>
+                            </div>
+                        ))}
+                    </div>
+                )
+            }
             <BackToTop />
-        </div>
+        </div >
     );
 }
 

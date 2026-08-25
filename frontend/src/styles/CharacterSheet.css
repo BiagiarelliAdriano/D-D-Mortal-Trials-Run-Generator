@@ -289,6 +289,13 @@ h3,
     width: 100%;
 }
 
+.header-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
 .xp-bar-container {
     margin-top: 5px;
     width: 250px;
@@ -346,6 +353,91 @@ h3,
     border: 1px solid var(--border);
     cursor: not-allowed;
     opacity: 0.6;
+}
+
+/* Heroic Inspiration */
+.heroic-inspiration-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 9px 14px;
+    background: rgba(255, 215, 0, 0.06);
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    border-radius: 8px;
+    color: #d8c58a;
+    font-family: var(--font-serif);
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition:
+        transform 0.2s ease,
+        background 0.2s ease,
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        color 0.2s ease;
+}
+
+.heroic-inspiration-btn i {
+    font-size: 0.95rem;
+    transition:
+        transform 0.3s ease,
+        text-shadow 0.3s ease;
+}
+
+.heroic-inspiration-btn:hover:not(:disabled) {
+    transform: translateY(-1px);
+    background: rgba(255, 215, 0, 0.12);
+    border-color: rgba(255, 215, 0, 0.55);
+    color: #f0d878;
+    box-shadow:
+        0 0 12px rgba(255, 215, 0, 0.15),
+        inset 0 0 8px rgba(255, 215, 0, 0.04);
+}
+
+.heroic-inspiration-btn:hover:not(:disabled) i {
+    transform: rotate(12deg) scale(1.15);
+}
+
+.heroic-inspiration-btn.active {
+    background: linear-gradient(
+        135deg,
+        rgba(255, 215, 0, 0.18),
+        rgba(255, 193, 7, 0.08)
+    );
+    border-color: rgba(255, 215, 0, 0.75);
+    color: #ffd95a;
+    box-shadow:
+        0 0 14px rgba(255, 215, 0, 0.25),
+        inset 0 0 10px rgba(255, 215, 0, 0.05);
+}
+
+.heroic-inspiration-btn.active i {
+    color: #ffd700;
+    text-shadow:
+        0 0 5px rgba(255, 215, 0, 0.7),
+        0 0 12px rgba(255, 215, 0, 0.35);
+}
+
+.heroic-inspiration-btn:disabled {
+    cursor: default;
+    opacity: 0.9;
+}
+
+.heroic-inspiration-btn.view-only {
+    cursor: default;
+    pointer-events: none;
+}
+
+.heroic-inspiration-btn.view-only:hover {
+    transform: none;
+    box-shadow: none;
+}
+
+.heroic-inspiration-btn.view-only.active:hover {
+    box-shadow:
+        0 0 14px rgba(255, 215, 0, 0.25),
+        inset 0 0 10px rgba(255, 215, 0, 0.05);
 }
 
 @keyframes pulse-gold {
