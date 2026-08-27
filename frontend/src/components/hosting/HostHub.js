@@ -193,17 +193,33 @@ const HostHub = () => {
 
     return (
         <div className="host-hub-container">
-            <div className="host-hub-card">
-                <div className="hub-nav-group">
-                    <button className="spire-back-btn" onClick={() => navigate('/')}>
-                        <i className="fa-solid fa-house"></i> Home Spire
+
+            {/* =========================================
+            HEADER
+           ========================================= */}
+            <header className="host-hub-header">
+
+                <div className="host-header-top">
+
+                    <button
+                        className="create-button secondary-hub-btn"
+                        onClick={() => navigate('/')}
+                    >
+                        <i className="fa-solid fa-house"></i>
+                        Home
                     </button>
+
+                    <div className="host-header-title">
+                        <h1>The Hosting Spire</h1>
+                        <p>Manage your trials or join an existing ascent.</p>
+                    </div>
+
                     <UserProfilePill />
+
                 </div>
-                <div className="host-header">
-                    <h1>The Hosting Spire</h1>
-                    <p>Manage your trials or join an existing ascent.</p>
-                    <div className="search-wrapper" style={{ margin: '20px auto' }}>
+
+                <div className="host-header-search">
+                    <div className="search-wrapper">
                         <input
                             type="text"
                             className="search-input"
@@ -215,9 +231,11 @@ const HostHub = () => {
                     </div>
                 </div>
 
-                <div className="host-actions">
+                <div className="host-header-actions">
+
                     <button
-                        className={`host-primary-btn ${dmLimitReached ? 'host-limit-reached' : ''}`}
+                        className={`host-primary-btn ${dmLimitReached ? 'host-limit-reached' : ''
+                            }`}
                         onClick={() => {
                             if (dmLimitReached) {
                                 addAlert(
@@ -226,11 +244,21 @@ const HostHub = () => {
                                 );
                                 return;
                             }
+
                             navigate('/run-generator?host=true');
                         }}
                     >
-                        <i className={dmLimitReached ? "fa-solid fa-lock" : "fa-solid fa-plus-circle"}></i>
-                        {dmLimitReached ? "✧ Hosted Run Limit Reached" : "Host New Run"}
+                        <i
+                            className={
+                                dmLimitReached
+                                    ? "fa-solid fa-lock"
+                                    : "fa-solid fa-plus-circle"
+                            }
+                        ></i>
+
+                        {dmLimitReached
+                            ? "✧ Hosted Run Limit Reached"
+                            : "Host New Run"}
                     </button>
 
                     <div className="join-code-section">
@@ -239,12 +267,34 @@ const HostHub = () => {
                             placeholder="6-Digit Invite Code"
                             maxLength="6"
                             value={joinCode}
-                            onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
+                            onChange={(e) =>
+                                setJoinCode(e.target.value.toUpperCase())
+                            }
                         />
-                        <button className="join-btn" onClick={handleJoin}>Join Run</button>
+
+                        <button
+                            className="join-btn"
+                            onClick={handleJoin}
+                        >
+                            Join Run
+                        </button>
                     </div>
-                    {error && <p className="error-text">{error}</p>}
+
+                    {error && (
+                        <p className="error-text">
+                            {error}
+                        </p>
+                    )}
+
                 </div>
+
+            </header>
+
+
+            {/* =========================================
+            PAGE CONTENT
+           ========================================= */}
+            <main className="host-hub-card">
 
                 <div className="host-sections">
                     {/* Section 1: Your Active Trials */}
@@ -298,7 +348,8 @@ const HostHub = () => {
                         )}
                     </section>
                 </div>
-            </div>
+            </main>
+
             <BackToTop />
         </div>
     );

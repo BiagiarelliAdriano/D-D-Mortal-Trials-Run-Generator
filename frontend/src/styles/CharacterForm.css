@@ -660,7 +660,6 @@ input[type="number"] {
     background: rgba(0, 0, 0, 0.4);
     border: 1px solid var(--border);
     border-radius: 12px;
-    padding: 15px;
     color: white;
     font-size: 1.1rem;
     width: 100%;

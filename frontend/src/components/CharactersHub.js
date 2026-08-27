@@ -172,7 +172,9 @@ function CharactersHub() {
         <div className="hub-container">
             <header className="hub-header">
                 <div className="hub-titles">
-                    <h1>Characters Hub</h1>
+                    <button className="create-button secondary-hub-btn" onClick={() => navigate("/")}>
+                        <i className="fa-solid fa-house"></i> Home
+                    </button>
                     <div className="search-wrapper">
                         <input
                             type="text"
@@ -183,6 +185,7 @@ function CharactersHub() {
                         />
                         <i className="fa-solid fa-magnifying-glass"></i>
                     </div>
+                    <h1>Characters Hub</h1>
                     <button
                         className={`create-button ${characterLimitReached ? "character-limit-reached" : ""}`}
                         onClick={() => {
@@ -199,9 +202,6 @@ function CharactersHub() {
                         {characterLimitReached
                             ? "✧ Character Limit Reached"
                             : "✧ Create New Ascendant"}
-                    </button>
-                    <button className="create-button secondary-hub-btn" onClick={() => navigate("/")}>
-                        <i className="fa-solid fa-house"></i> Home
                     </button>
                 </div>
 

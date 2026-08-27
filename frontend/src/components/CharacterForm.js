@@ -1,8 +1,34 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, Fragment } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useNotification } from "../context/NotificationContext";
 import API_BASE_URL from "../config";
+
+const processRichText = (text) => {
+    if (typeof text !== 'string' || !text) return text;
+
+    const parts = text.split(/(\*\*.*?\*\*|\*.*?\*)/g);
+
+    return parts.map((part, i) => {
+        if (
+            (part.startsWith('**') && part.endsWith('**')) ||
+            (part.startsWith('*') && part.endsWith('*'))
+        ) {
+            const clean = part.replace(/^\*\*?|\*\*?$/g, '');
+
+            return <strong key={i}>{clean}</strong>;
+        }
+
+        const lines = part.split('\n');
+
+        return lines.map((line, lineIndex) => (
+            <Fragment key={`${i}-${lineIndex}`}>
+                {line}
+                {lineIndex < lines.length - 1 && <br />}
+            </Fragment>
+        ));
+    });
+};
 
 function CharacterForm() {
     const { id } = useParams();
@@ -1319,7 +1345,9 @@ function CharacterForm() {
                                                         {uiToggles.featExpanded && (
                                                             <div className="feat-effects-list">
                                                                 {featData?.effects.map((eff, i) => (
-                                                                    <p key={i}>{eff}</p>
+                                                                    <p key={i} className="feat-effect-item">
+                                                                        {processRichText(eff)}
+                                                                    </p>
                                                                 ))}
                                                             </div>
                                                         )}

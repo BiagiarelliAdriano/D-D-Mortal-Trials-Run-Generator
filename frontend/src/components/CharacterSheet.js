@@ -228,7 +228,6 @@ const PreviewChoiceDetails = ({ feature, choice, character, level }) => {
     return result.length > 0 ? <div className="preview-extra-info">{result}</div> : null;
 };
 
-
 /**
  * Simple processor to handle **bold** or *bold* text in descriptions.
  * Returns an array of React elements/strings.
@@ -244,7 +243,6 @@ const processRichText = (text) => {
         return part;
     });
 };
-
 
 /**
  * Calculates attack statistics for a weapon or unarmed strike.
@@ -780,7 +778,7 @@ const LAYOUT_CONSTRAINTS = {
     header: { minW: 6, maxW: 12, minH: 4, maxH: 6 },
     hp: { minW: 3, maxW: 6, minH: 2, maxH: 5 },
     abilities: { minW: 3, maxW: 4, minH: 5, maxH: 7 },
-    saves: { minW: 3, maxW: 6, minH: 5, maxH: 7 },
+    saves: { minW: 2, maxW: 6, minH: 5, maxH: 7 },
     skills: { minW: 2, maxW: 4, minH: 11, maxH: 11 },
     features: { minW: 4, maxW: 12, minH: 4, maxH: 20 },
     species: { minW: 4, maxW: 12, minH: 7, maxH: 9 },

@@ -302,3 +302,639 @@ ARMOR_DATA = {
     "Plate Armor": {"baseAC": 18, "type": "Heavy", "dexLimit": 0},
     "Shield": {"baseAC": 0, "bonus": 2, "type": "Shield", "dexLimit": None},
 }
+
+ITEM_DATA = {
+    "Breastplate": {
+        "name": "Breastplate",
+        "category": "Magic Item",
+        "type": "Armor",
+        "rarity": "Common",
+        "attunement": False,
+        "effect": (
+            "Medium Armor. AC 14 + DEX (Max 2)."
+        ),
+        "activation": "Equip",
+        "duration": None,
+        "charges": None,
+        "recharge": None,
+        "notes": None,
+    },
+    "Chain Mail": {
+        "name": "Chain Mail",
+        "category": "Magic Item",
+        "type": "Armor",
+        "rarity": "Common",
+        "attunement": False,
+        "effect": (
+            "Heavy Armor. AC16. If STR is less than 13, you gain Disadvantage in Stealth and -10ft Speed."
+        ),
+        "activation": "Equip",
+        "duration": None,
+        "charges": None,
+        "recharge": None,
+        "notes": None,
+    },
+    "Chain Shirt": {
+        "name": "Chain Shirt",
+        "category": "Magic Item",
+        "type": "Armor",
+        "rarity": "Common",
+        "attunement": False,
+        "effect": (
+            "Medium Armor. AC 13 + DEX (Max 2)."
+        ),
+        "activation": "Equip",
+        "duration": None,
+        "charges": None,
+        "recharge": None,
+        "notes": None,
+    },
+    "Half Plate Armor": {
+        "name": "Half Plate Armor",
+        "category": "Magic Item",
+        "type": "Armor",
+        "rarity": "Common",
+        "attunement": False,
+        "effect": (
+            "Medium Armor. AC 15 + DEX (Max 2). Disadvantage on Stealth."
+        ),
+        "activation": "Equip",
+        "duration": None,
+        "charges": None,
+        "recharge": None,
+        "notes": None,
+    },
+    "Hide Armor": {
+        "name": "Hide Armor",
+        "category": "Magic Item",
+        "type": "Armor",
+        "rarity": "Common",
+        "attunement": False,
+        "effect": (
+            "Medium Armor. AC 12 + DEX (Max 2)."
+        ),
+        "activation": "Equip",
+        "duration": None,
+        "charges": None,
+        "recharge": None,
+        "notes": None,
+    },
+    "Leather Armor": {
+        "name": "Leather Armor",
+        "category": "Magic Item",
+        "type": "Armor",
+        "rarity": "Common",
+        "attunement": False,
+        "effect": (
+            "Light Armor. AC 11 + DEX."
+        ),
+        "activation": "Equip",
+        "duration": None,
+        "charges": None,
+        "recharge": None,
+        "notes": None,
+    },
+    "Padded Armor": {
+        "name": "Padded Armor",
+        "category": "Magic Item",
+        "type": "Armor",
+        "rarity": "Common",
+        "attunement": False,
+        "effect": (
+            "Light Armor. AC 11 + DEX. Disadvantage on Stealth."
+        ),
+        "activation": "Equip",
+        "duration": None,
+        "charges": None,
+        "recharge": None,
+        "notes": None,
+    },
+    "Plate Armor": {
+        "name": "Plate Armor",
+        "category": "Magic Item",
+        "type": "Armor",
+        "rarity": "Common",
+        "attunement": False,
+        "effect": (
+            "Heavy Armor. AC 18. If STR is less than 15, you gain Disadvantage on Stealth and -10ft Speed."
+        ),
+        "activation": "Equip",
+        "duration": None,
+        "charges": None,
+        "recharge": None,
+        "notes": None,
+    },
+    "Ring Mail": {
+        "name": "Ring Mail",
+        "category": "Magic Item",
+        "type": "Armor",
+        "rarity": "Common",
+        "attunement": False,
+        "effect": (
+            "Heavy Armor. AC 14. Disadvantage on Stealth."
+        ),
+        "activation": "Equip",
+        "duration": None,
+        "charges": None,
+        "recharge": None,
+        "notes": None,
+    },
+    "Scale Mail": {
+        "name": "Scale Mail",
+        "category": "Magic Item",
+        "type": "Armor",
+        "rarity": "Common",
+        "attunement": False,
+        "effect": (
+            "Medium Armor. AC 14 + DEX (Max 2). Disadvantage on Stealth."
+        ),
+        "activation": "Equip",
+        "duration": None,
+        "charges": None,
+        "recharge": None,
+        "notes": None,
+    },
+    "Shield": {
+        "name": "Shield",
+        "category": "Magic Item",
+        "type": "Armor",
+        "rarity": "Common",
+        "attunement": False,
+        "effect": (
+            "AC + 2"
+        ),
+        "activation": "Equip",
+        "duration": None,
+        "charges": None,
+        "recharge": None,
+        "notes": None,
+    },
+    "Splint Armor": {
+        "name": "Splint Armor",
+        "category": "Magic Item",
+        "type": "Armor",
+        "rarity": "Common",
+        "attunement": False,
+        "effect": (
+            "Heavy Armor. AC 17. If STR is less than 15, you gain Disadvantage on Stealth and -10ft Speed."
+        ),
+        "activation": "Equip",
+        "duration": None,
+        "charges": None,
+        "recharge": None,
+        "notes": None,
+    },
+    "Studded Leather Armor": {
+        "name": "Studded Leather Armor",
+        "category": "Magic Item",
+        "type": "Armor",
+        "rarity": "Common",
+        "attunement": False,
+        "effect": (
+            "Light Armor. AC 12 + DEX."
+        ),
+        "activation": "Equip",
+        "duration": None,
+        "charges": None,
+        "recharge": None,
+        "notes": None,
+    },
+    "Potion of Climbing": {
+        "name": "Potion of Climbing",
+        "category": "Magic Item",
+        "type": "Potion",
+        "rarity": "Common",
+        "attunement": False,
+        "effect": (
+            "When you drink this potion, you gain a Climb Speed equal to your Speed until the party takes a Short or Long Rest. During this time, you have Advantage on Athletics checks to climb."
+        ),
+        "activation": "Bonus Action",
+        "duration": "Short or Long Rest",
+        "charges": None,
+        "recharge": None,
+        "notes": None,
+    },
+    "Potion of Healing": {
+        "name": "Potion of Healing",
+        "category": "Magic Item",
+        "type": "Potion",
+        "rarity": "Common",
+        "attunement": False,
+        "effect": (
+            "As a Bonus Action, you can drink this magic item or administer it to another creature within 5ft of yourself. The creature that drinks the magical red fluid in this vial regains 2d4 + 2 Hit Points."
+        ),
+        "activation": "Bonus Action",
+        "duration": "Instantaneous",
+        "charges": None,
+        "recharge": None,
+        "notes": None,
+    },
+    "Ring": {
+        "name": "Ring",
+        "category": "Magic Item",
+        "type": "Ring",
+        "rarity": "Common",
+        "attunement": False,
+        "effect": (
+            "This is a simple ring."
+        ),
+        "activation": None,
+        "duration": None,
+        "charges": None,
+        "recharge": None,
+        "notes": None,
+    },
+    "Ring of Momentary Stillness": {
+        "name": "Ring of Momentary Stillness",
+        "category": "Magic Item",
+        "type": "Ring",
+        "rarity": "Common",
+        "attunement": False,
+        "effect": (
+            "A character can have only one Ring of Momentary Stillness in their Inventory. Once per combat, as a Reaction when an enemy within 5ft hits you with an attack, you may force them to make a DC 10 Dexterity Saving Throw. On a failure, their Speed becomes 0 until the end of their turn. If the creature succeeds the save, the Ring can be used again later in the same Combat. If they fail, the Ring cannot be used again until a Long Rest."
+        ),
+        "activation": "Reaction",
+        "duration": "Instantanous",
+        "charges": 1,
+        "recharge": "Long Rest",
+        "notes": None,
+    },
+    "Rod": {
+        "name": "Rod",
+        "type": "Rod",
+        "rarity": "Common",
+        "attunement": False,
+        "effect": (
+            "This is a simple Rod."
+        ),
+        "activation": None,
+        "duration": None,
+        "charges": None,
+        "recharge": None,
+        "notes": None,
+    },
+    "Rod of Sudden Resistance": {
+        "name": "Rod of Sudden Resistance",
+        "type": "Rod",
+        "rarity": "Common",
+        "attunement": False,
+        "effect": (
+            "A character can have only one Rod of Sudden Resistance in their Inventory. Once per combat, as a Reaction to taking damage from a source you can see, you may reduce the damage taken by 1d6. If you reduce the damage to 0, the Rod is considered 'used'. If not, you may use it again later in this combat. If 'used', the Rod cannot be used again until a Long Rest."
+        ),
+        "activation": "Reaction",
+        "duration": "Instantaneous",
+        "charges": 1,
+        "recharge": "Long Rest",
+        "notes": None,
+    },
+    "Spell Scroll Cantrip": {
+        "name": "Spell Scroll Cantrip",
+        "type": "Spell Scroll",
+        "rarity": "Common",
+        "attunement": False,
+        "effect": (
+            "A Spell Scroll bears the words of a single spell, written in a mystical cipher. If the spell is on your spell list, you can read the scroll and cast its spell without Material components. Otherwise, the scroll unintelligible. Casting the spell by reading the scroll requires the spell's normal casting time. Once the spell is cast, the scroll crumbles to dust. If the casting is interrupted, the scroll isn't lost. If the spell is on your spell list but of a higher level than you can normally cast, you make a DC 10 Ability Check using your spellcasting ability to determine whether you cast the spell. On a failed check, the spell disappears from the scroll with no other effect. If the spell requires a Saving Throw or an Attack Roll, the Spell Save DC is 13, and the Attack Bonus is +5."
+        ),
+        "activation": None,
+        "duration": None,
+        "charges": None,
+        "recharge": None,
+        "notes": None,
+    },
+    "Spell Scroll 1st Level": {
+        "name": "Spell Scroll 1st Level",
+        "type": "Spell Scroll",
+        "rarity": "Common",
+        "attunement": False,
+        "effect": (
+            "A Spell Scroll bears the words of a single spell, written in a mystical cipher. If the spell is on your spell list, you can read the scroll and cast its spell without Material components. Otherwise, the scroll is unintelligible. Casting the spell by reading the scroll requires the spell's normal casting time. Once the spell is cast, the scroll crumbles to dust. If the casting is interrupted, the scroll isn't lost. If the spell is on your spell list but of a higher level than you can normally cast, you make a DC 10 Ability Check using your spellcasting ability to determine whether you cast the spell. On a failed check, the spell disappears from the scroll with no other effect. If the spell requires a Saving Throw or an Attack Roll, the Spell Save DC is 13, and the Attack Bonus is +5."
+        ),
+        "activation": None,
+        "duration": None,
+        "charges": None,
+        "recharge": None,
+        "notes": None,
+    },
+    "Spell Scroll Remove Curse": {
+        "name": "Spell Scroll Remove Curse",
+        "type": "Spell Scroll",
+        "rarity": "Common",
+        "attunement": False,
+        "effect": (
+            "Spell Scroll containing the Remove Curse spell. Always available in Shops. Only found in Shops. When bought you can use it remove the Curse property on a Magical Item, even if you cannot normally cast spells. Can be used once, then the spell scroll will crumble into ashes and be destroyed."
+        ),
+        "activation": "Action",
+        "duration": "Instantaneous",
+        "charges": None,
+        "recharge": None,
+        "notes": None,
+    },
+    "Staff": {
+        "name": "Staff",
+        "type": "Staff",
+        "rarity": "Common",
+        "attunement": False,
+        "effect": (
+            "Spellcasting Focus, Simple Weapon, Melee Weapon. 1d6 Bludgeoning, Versatile 1d8."
+        ),
+        "activation": None,
+        "duration": None,
+        "charges": None,
+        "recharge": None,
+        "notes": None,
+    },
+    "Staff of Tactical Balance": {
+        "name": "Staff of Tactical Balance",
+        "type": "Staff",
+        "rarity": "Common",
+        "attunement": False,
+        "effect": (
+            "A character can have only one Staff of Tactical Balance in their Inventory. Once per combat, when making an Ability Check, Attack Roll, or Saving Throw, you may roll a 1d4 and add to the result. You may choose to use the Staff after seeing the die result but before the outcome is determined. If the roll of the Staff of Tactical Balance die is 1, the Staff is not expended and can be used again this combat. In other cases, the Staff is 'used' and regains its ability on a Long Rest."
+        ),
+        "activation": "Free",
+        "duration": "Instantaneous",
+        "charges": 1,
+        "recharge": "Long Rest",
+        "notes": None,
+    },
+    "Wand": {
+        "name": "Wand",
+        "type": "Wand",
+        "rarity": "Common",
+        "attunement": False,
+        "effect": (
+            "This is a simple Wand. It can be used as Spellcasting Focus."
+        ),
+        "activation": None,
+        "duration": None,
+        "charges": None,
+        "recharge": None,
+        "notes": None,
+    },
+    "Wand of Minor Distortion": {
+        "name": "Wand of Minor Distortion",
+        "type": "Wand",
+        "rarity": "Common",
+        "attunement": False,
+        "effect": (
+            "A character can have only one Wand of Minor Distortion in their Inventory. Once per combat, as a Bonus Action, you may wave this wand to subtly distoory space around you. Choose one enemy within 15ft. They must succeed on a DC 10 Wisdom Saving Throw or suffer Disadvantage on their next Attack Roll. If the target succeeds on the Save, the Wand's use is not expended and may be used again in a future turn during the same combat. If they fail, the Wand cannot be used again until a Long Rest."
+        ),
+        "activation": "Bonus Action",
+        "duration": "Instantaneous",
+        "charges": 1,
+        "recharge": "Long Rest",
+        "notes": None,
+    },
+    "Battleaxe": {
+        "name": "Battleaxe",
+        "type": "Weapon",
+        "rarity": "Common",
+        "attunement": False,
+        "effect": (
+            "Martial Weapon, Melee Weapon. 1d8 Slashing. Versatile (1d10). Mastery: Topple."
+        ),
+        "activation": None,
+        "duration": None,
+        "charges": None,
+        "recharge": None,
+        "notes": None,
+    },
+    "Club": {
+        "name": "Club",
+        "type": "Weapon",
+        "rarity": "Common",
+        "attunement": False,
+        "effect": (
+            "Simple Weapon, Melee Weapon. 1d4 Bludgeoning. Light. Mastery: Slow."
+        ),
+        "activation": None,
+        "duration": None,
+        "charges": None,
+        "recharge": None,
+        "notes": None,
+    },
+    "Dagger": {
+        "name": "Dagger",
+        "type": "Weapon",
+        "rarity": "Common",
+        "attunement": False,
+        "effect": (
+            "Simple Weapon, Melee Weapon. 1d4 Piercing. Finesse. Light. Thrown 20/60ft. Mastery: Nick."
+        ),
+        "activation": None,
+        "duration": None,
+        "charges": None,
+        "recharge": None,
+        "notes": None,
+    },
+    "Flail": {
+        "name": "Flail",
+        "type": "Weapon",
+        "rarity": "Common",
+        "attunement": False,
+        "effect": (
+            "Martial Weapon, Melee Weapon. 1d8 Bludgeoning. Mastery: Sap."
+        ),
+        "activation": None,
+        "duration": None,
+        "charges": None,
+        "recharge": None,
+        "notes": None,
+    },
+    "Glaive": {
+        "name": "Glaive",
+        "type": "Weapon",
+        "rarity": "Common",
+        "attunement": False,
+        "effect": (
+            "Martial Weapon, Melee Weapon. 1d10 Slashing. Heavy. Reach. Two-Handed. Mastery: Graze."
+        ),
+        "activation": None,
+        "duration": None,
+        "charges": None,
+        "recharge": None,
+        "notes": None,
+    },
+    "Greataxe": {
+        "name": "Greataxe",
+        "type": "Weapon",
+        "rarity": "Common",
+        "attunement": False,
+        "effect": (
+            "Martial Weapon, Melee Weapon. 1d12 Slashing. Heavy. Two-Handed. Mastery: Cleave."
+        ),
+        "activation": None,
+        "duration": None,
+        "charges": None,
+        "recharge": None,
+        "notes": None,
+    },
+    "Greatclub": {
+        "name": "Greatclub",
+        "type": "Weapon",
+        "rarity": "Common",
+        "attunement": False,
+        "effect": (
+            "Simple Weapon, Melee Weapon. 1d8 Bludgeoning. Two-Handed. Mastery: Push."
+        ),
+        "activation": None,
+        "duration": None,
+        "charges": None,
+        "recharge": None,
+        "notes": None,
+    },
+    "Greatsword": {
+        "name": "Greatsword",
+        "type": "Weapon",
+        "rarity": "Common",
+        "attunement": False,
+        "effect": (
+            "Martial Weapon, Melee Weapon. 2d6 Slashing. Heavy. Two-Handed. Mastery: Graze."
+        ),
+        "activation": None,
+        "duration": None,
+        "charges": None,
+        "recharge": None,
+        "notes": None,
+    },
+    "Halberd": {
+        "name": "Halberd",
+        "type": "Weapon",
+        "rarity": "Common",
+        "attunement": False,
+        "effect": (
+            "Martial Weapon, Melee Weapon. 1d10 Slashing. Heavy. Reach. Two-Handed. Mastery: Cleave."
+        ),
+        "activation": None,
+        "duration": None,
+        "charges": None,
+        "recharge": None,
+        "notes": None,
+    },
+    "Hand Crossbow": {
+        "name": "Hand Crossbow",
+        "type": "Weapon",
+        "rarity": "Common",
+        "attunement": False,
+        "effect": (
+            "Martial Weapon, Ranged Weapon. 1d6 Piercing. Ammunition. Range 30/120ft. Light. Loading. Mastery: Vex."
+        ),
+        "activation": None,
+        "duration": None,
+        "charges": None,
+        "recharge": None,
+        "notes": None,
+    },
+    "Handaxe": {
+        "name": "Handaxe",
+        "type": "Weapon",
+        "rarity": "Common",
+        "attunement": False,
+        "effect": (
+            "Simple Weapon, Melee Weapon. 1d6 Slashing. Light. Thrown 20/60ft. Mastery: Vex."
+        ),
+        "activation": None,
+        "duration": None,
+        "charges": None,
+        "recharge": None,
+        "notes": None,
+    },
+    "Heavy Crossbow": {
+        "name": "Heavy Crossbow",
+        "type": "Weapon",
+        "rarity": "Common",
+        "attunement": False,
+        "effect": (
+            "Martial Weapon, Ranged Weapon. 1d10 Piercing. Ammunition. Range 100/400ft. Heavy. Loading. Two-Handed. Mastery: Push."
+        ),
+        "activation": None,
+        "duration": None,
+        "charges": None,
+        "recharge": None,
+        "notes": None,
+    },
+    "Javelin": {
+        "name": "Javelin",
+        "type": "Weapon",
+        "rarity": "Common",
+        "attunement": False,
+        "effect": (
+            "Simple Weapon, Melee Weapon. 1d6 Piercing. Thrown 30/120ft. Mastery: Slow."
+        ),
+        "activation": None,
+        "duration": None,
+        "charges": None,
+        "recharge": None,
+        "notes": None,
+    },
+    "Lance": {
+        "name": "Lance",
+        "type": "Weapon",
+        "rarity": "Common",
+        "attunement": False,
+        "effect": (
+            "Martial Weapon, Melee Weapon. 1d10 Piercing. Heavy. Reach. Two-Handed (unless mounted). Mastery: Topple."
+        ),
+        "activation": None,
+        "duration": None,
+        "charges": None,
+        "recharge": None,
+        "notes": None,
+    },
+    "Light Crossbow": {
+        "name": "Light Crossbow",
+        "type": "Weapon",
+        "rarity": "Common",
+        "attunement": False,
+        "effect": (
+            "Simple Weapon, Ranged Weapon. 1d8 Piercing. Ammunition. Range 80/320ft. Loading. Two-Handed. Mastery: Slow."
+        ),
+        "activation": None,
+        "duration": None,
+        "charges": None,
+        "recharge": None,
+        "notes": None,
+    },
+    "Light Hammer": {
+        "name": "Light Hammer",
+        "type": "Weapon",
+        "rarity": "Common",
+        "attunement": False,
+        "effect": (
+            "Simple Weapon, Melee Weapon. 1d4 Bludgeoning. Light. Thrown 20/60ft. Mastery: Nick."
+        ),
+        "activation": None,
+        "duration": None,
+        "charges": None,
+        "recharge": None,
+        "notes": None,
+    },
+    "Longbow": {
+        "name": "Longbow",
+        "type": "Weapon",
+        "rarity": "",
+        "attunement": False,
+        "effect": (
+            ""
+        ),
+        "activation": None,
+        "duration": None,
+        "charges": None,
+        "recharge": None,
+        "notes": None,
+    },
+    "": {
+        "name": "",
+        "type": "",
+        "rarity": "",
+        "attunement": False,
+        "effect": (
+            ""
+        ),
+        "activation": None,
+        "duration": None,
+        "charges": None,
+        "recharge": None,
+        "notes": None,
+    },
+}

@@ -431,7 +431,6 @@ const RunGenerator = () => {
                             <i className="fa-solid fa-list-ul"></i> My Saved Runs
                         </button>
                     )}
-                    <UserProfilePill />
 
                     {token && (
                         <button
@@ -498,6 +497,7 @@ const RunGenerator = () => {
                             {showSavedRunPicker ? 'Hide Saved Runs' : 'Use a Saved Run'}
                         </button>
                     )}
+                    <UserProfilePill />
                     {runData && (
                         <>
                             {token && (
@@ -640,7 +640,7 @@ const RunGenerator = () => {
             )}
 
             {!runData && !loading && !showSavedRunPicker && (
-                <div className="empty-state">
+                <div className="generator-empty-state">
                     <i className="fa-solid fa-scroll"></i>
                     <p>
                         {isHostMode

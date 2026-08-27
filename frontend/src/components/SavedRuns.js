@@ -201,7 +201,6 @@ const SavedRuns = () => {
                     <button className="back-btn" onClick={() => navigate(-1)}>
                         <i className="fa-solid fa-arrow-left"></i> Back
                     </button>
-                    <UserProfilePill />
                     <button
                         className={`edit-runs-btn ${editMode ? 'active' : ''}`}
                         onClick={handleEditModeToggle}
@@ -210,7 +209,6 @@ const SavedRuns = () => {
                         {editMode ? 'Done Editing' : 'Edit Runs'}
                     </button>
                 </div>
-                <h1 className="serif-text">My Saved Trials</h1>
                 <div className="search-wrapper" style={{ margin: '10px 0', maxWidth: '300px' }}>
                     <input
                         type="text"
@@ -221,6 +219,8 @@ const SavedRuns = () => {
                     />
                     <i className="fa-solid fa-magnifying-glass"></i>
                 </div>
+                <h1 className="serif-text">My Saved Trials</h1>
+                <UserProfilePill />
             </header>
 
             {loading && (
