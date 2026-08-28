@@ -338,21 +338,36 @@ const RunGenerator = () => {
 
     const saveRun = async (silent = false) => {
         let title = "";
+
         if (!silent) {
             title = await prompt("Enter a name for this Run (max 24 characters):");
             if (!title) return null; // Cancelled or empty
 
             if (title.length > 24) {
-                addAlert("Run name must be 24 characters or less. Truncating to 24 characters.", "warning");
+                addAlert(
+                    "Run name must be 24 characters or less. Truncating to 24 characters.",
+                    "warning"
+                );
                 title = title.substring(0, 24);
             }
+
             const now = new Date();
+
             if (!title.trim()) {
-                title = `Trial ${now.toLocaleDateString()} ${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+                title = `Trial ${now.toLocaleDateString()} ${now.toLocaleTimeString([], {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                })}`;
             }
         } else {
             const now = new Date();
-            title = `Trial ${now.toLocaleDateString()} ${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+
+            title = `Trial ${now.toLocaleDateString()} ${now.toLocaleTimeString([], {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            })}`;
         }
 
         try {
@@ -369,11 +384,15 @@ const RunGenerator = () => {
             });
 
             const data = await response.json();
+
             if (response.ok) {
                 if (!silent) addAlert('Run saved successfully!', 'success');
                 return data.id;
             } else {
-                addAlert('Error saving run: ' + (data.error || 'Unknown error'), 'error');
+                addAlert(
+                    'Error saving run: ' + (data.error || 'Unknown error'),
+                    'error'
+                );
                 return null;
             }
         } catch (err) {
