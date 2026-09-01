@@ -85,6 +85,36 @@ function CharactersHub() {
         }
     };
 
+    // Clone a character
+    const cloneCharacter = async (id, e) => {
+        if (e) e.stopPropagation();
+        if (characterLimitReached) {
+            addAlert("Free accounts are limited to 5 characters. Support on Patreon for unlimited access.", "error");
+            return;
+        }
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/characters/${id}/clone`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                }
+            });
+
+            const resData = await response.json();
+            if (response.ok) {
+                addAlert(resData.message || "Character cloned successfully!", "success");
+                fetchCharacters();
+            } else {
+                addAlert(resData.error || "Failed to clone character", "error");
+            }
+        } catch (error) {
+            console.error("Error cloning character:", error);
+            addAlert("An error occurred while cloning the character", "error");
+        }
+    };
+
     const FREE_CHARACTER_LIMIT = 5;
     const myCharacterCount = characters.filter(
         character => character.user_id === user?.id
@@ -96,11 +126,18 @@ function CharactersHub() {
     const renderCharacterCard = (char, showAttribution) => (
         <div
             key={char.id}
-            className="character-card"
+            className={`character-card ${char.is_ascended ? 'ascended-card' : ''}`}
             onClick={() => window.open(`/characters/${char.id}`, "_blank")}
         >
             <div className="card-header">
-                <h3>{char.name}</h3>
+                <h3>
+                    {char.name}
+                    {char.is_ascended && (
+                        <span className="ascended-badge-honor" title={`Ascended Champion of ${char.ascended_run_title || 'The Mortal Trials'}`}>
+                            <i className="fa-solid fa-crown"></i>
+                        </span>
+                    )}
+                </h3>
             </div>
             <div className="card-info">
                 <div className="card-stats-row">
@@ -116,11 +153,15 @@ function CharactersHub() {
                     )}
                 </div>
             </div>
-            {char.active_run_title && (
+            {char.is_ascended ? (
+                <div className="active-run-badge ascended-run-badge">
+                    <i className="fa-solid fa-trophy"></i> Ascended <em>{char.ascended_run_title}</em>
+                </div>
+            ) : char.active_run_title ? (
                 <div className="active-run-badge">
                     <i className="fa-solid fa-dungeon"></i> {char.active_run_title}
                 </div>
-            )}
+            ) : null}
             <div className="card-actions">
                 {(!char.is_private || char.user_id === user?.id || user?.is_admin) ? (
                     <button
@@ -151,6 +192,16 @@ function CharactersHub() {
                         }}
                     >
                         ✎ Edit
+                    </button>
+                )}
+
+                {(char.user_id === user?.id || user?.is_admin) && (
+                    <button
+                        className="action-btn btn-clone"
+                        onClick={(e) => cloneCharacter(char.id, e)}
+                        title="Clone Character"
+                    >
+                        <i className="fa-solid fa-copy"></i> Clone
                     </button>
                 )}
 

@@ -525,6 +525,74 @@
     opacity: 0.15;
 }
 
+/* COMPLETED TRIAL CARD */
+
+.completed-trial-card {
+    border: 1px solid rgba(255, 215, 0, 0.5) !important;
+    background: linear-gradient(145deg, rgba(255, 215, 0, 0.08), rgba(22, 19, 13, 0.92)) !important;
+    box-shadow: 0 0 24px rgba(255, 215, 0, 0.2), inset 0 0 20px rgba(255, 215, 0, 0.06) !important;
+    position: relative;
+    overflow: hidden;
+}
+
+.completed-trial-card:hover {
+    border-color: rgba(255, 215, 0, 0.85) !important;
+    box-shadow: 0 0 32px rgba(255, 215, 0, 0.35), inset 0 0 25px rgba(255, 215, 0, 0.09) !important;
+}
+
+.completed-trial-seal {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: linear-gradient(90deg, rgba(255, 215, 0, 0.22), rgba(255, 174, 0, 0.12));
+    border-bottom: 1px solid rgba(255, 215, 0, 0.35);
+    padding: 5px 12px;
+    font-family: var(--font-serif);
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    margin: -1.35rem -1.4rem 1rem -1.4rem;
+}
+
+.completed-trial-seal i {
+    color: var(--accent);
+    font-size: 0.75rem;
+}
+
+.enter-ascended-btn {
+    background: rgba(255, 215, 0, 0.15) !important;
+    border: 1px solid rgba(255, 215, 0, 0.45) !important;
+    color: var(--accent) !important;
+}
+
+.enter-ascended-btn:hover {
+    background: var(--accent) !important;
+    color: #1e1e2f !important;
+}
+
+.delete-trial-admin-btn {
+    padding: 8px 12px;
+    background: rgba(231, 76, 60, 0.15);
+    border: 1px solid rgba(231, 76, 60, 0.4);
+    border-radius: 8px;
+    color: #e74c3c;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.delete-trial-admin-btn:hover {
+    background: #e74c3c;
+    color: white;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(231, 76, 60, 0.35);
+}
+
 /* CARD TOP */
 
 .card-top {

@@ -1,5 +1,6 @@
 import math
 import copy
+import re
 
 from flask import Flask, request, render_template, redirect, url_for, jsonify
 from datetime import datetime
@@ -463,6 +464,21 @@ SYSTEM_RECOVERY_MASTER = os.getenv("SYSTEM_RECOVERY_MASTER")
 if os.environ.get("FLASK_ENV") != "production":
     with app.app_context():
         db.create_all()
+        try:
+            from sqlalchemy import text
+            with db.engine.connect() as conn:
+                try:
+                    conn.execute(text("ALTER TABLE hosted_run ADD COLUMN is_completed BOOLEAN DEFAULT 0"))
+                    conn.commit()
+                except Exception:
+                    pass
+                try:
+                    conn.execute(text("ALTER TABLE hosted_run ADD COLUMN completed_at DATETIME"))
+                    conn.commit()
+                except Exception:
+                    pass
+        except Exception:
+            pass
 
 # Configuration for uploads
 UPLOAD_FOLDER = 'static/uploads/avatars'
@@ -1562,10 +1578,20 @@ def api_characters():
     result = []
     for c in characters:
         active_run_title = None
+        active_run_id = None
+        is_ascended = False
+        ascended_run_title = None
+        ascended_run_id = None
+
         for link in c.session_links:
             if link.hosted_run and link.hosted_run.is_active:
-                active_run_title = link.hosted_run.run.title_run
-                break
+                if getattr(link.hosted_run, 'is_completed', False):
+                    is_ascended = True
+                    ascended_run_title = link.hosted_run.run.title_run
+                    ascended_run_id = link.hosted_run_id
+                else:
+                    active_run_title = link.hosted_run.run.title_run
+                    active_run_id = link.hosted_run_id
                 
         result.append({
             "id": c.id,
@@ -1576,6 +1602,10 @@ def api_characters():
             "species": c.get_data().get("species", ""),
             "species_variant": c.get_data().get("species_variant", ""),
             "active_run_title": active_run_title,
+            "active_run_id": active_run_id,
+            "is_ascended": is_ascended,
+            "ascended_run_title": ascended_run_title,
+            "ascended_run_id": ascended_run_id,
             "owner_username": c.owner.username,
             "user_id": c.user_id,
             "is_private": c.is_private
@@ -1729,6 +1759,103 @@ def api_toggle_character_privacy(char_id):
         "is_private": character.is_private,
         "message": f"Character is now {'private' if character.is_private else 'public'}"
     })
+
+@app.route("/api/characters/<int:char_id>/clone", methods=["POST"])
+@jwt_required()
+def api_clone_character(char_id):
+    current_user_id = get_jwt_identity()
+    user = db.session.get(User, current_user_id)
+    character = db.get_or_404(Character, char_id)
+    
+    if str(character.user_id) != str(current_user_id) and not user.is_admin:
+        return jsonify({"error": "Unauthorized"}), 403
+        
+    if not user.has_unlimited_access():
+        character_count = Character.query.filter_by(
+            user_id=current_user_id
+        ).count()
+        if character_count >= 5:
+            return jsonify({
+                "error": "Free accounts are limited to 5 characters. Support the project on Patreon for unlimited access."
+            }), 403
+            
+    data = character.get_data()
+    
+    # 1. Full HP restoration (Reset current HP to max base + modifier)
+    max_hp = data.get("hp_max_base", 0) + data.get("hp_modifier", 0)
+    data["hp_current"] = max_hp
+    data["temp_hp"] = 0
+    data["death_saves"] = {"successes": 0, "failures": 0}
+    
+    # 2. Full Hit Dice replenishment
+    hp_rolls = data.get("hp_rolls", {})
+    if isinstance(hp_rolls, dict):
+        data["hit_dice_remaining"] = {
+            class_name: len(rolls)
+            for class_name, rolls in hp_rolls.items()
+        }
+    else:
+        data["hit_dice_remaining"] = data.get("level", 1)
+        
+    # 3. Reset modified Ability Scores to Base
+    if "base_abilities" in data:
+        data["abilities"] = json.loads(json.dumps(data["base_abilities"]))
+        
+    # 4. Reduce exhaustion by 1 on Long Rest
+    conditions = data.get("conditions", {})
+    if isinstance(conditions, dict):
+        exhaustion = conditions.get("exhaustion", 0)
+        if exhaustion > 0:
+            conditions["exhaustion"] = max(0, exhaustion - 1)
+        data["conditions"] = conditions
+        
+    # 5. Restore Spell Slots on Long Rest
+    max_slots = calculate_spell_slots(data)
+    data["spell_slots_max"] = max_slots
+    data["spell_slots_current"] = json.loads(json.dumps(max_slots))
+    
+    # 6. Reset expended feature uses
+    data["featureUses"] = {}
+    
+    # 7. Determine clean numbered clone name
+    base_name = re.sub(r"(\s*\(Clone(?:\s+\d+)?\))+$", "", character.name, flags=re.IGNORECASE).strip()
+    if not base_name:
+        base_name = "Character"
+
+    user_characters = Character.query.filter_by(user_id=current_user_id).all()
+    clone_pattern = re.compile(rf"^{re.escape(base_name)}\s*\(Clone(?:\s+(\d+))?\)$", re.IGNORECASE)
+    
+    used_numbers = set()
+    for uc in user_characters:
+        match = clone_pattern.match(uc.name)
+        if match:
+            num_str = match.group(1)
+            used_numbers.add(int(num_str) if num_str else 1)
+            
+    next_num = 1
+    while next_num in used_numbers:
+        next_num += 1
+        
+    suffix = f" (Clone {next_num})"
+    max_base_len = 100 - len(suffix)
+    clone_name = f"{base_name[:max_base_len]}{suffix}"
+
+    cloned_char = Character(
+        name=clone_name,
+        user_id=current_user_id,
+        is_private=character.is_private
+    )
+    cloned_char.set_data(data)
+    
+    db.session.add(cloned_char)
+    db.session.commit()
+    
+    return jsonify({
+        "success": True,
+        "id": cloned_char.id,
+        "name": cloned_char.name,
+        "message": f"Successfully cloned {character.name} as '{cloned_char.name}'"
+    }), 201
 
 @app.route("/api/characters/<int:char_id>/levelup", methods=["POST"])
 @jwt_required()
@@ -2694,7 +2821,8 @@ def api_create_hosted_run():
     if not user.has_unlimited_access():
         active_dm_count = HostedRun.query.filter_by(
             dm_id=current_user_id,
-            is_active=True
+            is_active=True,
+            is_completed=False
         ).count()
         if active_dm_count >= 1:
             return jsonify({
@@ -2766,7 +2894,8 @@ def api_join_hosted_run():
         active_joined_count = SessionParticipant.query.join(HostedRun).filter(
             SessionParticipant.user_id == current_user_id,
             SessionParticipant.role == 'Ascendant',
-            HostedRun.is_active == True
+            HostedRun.is_active == True,
+            HostedRun.is_completed == False
         ).count()
         if active_joined_count >= 5:
             return jsonify({
@@ -2798,6 +2927,9 @@ def api_leave_hosted_run(session_id):
     hosted_run = db.session.get(HostedRun, session_id)
     if not hosted_run:
         return jsonify({"error": "Session not found"}), 404
+
+    if hosted_run.is_completed:
+        return jsonify({"error": "This trial is completed and archived. Participants cannot leave an ascended trial."}), 400
 
     participant = SessionParticipant.query.filter_by(
         user_id=current_user_id,
@@ -2841,6 +2973,8 @@ def api_list_active_hosted_runs():
             "run_title": s.run.title_run,
             "role": role,
             "can_enter": can_enter,
+            "is_completed": bool(s.is_completed),
+            "completed_at": s.completed_at.isoformat() if s.completed_at else None,
             "created_at": s.created_at.isoformat(),
             "participant_count": len(s.participants)
         })
@@ -2899,7 +3033,9 @@ def api_get_hosted_run_details(session_id):
         "completed_encounters": json.loads(session.completed_encounters),
         "shop_state": json.loads(session.shop_state) if session.shop_state else None,
         "rations": session.rations,
-        "is_active": session.is_active
+        "is_active": session.is_active,
+        "is_completed": bool(session.is_completed),
+        "completed_at": session.completed_at.isoformat() if session.completed_at else None
     }), 200
 
 @app.route("/api/host/<int:session_id>/link-character", methods=["POST"])
@@ -2921,6 +3057,14 @@ def api_link_character_to_session(session_id):
     character = db.session.get(Character, data["character_id"])
     if not character or str(character.user_id) != str(current_user_id):
         return jsonify({"error": "Character not found or not yours"}), 404
+    
+    # Check if character is already in another active run
+    existing_link = SessionParticipant.query.filter(
+        SessionParticipant.character_id == character.id,
+        SessionParticipant.hosted_run_id != session_id
+    ).first()
+    if existing_link and existing_link.hosted_run and existing_link.hosted_run.is_active:
+        return jsonify({"error": "This character is already participating in another Run."}), 400
     
     participant.character_id = character.id
     db.session.commit()
@@ -2970,6 +3114,9 @@ def api_spend_rations(session_id):
         
     cost = 0.5 if rest_type == 'short' else 1.0
     
+    if session.is_completed:
+        return jsonify({"error": "This trial is completed and archived. Rations cannot be spent."}), 400
+
     if session.rations < cost:
         return jsonify({"error": "Not enough rations"}), 400
         
@@ -2994,6 +3141,39 @@ def api_spend_rations(session_id):
         "rations": session.rations
     })
 
+@app.route("/api/host/<int:session_id>/complete", methods=["POST"])
+@jwt_required()
+def api_complete_hosted_run(session_id):
+    current_user_id = get_jwt_identity()
+    session = db.get_or_404(HostedRun, session_id)
+    user = db.session.get(User, current_user_id)
+    is_admin = user.is_admin if user else False
+    
+    if str(session.dm_id) != str(current_user_id) and not is_admin:
+        return jsonify({"error": "Only the Dungeon Master can complete and archive the Run"}), 403
+        
+    if session.is_completed:
+        return jsonify({"message": "This trial is already completed and archived", "is_completed": True}), 200
+        
+    # Verify all encounters are completed
+    run_data = json.loads(session.run.data) if isinstance(session.run.data, str) else session.run.data
+    total_encounters = len(run_data.get("encounters", []))
+    completed_encounters = json.loads(session.completed_encounters or "[]")
+    
+    if total_encounters == 0 or len(completed_encounters) < total_encounters:
+        return jsonify({"error": "All encounters must be completed before archiving the trial."}), 400
+        
+    session.is_completed = True
+    session.completed_at = datetime.utcnow()
+    db.session.commit()
+    
+    return jsonify({
+        "success": True,
+        "message": f"Trial '{session.run.title_run}' has been successfully completed and archived into the Hall of Ascension!",
+        "is_completed": True,
+        "completed_at": session.completed_at.isoformat()
+    }), 200
+
 @app.route("/api/host/<int:session_id>/complete-encounter", methods=["POST"])
 @jwt_required()
 def api_complete_encounter(session_id):
@@ -3002,6 +3182,9 @@ def api_complete_encounter(session_id):
     
     if str(session.dm_id) != str(current_user_id):
         return jsonify({"error": "Only the Dungeon Master can complete encounters"}), 403
+    
+    if session.is_completed:
+        return jsonify({"error": "This trial is completed and archived. Encounters cannot be modified."}), 400
     
     data = request.json
     if not data or not data.get("encounter_num"):
@@ -3662,8 +3845,13 @@ def api_claim_gold(session_id):
 def api_delete_hosted_run(session_id):
     current_user_id = get_jwt_identity()
     session = db.get_or_404(HostedRun, session_id)
+    user = db.session.get(User, current_user_id)
+    is_admin = user.is_admin if user else False
     
-    if str(session.dm_id) != str(current_user_id):
+    if session.is_completed and not is_admin:
+        return jsonify({"error": "Completed and archived Trials are permanently sealed in the Hall of Ascension and can only be deleted by an Administrator."}), 403
+
+    if str(session.dm_id) != str(current_user_id) and not is_admin:
         return jsonify({"error": "Only the Dungeon Master can delete this session"}), 403
     
     # Participants will be deleted by cascade delete-orphan in HostedRun model

@@ -262,6 +262,8 @@ class HostedRun(db.Model):
     shop_state = db.Column(db.Text, nullable=True)
     rations = db.Column(db.Float, default=3.0, nullable=False)
     is_active = db.Column(db.Boolean, default=True)
+    is_completed = db.Column(db.Boolean, default=False, nullable=False)
+    completed_at = db.Column(db.DateTime, nullable=True)
     created_at = db.Column(db.DateTime, default=func.now(), nullable=False)
 
     # Relationships

@@ -114,9 +114,13 @@ const HostedRunPage = () => {
                 },
                 body: JSON.stringify({ character_id: charId })
             });
-            if (!response.ok) throw new Error('Failed to link character');
+            if (!response.ok) {
+                const errData = await response.json().catch(() => ({}));
+                throw new Error(errData.error || 'Failed to link character');
+            }
             setShowCharPicker(false);
             fetchSessionDetails();
+            fetchUserCharacters();
         } catch (err) {
             addAlert(err.message, 'error');
         }
@@ -146,6 +150,26 @@ const HostedRunPage = () => {
                 throw new Error(errorData.error || 'Failed to rename run');
             }
             setIsEditingTitle(false);
+            fetchSessionDetails();
+        } catch (err) {
+            addAlert(err.message, 'error');
+        }
+    };
+
+    const handleCompleteAndArchive = async () => {
+        if (!(await confirm("Are you ready to Complete & Archive this Run? All participants will be honored as Ascended Champions and this Trial will be permanently sealed in the Hall of Ascension."))) return;
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/host/${id}/complete`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || 'Failed to complete run');
+            addAlert(data.message || 'Trial completed and archived!', 'success');
             fetchSessionDetails();
         } catch (err) {
             addAlert(err.message, 'error');
@@ -751,6 +775,10 @@ const HostedRunPage = () => {
     const isDM = currentUser.id === session.dm_id;
     const isDMOrAdmin = isDM || isAdmin;
 
+    const totalEncounters = session.run?.data?.encounters?.length || 0;
+    const completedEncountersCount = (session.completed_encounters || []).length;
+    const allEncountersCompleted = totalEncounters > 0 && completedEncountersCount >= totalEncounters;
+
     return (
         <div className="hosted-page-container">
             {notice && (
@@ -785,18 +813,29 @@ const HostedRunPage = () => {
                             {session.run.title}
                             {isDM ? (
                                 <div className="dm-actions">
-                                    <button className="edit-title-btn" onClick={startEditingTitle} title="Rename Run">
-                                        <i className="fa-solid fa-pen-to-square"></i>
-                                    </button>
-                                    <button className="delete-session-btn" onClick={handleDeleteSession} title="Delete Run">
-                                        <i className="fa-solid fa-trash-can"></i>
-                                    </button>
+                                    {!session.is_completed && (
+                                        <button className="edit-title-btn" onClick={startEditingTitle} title="Rename Run">
+                                            <i className="fa-solid fa-pen-to-square"></i>
+                                        </button>
+                                    )}
+                                    {(!session.is_completed || isAdmin) && (
+                                        <button className="delete-session-btn" onClick={handleDeleteSession} title={isAdmin ? "Admin: Delete Run" : "Delete Run"}>
+                                            <i className="fa-solid fa-trash-can"></i>
+                                        </button>
+                                    )}
                                 </div>
                             ) : (
                                 <div className="dm-actions">
-                                    <button className="leave-session-header-btn" onClick={handleLeaveSession} title="Leave Trial">
-                                        <i className="fa-solid fa-right-from-bracket"></i> Leave Trial
-                                    </button>
+                                    {isAdmin && (
+                                        <button className="delete-session-btn" onClick={handleDeleteSession} title="Admin: Delete Run">
+                                            <i className="fa-solid fa-trash-can"></i>
+                                        </button>
+                                    )}
+                                    {!session.is_completed && (
+                                        <button className="leave-session-header-btn" onClick={handleLeaveSession} title="Leave Trial">
+                                            <i className="fa-solid fa-right-from-bracket"></i> Leave Trial
+                                        </button>
+                                    )}
                                 </div>
                             )}
                         </h1>
@@ -806,13 +845,27 @@ const HostedRunPage = () => {
                     </div>
                 </div>
                 <div className="session-header-tools">
+                    {isDM && allEncountersCompleted && !session.is_completed && (
+                        <button
+                            className="complete-archive-btn"
+                            onClick={handleCompleteAndArchive}
+                            title="All encounters cleared! Click to Complete & Archive this Run"
+                        >
+                            <i className="fa-solid fa-crown"></i> Complete & Archive Run
+                        </button>
+                    )}
+                    {session.is_completed && (
+                        <div className="ascended-trial-badge" title="This Trial has been completed and permanently archived in the Hall of Ascension.">
+                            <i className="fa-solid fa-trophy"></i> TRIAL ASCENDED
+                        </div>
+                    )}
                     <div className="rations-pill" title="Party rations for this hosted run">
                         <div className="rations-pill-main">
                             <i className="fa-solid fa-bowl-food"></i>
                             <span className="rations-label">Rations</span>
                             <strong>{formatRations(session.rations)}</strong>
                         </div>
-                        {isDMOrAdmin ? (
+                        {isDMOrAdmin && !session.is_completed ? (
                             <div className="rations-actions">
                                 <button
                                     onClick={() => handleUseRations('short')}
@@ -829,6 +882,10 @@ const HostedRunPage = () => {
                                     Long
                                 </button>
                             </div>
+                        ) : isDMOrAdmin && session.is_completed ? (
+                            <span className="rations-helper-text">
+                                Trial Archived
+                            </span>
                         ) : (
                             <span className="rations-helper-text">
                                 Only the DM can give Rests
@@ -1070,13 +1127,17 @@ const HostedRunPage = () => {
                     <div className="char-picker-modal">
                         <h2>Select Your Champion</h2>
                         <div className="char-list">
-                            {userCharacters.filter(char => char.user_id === currentUser.id).map(char => (
-                                <div key={char.id} className="char-option" onClick={() => handleLinkCharacter(char.id)}>
-                                    <strong>{char.name}</strong>
-                                    <span>Level {char.level} {char.class_name}</span>
-                                </div>
-                            ))}
-                            {userCharacters.length === 0 && <p>No characters found. Create one first!</p>}
+                            {userCharacters
+                                .filter(char => char.user_id === currentUser?.id && (!char.active_run_id || char.active_run_id === parseInt(id)))
+                                .map(char => (
+                                    <div key={char.id} className="char-option" onClick={() => handleLinkCharacter(char.id)}>
+                                        <strong>{char.name}</strong>
+                                        <span>Level {char.level} {char.class_name}</span>
+                                    </div>
+                                ))}
+                            {userCharacters.filter(char => char.user_id === currentUser?.id && (!char.active_run_id || char.active_run_id === parseInt(id))).length === 0 && (
+                                <p>No eligible characters found. Characters already participating in another Run cannot be selected.</p>
+                            )}
                         </div>
                         <button className="close-modal" onClick={() => setShowCharPicker(false)}>Cancel</button>
                     </div>

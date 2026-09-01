@@ -9,7 +9,7 @@ import API_BASE_URL from '../../config';
 
 const HostHub = () => {
     const navigate = useNavigate();
-    const { token, hasUnlimitedAccess } = useAuth();
+    const { token, hasUnlimitedAccess, isAdmin } = useAuth();
     const { addAlert, confirm } = useNotification();
     const [activeGames, setActiveGames] = useState([]);
     const [joinCode, setJoinCode] = useState('');
@@ -37,9 +37,9 @@ const HostHub = () => {
         fetchGames();
     }, [fetchGames]);
 
-    // Limit calculations
-    const myHostedCount = activeGames.filter(g => g.role === 'DM').length;
-    const myJoinedCount = activeGames.filter(g => g.role === 'Ascendant').length;
+    // Limit calculations (completed & archived trials reset/do not count towards active limits)
+    const myHostedCount = activeGames.filter(g => g.role === 'DM' && !g.is_completed).length;
+    const myJoinedCount = activeGames.filter(g => g.role === 'Ascendant' && !g.is_completed).length;
     const dmLimitReached = !hasUnlimitedAccess && myHostedCount >= 1;
     const joinLimitReached = !hasUnlimitedAccess && myJoinedCount >= 5;
 
@@ -113,6 +113,25 @@ const HostHub = () => {
         }
     };
 
+    const handleDeleteTrial = async (e, sessionId) => {
+        e.stopPropagation();
+        if (!(await confirm('Are you sure you want to permanently delete this hosted trial? This action cannot be undone.'))) return;
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/host/${sessionId}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || 'Failed to delete trial');
+
+            addAlert('Trial deleted successfully', 'success');
+            fetchGames();
+        } catch (err) {
+            addAlert(err.message, 'error');
+        }
+    };
+
     const handleCopyCode = (e, code) => {
         e.stopPropagation();
         navigator.clipboard.writeText(code);
@@ -123,17 +142,26 @@ const HostHub = () => {
     const renderTrialCard = (game) => (
         <div
             key={game.id}
-            className={`trial-card ${!game.can_enter ? 'visitor-card' : ''}`}
-            onClick={() => game.can_enter && navigate(`/hosting/${game.id}`)}
+            className={`trial-card ${!game.can_enter ? 'visitor-card' : ''} ${game.is_completed ? 'completed-trial-card' : ''}`}
+            onClick={() => (game.can_enter || isAdmin) && navigate(`/hosting/${game.id}`)}
         >
+            {game.is_completed && (
+                <div className="completed-trial-seal">
+                    <i className="fa-solid fa-lock"></i>
+                    <span>TRIAL ASCENDED</span>
+                </div>
+            )}
             <div className="card-top">
                 <div className="role-icon">
-                    {game.role === 'DM' ?
-                        <i className="fa-solid fa-crown" title="Dungeon Master"></i> :
-                        game.role === 'Visitor' ?
-                            <i className="fa-solid fa-eye" title="Visitor"></i> :
-                            <i className="fa-solid fa-shield-halved" title="Player"></i>
-                    }
+                    {game.is_completed ? (
+                        <i className="fa-solid fa-trophy" title="Ascended Trial"></i>
+                    ) : game.role === 'DM' ? (
+                        <i className="fa-solid fa-crown" title="Dungeon Master"></i>
+                    ) : game.role === 'Visitor' ? (
+                        <i className="fa-solid fa-eye" title="Visitor"></i>
+                    ) : (
+                        <i className="fa-solid fa-shield-halved" title="Player"></i>
+                    )}
                 </div>
                 <div className="trial-title">
                     <h3>{game.run_title}</h3>
@@ -157,18 +185,27 @@ const HostHub = () => {
             </div>
 
             <div className="card-bottom">
-                {game.can_enter ? (
+                {game.can_enter || isAdmin ? (
                     <>
                         <div
                             className={`invite-code-pill ${copiedCode === game.invite_code ? 'copied' : ''}`}
-                            onClick={(e) => handleCopyCode(e, game.invite_code)}
-                            title="Click to copy code"
+                            onClick={(e) => game.invite_code && handleCopyCode(e, game.invite_code)}
+                            title={game.invite_code ? "Click to copy code" : "No invite code"}
                         >
                             <small>{copiedCode === game.invite_code ? 'COPIED!' : 'CODE'}</small>
-                            <strong>{game.invite_code}</strong>
+                            <strong>{game.invite_code || '------'}</strong>
                         </div>
                         <div className="card-action-buttons">
-                            {game.role === 'Ascendant' && (
+                            {isAdmin && (
+                                <button
+                                    className="delete-trial-admin-btn"
+                                    onClick={(e) => handleDeleteTrial(e, game.id)}
+                                    title="Admin: Delete Trial"
+                                >
+                                    <i className="fa-solid fa-trash-can"></i>
+                                </button>
+                            )}
+                            {game.role === 'Ascendant' && !game.is_completed && (
                                 <button
                                     className="leave-trial-btn"
                                     onClick={(e) => handleLeaveTrial(e, game.id)}
@@ -177,8 +214,8 @@ const HostHub = () => {
                                     <i className="fa-solid fa-right-from-bracket"></i> Leave
                                 </button>
                             )}
-                            <button className="enter-trial-btn">
-                                Enter Spire <i className="fa-solid fa-arrow-right"></i>
+                            <button className={`enter-trial-btn ${game.is_completed ? 'enter-ascended-btn' : ''}`}>
+                                {game.is_completed ? 'View Hall' : 'Enter Spire'} <i className="fa-solid fa-arrow-right"></i>
                             </button>
                         </div>
                     </>

@@ -332,12 +332,17 @@ const calculateAttack = (name, abilities, profBonus, features = [], level = 1, w
 export const ValueRenderer = ({ value, level, themeRole, label }) => {
     if (value === null || value === undefined) return null;
 
-    // 1. Level-scaling dictionaries
+    // Helper: checks whether a dict's keys are all level-range style
+    // e.g. "1-8", "9-15", "16-20" or "1-2", "3-5" or "17+" or plain ints "1","5"
+    const isLevelRangeKey = k => /^\d+$/.test(k) || /^\d+-\d+$/.test(k) || /^\d+\+$/.test(k);
+
+    // 1. Level-scaling dictionaries (pure int keys OR range keys like "1-8", "9-15", "16-20")
     const isScaling =
         typeof value === 'object' &&
         !Array.isArray(value) &&
         Object.keys(value).length > 0 &&
-        Object.keys(value).every(k => /^\d+$/.test(k));
+        Object.keys(value).every(isLevelRangeKey);
+
     if (isScaling) {
         const currentVal = resolveScalingValue(value, level);
 
@@ -360,7 +365,9 @@ export const ValueRenderer = ({ value, level, themeRole, label }) => {
         );
     }
 
-    // 2. Special badge categories
+    // 2. Special badge categories (strings/arrays → pill badges)
+    // Note: "uses" is intentionally excluded — when it's an object it's a scaling dict
+    // handled above; when it's a plain number/string it falls to the primitive branch below.
     const category = label?.toLowerCase() || "";
     const isBadgeCategory = [
         "resists",
@@ -368,7 +375,6 @@ export const ValueRenderer = ({ value, level, themeRole, label }) => {
         "immunities",
         "advantages",
         "senses",
-        "uses"
     ].includes(category);
     if (isBadgeCategory) {
         const items =
@@ -434,10 +440,17 @@ export const ValueRenderer = ({ value, level, themeRole, label }) => {
             );
         }
 
-        // Regular key/value details
+        // Regular key/value details — sort entries so numeric-range keys appear in
+        // ascending order (e.g. "1-8" before "9-15" before "16-20")
+        const sortedEntries = Object.entries(value).sort(([a], [b]) => {
+            const aNum = parseInt(a);
+            const bNum = parseInt(b);
+            if (!isNaN(aNum) && !isNaN(bNum)) return aNum - bNum;
+            return 0;
+        });
         return (
             <div className="detail-pairs">
-                {Object.entries(value).map(([l, val]) => (
+                {sortedEntries.map(([l, val]) => (
                     <div key={l} className="detail-pair">
 
                         <span className="detail-label">
