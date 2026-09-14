@@ -7,7 +7,7 @@ const informationPosts = [
         title: "The Mortal Trials Guide",
         description:
             "Discover what The Mortal Trials is, how the game works, and everything you need to know to begin your journey through the Trials.",
-        link: "https://docs.google.com/document/d/1qyfc7XC0qMIhDIjGb05Ognp-anXofgx8oHQPyCCAQoU/edit?usp=sharing",
+        link: "https://docs.google.com/document/d/12Wo759KW5n-4ykLjdScXQVHG3BNbJBkIGycs-LeJjcw/edit?usp=sharing",
         linkText: "Read the Guide"
     },
     {
@@ -15,7 +15,7 @@ const informationPosts = [
         title: "The Run Structure",
         description:
             "Learn how a Mortal Trials Run is structured, from the beginning of a Run through Encounters, progression, rewards, and everything in between.",
-        link: "https://docs.google.com/document/d/1YDEq6jWRIzZ7bX608LMFlJd50i5jCqh2c46rZyEWNb8/edit?usp=sharing",
+        link: "https://docs.google.com/document/d/1moNVTrSgf3fobo3Vuy7lMCUWOCItuTwBuaTv3TqckC8/edit?usp=sharing",
         linkText: "Explore the Run Structure"
     },
     {
@@ -31,7 +31,7 @@ const informationPosts = [
         title: "Environmental Wild Surges",
         description:
             "Learn about Environmental Wild Surges, their effects, and how these unpredictable forces can reshape the challenges faced during a Trial.",
-        link: "https://docs.google.com/document/d/17URU9dMx-eK2o6rgwo-SpIZxGVSwkS0rs_znHRUIvM0/edit?usp=sharing",
+        link: "https://docs.google.com/document/d/17aFnAKdWFmdwG7qTCVNqm8H2mDJ7fDE5bdZRx6pQuk8/edit?usp=sharing",
         linkText: "Learn About Wild Surges"
     },
     {
