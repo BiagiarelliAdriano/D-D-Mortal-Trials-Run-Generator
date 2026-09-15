@@ -236,6 +236,39 @@ const UserProfile = () => {
         );
     };
 
+    const renderRunSection = (title, runs, emptyMessage, icon) => (
+        <section className="profile-runs-section">
+            <h2 className="profile-section-title">
+                <i className={`fa-solid ${icon}`}></i> {title}
+            </h2>
+            {runs.length > 0 ? (
+                <div className="profile-run-grid">
+                    {runs.map(run => (
+                        <button
+                            key={`${run.role}-${run.id}`}
+                            className="profile-run-card"
+                            onClick={() => window.open(`/hosting/${run.id}`, '_blank')}
+                        >
+                            <div className="profile-run-card-header">
+                                <h3>{run.title}</h3>
+                                <span className={`run-status-tag ${run.is_active ? 'active' : 'archived'}`}>
+                                    {run.is_active ? 'Active' : 'Archived'}
+                                </span>
+                            </div>
+                            <div className="profile-run-card-info">
+                                <span>{run.role}</span>
+                                <span>{run.participant_count} participant{run.participant_count === 1 ? '' : 's'}</span>
+                                <span>{new Date(run.created_at).toLocaleDateString()}</span>
+                            </div>
+                        </button>
+                    ))}
+                </div>
+            ) : (
+                <div className="profile-runs-empty">{emptyMessage}</div>
+            )}
+        </section>
+    );
+
     return (
         <div className="profile-container">
             <div className="profile-card">
@@ -284,6 +317,7 @@ const UserProfile = () => {
                             )}
                         </div>
                     )}
+
                 </div>
 
                 {!editMode && (
@@ -388,6 +422,20 @@ const UserProfile = () => {
                                 </button>
                             )}
                         </div>
+                    )}
+
+                    {renderRunSection(
+                        'Runs I Host',
+                        profileData.hosted_runs || [],
+                        'You are not hosting any Runs yet.',
+                        'fa-tower-broadcast'
+                    )}
+
+                    {renderRunSection(
+                        'Runs I Play',
+                        profileData.player_runs || [],
+                        'You are not playing in any Hosted Runs yet.',
+                        'fa-user-group'
                     )}
                 </div>
             </div>

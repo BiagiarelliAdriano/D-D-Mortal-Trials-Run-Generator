@@ -2156,7 +2156,7 @@ function CharacterSheet() {
     const [choiceOverlay, setChoiceOverlay] = useState({ isOpen: false, feature: null });
 
     const [skills, setSkills] = useState({});
-    const [maxHpModifier] = useState(0);
+    const [maxHpModifier, setMaxHpModifier] = useState(0);
     const [inventoryItems, setInventoryItems] = useState([]);
     const [gold, setGold] = useState(0);
     const [inventoryFilter, setInventoryFilter] = useState("All");
@@ -2305,6 +2305,7 @@ function CharacterSheet() {
             const initialBaseMaxHp = data.data.hp_max_base || 0;
             const initialMaxHpModifier = data.data.hp_modifier || 0;
             setBaseMaxHp(initialBaseMaxHp);
+            setMaxHpModifier(initialMaxHpModifier);
             setEffectiveMaxHp(initialBaseMaxHp + initialMaxHpModifier);
             setCurrentHp(data.data.hp_current || 0);
 
@@ -3598,13 +3599,8 @@ function CharacterSheet() {
         if (!availableFeatures) return result;
 
         availableFeatures.forEach(f => {
-            const isActive = activeFeatures.includes(f.id);
-
-            // Rage special case
-            if (
-                f.id === "barbarian_rage" &&
-                !isActive
-            ) {
+            // Rage is not currently activated through the character sheet.
+            if (f.id === "barbarian_rage" || f.id.includes("_barbarian_rage_")) {
                 return;
             }
 
@@ -3626,7 +3622,7 @@ function CharacterSheet() {
         });
 
         return result;
-    }, [availableFeatures, activeFeatures]);
+    }, [availableFeatures]);
 
     const conditions = useMemo(() => character?.data?.conditions || { exhaustion: 0 }, [character]);
 
@@ -4568,7 +4564,9 @@ function CharacterSheet() {
                 config={statModConfig}
                 onClose={() => setStatModConfig({ isOpen: false })}
                 onApply={applyStatModifier}
-                baseValue={statModConfig.type === 'ability' ? (character.data.base_abilities?.[statModConfig.statKey] ?? 10) : character.data.hp_max_base}
+                baseValue={statModConfig.type === 'ability'
+                    ? (character.data.base_abilities?.[statModConfig.statKey] ?? 10)
+                    : (character.data.hp_max_original || character.data.hp_max_base)}
                 isApplying={isApplyingStatMod}
             />
 

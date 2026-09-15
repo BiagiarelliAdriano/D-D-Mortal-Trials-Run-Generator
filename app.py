@@ -598,6 +598,36 @@ def get_user_profile(user_id):
     current_user_id = get_jwt_identity()
     if str(current_user_id) == str(user_id):
         sync_patreon_status(user)
+
+    can_view_sessions = str(current_user_id) == str(user_id) or bool(
+        db.session.get(User, current_user_id).is_admin
+    )
+
+    def session_summary(session, role):
+        return {
+            "id": session.id,
+            "title": session.run.title_run if session.run else "Untitled Trial",
+            "role": role,
+            "is_active": bool(session.is_active),
+            "is_completed": bool(session.is_completed),
+            "created_at": session.created_at.isoformat(),
+            "participant_count": len(session.participants)
+        }
+
+    hosted_runs = [
+        session_summary(session, "DM")
+        for session in HostedRun.query.filter_by(dm_id=user.id)
+        .order_by(HostedRun.created_at.desc()).all()
+    ] if can_view_sessions else []
+
+    player_runs = [
+        session_summary(participation.hosted_run, "Player")
+        for participation in SessionParticipant.query.filter_by(
+            user_id=user.id,
+            role="Ascendant"
+        ).order_by(SessionParticipant.joined_at.desc()).all()
+        if participation.hosted_run
+    ] if can_view_sessions else []
         
     return jsonify({
         "id": user.id,
@@ -613,7 +643,9 @@ def get_user_profile(user_id):
             "name": c.name,
             "level": c.get_data().get("level", 1),
             "class_name": c.get_data().get("class_name", "")
-        } for c in user.characters]
+        } for c in user.characters],
+        "hosted_runs": hosted_runs,
+        "player_runs": player_runs
     }), 200
 
 @app.route("/api/users/<int:user_id>", methods=["PUT"])
@@ -636,6 +668,9 @@ def update_user_profile(user_id):
     password = request.form.get("password")
     security_question = request.form.get("security_question")
     security_answer = request.form.get("security_answer")
+    requested_admin_status = request.form.get("is_admin")
+    requested_patreon_tier = request.form.get("patreon_tier")
+    requested_patreon_connected = request.form.get("patreon_connected")
     
     if username:
         username = username.strip()
@@ -658,6 +693,19 @@ def update_user_profile(user_id):
         if is_admin_editing_other:
             return jsonify({"error": "Admins cannot change other users' security answers"}), 403
         user.set_security_answer(security_answer.strip())
+
+    if requested_admin_status is not None:
+        if not admin_user.is_admin or str(current_user_id) == str(user_id):
+            return jsonify({"error": "You cannot change your own administrator access"}), 403
+        user.is_admin = requested_admin_status.lower() == "true"
+
+    if requested_patreon_tier is not None or requested_patreon_connected is not None:
+        if not admin_user.is_admin:
+            return jsonify({"error": "Only administrators can manage Patreon access"}), 403
+        tier = (requested_patreon_tier or "").strip()
+        is_connected = requested_patreon_connected is None or requested_patreon_connected.lower() == "true"
+        user.patreon_tier = tier or None
+        user.patreon_connected = bool(is_connected and tier)
         
     # Handle Avatar Upload
     if 'avatar_file' in request.files:
@@ -1077,6 +1125,8 @@ def admin_system():
             "username": u.username,
             "avatar": u.avatar,
             "is_admin": u.is_admin,
+            "patreon_connected": bool(u.patreon_connected),
+            "patreon_tier": u.patreon_tier,
             "security_question": u.security_question,
             "character_count": len(u.characters),
             "characters": u_chars,
@@ -1084,10 +1134,43 @@ def admin_system():
         })
     
     total_characters = Character.query.count()
+    total_runs = Run.query.count()
+    active_sessions = HostedRun.query.filter_by(is_active=True).count()
+    completed_sessions = HostedRun.query.filter_by(is_completed=True).count()
+    pending_reports = Report.query.filter_by(status="pending").count()
+    pending_recovery_requests = RecoveryRequest.query.filter_by(status="pending").count()
+
+    recent_runs = [{
+        "id": r.id,
+        "title": r.title_run,
+        "owner": db.session.get(User, r.user_id).username if r.user_id and db.session.get(User, r.user_id) else "Unclaimed",
+        "owner_id": r.user_id,
+        "created_at": r.created_at.isoformat(),
+        "data": json.loads(r.data),
+        "hosted_session_id": r.hosted_session[0].id if r.hosted_session else None
+    } for r in Run.query.order_by(Run.created_at.desc()).limit(12).all()]
+
+    recent_sessions = [{
+        "id": s.id,
+        "title": s.run.title_run if s.run else "Untitled Trial",
+        "dm_name": s.dm.username if s.dm else "Unknown DM",
+        "invite_code": s.invite_code,
+        "participant_count": len(s.participants),
+        "is_active": bool(s.is_active),
+        "is_completed": bool(s.is_completed),
+        "created_at": s.created_at.isoformat()
+    } for s in HostedRun.query.order_by(HostedRun.created_at.desc()).limit(12).all()]
     
     return jsonify({
         "total_users": len(users),
         "total_characters": total_characters,
+        "total_runs": total_runs,
+        "active_sessions": active_sessions,
+        "completed_sessions": completed_sessions,
+        "pending_reports": pending_reports,
+        "pending_recovery_requests": pending_recovery_requests,
+        "recent_runs": recent_runs,
+        "recent_sessions": recent_sessions,
         "users": user_data
     }), 200
 
@@ -2623,6 +2706,23 @@ def api_save_run():
         "message": "Run saved successfully",
         "id": run.id
     }), 201
+
+@app.route("/api/runs/<int:run_id>", methods=["GET"])
+@jwt_required()
+def api_get_run_json(run_id):
+    current_user_id = get_jwt_identity()
+    run = db.get_or_404(Run, run_id)
+    user = db.session.get(User, current_user_id)
+
+    if str(run.user_id) != str(current_user_id) and not (user and user.is_admin):
+        return jsonify({"error": "Unauthorized"}), 403
+
+    return jsonify({
+        "id": run.id,
+        "title": run.title_run,
+        "created_at": run.created_at.isoformat(),
+        "data": json.loads(run.data)
+    }), 200
 
 @app.route("/api/runs/<int:run_id>", methods=["DELETE"])
 @jwt_required()

@@ -349,6 +349,86 @@
     gap: 5px;
 }
 
+.profile-runs-section {
+    padding-bottom: 10px;
+}
+
+.profile-run-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+    padding-bottom: 12px;
+}
+
+.profile-run-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    color: var(--text-main);
+    cursor: pointer;
+    padding: 20px;
+    text-align: left;
+    transition: all 0.3s ease;
+}
+
+.profile-run-card:hover {
+    background: var(--bg-card-hover);
+    border-color: var(--accent);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    transform: translateY(-4px);
+}
+
+.profile-run-card-header {
+    align-items: flex-start;
+    display: flex;
+    gap: 12px;
+    justify-content: space-between;
+}
+
+.profile-run-card-header h3 {
+    color: var(--accent);
+    font-family: var(--font-serif);
+    font-size: 1.25rem;
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+.run-status-tag {
+    border-radius: 4px;
+    flex-shrink: 0;
+    font-size: 0.7rem;
+    font-weight: bold;
+    padding: 4px 7px;
+    text-transform: uppercase;
+}
+
+.run-status-tag.active {
+    background: rgba(46, 204, 113, 0.15);
+    color: #6ee7a0;
+}
+
+.run-status-tag.archived {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text-dim);
+}
+
+.profile-run-card-info {
+    color: var(--text-dim);
+    display: flex;
+    flex-wrap: wrap;
+    font-size: 0.85rem;
+    gap: 8px 14px;
+    margin-top: 16px;
+}
+
+.profile-runs-empty {
+    border: 1px dashed var(--border);
+    border-radius: 10px;
+    color: var(--text-dim);
+    margin-bottom: 12px;
+    padding: 18px;
+}
+
 .level-tag {
     display: inline-block;
     background: var(--accent);

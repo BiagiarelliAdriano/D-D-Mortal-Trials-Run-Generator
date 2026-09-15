@@ -227,6 +227,7 @@ class Character(db.Model):
         hp_max_base = base_hp + con_bonus
         data["hp_rolls"] = hp_rolls
         data["hp_max_base"] = hp_max_base
+        data["hp_max_original"] = hp_max_base
 
         # Hit dice remaining equals the number of stored rolls
         data["hit_dice_remaining"] = {
@@ -248,6 +249,8 @@ class Character(db.Model):
             elif isinstance(value, dict):
                 for subkey, subvalue in value.items():
                     data[key].setdefault(subkey, subvalue)
+        if data.get("hp_max_original", 0) == 0 and data.get("hp_max_base", 0) != 0:
+            data["hp_max_original"] = data["hp_max_base"]
         return data
 
 class HostedRun(db.Model):

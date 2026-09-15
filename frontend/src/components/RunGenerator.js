@@ -40,6 +40,30 @@ const RunGenerator = () => {
     }, [location.state]);
 
     useEffect(() => {
+        const runId = new URLSearchParams(location.search).get('runId');
+        if (!runId || location.state?.savedRunData || !token) return;
+
+        const fetchSavedRun = async () => {
+            setLoading(true);
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/runs/${runId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || 'Failed to load saved run');
+                setRunData(data.data);
+                setExpandedEncounters({ 1: true, 2: true, 3: true });
+            } catch (err) {
+                setError(err.message);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchSavedRun();
+    }, [location.search, location.state, token]);
+
+    useEffect(() => {
         // No countdown is needed for unlimited users.
         if (unlimitedAccess || !resetDate) {
             setTimeUntilReset(null);

@@ -114,7 +114,7 @@ const StatModifierOverlay = ({ config, onClose, onApply, baseValue, isApplying }
                         </div>
                         <div className="quick-actions">
                             <button className="reset-btn" onClick={handleResetToBase} disabled={isApplying}>
-                                <i className="fa-solid fa-rotate-left"></i> Reset to Base ({isAbility ? baseValue : 0})
+                                <i className="fa-solid fa-rotate-left"></i> Reset to Base ({config.type === 'hp_max' || isAbility ? baseValue : 0})
                             </button>
                         </div>
                     </div>
