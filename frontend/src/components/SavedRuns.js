@@ -313,7 +313,7 @@ const SavedRuns = () => {
                             </div>
                             <div className="run-card-meta">
                                 <span><i className="fa-solid fa-calendar-days"></i> {new Date(run.created_at).toLocaleDateString()}</span>
-                                <span><i className="fa-solid fa-skull"></i> {run.data.encounters?.length || 0} Encounters</span>
+                                <span><i className="fa-solid fa-skull"></i> {run.data.mode === 'The Endless Trials' ? `${run.data.total_cycles || run.data.cycles?.length || 4} Cycles` : `${run.data.encounters?.length || 0} Encounters`}</span>
                             </div>
                             <div className="run-card-preview">
                                 {run.data.divine_blessing && (

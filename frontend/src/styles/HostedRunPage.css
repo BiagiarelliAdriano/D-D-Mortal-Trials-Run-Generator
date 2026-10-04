@@ -915,9 +915,9 @@
     margin-bottom: 1rem;
 }
 
-.echo-asc { color: var(--success); }
-.echo-ruin { color: var(--danger); }
-.worldshift { color: var(--accent); }
+.wild-surge-content p.echo-asc { color: var(--success); }
+.wild-surge-content p.echo-ruin { color: var(--danger); }
+.wild-surge-content p.worldshift { color: var(--accent); }
 
 .encounter-note {
     margin: 1rem 0;
@@ -1798,4 +1798,427 @@
     gap: 8px;
     color: var(--accent);
     font-weight: bold;
+}
+
+/* ==========================================================================
+   ENDLESS TRIALS IN HOSTED RUN
+   ========================================================================== */
+
+.endless-trials-results {
+    display: grid;
+    gap: 1.25rem;
+}
+
+.endless-trials-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 1.2rem;
+    background: rgba(142, 68, 173, 0.08);
+    border: 1px solid rgba(142, 68, 173, 0.25);
+    border-radius: 14px;
+}
+
+.summary-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem 0.85rem;
+    border-radius: 999px;
+    background: rgba(142, 68, 173, 0.18);
+    border: 1px solid rgba(142, 68, 173, 0.45);
+    color: #d9b6ff;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.wild-surge-deck-card,
+.endless-cycle-card {
+    padding: 1.2rem 1.3rem;
+    background: rgba(255, 255, 255, 0.025);
+    border: 1px solid rgba(255, 215, 0, 0.12);
+    border-radius: 14px;
+    transition: border-color 0.2s;
+}
+
+.wild-surge-deck-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.8rem;
+}
+
+.wild-surge-deck-card h3,
+.endless-cycle-card h3,
+.endless-cycle-card h4 {
+    margin: 0;
+    color: var(--text-main);
+}
+
+.wild-surge-expand-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.42rem 0.7rem;
+    border: 1px solid rgba(255, 215, 0, 0.2);
+    border-radius: 999px;
+    background: rgba(255, 215, 0, 0.08);
+    color: var(--text-main);
+    cursor: pointer;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.wild-surge-expand-btn:hover,
+.wild-surge-expand-btn.active {
+    background: rgba(255, 215, 0, 0.15);
+    border-color: rgba(255, 215, 0, 0.35);
+}
+
+.wild-surge-deck-list {
+    margin: 0;
+    padding-left: 1.2rem;
+    display: grid;
+    gap: 0.55rem;
+    color: var(--text-dim);
+}
+
+.wild-surge-deck-list .wild-surge-box {
+    margin-top: 0;
+}
+
+.wild-surge-deck-list p {
+    margin: 0.2rem 0 0;
+    color: var(--text-dim);
+    line-height: 1.45;
+}
+
+.wild-surge-deck-entry {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.wild-surge-deck-entry .wild-surge-toggle {
+    flex: 1;
+    width: auto;
+    min-width: 0;
+}
+
+.wild-surge-active-btn.active {
+    background: var(--success);
+    color: white;
+}
+
+.endless-cycle-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.6rem;
+}
+
+.shop-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.32rem 0.6rem;
+    border-radius: 999px;
+    background: rgba(50, 205, 117, 0.12);
+    border: 1px solid rgba(50, 205, 117, 0.3);
+    color: var(--success);
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.cycle-rules {
+    display: grid;
+    gap: 0.35rem;
+    margin-bottom: 1rem;
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    padding: 0.65rem 0.85rem;
+    background: rgba(0, 0, 0, 0.15);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.cycle-encounters {
+    display: grid;
+    gap: 1.1rem;
+}
+
+.cycle-encounter-group {
+    display: grid;
+    gap: 0.5rem;
+}
+
+.cycle-encounter-heading {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding-bottom: 0.25rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.cycle-encounter-heading h4 {
+    margin: 0;
+    color: var(--accent);
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.cycle-encounter-heading span {
+    color: var(--text-dim);
+    font-size: 0.78rem;
+    font-style: italic;
+}
+
+.cycle-monster-list {
+    display: grid;
+    gap: 0.5rem;
+}
+
+.cycle-monster-row {
+    display: grid;
+    grid-template-columns: minmax(140px, 1.4fr) 65px 95px 85px minmax(130px, 1.2fr) auto;
+    gap: 0.75rem;
+    align-items: center;
+    padding: 0.65rem 0.85rem;
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    font-size: 0.85rem;
+    transition: background 0.2s, border-color 0.2s;
+}
+
+.cycle-monster-row:hover {
+    background: rgba(255, 255, 255, 0.03);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.cycle-monster-row.completed {
+    background: rgba(46, 204, 113, 0.05);
+    border-color: rgba(46, 204, 113, 0.2);
+}
+
+.monster-name {
+    color: var(--text-main);
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.monster-completed-tag {
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: var(--success);
+    background: rgba(46, 204, 113, 0.12);
+    border: 1px solid rgba(46, 204, 113, 0.3);
+    padding: 0.12rem 0.4rem;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.monster-meta {
+    color: var(--text-dim);
+    font-size: 0.82rem;
+}
+
+.monster-meta.monster-xp {
+    color: #c4b5fd;
+    font-weight: 500;
+}
+
+.monster-meta.monster-gold {
+    color: var(--accent);
+    font-weight: 500;
+}
+
+.monster-item {
+    color: #67e8f9;
+    font-size: 0.82rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.monster-item.empty {
+    color: var(--text-dim);
+    opacity: 0.4;
+}
+
+.complete-btn.monster-complete-btn {
+    width: 30px;
+    height: 30px;
+    min-width: 30px;
+    font-size: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    margin-left: auto;
+}
+
+.cycle-shop-box {
+    margin-top: 1rem;
+    padding-top: 0.85rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.cycle-shop-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.65rem;
+    color: var(--text-dim);
+    font-size: 0.8rem;
+}
+
+.cycle-shop-heading h4 {
+    color: var(--text-main);
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.cycle-shop-rarity-mix {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-bottom: 0.75rem;
+}
+
+.cycle-shop-category {
+    margin-bottom: 0.65rem;
+}
+
+.cycle-shop-category strong {
+    display: block;
+    margin-bottom: 0.25rem;
+    color: var(--accent);
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.cycle-shop-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.cycle-shop-items span {
+    padding: 0.28rem 0.5rem;
+    border-radius: 999px;
+    background: rgba(50, 205, 117, 0.08);
+    border: 1px solid rgba(50, 205, 117, 0.22);
+    color: var(--success);
+    font-size: 0.74rem;
+}
+
+.empty-trials-note {
+    text-align: center;
+    padding: 3rem 1.5rem;
+    color: var(--text-dim);
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 12px;
+    border: 1px dashed rgba(255, 255, 255, 0.1);
+}
+
+.empty-trials-note p {
+    margin: 0;
+    font-size: 0.95rem;
+}
+
+.blessing-title {
+    color: var(--text-dim);
+    margin: 0.2rem 0;
+    font-size: 0.92rem;
+}
+
+.blessing-desc {
+    color: var(--text-dim);
+    margin: 0.35rem 0;
+    font-size: 0.88rem;
+    line-height: 1.45;
+}
+
+/* ── Grace / ability cards ─────────────────────────────────── */
+.blessing-effect {
+    margin-top: 0.75rem;
+}
+
+.grace-label {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    border: 1px solid rgba(255, 215, 0, 0.35);
+    border-radius: 4px;
+    padding: 0.15rem 0.55rem;
+    margin-bottom: 0.6rem;
+}
+
+.grace-abilities {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+}
+
+.grace-ability-block {
+    background: rgba(255, 215, 0, 0.04);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 6px 6px 0;
+    padding: 0.55rem 0.85rem;
+}
+
+.grace-ability-name {
+    display: inline-block;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.3rem;
+}
+
+.grace-ability-body {
+    margin: 0;
+    font-size: 0.87rem;
+    line-height: 1.55;
+    color: var(--text);
+}
+
+@media (max-width: 768px) {
+    .cycle-monster-row {
+        grid-template-columns: 1fr auto;
+        gap: 0.5rem;
+    }
+    .cycle-monster-row .monster-name {
+        grid-column: 1 / -1;
+    }
+    .endless-trials-summary {
+        flex-direction: column;
+        align-items: flex-start;
+    }
 }

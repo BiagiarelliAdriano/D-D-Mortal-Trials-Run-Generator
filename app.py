@@ -8,7 +8,7 @@ from flask_migrate import Migrate
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 from models import db, Run, Character, User, HostedRun, SessionParticipant, RecoveryRequest, Report, UserNotification
-from encounter_generator.encounter_logic import generate_all_encounters
+from encounter_generator.encounter_logic import generate_all_encounters, generate_run_for_mode
 from encounter_generator.generator import generate_divine_blessing
 from encounter_generator.data.rules.classes import BARBARIAN, BARD, CLERIC, DRUID, FIGHTER, MONK, PALADIN, RANGER, ROGUE, SORCERER, WARLOCK, WIZARD
 from encounter_generator.data.rules.multiclass_rules import check_multiclass_prerequisites
@@ -2493,25 +2493,27 @@ def api_run_status():
 @jwt_required(optional=True)
 def api_generate_run():
     current_user_id = get_jwt_identity()
+    selected_mode = request.args.get("mode", "mortal_trials")
 
     # ── Guest (unauthenticated) path ──────────────────────────────────────────
     # The frontend enforces the single-run-per-session limit; the backend just
     # generates and returns without any persistence for guests.
     if not current_user_id:
         try:
-            encounters = generate_all_encounters(39)
-            blessing   = generate_divine_blessing()
-            formatted_encounters = [[i, enc] for i, enc in enumerate(encounters, 1)]
+            run_data = generate_run_for_mode(selected_mode)
             return jsonify({
-                "encounters":           formatted_encounters,
-                "divine_blessing":      blessing,
+                "mode": run_data["mode"],
+                "encounters": run_data.get("encounters", []),
+                "cycles": run_data.get("cycles", []),
+                "wild_surges": run_data.get("wild_surges", []),
+                "divine_blessing": run_data["divine_blessing"],
                 "generations_remaining": 0,
-                "daily_limit":          1,
-                "unlimited_access":     False,
-                "reset_date":           None,
-                "auto_saved":           False,
-                "auto_saved_run_id":    None,
-                "guest":                True,
+                "daily_limit": 1,
+                "unlimited_access": False,
+                "reset_date": None,
+                "auto_saved": False,
+                "auto_saved_run_id": None,
+                "guest": True,
             }), 200
         except Exception as e:
             return jsonify({"error": str(e)}), 500
@@ -2521,21 +2523,16 @@ def api_generate_run():
     if not user:
         return jsonify({"error": "User not found"}), 404
 
-    # Admins and active Patreon supporters have unlimited Run generation.
     has_unlimited_access = user.has_unlimited_access()
-
-    # Free-user daily limit
     DAILY_RUN_LIMIT = 3
 
     if not has_unlimited_access:
         today = datetime.utcnow().date()
 
-        # Reset the counter if this is a new calendar day.
         if user.run_generation_date != today:
             user.run_generation_date = today
             user.run_generations_today = 0
 
-        # Stop generation if the user has reached the daily limit.
         if user.run_generations_today >= DAILY_RUN_LIMIT:
             return jsonify({
                 "error": "Daily Run generation limit reached. Subscribe to the Patreon for more immediately!",
@@ -2545,21 +2542,15 @@ def api_generate_run():
             }), 429
 
     try:
-        # Generate the Run.
-        encounters = generate_all_encounters(39)
-        blessing = generate_divine_blessing()
+        run_data = generate_run_for_mode(selected_mode)
+        blessing = run_data["divine_blessing"]
+        formatted_encounters = run_data.get("encounters", [])
+        cycle_data = run_data.get("cycles", [])
+        wild_surges = run_data.get("wild_surges", [])
 
-        # Format encounters for JSON.
-        formatted_encounters = []
-        for i, enc in enumerate(encounters, 1):
-            formatted_encounters.append([i, enc])
-
-        # Only count a generation if generation itself succeeded.
         if not has_unlimited_access:
             user.run_generations_today += 1
-        
-        # Automatically save the generated Run if the user enabled
-        # the auto-save preference.
+
         auto_saved_run_id = None
         if user.auto_save_generated_runs:
             base_title = f"Trial {datetime.utcnow().strftime('%m/%d/%Y %H:%M:%S')}"
@@ -2567,16 +2558,17 @@ def api_generate_run():
             existing_run = Run.query.filter_by(title_run=auto_save_title).first()
             if existing_run:
                 counter = 2
-                while Run.query.filter_by(
-                    title_run=f"{base_title} ({counter})"
-                ).first():
+                while Run.query.filter_by(title_run=f"{base_title} ({counter})").first():
                     counter += 1
                 auto_save_title = f"{base_title} ({counter})"
             auto_saved_run = Run(
                 title_run=auto_save_title,
                 data=json.dumps({
+                    "mode": run_data["mode"],
                     "divine_blessing": blessing,
-                    "encounters": formatted_encounters
+                    "encounters": formatted_encounters,
+                    "cycles": cycle_data,
+                    "wild_surges": wild_surges,
                 }),
                 user_id=user.id
             )
@@ -2589,31 +2581,25 @@ def api_generate_run():
         if has_unlimited_access:
             generations_remaining = None
         else:
-            generations_remaining = (
-                DAILY_RUN_LIMIT - user.run_generations_today
-            )
+            generations_remaining = DAILY_RUN_LIMIT - user.run_generations_today
 
         return jsonify({
+            "mode": run_data["mode"],
             "encounters": formatted_encounters,
+            "cycles": cycle_data,
+            "wild_surges": wild_surges,
             "divine_blessing": blessing,
             "generations_remaining": generations_remaining,
             "daily_limit": DAILY_RUN_LIMIT,
             "unlimited_access": has_unlimited_access,
-            "reset_date": (
-                str(user.run_generation_date)
-                if not has_unlimited_access
-                else None
-            ),
+            "reset_date": str(user.run_generation_date) if not has_unlimited_access else None,
             "auto_saved": auto_saved_run_id is not None,
-            "auto_saved_run_id": auto_saved_run_id
+            "auto_saved_run_id": auto_saved_run_id,
         }), 200
 
     except IntegrityError:
         db.session.rollback()
-
-        return jsonify({
-            "error": "Generating Runs too fast, cannot auto-save."
-        }), 409
+        return jsonify({"error": "Generating Runs too fast, cannot auto-save."}), 409
 
     except Exception as e:
         db.session.rollback()
@@ -2933,13 +2919,16 @@ def api_create_hosted_run():
     if not run:
         return jsonify({"error": "Run not found"}), 404
 
+    run_data = json.loads(run.data) if isinstance(run.data, str) else run.data
+    initial_rations = 1.0 if run_data.get("mode") == "The Endless Trials" else 3.0
     invite_code = generate_invite_code()
     
     hosted_run = HostedRun(
         invite_code=invite_code,
         dm_id=current_user_id,
         run_id=run.id,
-        party_inventory='[]'
+        party_inventory='[]',
+        rations=initial_rations,
     )
     db.session.add(hosted_run)
     db.session.flush() # Get ID before commit
@@ -3114,6 +3103,10 @@ def api_get_hosted_run_details(session_id):
             } if p.character else None
         })
 
+    run_data = json.loads(session.run.data)
+    if str(current_user_id) != str(session.dm_id):
+        run_data.pop("wild_surges", None)
+
     return jsonify({
         "id": session.id,
         "invite_code": session.invite_code,
@@ -3121,7 +3114,7 @@ def api_get_hosted_run_details(session_id):
         "run": {
             "id": session.run.id,
             "title": session.run.title_run,
-            "data": json.loads(session.run.data)
+            "data": run_data
         },
         "participants": participants_info,
         "party_inventory": [
@@ -3257,7 +3250,11 @@ def api_complete_hosted_run(session_id):
         
     # Verify all encounters are completed
     run_data = json.loads(session.run.data) if isinstance(session.run.data, str) else session.run.data
-    total_encounters = len(run_data.get("encounters", []))
+    is_endless = run_data.get("mode") == "The Endless Trials"
+    if is_endless:
+        total_encounters = sum(len(c.get("monsters", [])) for c in run_data.get("cycles", []))
+    else:
+        total_encounters = len(run_data.get("encounters", []))
     completed_encounters = json.loads(session.completed_encounters or "[]")
     
     if total_encounters == 0 or len(completed_encounters) < total_encounters:
@@ -3286,11 +3283,155 @@ def api_complete_encounter(session_id):
     if session.is_completed:
         return jsonify({"error": "This trial is completed and archived. Encounters cannot be modified."}), 400
     
-    data = request.json
-    if not data or not data.get("encounter_num"):
-        return jsonify({"error": "Missing encounter number"}), 400
+    data = request.json or {}
+    raw_ident = str(data.get("monster_id") or data.get("encounter_num") or "")
+    if not raw_ident and data.get("monster_index") is None:
+        return jsonify({"error": "Missing encounter number or monster id"}), 400
     
-    enc_num = str(data["encounter_num"])
+    run_data = json.loads(session.run.data) if isinstance(session.run.data, str) else session.run.data
+    is_endless = run_data.get("mode") == "The Endless Trials"
+
+    if is_endless:
+        cycle_num = data.get("cycle")
+        monster_index = data.get("monster_index")
+
+        if cycle_num is None or monster_index is None:
+            match = re.match(r"^c?(\d+)[_m-](\d+)$", raw_ident)
+            if match:
+                cycle_num = int(match.group(1))
+                monster_index = int(match.group(2))
+            else:
+                return jsonify({"error": f"Invalid monster identifier for Endless Trials: {raw_ident}"}), 400
+        else:
+            cycle_num = int(cycle_num)
+            monster_index = int(monster_index)
+
+        monster_id = f"c{cycle_num}_m{monster_index}"
+        completed = json.loads(session.completed_encounters or "[]")
+        if monster_id in completed:
+            return jsonify({"message": f"Monster {monster_id} is already completed", "already_completed": True}), 200
+
+        target_cycle = next((c for c in run_data.get("cycles", []) if c.get("cycle") == cycle_num), None)
+        if not target_cycle:
+            return jsonify({"error": f"Cycle {cycle_num} not found"}), 404
+
+        monsters = target_cycle.get("monsters", [])
+        if monster_index < 0 or monster_index >= len(monsters):
+            return jsonify({"error": f"Monster index {monster_index} out of range in Cycle {cycle_num}"}), 404
+
+        target_monster = monsters[monster_index]
+
+        current_inv = json.loads(session.party_inventory or "[]")
+        vault_gold = json.loads(session.vault_gold or "[]")
+
+        # 1. Gold distribution
+        if "gold" in target_monster and target_monster["gold"] is not None:
+            gold_total = target_monster["gold"]
+            gold_per_share = gold_total
+
+            connected_participants = [p for p in session.participants if p.role == 'Ascendant' and p.character_id]
+
+            for p in connected_participants:
+                character = db.session.get(Character, p.character_id)
+                if character:
+                    char_data = character.get_data()
+                    char_data["gold"] = char_data.get("gold", 0) + gold_per_share
+                    character.set_data(char_data)
+
+            party_size = run_data.get("settings", {}).get("party_size", 4)
+            surplus_shares = party_size - len(connected_participants)
+            if surplus_shares > 0:
+                m_name = target_monster.get("name", "Monster")
+                enc_n = target_monster.get("encounter_number", 1)
+                vault_gold.append({
+                    "amount": gold_per_share,
+                    "count": surplus_shares,
+                    "source": f"{m_name} (Cycle {cycle_num}, Encounter {enc_n})"
+                })
+
+        # 2. Magic Item distribution: surplus / item to Vault
+        if "item" in target_monster and target_monster["item"]:
+            current_inv.append(target_monster["item"])
+
+        # 3. XP distribution
+        level_up_ready_chars = []
+        if "xp" in target_monster and target_monster["xp"] is not None:
+            xp_gain = target_monster["xp"]
+            connected_participants = [p for p in session.participants if p.role == 'Ascendant' and p.character_id]
+
+            for p in connected_participants:
+                character = db.session.get(Character, p.character_id)
+                if character:
+                    char_data = character.get_data()
+                    current_xp = char_data.get("xp", 0)
+                    new_xp = current_xp + xp_gain
+                    char_data["xp"] = new_xp
+
+                    # Level up check
+                    current_level = char_data.get("level", 1)
+                    next_threshold = XP_THRESHOLDS.get(current_level + 1, 999999)
+
+                    if new_xp >= next_threshold:
+                        char_data["level_up_pending"] = True
+                        level_up_ready_chars.append(character.name)
+
+                    character.set_data(char_data)
+
+        # 4. Rations if any
+        rations_found = 0
+        if "rations" in target_monster and target_monster["rations"] is not None:
+            rations_found = float(target_monster["rations"])
+            session.rations = round(session.rations + rations_found, 1)
+
+        # 5. Persist updates
+        session.party_inventory = json.dumps(current_inv)
+        session.vault_gold = json.dumps(vault_gold)
+
+        completed.append(monster_id)
+        session.completed_encounters = json.dumps(completed)
+
+        cycle_monster_ids = [
+            f"c{cycle_num}_m{index}"
+            for index in range(len(monsters))
+        ]
+        cycle_shop = target_cycle.get("shop")
+        shop_started = bool(monsters) and all(
+            completed_id in completed for completed_id in cycle_monster_ids
+        ) and bool(cycle_shop)
+        if shop_started:
+            session.rations = {1: 1.0, 2: 2.0, 3: 2.0}.get(cycle_num, session.rations)
+            session.shop_state = json.dumps({
+                "cycle_shop": True,
+                "cycle": cycle_num,
+                "phase": "selection",
+                "categories_available": list(SHOP_CATEGORIES),
+                "rarity_mix": cycle_shop.get("rarity_mix", {}),
+                "encounter_items": cycle_shop.get("items_by_category", {}),
+                "selections": {},
+                "items": {},
+                "common_items": {},
+            })
+
+        db.session.commit()
+
+        m_name = target_monster.get("name", "Monster")
+        res_data = {
+            "message": f"{m_name} defeated and rewards granted",
+            "party_inventory": current_inv,
+            "vault_gold": vault_gold,
+            "rations_found": rations_found,
+            "rations": session.rations,
+            "monster_id": monster_id,
+            "shop_started": shop_started,
+            "shop_cycle_name": target_cycle.get("name") if shop_started else None,
+        }
+        if level_up_ready_chars:
+            res_data["leveled_up"] = level_up_ready_chars
+            res_data["message"] += f". {', '.join(level_up_ready_chars)} can now Level Up!"
+
+        return jsonify(res_data), 200
+
+    enc_num = raw_ident
     run_data = json.loads(session.run.data)
     
     # Find the encounter in the run data

@@ -22,8 +22,10 @@ const HostedRunPage = () => {
     const [runTitleInput, setRunTitleInput] = useState('');
     const [expandedEncounters, setExpandedEncounters] = useState({});
     const [wildSurgeVisible, setWildSurgeVisible] = useState({});
+    const [activeWildSurgeId, setActiveWildSurgeId] = useState(null);
     const [notice, setNotice] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
+    const [wildSurgesExpanded, setWildSurgesExpanded] = useState(false);
     const [shopConfirm, setShopConfirm] = useState(null);
     const [showSellModal, setShowSellModal] = useState(false);
     const [selectedSellItems, setSelectedSellItems] = useState({});
@@ -199,6 +201,92 @@ const HostedRunPage = () => {
             } else {
                 const data = await response.json();
                 addAlert(data.error || "Failed to complete encounter", "error");
+            }
+        } catch (err) {
+            addAlert(err.message, 'error');
+        }
+    };
+
+    const getDisplayItemName = (item) => {
+        if (!item) return 'No item';
+        if (typeof item === 'string') return item;
+        if (typeof item.name === 'string') return item.name;
+        if (item.name && typeof item.name === 'object' && typeof item.name.name === 'string') return item.name.name;
+        return 'Unknown item';
+    };
+
+    // Splits a blessing text into named ability blocks.
+    // Ability names are detected as one or two capitalised words followed by a full stop
+    // at a sentence boundary (e.g. "Echo Link. …" / "Perfect Reflection. …").
+    const parseGraceAbilities = (text) => {
+        if (!text) return null;
+        // Match "Word Word." or "Word." at the very start of a "sentence" within the string.
+        // We split on the pattern: look-behind for a period+whitespace or start-of-string,
+        // then capture "CapWord[ CapWord]." as the ability name header.
+        const abilityPattern = /(?:^|\s)([A-Z][a-z]+(?:\s[A-Z][a-z]+)*)\.\s/g;
+        const matches = [];
+        let match;
+        while ((match = abilityPattern.exec(text)) !== null) {
+            matches.push({ name: match[1], index: match.index + (match[0].length - match[1].length - 2) });
+        }
+        if (matches.length < 2) return null; // not structured — fall back to plain text
+        const abilities = matches.map((m, i) => {
+            const bodyStart = m.index + m.name.length + 1; // skip "Name."
+            const bodyEnd = i + 1 < matches.length ? matches[i + 1].index : text.length;
+            return { name: m.name, body: text.slice(bodyStart, bodyEnd).trim() };
+        });
+        return abilities;
+    };
+
+    const groupCycleMonsters = (monsters, cycleNum) => {
+        const groups = [];
+        monsters.forEach((monster, index) => {
+            const encounterNumber = monster.encounter_number ?? 1;
+            let group = groups[groups.length - 1];
+            if (!group || group.encounterNumber !== encounterNumber) {
+                group = { encounterNumber, monsters: [] };
+                groups.push(group);
+            }
+            group.monsters.push({
+                ...monster,
+                _globalIndex: index,
+                _id: `c${cycleNum}_m${index}`,
+                _isCompleted: (session?.completed_encounters || []).includes(`c${cycleNum}_m${index}`)
+            });
+        });
+        return groups;
+    };
+
+    const handleCompleteMonster = async (cycleNum, monsterIndex, monster) => {
+        const monsterId = `c${cycleNum}_m${monsterIndex}`;
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/host/${id}/complete-encounter`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    encounter_num: monsterId,
+                    monster_id: monsterId,
+                    cycle: cycleNum,
+                    monster_index: monsterIndex
+                })
+            });
+            if (response.ok) {
+                const data = await response.json();
+                if (data.rations !== undefined) {
+                    setSession(prev => prev ? { ...prev, rations: data.rations } : prev);
+                }
+                fetchSessionDetails();
+                const noticeMessage = data.shop_started
+                    ? `${data.shop_cycle_name} complete! The shop is open for players.`
+                    : `${monster.name} defeated and rewards granted!`;
+                setNotice({ message: noticeMessage, type: 'success' });
+                setTimeout(() => setNotice(null), 3000);
+            } else {
+                const data = await response.json();
+                addAlert(data.error || "Failed to complete monster", "error");
             }
         } catch (err) {
             addAlert(err.message, 'error');
@@ -772,10 +860,13 @@ const HostedRunPage = () => {
     if (loading) return <div className="hosted-page-container"><div className="loading-screen">Echoing through the Spire...</div></div>;
     if (!session) return <div className="hosted-page-container"><div className="error-message">Session not found or connection lost.</div></div>;
 
-    const isDM = currentUser.id === session.dm_id;
+    const isDM = currentUser?.id === session.dm_id;
     const isDMOrAdmin = isDM || isAdmin;
 
-    const totalEncounters = session.run?.data?.encounters?.length || 0;
+    const isEndless = session.run?.data?.mode === 'The Endless Trials';
+    const totalEncounters = isEndless
+        ? (session.run?.data?.cycles?.reduce((sum, c) => sum + (c.monsters?.length || 0), 0) || 0)
+        : (session.run?.data?.encounters?.length || 0);
     const completedEncountersCount = (session.completed_encounters || []).length;
     const allEncountersCompleted = totalEncounters > 0 && completedEncountersCount >= totalEncounters;
 
@@ -908,14 +999,39 @@ const HostedRunPage = () => {
                     <div className="trial-view">
                         <section className="blessing-banner">
                             <h3>Divine Blessing: {session.run.data.divine_blessing?.name}</h3>
-                            <p>{session.run.data.divine_blessing?.blessing}</p>
+                            {session.run.data.divine_blessing?.title && (
+                                <p className="blessing-title"><em>{session.run.data.divine_blessing.title}</em></p>
+                            )}
+                            {session.run.data.divine_blessing?.description && (
+                                <p className="blessing-desc">{session.run.data.divine_blessing.description}</p>
+                            )}
+                            <div className="blessing-effect">
+                                <span className="grace-label">Grace</span>
+                                {(() => {
+                                    const blessingText = session.run.data.divine_blessing?.blessing;
+                                    const abilities = parseGraceAbilities(blessingText);
+                                    if (abilities) {
+                                        return (
+                                            <div className="grace-abilities">
+                                                {abilities.map((ability, i) => (
+                                                    <div key={i} className="grace-ability-block">
+                                                        <span className="grace-ability-name">{ability.name}</span>
+                                                        <p className="grace-ability-body">{ability.body}</p>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        );
+                                    }
+                                    return <p className="grace-ability-body">{blessingText}</p>;
+                                })()}
+                            </div>
                         </section>
 
                         <div className="search-wrapper" style={{ maxWidth: '100%', marginBottom: '20px' }}>
                             <input
                                 type="text"
                                 className="search-input"
-                                placeholder="Search Trial encounters (types, monsters, notes)..."
+                                placeholder={isEndless ? "Search monsters, CR, items, rules..." : "Search Trial encounters (types, monsters, notes)..."}
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                             />
@@ -925,58 +1041,284 @@ const HostedRunPage = () => {
                         {!isDM && (
                             <div className="player-info-note">
                                 <i className="fa-solid fa-circle-info"></i>
-                                Completed trial encounters and their rewards will appear below as you progress.
+                                {isEndless
+                                    ? "Completed monsters and their rewards will appear below as you progress."
+                                    : "Completed trial encounters and their rewards will appear below as you progress."}
                             </div>
                         )}
 
-                        <div className="encounters-timeline">
-                            {session.run.data.encounters
-                                .filter(([num, enc]) => isDM || session.completed_encounters.includes(String(num)))
-                                .filter(([num, enc]) => {
-                                    if (!searchTerm) return true;
-                                    const term = searchTerm.toLowerCase();
-                                    const monstersMatch = enc.monsters?.some(m => m.toLowerCase().includes(term)) || false;
-                                    const typeMatch = (enc.type?.toLowerCase() || "").includes(term);
-                                    const noteMatch = (enc.note?.toLowerCase() || "").includes(term);
-                                    const itemMatch = enc.magic_items?.some(i => {
-                                        const itemName = typeof i === 'string' ? i : i.name;
-                                        return (itemName?.toLowerCase() || "").includes(term);
-                                    }) || false;
-                                    const shopItemMatch = enc.items_by_category ? Object.values(enc.items_by_category).flat().some(i => {
-                                        const itemName = typeof i === 'string' ? i : i.name;
-                                        return (itemName?.toLowerCase() || "").includes(term);
-                                    }) : false;
-                                    return monstersMatch || typeMatch || noteMatch || itemMatch || shopItemMatch;
-                                })
-                                .map(([num, enc]) => (
-                                    <div key={num} className={`timeline-node ${expandedEncounters[num] ? 'expanded' : ''}`}>
-                                        <div className="node-header" onClick={() => toggleEncounter(num)}>
-                                            <div className="node-marker">{num}</div>
-                                            <div className="node-content">
-                                                <h4>{enc.type}</h4>
-                                                {!expandedEncounters[num] && (
-                                                    <p>{enc.monsters?.join(', ') || enc.note || 'Exploration Encounter'}</p>
+                        {isEndless ? (
+                            <div className="endless-trials-results">
+                                <div className="endless-trials-summary">
+                                    <div className="summary-badge">{session.run.data.mode}</div>
+                                </div>
+
+                                {isDM && session.run.data.wild_surges && (
+                                    <section className="wild-surge-deck-card">
+                                        <div className="wild-surge-deck-header">
+                                            <h3><i className="fa-solid fa-bolt"></i> Wild Surge Deck</h3>
+                                            <button
+                                                type="button"
+                                                className={`wild-surge-expand-btn ${wildSurgesExpanded ? 'active' : ''}`}
+                                                onClick={() => setWildSurgesExpanded(prev => !prev)}
+                                                aria-expanded={wildSurgesExpanded}
+                                            >
+                                                {wildSurgesExpanded ? 'Hide' : 'View'}
+                                                <i className={`fa-solid fa-chevron-${wildSurgesExpanded ? 'up' : 'down'}`}></i>
+                                            </button>
+                                        </div>
+                                        {wildSurgesExpanded && (
+                                            <ol className="wild-surge-deck-list">
+                                                {session.run.data.wild_surges.map((surge, index) => {
+                                                    const surgeId = String(surge.id ?? index);
+                                                    const isSurgeActive = activeWildSurgeId === surgeId;
+                                                    const surgeKey = `endless-${surgeId}`;
+
+                                                    return (
+                                                        <li key={surgeId}>
+                                                            <div className="wild-surge-box">
+                                                                <div className="wild-surge-deck-entry">
+                                                                    <button
+                                                                        type="button"
+                                                                        className={`wild-surge-toggle ${wildSurgeVisible[surgeKey] ? 'active' : ''}`}
+                                                                        onClick={(e) => toggleWildSurge(e, surgeKey)}
+                                                                        aria-expanded={!!wildSurgeVisible[surgeKey]}
+                                                                    >
+                                                                        <i className="fa-solid fa-bolt"></i> {surge.name}
+                                                                    </button>
+                                                                    <button
+                                                                        type="button"
+                                                                        className={`complete-btn monster-complete-btn wild-surge-active-btn ${isSurgeActive ? 'active' : ''}`}
+                                                                        onClick={() => setActiveWildSurgeId(current => current === surgeId ? null : surgeId)}
+                                                                        title={isSurgeActive ? `Deactivate ${surge.name}` : `Activate ${surge.name}`}
+                                                                        aria-label={isSurgeActive ? `Deactivate ${surge.name}` : `Activate ${surge.name}`}
+                                                                        aria-pressed={isSurgeActive}
+                                                                    >
+                                                                        <i className="fa-solid fa-check"></i>
+                                                                    </button>
+                                                                </div>
+                                                                {wildSurgeVisible[surgeKey] && (
+                                                                    <div className="wild-surge-content">
+                                                                        <p><strong>Description:</strong> {surge.description}</p>
+                                                                        <p className="echo-asc"><strong>Echo Of Ascendance:</strong> {surge["echo of ascendance"]}</p>
+                                                                        <p className="echo-ruin"><strong>Echo Of Ruin:</strong> {surge["echo of ruin"]}</p>
+                                                                        <p className="worldshift"><strong>Worldshift Trait:</strong> {surge["worldshift trait"]}</p>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        </li>
+                                                    );
+                                                })}
+                                            </ol>
+                                        )}
+                                    </section>
+                                )}
+
+                                {(() => {
+                                    const term = searchTerm.toLowerCase().trim();
+                                    const renderedCycles = (session.run.data.cycles || []).map((cycle) => {
+                                        const grouped = groupCycleMonsters(cycle.monsters || [], cycle.cycle);
+
+                                        // Filter monsters inside each group based on visibility and search
+                                        const filteredGroups = grouped.map(group => {
+                                            const visibleMonsters = group.monsters.filter(monster => {
+                                                const isVisible = isDM || monster._isCompleted;
+                                                if (!isVisible) return false;
+                                                if (!term) return true;
+                                                const nameMatch = monster.name?.toLowerCase().includes(term);
+                                                const crMatch = monster.cr?.toLowerCase().includes(term);
+                                                const noteMatch = (monster.encounter_note || "").toLowerCase().includes(term);
+                                                const itemMatch = getDisplayItemName(monster.item).toLowerCase().includes(term);
+                                                return nameMatch || crMatch || noteMatch || itemMatch;
+                                            });
+                                            return {
+                                                ...group,
+                                                monsters: visibleMonsters
+                                            };
+                                        }).filter(group => group.monsters.length > 0);
+
+                                        const shopMatchesSearch = !term || (cycle.shop && (
+                                            (cycle.shop.type || "").toLowerCase().includes(term) ||
+                                            (cycle.shop.rest || "").toLowerCase().includes(term) ||
+                                            (cycle.shop.items_by_category && Object.values(cycle.shop.items_by_category).flat().some(item => getDisplayItemName(item).toLowerCase().includes(term)))
+                                        ));
+
+                                        const activeCycleShop = session.shop_state?.cycle_shop
+                                            && Number(session.shop_state.cycle) === Number(cycle.cycle);
+
+                                        const shouldShowCycle = isDM
+                                            ? (!term || filteredGroups.length > 0 || (cycle.shop && shopMatchesSearch))
+                                            : (filteredGroups.length > 0 || (cycle.shop && activeCycleShop && shopMatchesSearch));
+
+                                        if (!shouldShowCycle) return null;
+
+                                        return (
+                                            <div key={cycle.cycle} className="endless-cycle-card">
+                                                <div className="endless-cycle-header">
+                                                    <h3>{cycle.name}</h3>
+                                                    {cycle.shop && (isDM || activeCycleShop) && (
+                                                        <span className="shop-badge"><i className="fa-solid fa-shop"></i> Shop</span>
+                                                    )}
+                                                </div>
+
+                                                <div className="cycle-rules">
+                                                    {cycle.rules.map((rule, index) => (
+                                                        <div key={index} className="rule-line">• {rule}</div>
+                                                    ))}
+                                                </div>
+
+                                                <div className="cycle-encounters">
+                                                    {filteredGroups.map(({ encounterNumber, monsters }) => (
+                                                        <section key={`${cycle.cycle}-${encounterNumber}`} className="cycle-encounter-group">
+                                                            <div className="cycle-encounter-heading">
+                                                                <h4>Encounter {encounterNumber}</h4>
+                                                                {monsters[0]?.encounter_note && (
+                                                                    <span>{monsters[0].encounter_note}</span>
+                                                                )}
+                                                            </div>
+                                                            <div className="cycle-monster-list">
+                                                                {monsters.map((monster) => (
+                                                                    <div
+                                                                        key={monster._id}
+                                                                        className={`cycle-monster-row ${monster._isCompleted ? 'completed' : ''}`}
+                                                                    >
+                                                                        <span className="monster-name">
+                                                                            {monster.name}
+                                                                            {monster._isCompleted && (
+                                                                                <span className="monster-completed-tag">
+                                                                                    <i className="fa-solid fa-check"></i> Defeated
+                                                                                </span>
+                                                                            )}
+                                                                        </span>
+                                                                        <span className="monster-meta">CR {monster.cr}</span>
+                                                                        {monster.xp != null && (
+                                                                            <span className="monster-meta monster-xp">{monster.xp.toLocaleString()} XP</span>
+                                                                        )}
+                                                                        {monster.gold != null && (
+                                                                            <span className="monster-meta monster-gold">{monster.gold.toLocaleString()} GP</span>
+                                                                        )}
+                                                                        {monster.item ? (
+                                                                            <span className="monster-item">{getDisplayItemName(monster.item)}</span>
+                                                                        ) : (
+                                                                            <span className="monster-item empty">—</span>
+                                                                        )}
+                                                                        {isDM && (
+                                                                            <button
+                                                                                className="complete-btn monster-complete-btn"
+                                                                                onClick={(e) => {
+                                                                                    e.stopPropagation();
+                                                                                    handleCompleteMonster(cycle.cycle, monster._globalIndex, monster);
+                                                                                }}
+                                                                                title={monster._isCompleted ? "Completed" : "Complete Monster"}
+                                                                                disabled={monster._isCompleted}
+                                                                                style={monster._isCompleted ? { background: 'var(--success)', color: 'white' } : {}}
+                                                                            >
+                                                                                <i className="fa-solid fa-check"></i>
+                                                                            </button>
+                                                                        )}
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </section>
+                                                    ))}
+                                                </div>
+
+                                                {cycle.shop && (isDM || activeCycleShop) && shopMatchesSearch && (
+                                                    activeCycleShop ? (
+                                                        renderInteractiveShop(cycle.cycle)
+                                                    ) : (
+                                                        <div className="cycle-shop-box">
+                                                            <div className="cycle-shop-heading">
+                                                                <h4><i className="fa-solid fa-shop"></i> Cycle Shop Preview</h4>
+                                                                <span>{cycle.shop.rest} · {cycle.shop.total_gold?.toLocaleString()} GP</span>
+                                                            </div>
+                                                            {cycle.shop.rarity_mix && (
+                                                                <div className="cycle-shop-rarity-mix">
+                                                                    {Object.entries(cycle.shop.rarity_mix).map(([rarity, count]) => (
+                                                                        <span key={rarity} className={`rarity-tag ${rarity.replace(/\s+/g, '-')}`}>
+                                                                            {rarity}: {count}
+                                                                        </span>
+                                                                    ))}
+                                                                </div>
+                                                            )}
+                                                            {cycle.shop.items_by_category && Object.entries(cycle.shop.items_by_category).map(([category, items]) => (
+                                                                <div key={category} className="cycle-shop-category">
+                                                                    <strong>{category}</strong>
+                                                                    <div className="cycle-shop-items">
+                                                                        {items.map((item, idx) => (
+                                                                            <span key={idx}>{getDisplayItemName(item)}</span>
+                                                                        ))}
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    )
                                                 )}
                                             </div>
-                                            <div className="expand-icon">
-                                                <i className={`fa-solid fa-chevron-${expandedEncounters[num] ? 'up' : 'down'}`}></i>
+                                        );
+                                    }).filter(Boolean);
+
+                                    if (renderedCycles.length === 0) {
+                                        return (
+                                            <div className="empty-trials-note">
+                                                <p>{term ? "No monsters match your search." : (!isDM ? "No monsters have been defeated yet. The trial awaits!" : "No cycles found.")}</p>
                                             </div>
-                                            {isDM && (
-                                                <button
-                                                    className="complete-btn"
-                                                    onClick={(e) => { e.stopPropagation(); handleCompleteEncounter(num); }}
-                                                    title={session.completed_encounters.includes(String(num)) ? "Completed" : "Complete Encounter"}
-                                                    disabled={session.completed_encounters.includes(String(num))}
-                                                    style={session.completed_encounters.includes(String(num)) ? { background: 'var(--success)', color: 'white' } : {}}
-                                                >
-                                                    <i className="fa-solid fa-check"></i>
-                                                </button>
-                                            )}
+                                        );
+                                    }
+
+                                    return renderedCycles;
+                                })()}
+                            </div>
+                        ) : (
+                            <div className="encounters-timeline">
+                                {(session.run.data.encounters || [])
+                                    .filter(([num, enc]) => isDM || session.completed_encounters.includes(String(num)))
+                                    .filter(([num, enc]) => {
+                                        if (!searchTerm) return true;
+                                        const term = searchTerm.toLowerCase();
+                                        const monstersMatch = enc.monsters?.some(m => m.toLowerCase().includes(term)) || false;
+                                        const typeMatch = (enc.type?.toLowerCase() || "").includes(term);
+                                        const noteMatch = (enc.note?.toLowerCase() || "").includes(term);
+                                        const itemMatch = enc.magic_items?.some(i => {
+                                            const itemName = typeof i === 'string' ? i : i.name;
+                                            return (itemName?.toLowerCase() || "").includes(term);
+                                        }) || false;
+                                        const shopItemMatch = enc.items_by_category ? Object.values(enc.items_by_category).flat().some(i => {
+                                            const itemName = typeof i === 'string' ? i : i.name;
+                                            return (itemName?.toLowerCase() || "").includes(term);
+                                        }) : false;
+                                        return monstersMatch || typeMatch || noteMatch || itemMatch || shopItemMatch;
+                                    })
+                                    .map(([num, enc]) => (
+                                        <div key={num} className={`timeline-node ${expandedEncounters[num] ? 'expanded' : ''}`}>
+                                            <div className="node-header" onClick={() => toggleEncounter(num)}>
+                                                <div className="node-marker">{num}</div>
+                                                <div className="node-content">
+                                                    <h4>{enc.type}</h4>
+                                                    {!expandedEncounters[num] && (
+                                                        <p>{enc.monsters?.join(', ') || enc.note || 'Exploration Encounter'}</p>
+                                                    )}
+                                                </div>
+                                                <div className="expand-icon">
+                                                    <i className={`fa-solid fa-chevron-${expandedEncounters[num] ? 'up' : 'down'}`}></i>
+                                                </div>
+                                                {isDM && (
+                                                    <button
+                                                        className="complete-btn"
+                                                        onClick={(e) => { e.stopPropagation(); handleCompleteEncounter(num); }}
+                                                        title={session.completed_encounters.includes(String(num)) ? "Completed" : "Complete Encounter"}
+                                                        disabled={session.completed_encounters.includes(String(num))}
+                                                        style={session.completed_encounters.includes(String(num)) ? { background: 'var(--success)', color: 'white' } : {}}
+                                                    >
+                                                        <i className="fa-solid fa-check"></i>
+                                                    </button>
+                                                )}
+                                            </div>
+                                            {expandedEncounters[num] && renderEncounterContent(num, enc)}
                                         </div>
-                                        {expandedEncounters[num] && renderEncounterContent(num, enc)}
-                                    </div>
-                                ))}
-                        </div>
+                                    ))}
+                            </div>
+                        )}
                     </div>
                 )}
 

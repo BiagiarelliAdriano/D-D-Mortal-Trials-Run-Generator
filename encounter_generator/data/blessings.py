@@ -142,5 +142,23 @@ DIVINE_BLESSINGS = [
             and no truth remains eternal. Change and carelessness can be fatal, but they can also be a savior in a critical moment.""",
         "blessing": """At any given moment, you can consume one magical item to gain 1d4 x 200 gold pieces. If you consume one legendary magical item,
             also get a random card from the Deck of Wonder that activates immediately."""
+    },
+    {
+        "name": "Endless",
+        "title": "The Eternal Mirror",
+        "description": """The Eternal Mirror is an entity that formed within the Tower through the countless Trials held within its walls. No God created it,
+            and no legend speaks of its beginning. It simply emerged, shaped by the struggles of those who entered the Tower and the echoes they left behind.
+            The Mirror watches, remembers, and reflects, preserving fragments of every choice, failure, triumph, and moment of change.
+            Those who encounter its influence may find the familiar made strange, old battles returning in unfamiliar forms, or reflections that seem to know more than they should.
+            Some say the Mirror seeks to understand mortals. Others believe it is searching for something within them, something it cannot find within itself.
+            Whatever its purpose, it continues to observe, and with every Trial its reflection grows clearer.""",
+        "blessing": """Echo Link. Once per Cycle, when a player fails an Attack Roll, a Saving Throw or an Ability Check, another ally can choose to echo their effort.
+            The ally rolls 1d4, adding the result to the failed roll, possibly turning it into a success.
+            If the roll succeeds because of this ability, both players gain Temporary Hit Points equal to the d4 result.
+            The d4 becomes d6 on the 2nd Cycle, d8 on the 3rd Cycle, and d10 on the 4th Cycle.
+            Perfect Reflection. Once per Run, a player can choose a class feature previously used by an ally, and activate it.
+            The feature must be one that normally requires an action, bonus action, reaction, or resource to use. For example, Action Surge, Rage, Bardic Inspiration, Channel Divinity, etc.
+            The player uses the feature as if they possessed it, following all normal rules, timing and their own stats.
+            Any ability that must spend some kind of resource to be used, do not require that resource to be used in this way."""
     }
 ]

@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useNotification } from "../context/NotificationContext";
 import API_BASE_URL from "../config";
+import "../styles/CharacterForm.css";
 
 const processRichText = (text) => {
     if (typeof text !== 'string' || !text) return text;
@@ -36,9 +37,6 @@ function CharacterForm() {
     const navigate = useNavigate();
     const { user, token, hasUnlimitedAccess } = useAuth();
     const { addAlert } = useNotification();
-
-    // Import CSS
-    require("../styles/CharacterForm.css");
 
     const [loading, setLoading] = useState(isEditMode);
     const [step, setStep] = useState(0);

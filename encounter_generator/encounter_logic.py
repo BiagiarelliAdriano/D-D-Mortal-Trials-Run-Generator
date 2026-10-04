@@ -4,6 +4,7 @@ from encounter_generator.data.items import MAGIC_ITEMS
 from encounter_generator.data.monsters import MONSTERS, MONSTERS_BY_TYPE, filtered_monsters
 from encounter_generator.data.wildsurges import WILD_SURGES
 from encounter_generator.generator import (
+    generate_divine_blessing,
     generate_enspell_armor,
     generate_enspell_staff,
     generate_enspell_weapon,
@@ -386,6 +387,180 @@ ENCOUNTER_DEFINITIONS = {
         "has_wild_surge": True,
     }
 }
+
+# Endless Trials encounters retain the standard run's encounter order, with
+# rewards redistributed evenly across each encounter's listed monsters.
+ENDLESS_CYCLE_ENCOUNTERS = {
+    1: [
+        (["1/2", "1/2", "1/4", "1/4"], 200, 25, ("common", "uncommon")),
+        (["1/2", "1/2", "1", "1"], 225, 25, ("common", "uncommon")),
+        (["1/2", "1/2", "1/2", "1", "1"], 210, 40, ("common", "uncommon")),
+        (["1/2", "1", "1", "2"], 357, 40, ("common", "uncommon")),
+        (["1/2", "1/2", "1", "1", "2"], 315, 60, ("uncommon",)),
+        (["1/2", "1/2", "1/2", "1", "1", "2"], 288, 50, ("uncommon",)),
+        (["1", "1", "2", "2", "3"], 600, 80, ("uncommon",)),
+        (["1/2", "1/2", "1/2", "2", "2", "3"], 550, 67, ("uncommon",)),
+        (["1", "1", "3", "5"], 1088, 1000, ("uncommon",)),
+    ],
+    2: [
+        (["1", "1", "2", "4", "4"], 915, 100, ("uncommon", "rare")),
+        (["2", "2", "4", "5"], 1425, 125, ("uncommon", "rare")),
+        (["2", "3", "4", "5"], 1519, 150, ("uncommon", "rare")),
+        (["2", "3", "4", "6"], 1707, 150, ("uncommon", "rare")),
+        (["3", "3", "4", "6"], 1800, 175, ("rare",)),
+        (["1", "1", "3", "5", "7"], 1740, 140, ("rare",)),
+        (["2", "2", "3", "5", "7"], 1890, 160, ("rare",)),
+        (["2", "2", "4", "4", "8"], 2100, 160, ("rare",)),
+        (["3", "3", "3", "10"], 3000, 10000, ("very rare",), "Roll 1d4 to determine which item spawns.", 2),
+    ],
+    3: [
+        (["1", "1", "2", "4", "9"], 2085, 800, ("rare", "very rare")),
+        (["1", "1", "2", "5", "9"], 2295, 800, ("rare", "very rare")),
+        (["3", "4", "6", "10"], 3750, 1250, ("rare", "very rare")),
+        (["3", "3", "7", "11"], 4313, 1250, ("rare", "very rare")),
+        (["4", "8", "12"], 6700, 2000, ("very rare",)),
+        (["3", "3", "8", "12"], 5138, 1500, ("very rare",)),
+        (["2", "2", "9", "13"], 5963, 1750, ("very rare",)),
+        (["4", "6", "6", "14"], 6300, 1750, ("very rare",)),
+        (["3", "3", "4", "6", "16"], 5940, 40000, ("legendary",)),
+    ],
+    4: [
+        (["9", "9", "14", "15"], 8625, 12500, ("very rare", "legendary")),
+        (["8", "10", "13", "16"], 8700, 12500, ("very rare", "legendary")),
+        (["10", "11", "14", "17"], 10650, 25000, ("very rare", "legendary")),
+        (["8", "11", "14", "14", ("17", "18", "19")], None, 20000, ("very rare", "legendary")),
+        (["10", "10", "15", ("20", "21", "22", "23", "24")], None, None, ()),
+    ],
+}
+
+
+def _build_endless_cycle_monsters(cycle_number):
+    cycle_monsters = []
+
+    for encounter_number, encounter_data in enumerate(
+        ENDLESS_CYCLE_ENCOUNTERS.get(cycle_number, []),
+        start=1,
+    ):
+        cr_sequence, xp, gold, rarities = encounter_data[:4]
+        reward_note = encounter_data[4] if len(encounter_data) > 4 else None
+        items_per_monster = encounter_data[5] if len(encounter_data) > 5 else 1
+        for cr_entry in cr_sequence:
+            cr = random.choice(cr_entry) if isinstance(cr_entry, tuple) else cr_entry
+            monster = {
+                "name": random.choice(MONSTERS[str(cr)]),
+                "cr": str(cr),
+                "encounter_number": encounter_number,
+            }
+            if reward_note:
+                monster["encounter_note"] = reward_note
+            if xp is not None:
+                monster["xp"] = xp
+            if gold is not None:
+                monster["gold"] = gold
+            if rarities:
+                generated_items = [
+                    get_random_magic_item(random.choice(rarities))
+                    for _ in range(items_per_monster)
+                ]
+                if items_per_monster == 1:
+                    monster["item"] = generated_items[0]
+                else:
+                    monster["item"] = {
+                        "name": " / ".join(item["name"] for item in generated_items),
+                        "rarity": generated_items[0]["rarity"],
+                    }
+            cycle_monsters.append(monster)
+
+    return cycle_monsters
+
+
+def _build_endless_cycle_shop(cycle_number):
+    standard_shop_encounters = {1: 5, 2: 16, 3: 27}
+    encounter_number = standard_shop_encounters.get(cycle_number)
+    if encounter_number is None:
+        return None
+
+    shop = generate_encounter(encounter_number, {})
+    shop["rest"] = "Long Rest"
+    return shop
+
+
+def build_endless_trials_run():
+    cycle_definitions = {
+        1: {"name": "Cycle I", "rules": [
+            "Standard encounters with monsters only.",
+            "No environmental hazards or special adjustments.",
+            "Each defeated creature grants XP, gold, and one magical item.",
+        ]},
+        2: {"name": "Cycle II", "rules": [
+            "Environmental hazards appear mid-cycle and shift the battlefield.",
+            "Monsters are affected by hazards, but are immune to each other's abilities.",
+            "Cycle I effects persist.",
+        ]},
+        3: {"name": "Cycle III", "rules": [
+            "All monsters have advantage on Initiative rolls.",
+            "The party receives 2 rations for the cycle.",
+            "Effects from Cycles I and II persist.",
+        ]},
+        4: {"name": "Cycle IV", "rules": [
+            "All monsters use their maximum possible hit points.",
+            "Environmental hazards and Initiative Advantage remain active.",
+            "No shop appears after the final cycle.",
+        ]},
+    }
+
+    cycle_data = []
+    for cycle_number in [1, 2, 3, 4]:
+        cycle_monsters = _build_endless_cycle_monsters(cycle_number)
+        cycle_data.append({
+            "cycle": cycle_number,
+            "name": cycle_definitions[cycle_number]["name"],
+            "rules": cycle_definitions[cycle_number]["rules"],
+            "monsters": cycle_monsters,
+            "shop": _build_endless_cycle_shop(cycle_number),
+        })
+
+    surge_ids = list(WILD_SURGES.keys())
+    random.shuffle(surge_ids)
+    wild_surges = [
+        {"id": surge_id, **WILD_SURGES[surge_id]}
+        for surge_id in surge_ids
+    ]
+
+    return {
+        "mode": "The Endless Trials",
+        "session_duration_minutes": 120,
+        "total_cycles": 4,
+        "cycle_order": [1, 2, 3, 4],
+        "cycles": cycle_data,
+        "wild_surges": wild_surges,
+        "divine_blessing": generate_divine_blessing("endless_trials"),
+    }
+
+
+def generate_run_for_mode(mode="mortal_trials"):
+    normalized_mode = (mode or "mortal_trials").strip().lower().replace(" ", "_")
+
+    if normalized_mode in {"endless", "endless_trials"}:
+        run = build_endless_trials_run()
+        return {
+            "mode": "The Endless Trials",
+            "divine_blessing": run["divine_blessing"],
+            "cycles": run["cycles"],
+            "wild_surges": run["wild_surges"],
+            "session_duration_minutes": run["session_duration_minutes"],
+            "total_cycles": run["total_cycles"],
+            "cycle_order": run["cycle_order"],
+        }
+
+    encounters = generate_all_encounters(39)
+    formatted_encounters = [[index, encounter] for index, encounter in enumerate(encounters, 1)]
+    return {
+        "mode": "The Mortal Trials",
+        "divine_blessing": generate_divine_blessing("mortal_trials"),
+        "encounters": formatted_encounters,
+    }
+
 
 def initialize_run_state():
     return {

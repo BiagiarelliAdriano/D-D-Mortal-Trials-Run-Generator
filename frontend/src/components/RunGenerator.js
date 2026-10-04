@@ -24,6 +24,8 @@ const RunGenerator = () => {
     const [timeUntilReset, setTimeUntilReset] = useState(null);
     const [expandedEncounters, setExpandedEncounters] = useState({});
     const [wildSurgeVisible, setWildSurgeVisible] = useState({});
+    const [wildSurgesExpanded, setWildSurgesExpanded] = useState(false);
+    const [selectedMode, setSelectedMode] = useState('mortal_trials');
     // Host-mode saved run picker
     const [selectedSavedRunId, setSelectedSavedRunId] = useState(null);
     const [savedRuns, setSavedRuns] = useState([]);
@@ -187,7 +189,7 @@ const RunGenerator = () => {
         setLoading(true);
         setError(null);
         try {
-            const response = await fetch(`${API_BASE_URL}/api/run/generate`, {
+            const response = await fetch(`${API_BASE_URL}/api/run/generate?mode=${encodeURIComponent(selectedMode)}`, {
                 method: 'GET',
                 headers: token ? { 'Authorization': `Bearer ${token}` } : {}
             });
@@ -245,6 +247,28 @@ const RunGenerator = () => {
         setWildSurgeVisible(prev => ({ ...prev, [id]: !prev[id] }));
     };
 
+    const getDisplayItemName = (item) => {
+        if (!item) return 'No item';
+        if (typeof item === 'string') return item;
+        if (typeof item.name === 'string') return item.name;
+        if (item.name && typeof item.name === 'object' && typeof item.name.name === 'string') return item.name.name;
+        return 'Unknown item';
+    };
+
+    const groupCycleMonsters = (monsters) => {
+        const groups = [];
+        monsters.forEach(monster => {
+            const encounterNumber = monster.encounter_number ?? 1;
+            let group = groups[groups.length - 1];
+            if (!group || group.encounterNumber !== encounterNumber) {
+                group = { encounterNumber, monsters: [] };
+                groups.push(group);
+            }
+            group.monsters.push(monster);
+        });
+        return groups;
+    };
+
     const renderEncounterContent = (id, encounter) => {
         if (encounter.type === "Shop Encounter") {
             return (
@@ -291,7 +315,7 @@ const RunGenerator = () => {
                     <div className="detail-section">
                         <h4><i className="fa-solid fa-skull"></i> Monsters</h4>
                         <ul className="monster-list">
-                            {encounter.monsters.map((m, i) => <li key={i}>{m}</li>)}
+                            {encounter.monsters.map((m, i) => <li key={i}>{typeof m === 'string' ? m : `${m.name} — ${m.cr} CR — ${m.xp} XP — ${m.gold}g — ${m.item?.name || 'No item'}`}</li>)}
                         </ul>
                     </div>
                 )}
@@ -336,25 +360,25 @@ const RunGenerator = () => {
     };
 
     const handlePrint = () => {
-        // Save current expanded state
+        if (!runData) return;
+
         const originalExpanded = { ...expandedEncounters };
         const originalWildSurge = { ...wildSurgeVisible };
 
-        // Expand everything for print
-        const allExpanded = {};
-        const allWildSurge = {};
-        runData.encounters.forEach(([num]) => {
-            allExpanded[num] = true;
-            allWildSurge[num] = true;
-        });
+        if (runData.encounters) {
+            const allExpanded = {};
+            const allWildSurge = {};
+            runData.encounters.forEach(([num]) => {
+                allExpanded[num] = true;
+                allWildSurge[num] = true;
+            });
 
-        setExpandedEncounters(allExpanded);
-        setWildSurgeVisible(allWildSurge);
+            setExpandedEncounters(allExpanded);
+            setWildSurgeVisible(allWildSurge);
+        }
 
-        // Wait for state to apply and DOM to render
         setTimeout(() => {
             window.print();
-            // Restore original state
             setExpandedEncounters(originalExpanded);
             setWildSurgeVisible(originalWildSurge);
         }, 500);
@@ -564,6 +588,30 @@ const RunGenerator = () => {
 
             {error && <div className="error-message">{error}</div>}
 
+            <div className="mode-selector-panel">
+                <div className="mode-selector-header">
+                    <span className="mode-selector-label">Game Mode</span>
+                </div>
+                <div className="mode-toggle-group" role="tablist" aria-label="Run mode selector">
+                    <button
+                        type="button"
+                        className={`mode-toggle-btn ${selectedMode === 'mortal_trials' ? 'active' : ''}`}
+                        onClick={() => setSelectedMode('mortal_trials')}
+                    >
+                        <span className="mode-title">The Mortal Trials</span>
+                        <span className="mode-subtitle">Classic progression</span>
+                    </button>
+                    <button
+                        type="button"
+                        className={`mode-toggle-btn ${selectedMode === 'endless_trials' ? 'active' : ''}`}
+                        onClick={() => setSelectedMode('endless_trials')}
+                    >
+                        <span className="mode-title">The Endless Trials</span>
+                        <span className="mode-subtitle">Endless waves • stacked hazards</span>
+                    </button>
+                </div>
+            </div>
+
             {generationLimit && !generationLimit.unlimited && (
                 <div className="generation-limit-bar">
                     <div className="generation-limit-info">
@@ -666,7 +714,7 @@ const RunGenerator = () => {
                                         </span>
                                         <span>
                                             <i className="fa-solid fa-skull"></i>{' '}
-                                            {run.data.encounters?.length || 0} Encounters
+                                            {run.data.mode === 'The Endless Trials' ? `${run.data.total_cycles || run.data.cycles?.length || 4} Cycles` : `${run.data.encounters?.length || 0} Encounters`}
                                         </span>
                                         {run.data.divine_blessing && (
                                             <span>
@@ -712,24 +760,143 @@ const RunGenerator = () => {
                         </section>
                     )}
 
-                    <div className="encounters-list">
-                        {runData.encounters.map(([num, encounter]) => (
-                            <div
-                                key={num}
-                                className={`encounter-card ${expandedEncounters[num] ? 'expanded' : ''} ${encounter.type === "Shop Encounter" ? 'shop' : 'combat'}`}
-                                onClick={() => toggleEncounter(num)}
-                            >
-                                <div className="encounter-header">
-                                    <div className="encounter-num">{num}</div>
-                                    <h3>{encounter.type || `Encounter ${num}`}</h3>
-                                    <div className="expand-icon">
-                                        <i className={`fa-solid fa-chevron-${expandedEncounters[num] ? 'up' : 'down'}`}></i>
-                                    </div>
-                                </div>
-                                {expandedEncounters[num] && renderEncounterContent(num, encounter)}
+                    {runData.mode === 'The Endless Trials' ? (
+                        <div className="endless-trials-results">
+                            <div className="endless-trials-summary">
+                                <div className="summary-badge">{runData.mode}</div>
                             </div>
-                        ))}
-                    </div>
+
+                            {runData.wild_surges && (
+                                <section className="wild-surge-deck-card">
+                                    <div className="wild-surge-deck-header">
+                                        <h3><i className="fa-solid fa-bolt"></i> Wild Surge Deck</h3>
+                                        <button
+                                            type="button"
+                                            className={`wild-surge-expand-btn ${wildSurgesExpanded ? 'active' : ''}`}
+                                            onClick={() => setWildSurgesExpanded(prev => !prev)}
+                                            aria-expanded={wildSurgesExpanded}
+                                        >
+                                            {wildSurgesExpanded ? 'Hide' : 'View'}
+                                            <i className={`fa-solid fa-chevron-${wildSurgesExpanded ? 'up' : 'down'}`}></i>
+                                        </button>
+                                    </div>
+                                    {wildSurgesExpanded && (
+                                        <ol className="wild-surge-deck-list">
+                                            {runData.wild_surges.map((surge, index) => (
+                                                <li key={surge.id || index}>
+                                                    <div className="wild-surge-box">
+                                                        <button
+                                                            className={`wild-surge-toggle ${wildSurgeVisible[`endless-${surge.id || index}`] ? 'active' : ''}`}
+                                                            onClick={(e) => toggleWildSurge(e, `endless-${surge.id || index}`)}
+                                                            aria-expanded={!!wildSurgeVisible[`endless-${surge.id || index}`]}
+                                                        >
+                                                            <i className="fa-solid fa-bolt"></i> {surge.name}
+                                                        </button>
+                                                        {wildSurgeVisible[`endless-${surge.id || index}`] && (
+                                                            <div className="wild-surge-content">
+                                                                <p><strong>Description:</strong> {surge.description}</p>
+                                                                <p className="echo-asc"><strong>Echo Of Ascendance:</strong> {surge["echo of ascendance"]}</p>
+                                                                <p className="echo-ruin"><strong>Echo Of Ruin:</strong> {surge["echo of ruin"]}</p>
+                                                                <p className="worldshift"><strong>Worldshift Trait:</strong> {surge["worldshift trait"]}</p>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </li>
+                                            ))}
+                                        </ol>
+                                    )}
+                                </section>
+                            )}
+
+                            {runData.cycles.map((cycle) => (
+                                <div key={cycle.cycle} className="endless-cycle-card">
+                                    <div className="endless-cycle-header">
+                                        <h3>{cycle.name}</h3>
+                                        {cycle.shop && (
+                                            <span className="shop-badge"><i className="fa-solid fa-shop"></i> Shop</span>
+                                        )}
+                                    </div>
+
+                                    <div className="cycle-rules">
+                                        {cycle.rules.map((rule, index) => (
+                                            <div key={index} className="rule-line">• {rule}</div>
+                                        ))}
+                                    </div>
+
+                                    <div className="cycle-encounters">
+                                        {groupCycleMonsters(cycle.monsters).map(({ encounterNumber, monsters }) => (
+                                            <section key={`${cycle.cycle}-${encounterNumber}`} className="cycle-encounter-group">
+                                                <div className="cycle-encounter-heading">
+                                                    <h4>Encounter {encounterNumber}</h4>
+                                                    {monsters[0]?.encounter_note && (
+                                                        <span>{monsters[0].encounter_note}</span>
+                                                    )}
+                                                </div>
+                                                <div className="cycle-monster-list">
+                                                    {monsters.map((monster, index) => (
+                                                        <div key={`${cycle.cycle}-${encounterNumber}-${index}`} className="cycle-monster-row">
+                                                            <span className="monster-name">{monster.name}</span>
+                                                            <span className="monster-meta">CR {monster.cr}</span>
+                                                            {monster.xp != null && <span className="monster-meta">{monster.xp.toLocaleString()} XP</span>}
+                                                            {monster.gold != null && <span className="monster-meta">{monster.gold.toLocaleString()} GP</span>}
+                                                            {monster.item && <span className="monster-item">{getDisplayItemName(monster.item)}</span>}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </section>
+                                        ))}
+                                    </div>
+
+                                    {cycle.shop && (
+                                        <div className="cycle-shop-box">
+                                            <div className="cycle-shop-heading">
+                                                <h4><i className="fa-solid fa-shop"></i> Cycle Shop</h4>
+                                                <span>{cycle.shop.rest} · {cycle.shop.total_gold?.toLocaleString()} GP</span>
+                                            </div>
+                                            {cycle.shop.rarity_mix && (
+                                                <div className="cycle-shop-rarity-mix">
+                                                    {Object.entries(cycle.shop.rarity_mix).map(([rarity, count]) => (
+                                                        <span key={rarity} className={`rarity-tag ${rarity.replace(/\s+/g, '-')}`}>
+                                                            {rarity}: {count}
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            )}
+                                            {Object.entries(cycle.shop.items_by_category).map(([category, items]) => (
+                                                <div key={category} className="cycle-shop-category">
+                                                    <strong>{category}</strong>
+                                                    <div className="cycle-shop-items">
+                                                        {items.map((item, idx) => (
+                                                            <span key={idx}>{getDisplayItemName(item)}</span>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="encounters-list">
+                            {runData.encounters.map(([num, encounter]) => (
+                                <div
+                                    key={num}
+                                    className={`encounter-card ${expandedEncounters[num] ? 'expanded' : ''} ${encounter.type === "Shop Encounter" ? 'shop' : 'combat'}`}
+                                    onClick={() => toggleEncounter(num)}
+                                >
+                                    <div className="encounter-header">
+                                        <div className="encounter-num">{num}</div>
+                                        <h3>{encounter.type || `Encounter ${num}`}</h3>
+                                        <div className="expand-icon">
+                                            <i className={`fa-solid fa-chevron-${expandedEncounters[num] ? 'up' : 'down'}`}></i>
+                                        </div>
+                                    </div>
+                                    {expandedEncounters[num] && renderEncounterContent(num, encounter)}
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </main>
             )}
             <BackToTop />

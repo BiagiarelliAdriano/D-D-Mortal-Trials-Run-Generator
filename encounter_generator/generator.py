@@ -4,8 +4,16 @@ from encounter_generator.data.constants import possible_rarities, enspell_levels
 from encounter_generator.data.items import MAGIC_ITEMS, WONDROUS_ITEMS
 from encounter_generator.data.spells import SPELLS
 
-def generate_divine_blessing():
-    return random.choice(DIVINE_BLESSINGS)
+def generate_divine_blessing(mode="mortal_trials"):
+    normalized_mode = (mode or "mortal_trials").strip().lower().replace(" ", "_")
+
+    if normalized_mode == "endless_trials":
+        endless_blessing = next((blessing for blessing in DIVINE_BLESSINGS if blessing["name"] == "Endless"), None)
+        if endless_blessing is not None:
+            return endless_blessing
+
+    eligible_blessings = [blessing for blessing in DIVINE_BLESSINGS if blessing["name"] != "Endless"]
+    return random.choice(eligible_blessings)
 
 def get_rations():
     roll = random.randint(1, 10)
