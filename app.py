@@ -2,7 +2,7 @@ import math
 import copy
 import re
 
-from flask import Flask, request, render_template, redirect, url_for, jsonify
+from flask import Flask, request, render_template, redirect, url_for, jsonify, send_from_directory
 from datetime import datetime
 from flask_migrate import Migrate
 from flask_cors import CORS
@@ -495,6 +495,14 @@ def allowed_file(filename):
 @app.route("/")
 def home():
     return render_template("index.html")
+
+@app.route("/robots.txt")
+def robots_txt():
+    return send_from_directory(app.static_folder, "robots.txt", mimetype="text/plain")
+
+@app.route("/sitemap.xml")
+def sitemap_xml():
+    return send_from_directory(app.static_folder, "sitemap.xml", mimetype="application/xml")
 
 CLASSES = {
     "barbarian": BARBARIAN,
