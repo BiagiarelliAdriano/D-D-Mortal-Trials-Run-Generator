@@ -558,8 +558,19 @@ def get_weapons():
 @app.route("/api/auth/register", methods=["POST"])
 def register():
     data = request.json
-    if not data or not data.get("username") or not data.get("password") or not data.get("security_answer"):
+    if (
+        not isinstance(data, dict)
+        or not data.get("username")
+        or not data.get("password")
+        or not data.get("security_answer")
+        or not isinstance(data.get("discord_id"), str)
+        or not data["discord_id"].strip()
+    ):
         return jsonify({"error": "Missing required fields"}), 400
+
+    discord_id = data["discord_id"].strip()
+    if not discord_id.isdigit() or not 17 <= len(discord_id) <= 19:
+        return jsonify({"error": "Discord ID must be 17 to 19 digits"}), 400
         
     username = data["username"].strip()
     if User.query.filter_by(username=username).first():
@@ -568,7 +579,7 @@ def register():
     user = User(
         username=username,
         avatar=data.get("avatar", ""),
-        discord_id=data.get("discord_id", "").strip() or None,
+        discord_id=discord_id,
         security_question=data.get("security_question", "What is the name of your very first Dungeons & Dragons character?").strip()
     )
     user.set_password(data["password"])
@@ -714,7 +725,7 @@ def update_user_profile(user_id):
         is_connected = requested_patreon_connected is None or requested_patreon_connected.lower() == "true"
         user.patreon_tier = tier or None
         user.patreon_connected = bool(is_connected and tier)
-        
+
     # Handle Avatar Upload
     if 'avatar_file' in request.files:
         file = request.files['avatar_file']
