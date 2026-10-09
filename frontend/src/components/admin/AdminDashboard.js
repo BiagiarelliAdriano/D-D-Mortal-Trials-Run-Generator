@@ -372,6 +372,7 @@ const AdminDashboard = () => {
                                                                 <div className="user-meta-info">
                                                                     <h3>Manage {u.username}</h3>
                                                                     <span className="joined-date">Joined on {new Date(u.created_at).toLocaleDateString()}</span>
+                                                                    <span className="security-q">Discord ID: <strong>{u.discord_id || 'Not provided'}</strong></span>
                                                                     <span className="security-q">Security Question: <strong>{u.security_question || 'None set'}</strong></span>
                                                                 </div>
                                                             </div>

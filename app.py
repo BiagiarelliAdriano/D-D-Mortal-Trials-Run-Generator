@@ -1132,6 +1132,7 @@ def admin_system():
             "id": u.id,
             "username": u.username,
             "avatar": u.avatar,
+            "discord_id": u.discord_id,
             "is_admin": u.is_admin,
             "patreon_connected": bool(u.patreon_connected),
             "patreon_tier": u.patreon_tier,
