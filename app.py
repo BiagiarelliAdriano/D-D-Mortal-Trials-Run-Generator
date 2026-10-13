@@ -465,7 +465,7 @@ if os.environ.get("FLASK_ENV") != "production":
     with app.app_context():
         db.create_all()
         try:
-            from sqlalchemy import text
+            from sqlalchemy import inspect, text
             with db.engine.connect() as conn:
                 try:
                     conn.execute(text("ALTER TABLE hosted_run ADD COLUMN is_completed BOOLEAN DEFAULT 0"))
@@ -477,6 +477,17 @@ if os.environ.get("FLASK_ENV") != "production":
                     conn.commit()
                 except Exception:
                     pass
+                if (
+                    inspect(conn).has_table("hosted_run")
+                    and "final_sentence_ration_used" not in {
+                        column["name"]
+                        for column in inspect(conn).get_columns("hosted_run")
+                    }
+                ):
+                    conn.execute(text(
+                        "ALTER TABLE hosted_run ADD COLUMN final_sentence_ration_used BOOLEAN NOT NULL DEFAULT 0"
+                    ))
+                    conn.commit()
         except Exception:
             pass
 
@@ -618,10 +629,6 @@ def get_user_profile(user_id):
     if str(current_user_id) == str(user_id):
         sync_patreon_status(user)
 
-    can_view_sessions = str(current_user_id) == str(user_id) or bool(
-        db.session.get(User, current_user_id).is_admin
-    )
-
     def session_summary(session, role):
         return {
             "id": session.id,
@@ -637,7 +644,7 @@ def get_user_profile(user_id):
         session_summary(session, "DM")
         for session in HostedRun.query.filter_by(dm_id=user.id)
         .order_by(HostedRun.created_at.desc()).all()
-    ] if can_view_sessions else []
+    ]
 
     player_runs = [
         session_summary(participation.hosted_run, "Player")
@@ -646,7 +653,7 @@ def get_user_profile(user_id):
             role="Ascendant"
         ).order_by(SessionParticipant.joined_at.desc()).all()
         if participation.hosted_run
-    ] if can_view_sessions else []
+    ]
         
     return jsonify({
         "id": user.id,
@@ -3114,6 +3121,7 @@ def api_get_hosted_run_details(session_id):
         participants_info.append({
             "user_id": p.user.id,
             "username": p.user.username,
+            "avatar": p.user.avatar,
             "role": p.role,
             "pending_rest": p.pending_rest,
             "character": {
@@ -3207,6 +3215,14 @@ def api_rename_hosted_run(session_id):
         
     return jsonify({"message": "Run renamed successfully", "title": session.run.title_run}), 200
 
+def _apply_final_sentence_ration(session):
+    if not session.final_sentence_ration_used and session.rations <= 0:
+        session.rations = 1.0
+        session.final_sentence_ration_used = True
+        return True
+    return False
+
+
 @app.route("/api/host/<int:session_id>/spend-rations", methods=["POST"])
 @jwt_required()
 def api_spend_rations(session_id):
@@ -3234,6 +3250,7 @@ def api_spend_rations(session_id):
         return jsonify({"error": "Not enough rations"}), 400
         
     session.rations -= cost
+    final_sentence_ration_triggered = _apply_final_sentence_ration(session)
     
     # Notify participants and set pending rest
     for participant in session.participants:
@@ -3251,7 +3268,8 @@ def api_spend_rations(session_id):
     return jsonify({
         "success": True,
         "message": f"{rest_type.capitalize()} Rest initiated.",
-        "rations": session.rations
+        "rations": session.rations,
+        "final_sentence_ration_triggered": final_sentence_ration_triggered
     })
 
 @app.route("/api/host/<int:session_id>/complete", methods=["POST"])
@@ -3370,8 +3388,22 @@ def api_complete_encounter(session_id):
                 })
 
         # 2. Magic Item distribution: surplus / item to Vault
-        if "item" in target_monster and target_monster["item"]:
-            current_inv.append(target_monster["item"])
+        if target_monster.get("item_options"):
+            current_inv.append(random.choice(target_monster["item_options"]))
+        elif target_monster.get("item"):
+            item_reward = target_monster["item"]
+            has_d4_item_choice = (
+                cycle_num == 2
+                and "Roll 1d4" in target_monster.get("encounter_note", "")
+            )
+            if (
+                has_d4_item_choice
+                and isinstance(item_reward, dict)
+                and " / " in item_reward.get("name", "")
+            ):
+                item_options = item_reward["name"].split(" / ", 1)
+                item_reward = {**item_reward, "name": random.choice(item_options)}
+            current_inv.append(item_reward)
 
         # 3. XP distribution
         level_up_ready_chars = []
@@ -3432,6 +3464,7 @@ def api_complete_encounter(session_id):
                 "common_items": {},
             })
 
+        final_sentence_ration_triggered = _apply_final_sentence_ration(session)
         db.session.commit()
 
         m_name = target_monster.get("name", "Monster")
@@ -3441,6 +3474,7 @@ def api_complete_encounter(session_id):
             "vault_gold": vault_gold,
             "rations_found": rations_found,
             "rations": session.rations,
+            "final_sentence_ration_triggered": final_sentence_ration_triggered,
             "monster_id": monster_id,
             "shop_started": shop_started,
             "shop_cycle_name": target_cycle.get("name") if shop_started else None,
@@ -3560,6 +3594,8 @@ def api_complete_encounter(session_id):
         rations_found = float(target_enc["rations"])
         session.rations = round(session.rations + rations_found, 1)
 
+    final_sentence_ration_triggered = _apply_final_sentence_ration(session)
+
     # Update completed encounters
     completed = json.loads(session.completed_encounters)
     if enc_num not in completed:
@@ -3572,7 +3608,8 @@ def api_complete_encounter(session_id):
         "message": f"Encounter {enc_num} completed",
         "party_inventory": current_inv,
         "rations_found": rations_found,
-        "rations": session.rations
+        "rations": session.rations,
+        "final_sentence_ration_triggered": final_sentence_ration_triggered
     }
     if level_up_ready_chars:
         res_data["leveled_up"] = level_up_ready_chars
@@ -4126,23 +4163,26 @@ def api_delete_hosted_run(session_id):
 def api_transfer_item(session_id):
     current_user_id = get_jwt_identity()
     data = request.json
-    
+
     if not data or not data.get("sender_char_id") or not data.get("receiver_char_id") or "item_index" not in data:
         return jsonify({"error": "Missing required transfer data"}), 400
         
     session = db.get_or_404(HostedRun, session_id)
     if not session.is_active:
         return jsonify({"error": "This session is no longer active"}), 400
-        
+
     sender_id = data["sender_char_id"]
     receiver_id = data["receiver_char_id"]
+    transfer_to_vault = receiver_id == "vault"
     item_idx = data["item_index"]
     
     # 1. Validate Participants
     sender_participant = SessionParticipant.query.filter_by(hosted_run_id=session.id, character_id=sender_id).first()
-    receiver_participant = SessionParticipant.query.filter_by(hosted_run_id=session.id, character_id=receiver_id).first()
+    receiver_participant = None if transfer_to_vault else SessionParticipant.query.filter_by(
+        hosted_run_id=session.id, character_id=receiver_id
+    ).first()
     
-    if not sender_participant or not receiver_participant:
+    if not sender_participant or (not transfer_to_vault and not receiver_participant):
         return jsonify({"error": "One or both characters are not in this session"}), 400
         
     # 2. Authorization Check: Owner of sender, DM of session, or Admin
@@ -4157,10 +4197,7 @@ def api_transfer_item(session_id):
         return jsonify({"error": "Unauthorized to transfer items from this character"}), 403
         
     # 3. Perform Transfer
-    receiver_char = db.session.get(Character, receiver_id)
-    
     sender_data = sender_char.get_data()
-    receiver_data = receiver_char.get_data()
     
     sender_inv = sender_data.get("inventory", [])
     if item_idx < 0 or item_idx >= len(sender_inv):
@@ -4169,10 +4206,6 @@ def api_transfer_item(session_id):
     # Extract item
     item = sender_inv.pop(item_idx)
     
-    # Add to receiver (at the top)
-    if "inventory" not in receiver_data:
-        receiver_data["inventory"] = []
-    
     # Add Gift Metadata
     if isinstance(item, str):
         item = {"name": item, "quantity": 1, "category": "Other"}
@@ -4180,18 +4213,27 @@ def api_transfer_item(session_id):
     item["is_new_gift"] = True
     item["from_character_name"] = sender_char.name
     item["from_user_name"] = requesting_user.username
-    
-    receiver_data["inventory"].insert(0, item)
-    
-    # Save both
+
     sender_char.set_data(sender_data)
-    receiver_char.set_data(receiver_data)
+    if transfer_to_vault:
+        party_inventory = json.loads(session.party_inventory or "[]")
+        party_inventory.insert(0, item)
+        session.party_inventory = json.dumps(party_inventory)
+        recipient_name = "the Party Vault"
+    else:
+        receiver_char = db.session.get(Character, receiver_id)
+        receiver_data = receiver_char.get_data()
+        if "inventory" not in receiver_data:
+            receiver_data["inventory"] = []
+        receiver_data["inventory"].insert(0, item)
+        receiver_char.set_data(receiver_data)
+        recipient_name = receiver_char.name
     
     db.session.commit()
     
     return jsonify({
         "success": True, 
-        "message": f"Transferred {item.get('name', 'item')} to {receiver_char.name}",
+        "message": f"Transferred {item.get('name', 'item')} to {recipient_name}",
         "sender_inventory": sender_inv
     }), 200
 
@@ -4237,7 +4279,7 @@ def api_admin_delete_user(user_id):
 def api_transfer_gold(session_id):
     current_user_id = get_jwt_identity()
     data = request.json
-    
+
     if not data or not data.get("sender_char_id") or not data.get("receiver_char_id") or "amount" not in data:
         return jsonify({"error": "Missing required transfer data"}), 400
         
@@ -4247,6 +4289,7 @@ def api_transfer_gold(session_id):
         
     sender_id = data["sender_char_id"]
     receiver_id = data["receiver_char_id"]
+    transfer_to_vault = receiver_id == "vault"
     try:
         amount = int(data["amount"])
     except (ValueError, TypeError):
@@ -4257,9 +4300,11 @@ def api_transfer_gold(session_id):
         
     # 1. Validate Participants
     sender_participant = SessionParticipant.query.filter_by(hosted_run_id=session.id, character_id=sender_id).first()
-    receiver_participant = SessionParticipant.query.filter_by(hosted_run_id=session.id, character_id=receiver_id).first()
+    receiver_participant = None if transfer_to_vault else SessionParticipant.query.filter_by(
+        hosted_run_id=session.id, character_id=receiver_id
+    ).first()
     
-    if not sender_participant or not receiver_participant:
+    if not sender_participant or (not transfer_to_vault and not receiver_participant):
         return jsonify({"error": "One or both characters are not in this session"}), 400
         
     # 2. Authorization Check: Owner of sender, DM of session, or Admin
@@ -4274,39 +4319,46 @@ def api_transfer_gold(session_id):
         return jsonify({"error": "Unauthorized to transfer gold from this character"}), 403
         
     # 3. Perform Transfer
-    receiver_char = db.session.get(Character, receiver_id)
-    
     sender_data = sender_char.get_data()
-    receiver_data = receiver_char.get_data()
     
     sender_gold = int(sender_data.get("gold", 0))
     if sender_gold < amount:
         return jsonify({"error": "Insufficient gold"}), 400
         
-    # Deduct sender, Add receiver
+    # Deduct sender, then deposit to the Vault or add to the recipient.
     sender_data["gold"] = sender_gold - amount
-    receiver_data["gold"] = int(receiver_data.get("gold", 0)) + amount
-    
-    # Add gold gift notification to receiver
-    if "gold_gifts" not in receiver_data:
-        receiver_data["gold_gifts"] = []
-    
-    # Limit number of pending notifications to avoid data bloat
-    receiver_data["gold_gifts"] = receiver_data["gold_gifts"][-9:] 
-    receiver_data["gold_gifts"].append({
-        "amount": amount,
-        "from_character_name": sender_char.name,
-        "timestamp": datetime.now().isoformat()
-    })
-    
     sender_char.set_data(sender_data)
-    receiver_char.set_data(receiver_data)
+    if transfer_to_vault:
+        vault_gold = json.loads(session.vault_gold or "[]")
+        vault_gold.append({
+            "amount": amount,
+            "count": 1,
+            "source": f"Transferred by {sender_char.name}"
+        })
+        session.vault_gold = json.dumps(vault_gold)
+        recipient_name = "the Party Vault"
+    else:
+        receiver_char = db.session.get(Character, receiver_id)
+        receiver_data = receiver_char.get_data()
+        receiver_data["gold"] = int(receiver_data.get("gold", 0)) + amount
+
+        # Limit the number of pending notifications to avoid data bloat.
+        if "gold_gifts" not in receiver_data:
+            receiver_data["gold_gifts"] = []
+        receiver_data["gold_gifts"] = receiver_data["gold_gifts"][-9:]
+        receiver_data["gold_gifts"].append({
+            "amount": amount,
+            "from_character_name": sender_char.name,
+            "timestamp": datetime.now().isoformat()
+        })
+        receiver_char.set_data(receiver_data)
+        recipient_name = receiver_char.name
     
     db.session.commit()
     
     return jsonify({
         "success": True, 
-        "message": f"Transferred {amount} GP to {receiver_char.name}",
+        "message": f"Transferred {amount} GP to {recipient_name}",
         "new_gold": sender_data["gold"]
     }), 200
 

@@ -41,12 +41,20 @@ const UserProfile = () => {
     }, [id, token]);
 
     useEffect(() => {
+        setEditMode(false);
+        setAvatarFile(null);
+        setAvatarPreview(null);
         fetchProfile();
     }, [fetchProfile]);
 
     useEffect(() => {
         const handleOAuthMessage = (event) => {
-            if (event.data && event.data.success && event.data.patreon_connected) {
+            if (
+                currentUser?.id === parseInt(id, 10) &&
+                event.data &&
+                event.data.success &&
+                event.data.patreon_connected
+            ) {
                 fetchProfile();
                 
                 // Update local profile data state
@@ -205,14 +213,13 @@ const UserProfile = () => {
     if (error) return <div className="profile-container"><div className="auth-error">{error}</div></div>;
     if (!profileData) return null;
 
-    const isOwner = currentUser?.id === profileData.id;
-    const isAdmin = currentUser?.is_admin;
-    const canEdit = isOwner || isAdmin;
+    const isOwner = currentUser?.id === parseInt(id, 10) && currentUser?.id === profileData.id;
+    const canEdit = isOwner;
 
     const getAvatarDisplay = () => {
         const avatar = avatarPreview || profileData.avatar;
         let tierClass = "free-tier";
-        if (profileData.patreon_connected && profileData.patreon_tier) {
+        if (isOwner && profileData.patreon_connected && profileData.patreon_tier) {
             const tierLower = profileData.patreon_tier.toLowerCase();
             if (tierLower.includes("warden")) tierClass = "tier-warden";
             else if (tierLower.includes("ascended")) tierClass = "tier-ascended";
@@ -244,10 +251,9 @@ const UserProfile = () => {
             {runs.length > 0 ? (
                 <div className="profile-run-grid">
                     {runs.map(run => (
-                        <button
+                        <div
                             key={`${run.role}-${run.id}`}
                             className="profile-run-card"
-                            onClick={() => window.open(`/hosting/${run.id}`, '_blank')}
                         >
                             <div className="profile-run-card-header">
                                 <h3>{run.title}</h3>
@@ -260,7 +266,7 @@ const UserProfile = () => {
                                 <span>{run.participant_count} participant{run.participant_count === 1 ? '' : 's'}</span>
                                 <span>{new Date(run.created_at).toLocaleDateString()}</span>
                             </div>
-                        </button>
+                        </div>
                     ))}
                 </div>
             ) : (
@@ -275,7 +281,7 @@ const UserProfile = () => {
                 <div className="profile-header">
                     <div className="profile-avatar-container">
                         {getAvatarDisplay()}
-                        {profileData.patreon_connected && (
+                        {isOwner && profileData.patreon_connected && (
                             <div 
                                 className={`patreon-avatar-badge ${profileData.patreon_tier ? 'active' : 'inactive'}`} 
                                 title={profileData.patreon_tier || "Patreon Connected"}
@@ -288,6 +294,9 @@ const UserProfile = () => {
                         <h1>{profileData.username}</h1>
                         <p className="profile-meta">Joined the Trials on {new Date(profileData.created_at).toLocaleDateString()}</p>
                         {profileData.is_admin && <span className="level-tag">Creator</span>}
+                        <span className={`profile-view-status ${isOwner ? 'is-owner' : 'is-visitor'}`}>
+                            {isOwner ? 'Your Profile' : `Viewing ${profileData.username}'s profile`}
+                        </span>
                     </div>
                     {canEdit && !editMode && (
                         <div className="profile-actions-wrapper">
@@ -397,10 +406,11 @@ const UserProfile = () => {
                     {profileData.characters.length > 0 ? (
                         <div className="profile-char-grid">
                             {profileData.characters.map(char => (
-                                <div
+                                <button
+                                    type="button"
                                     key={char.id}
                                     className="character-card"
-                                    onClick={() => window.open(`/characters/${char.id}`, '_blank')}
+                                    onClick={() => window.open(`/characters/${char.id}?view=profile`, '_blank')}
                                 >
                                     <div className="card-header">
                                         <h3>{char.name}</h3>
@@ -409,7 +419,7 @@ const UserProfile = () => {
                                     <div className="card-info">
                                         <span>{char.class_name}</span>
                                     </div>
-                                </div>
+                                </button>
                             ))}
                         </div>
                     ) : (
@@ -425,16 +435,16 @@ const UserProfile = () => {
                     )}
 
                     {renderRunSection(
-                        'Runs I Host',
+                        isOwner ? 'Runs I Host' : 'Runs Hosted',
                         profileData.hosted_runs || [],
-                        'You are not hosting any Runs yet.',
+                        isOwner ? 'You are not hosting any Runs yet.' : 'No hosted Runs to show.',
                         'fa-tower-broadcast'
                     )}
 
                     {renderRunSection(
-                        'Runs I Play',
+                        isOwner ? 'Runs I Play' : 'Runs Joined',
                         profileData.player_runs || [],
-                        'You are not playing in any Hosted Runs yet.',
+                        isOwner ? 'You are not playing in any Hosted Runs yet.' : 'No joined Runs to show.',
                         'fa-user-group'
                     )}
                 </div>

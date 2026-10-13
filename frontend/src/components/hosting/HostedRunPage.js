@@ -7,6 +7,8 @@ import UserProfilePill from '../UserProfilePill';
 import '../../styles/HostedRunPage.css';
 import API_BASE_URL from '../../config';
 
+const FINAL_SENTENCE_RATION_MESSAGE = "The Bearer of the Final Sentence grants the Party an additional Ration. Use it wisely!";
+
 const HostedRunPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
@@ -194,6 +196,9 @@ const HostedRunPage = () => {
                 if (data.rations !== undefined) {
                     setSession(prev => prev ? { ...prev, rations: data.rations } : prev);
                 }
+                if (data.final_sentence_ration_triggered) {
+                    addAlert(FINAL_SENTENCE_RATION_MESSAGE, "info");
+                }
                 fetchSessionDetails();
                 const rationText = data.rations_found > 0 ? ` +${formatRations(data.rations_found)} ration${data.rations_found === 1 ? '' : 's'}.` : '';
                 setNotice({ message: `Encounter #${num} marked as complete!${rationText}`, type: 'success' });
@@ -278,6 +283,9 @@ const HostedRunPage = () => {
                 if (data.rations !== undefined) {
                     setSession(prev => prev ? { ...prev, rations: data.rations } : prev);
                 }
+                if (data.final_sentence_ration_triggered) {
+                    addAlert(FINAL_SENTENCE_RATION_MESSAGE, "info");
+                }
                 fetchSessionDetails();
                 const noticeMessage = data.shop_started
                     ? `${data.shop_cycle_name} complete! The shop is open for players.`
@@ -309,7 +317,11 @@ const HostedRunPage = () => {
             });
             const data = await response.json();
             if (response.ok) {
-                addAlert(`${label} prepared for linked characters.`, "success");
+                if (data.final_sentence_ration_triggered) {
+                    addAlert(FINAL_SENTENCE_RATION_MESSAGE, "info");
+                } else {
+                    addAlert(`${label} prepared for linked characters.`, "success");
+                }
                 setSession(prev => prev ? { ...prev, rations: data.rations } : prev);
                 fetchSessionDetails();
             } else {
@@ -1329,12 +1341,24 @@ const HostedRunPage = () => {
                                 <div key={p.user_id} className={`participant-card ${p.role === 'DM' ? 'dm' : ''} ${p.user_id === currentUser?.id ? 'is-me' : ''}`}>
                                     <div className="p-header">
                                         <div className="p-avatar">
-                                            {p.username.substring(0, 2).toUpperCase()}
+                                            <span aria-hidden="true">{p.username.substring(0, 2).toUpperCase()}</span>
+                                            {p.avatar && (
+                                                <img
+                                                    src={p.avatar}
+                                                    alt={`${p.username}'s profile avatar`}
+                                                    onError={(event) => { event.currentTarget.style.display = 'none'; }}
+                                                />
+                                            )}
                                         </div>
-                                        <div className="p-names">
+                                        <button
+                                            type="button"
+                                            className="p-names p-profile-link"
+                                            onClick={() => navigate(`/profile/${p.user_id}`)}
+                                            aria-label={`View ${p.username}'s profile`}
+                                        >
                                             <strong>{p.username}</strong>
                                             <span>{p.role}</span>
-                                        </div>
+                                        </button>
                                     </div>
                                     {p.character ? (
                                         <div className="p-char-preview">

@@ -264,6 +264,7 @@ class HostedRun(db.Model):
     vault_gold = db.Column(db.Text, default='[]')
     shop_state = db.Column(db.Text, nullable=True)
     rations = db.Column(db.Float, default=3.0, nullable=False)
+    final_sentence_ration_used = db.Column(db.Boolean, default=False, nullable=False)
     is_active = db.Column(db.Boolean, default=True)
     is_completed = db.Column(db.Boolean, default=False, nullable=False)
     completed_at = db.Column(db.DateTime, nullable=True)

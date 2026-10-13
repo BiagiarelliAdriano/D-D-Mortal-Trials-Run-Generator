@@ -87,6 +87,21 @@
     font-family: var(--font-sans);
 }
 
+.profile-view-status {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 4px 10px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    color: var(--text-dim);
+    font-size: 0.8rem;
+}
+
+.profile-view-status.is-owner {
+    border-color: var(--success);
+    color: var(--success);
+}
+
 .edit-profile-btn {
     margin-left: auto;
     background: rgba(255, 255, 255, 0.05);
@@ -314,10 +329,13 @@
 }
 
 .character-card {
+    width: 100%;
     background: var(--bg-card);
     backdrop-filter: blur(10px);
     border: 1px solid var(--border);
     border-radius: 16px;
+    color: inherit;
+    font: inherit;
     padding: 25px;
     position: relative;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -325,6 +343,7 @@
     flex-direction: column;
     gap: 15px;
     cursor: pointer;
+    text-align: left;
 }
 
 .character-card:hover {
@@ -332,6 +351,11 @@
     background: var(--bg-card-hover);
     border-color: var(--accent);
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), 0 0 15px rgba(255, 215, 0, 0.2);
+}
+
+.character-card:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
 }
 
 .card-header h3 {
@@ -361,21 +385,13 @@
 }
 
 .profile-run-card {
+    display: block;
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid var(--border);
     border-radius: 12px;
     color: var(--text-main);
-    cursor: pointer;
     padding: 20px;
     text-align: left;
-    transition: all 0.3s ease;
-}
-
-.profile-run-card:hover {
-    background: var(--bg-card-hover);
-    border-color: var(--accent);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-    transform: translateY(-4px);
 }
 
 .profile-run-card-header {

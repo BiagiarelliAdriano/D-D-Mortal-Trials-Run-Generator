@@ -2057,7 +2057,8 @@ function CharacterSheet() {
     const { addAlert, updateAlert, confirm } = useNotification();
     const location = useLocation();
 
-    const isEditMode = location.pathname.endsWith('/edit');
+    const profileReadOnly = new URLSearchParams(location.search).get('view') === 'profile';
+    const isEditMode = !profileReadOnly && location.pathname.endsWith('/edit');
     const [character, setCharacter] = useState(null);
 
     const isOwner = currentUser?.id && character?.user_id === currentUser?.id;
@@ -3213,7 +3214,8 @@ function CharacterSheet() {
 
     const transferItem = async (index, targetCharId) => {
         const itemToTransfer = inventoryItems[index];
-        if (!await confirm(`Are you sure you want to send ${itemToTransfer.name} to this character?`)) return;
+        const recipientName = targetCharId === 'vault' ? 'the Party Vault' : 'this character';
+        if (!await confirm(`Are you sure you want to send ${itemToTransfer.name} to ${recipientName}?`)) return;
 
         try {
             const res = await fetch(`${API_BASE_URL}/api/host/${activeSession.id}/transfer-item`, {
@@ -3230,7 +3232,12 @@ function CharacterSheet() {
             });
             const data = await res.json();
             if (res.ok) {
-                addAlert(`Sent ${itemToTransfer.name}!`, 'success');
+                addAlert(
+                    targetCharId === 'vault'
+                        ? `Added ${itemToTransfer.name} to the Party Vault!`
+                        : `Sent ${itemToTransfer.name}!`,
+                    'success'
+                );
                 fetchData();
                 setShowTransferModal(false);
             } else {
@@ -3242,7 +3249,8 @@ function CharacterSheet() {
     };
 
     const transferGold = async (targetCharId) => {
-        if (!await confirm(`Are you sure you want to send ${goldTransferAmount} GP to this character?`)) return;
+        const recipientName = targetCharId === 'vault' ? 'the Party Vault' : 'this character';
+        if (!await confirm(`Are you sure you want to send ${goldTransferAmount} GP to ${recipientName}?`)) return;
 
         try {
             const res = await fetch(`${API_BASE_URL}/api/host/${activeSession.id}/transfer-gold`, {
@@ -3259,7 +3267,12 @@ function CharacterSheet() {
             });
             const data = await res.json();
             if (res.ok) {
-                addAlert(`Sent ${goldTransferAmount} GP!`, 'success');
+                addAlert(
+                    targetCharId === 'vault'
+                        ? `Added ${goldTransferAmount} GP to the Party Vault!`
+                        : `Sent ${goldTransferAmount} GP!`,
+                    'success'
+                );
                 fetchData();
                 setShowGoldTransferModal(false);
             } else {
@@ -3858,6 +3871,16 @@ function CharacterSheet() {
                         </div>
                         <div className="transfer-target-list">
                             <p className="notice">Select a recipient in <strong>{activeSession.run.title}</strong>:</p>
+                            <div
+                                className="recipient-option"
+                                onClick={() => transferItem(itemToTransfer.originalIndex, 'vault')}
+                            >
+                                <div className="recipient-info">
+                                    <span className="char-name"><i className="fa-solid fa-box-open"></i> Party Vault</span>
+                                    <span className="owner-name">Available for party members to claim</span>
+                                </div>
+                                <i className="fa-solid fa-chevron-right"></i>
+                            </div>
                             {sessionParticipants.map(participant => (
                                 <div
                                     key={participant.character.id}
@@ -3883,7 +3906,10 @@ function CharacterSheet() {
                     <button onClick={handleBack} className="back-button">
                         <i className="fa-solid fa-arrow-left"></i> Back
                     </button>
-                    {(isOwner || isAdmin || isDM) && (
+                    {profileReadOnly && (
+                        <span className="profile-character-readonly-label">Read-only profile view</span>
+                    )}
+                    {!profileReadOnly && (isOwner || isAdmin || isDM) && (
                         <button
                             className="mode-toggle-btn"
                             onClick={() => navigate(isEditMode ? `/characters/${id}` : `/characters/${id}/edit`, { replace: true })}
@@ -3894,7 +3920,7 @@ function CharacterSheet() {
                 </div>
 
                 <div className="top-bar-right">
-                    {(isOwner || isAdmin) && (
+                    {!profileReadOnly && (isOwner || isAdmin) && (
                         <button
                             className={`privacy-toggle-btn ${character.is_private ? 'is-private' : 'is-public'}`}
                             onClick={togglePrivacy}
@@ -3969,7 +3995,7 @@ function CharacterSheet() {
                                     </h2>
                                 )}
                                 <div
-                                    className="xp-bar-container"
+                                    className={`xp-bar-container ${!viewOnly ? "editable" : ""}`}
                                     onClick={() => !viewOnly && setShowXpEditor(true)}
                                     style={{ cursor: viewOnly ? "default" : "pointer" }}
                                     title={viewOnly ? "" : "Edit Experience"}
@@ -3982,6 +4008,11 @@ function CharacterSheet() {
                                                 style={{ width: `${Math.min(100, (xp / XP_THRESHOLDS[character.level + 1]) * 100)}%` }}
                                             ></div>
                                         </div>
+                                    )}
+                                    {!viewOnly && (
+                                        <span className="xp-edit-hint">
+                                            <i className="fa-solid fa-pen-to-square"></i> Click to edit XP
+                                        </span>
                                     )}
                                 </div>
                             </div>
@@ -4127,7 +4158,7 @@ function CharacterSheet() {
                             })}>
                                 {effectiveMaxHp}
                             </span>
-                            <div className="ac-display" title="Armor Class">
+                            <div className={`ac-display ${!viewOnly ? "editable" : ""}`} title={viewOnly ? "Armor Class" : "Click to edit Armor Class"}>
                                 <div
                                     className={`ac-shield ${!viewOnly ? 'clickable' : ''}`}
                                     onClick={() => !viewOnly && setStatModConfig({
@@ -4439,10 +4470,10 @@ function CharacterSheet() {
                                             {item.equipped ? "Unequip" : "Equip"}
                                         </button>
                                     )}
-                                    {isAuthorized && activeSession && sessionParticipants.length > 0 && (
+                                    {isAuthorized && activeSession && (
                                         <button
                                             className="send-item-btn"
-                                            title="Send to another character"
+                                            title="Send to another character or the Party Vault"
                                             onClick={() => {
                                                 setItemToTransfer({ ...item, originalIndex: item.originalIndex });
                                                 setShowTransferModal(true);
@@ -5066,6 +5097,16 @@ function CharacterSheet() {
 
                                 <div className="transfer-target-list">
                                     <p className="notice">Select a recipient:</p>
+                                    <div
+                                        className={`recipient-option ${goldTransferRecipient === 'vault' ? 'selected' : ''}`}
+                                        onClick={() => setGoldTransferRecipient('vault')}
+                                    >
+                                        <div className="recipient-info">
+                                            <span className="char-name"><i className="fa-solid fa-box-open"></i> Party Vault</span>
+                                            <span className="owner-name">Available for party members to claim</span>
+                                        </div>
+                                        {goldTransferRecipient === 'vault' && <i className="fa-solid fa-circle-check"></i>}
+                                    </div>
                                     {sessionParticipants.map(participant => (
                                         <div
                                             key={participant.character.id}

@@ -103,6 +103,11 @@ h3,
     gap: 20px;
 }
 
+.profile-character-readonly-label {
+    color: var(--text-dim);
+    font-size: 0.85rem;
+}
+
 .back-button,
 .lock-button,
 .mode-toggle-btn,
@@ -301,12 +306,41 @@ h3,
     width: 250px;
 }
 
+.xp-bar-container.editable {
+    padding: 8px 10px;
+    margin-left: -10px;
+    border: 1px solid rgba(255, 215, 0, 0.28);
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.18);
+    transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.xp-bar-container.editable:hover {
+    border-color: rgba(255, 215, 0, 0.75);
+    background: rgba(0, 0, 0, 0.32);
+    box-shadow: 0 0 14px rgba(255, 215, 0, 0.16);
+}
+
 .xp-text {
     font-size: 0.85rem;
     color: var(--text-dim);
     display: block;
     margin-bottom: 4px;
     font-family: var(--font-serif);
+}
+
+.xp-edit-hint {
+    display: block;
+    margin-top: 5px;
+    color: var(--accent);
+    font-size: 0.7rem;
+    letter-spacing: 0.04em;
+    opacity: 0.8;
+    transition: opacity 0.2s ease;
+}
+
+.xp-bar-container.editable:hover .xp-edit-hint {
+    opacity: 1;
 }
 
 .xp-progress-bg {
@@ -1362,6 +1396,20 @@ h3,
     justify-content: center;
 }
 
+.ac-display.editable {
+    position: relative;
+}
+
+.ac-display.editable::before {
+    content: "";
+    position: absolute;
+    inset: -14px;
+    border-radius: 50%;
+    background: radial-gradient(ellipse, rgba(255, 215, 0, 0.48) 0%, rgba(255, 190, 0, 0.25) 42%, transparent 72%);
+    pointer-events: none;
+    z-index: 0;
+}
+
 .ac-shield {
     position: relative;
     width: 62px;
@@ -1412,26 +1460,12 @@ h3,
 
 .ac-shield.clickable {
     cursor: pointer;
-    animation: ac-pulse 3s infinite ease-in-out;
-}
-
-@keyframes ac-pulse {
-    0% {
-        filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.7));
-    }
-
-    50% {
-        filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.5));
-    }
-
-    100% {
-        filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.7));
-    }
+    filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.7)) drop-shadow(0 0 8px rgba(255, 215, 0, 0.7));
 }
 
 .ac-shield.clickable:hover {
-    transform: translateY(-8px) scale(1.1);
-    filter: drop-shadow(0 15px 30px rgba(255, 215, 0, 0.6));
+    transform: translateY(-2px) scale(1.03);
+    filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.7)) drop-shadow(0 0 15px rgba(255, 215, 0, 0.8));
     background: #fff;
 }
 
@@ -1439,18 +1473,11 @@ h3,
     transform: translateY(-2px) scale(0.95);
 }
 
-.ac-shield:hover {
-    transform: translateY(-5px) scale(1.05);
-    filter: drop-shadow(0 10px 20px rgba(255, 215, 0, 0.4));
-    background: #fff;
-    /* White border on hover */
-}
-
-.ac-shield:hover::after {
+.ac-shield.clickable:hover::after {
     background: linear-gradient(135deg, #4a4a6f 0%, #2c2c3e 50%, #1a1a26 100%);
 }
 
-.ac-shield:hover::before {
+.ac-shield.clickable:hover::before {
     left: 100%;
     top: 100%;
 }

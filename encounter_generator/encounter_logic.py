@@ -465,6 +465,7 @@ def _build_endless_cycle_monsters(cycle_number):
                 if items_per_monster == 1:
                     monster["item"] = generated_items[0]
                 else:
+                    monster["item_options"] = generated_items
                     monster["item"] = {
                         "name": " / ".join(item["name"] for item in generated_items),
                         "rarity": generated_items[0]["rarity"],
