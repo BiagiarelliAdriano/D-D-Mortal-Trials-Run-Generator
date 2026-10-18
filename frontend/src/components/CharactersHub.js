@@ -15,6 +15,11 @@ function CharactersHub() {
     const navigate = useNavigate();
     const [searchTerm, setSearchTerm] = useState("");
 
+    const openCharacterSheet = (characterId, edit = false) => {
+        const editPath = edit ? "/edit" : "";
+        window.open(`/characters/${characterId}${editPath}?returnTo=${encodeURIComponent("/characters")}`, "_blank");
+    };
+
     // Fetch function for polling
     const fetchCharacters = useCallback(() => {
         fetch(`${API_BASE_URL}/api/characters`, {
@@ -127,7 +132,7 @@ function CharactersHub() {
         <div
             key={char.id}
             className={`character-card ${char.is_ascended ? 'ascended-card' : ''}`}
-            onClick={() => window.open(`/characters/${char.id}`, "_blank")}
+            onClick={() => openCharacterSheet(char.id)}
         >
             <div className="card-header">
                 <h3>
@@ -168,7 +173,7 @@ function CharactersHub() {
                         className="action-btn btn-view"
                         onClick={(e) => {
                             e.stopPropagation();
-                            window.open(`/characters/${char.id}`, "_blank");
+                            openCharacterSheet(char.id);
                         }}
                     >
                         👁 View
@@ -188,7 +193,7 @@ function CharactersHub() {
                         className="action-btn btn-edit"
                         onClick={(e) => {
                             e.stopPropagation();
-                            window.open(`/characters/${char.id}/edit`, "_blank");
+                            openCharacterSheet(char.id, true);
                         }}
                     >
                         ✎ Edit

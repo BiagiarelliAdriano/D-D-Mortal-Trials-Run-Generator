@@ -63,6 +63,7 @@ XP_THRESHOLDS = {
 # ------------------------
 
 SHOP_CATEGORIES = ["Armor", "Potion", "Ring", "Rod", "Scroll", "Staff", "Wand", "Weapon"]
+SHOP_CATEGORY_SELECTION_COUNT = 4
 
 # Specific item prices (primarily common-tier items with individual costs)
 SHOP_ITEM_PRICES = {
@@ -3456,6 +3457,7 @@ def api_complete_encounter(session_id):
                 "cycle_shop": True,
                 "cycle": cycle_num,
                 "phase": "selection",
+                "required_selections": SHOP_CATEGORY_SELECTION_COUNT,
                 "categories_available": list(SHOP_CATEGORIES),
                 "rarity_mix": cycle_shop.get("rarity_mix", {}),
                 "encounter_items": cycle_shop.get("items_by_category", {}),
@@ -3510,10 +3512,11 @@ def api_complete_encounter(session_id):
         shop_state = {
             "encounter_num": int(enc_num),
             "phase": "selection",
+            "required_selections": SHOP_CATEGORY_SELECTION_COUNT,
             "categories_available": list(SHOP_CATEGORIES),
             "rarity_mix": target_enc.get("rarity_mix", {}),
             "encounter_items": target_enc.get("items_by_category", {}),
-            "selections": {},   # char_id (str) -> chosen category
+            "selections": [],   # {character_id, category} selections
             "items": {},        # populated when phase transitions to shopping
             "common_items": {} # populated when phase transitions to shopping
         }
@@ -3657,24 +3660,26 @@ def api_shop_select_category(session_id):
     if shop_state.get("phase") != "selection":
         return jsonify({"error": "Category selection phase is over"}), 400
 
-    char_id = str(participant.character_id)
+    raw_selections = shop_state.get("selections", [])
+    if isinstance(raw_selections, dict):
+        selections = [
+            {"character_id": str(char_id), "category": chosen_category}
+            for char_id, chosen_category in raw_selections.items()
+        ]
+    else:
+        selections = raw_selections
+    shop_state["selections"] = selections
 
-    if char_id in shop_state["selections"]:
-        return jsonify({"error": "You have already made your selection"}), 400
-
-    if category in shop_state["selections"].values():
+    if any(selection.get("category") == category for selection in selections):
         return jsonify({"error": "Another party member already chose this category"}), 400
 
     # Record the selection
-    shop_state["selections"][char_id] = category
-
-    # Count eligible ascendants (those with a linked character)
-    ascendant_count = sum(
-        1 for p in session.participants
-        if p.role == 'Ascendant' and p.character_id is not None
-    )
-    needed = min(4, ascendant_count)
-    selections_made = len(shop_state["selections"])
+    selections.append({
+        "character_id": str(participant.character_id),
+        "category": category
+    })
+    needed = SHOP_CATEGORY_SELECTION_COUNT
+    selections_made = len(selections)
 
     # Transition to shopping phase when all needed selections are in
     if selections_made >= needed:
@@ -3685,7 +3690,8 @@ def api_shop_select_category(session_id):
         # Build priced item list for each chosen category
         items = {}
         seen_categories = set()
-        for _char_id, chosen_cat in shop_state["selections"].items():
+        for selection in selections:
+            chosen_cat = selection["category"]
             if chosen_cat in seen_categories:
                 continue
             seen_categories.add(chosen_cat)

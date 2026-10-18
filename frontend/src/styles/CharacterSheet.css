@@ -111,6 +111,7 @@ h3,
 .back-button,
 .lock-button,
 .mode-toggle-btn,
+.hosted-run-link-btn,
 .privacy-toggle-btn {
     padding: 8px 18px;
     border-radius: 12px;
@@ -131,6 +132,7 @@ h3,
 .back-button::before,
 .lock-button::before,
 .mode-toggle-btn::before,
+.hosted-run-link-btn::before,
 .privacy-toggle-btn::before {
     content: '';
     position: absolute;
@@ -147,6 +149,7 @@ h3,
 .back-button:hover,
 .lock-button:hover,
 .mode-toggle-btn:hover,
+.hosted-run-link-btn:hover,
 .privacy-toggle-btn:hover {
     transform: translateY(-2px) scale(1.02);
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
@@ -156,6 +159,7 @@ h3,
 .back-button:hover::before,
 .lock-button:hover::before,
 .mode-toggle-btn:hover::before,
+.hosted-run-link-btn:hover::before,
 .privacy-toggle-btn:hover::before {
     opacity: 1;
 }
@@ -163,6 +167,7 @@ h3,
 .back-button:active,
 .lock-button:active,
 .mode-toggle-btn:active,
+.hosted-run-link-btn:active,
 .privacy-toggle-btn:active {
     transform: translateY(0) scale(0.98);
 }
@@ -173,6 +178,25 @@ h3,
     background: linear-gradient(135deg, #622e73 0%, #3d1b4a 100%);
     color: var(--accent);
     border-color: var(--accent-dim);
+}
+
+.hosted-run-link-btn {
+    max-width: min(360px, 100%);
+    background: linear-gradient(135deg, #14504b 0%, #12342f 100%);
+    color: #9be7cf;
+    border-color: rgba(88, 214, 181, 0.65);
+}
+
+.hosted-run-link-btn span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.hosted-run-link-btn:hover {
+    background: linear-gradient(135deg, #1c7064 0%, #16493f 100%);
+    border-color: #9be7cf;
+    box-shadow: 0 0 16px rgba(88, 214, 181, 0.3);
 }
 
 .back-button:hover,
@@ -1805,6 +1829,47 @@ h3,
 }
 
 .detail-value {
+    color: var(--accent);
+}
+
+.feature-data-table-scroll {
+    max-width: 100%;
+    overflow-x: auto;
+}
+
+.feature-data-table {
+    width: 100%;
+    border-collapse: collapse;
+    color: var(--text-main);
+    font-size: 0.85rem;
+}
+
+.feature-data-table th,
+.feature-data-table td {
+    padding: 7px 10px;
+    border: 1px solid var(--border);
+    text-align: left;
+}
+
+.feature-data-table th {
+    color: var(--accent);
+    background: rgba(255, 215, 0, 0.08);
+    font-weight: 700;
+}
+
+.feature-data-table .selected-ancestry-row td {
+    background: rgba(255, 215, 0, 0.13);
+    color: var(--accent);
+    font-weight: 700;
+}
+
+.feature-data-table .selected-ancestry-row td:first-child {
+    border-left: 3px solid var(--accent);
+}
+
+.feature-data-table-title {
+    display: block;
+    margin-bottom: 6px;
     color: var(--accent);
 }
 

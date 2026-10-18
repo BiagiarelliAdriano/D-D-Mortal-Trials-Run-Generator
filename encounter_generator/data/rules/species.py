@@ -89,19 +89,34 @@ SPECIES = [
                 "id": "dragonborn_draconic_ancestry",
                 "name": "Draconic Ancestry",
                 "summary": "Choose a dragon progenitor to determine your damage type.",
-                "description": "Your lineage stems from a dragon progenitor. Your choice affects your Breath Weapon and Damage Resistance traits as well as your appearance.",
+                "description": "Your lineage stems from a dragon progenitor. Your choice affects your Breath Weapon and Damage Resistance traits as well as your appearance. The table shows the damage type associated with each dragon.",
                 "details": {
-                    "Ancestors": "Black, Blue, Brass, Bronze, Copper, Gold, Green, Red, Silver, White"
+                    "Damage Types": {
+                        "headers": ["Dragon", "Damage Type"],
+                        "rows": [
+                            ["Black", "Acid"],
+                            ["Blue", "Lightning"],
+                            ["Brass", "Fire"],
+                            ["Bronze", "Lightning"],
+                            ["Copper", "Acid"],
+                            ["Gold", "Fire"],
+                            ["Green", "Poison"],
+                            ["Red", "Fire"],
+                            ["Silver", "Cold"],
+                            ["White", "Cold"]
+                        ]
+                    }
                 }
             },
             {
                 "id": "dragonborn_breath_weapon",
                 "name": "Breath Weapon",
                 "summary": "Exhale elemental energy in a cone or line.",
-                "description": "When you take the Attack action on your turn, you can replace one of your attacks with an exhalation of magical energy in either a 15ft Cone or a 30ft Line that is 5ft wide (choose the shape each time). Each creature in that area must make a Dexterity saving throw (DC 8 + Con mod + Prof Bonus). On a failed save, a creature takes elemental damage. On a successful save, a creature takes half as much damage.",
+                "description": "When you take the Attack action on your turn, you can replace one of your attacks with an exhalation of magical energy in either a 15ft Cone or a 30ft Line that is 5ft wide (choose the shape each time). Each creature in that area must make a Dexterity saving throw (DC 8 + Con mod + Prof Bonus). On a failed save, a creature takes {damage_type} damage. On a successful save, a creature takes half as much damage.",
                 "details": {
                     "Action": "Replace 1 Attack",
                     "Area": "15ft Cone or 30ft Line",
+                    "Damage Type": "{damage_type}",
                     "Damage": {
                         "1": "1d10",
                         "5": "2d10",
@@ -115,7 +130,7 @@ SPECIES = [
                 "id": "dragonborn_damage_resistance",
                 "name": "Damage Resistance",
                 "summary": "Resistance to your ancestry's damage type.",
-                "description": "You have Resistance to the damage type determined by your Draconic Ancestry trait."
+                "description": "You have Resistance to {damage_type} damage."
             },
             {
                 "id": "dragonborn_darkvision",

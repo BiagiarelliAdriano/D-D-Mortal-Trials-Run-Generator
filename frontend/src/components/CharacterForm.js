@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useNotification } from "../context/NotificationContext";
 import API_BASE_URL from "../config";
+import { resolveSpeciesFeature } from "../utils/species";
 import "../styles/CharacterForm.css";
 
 const processRichText = (text) => {
@@ -1056,7 +1057,14 @@ function CharacterForm() {
                                             <h4>Species Traits</h4>
                                             <div className="species-traits-list">
                                                 {selectedSpeciesDetails.features?.map(
-                                                    feature => (
+                                                    feature => {
+                                                        const resolvedFeature = resolveSpeciesFeature(
+                                                            feature,
+                                                            selectedSpeciesDetails,
+                                                            formData.species_variant
+                                                        );
+
+                                                        return (
                                                         <div
                                                             key={feature.id}
                                                             className="feature-preview-card"
@@ -1066,19 +1074,19 @@ function CharacterForm() {
                                                             <div className="feature-preview-header">
 
                                                                 <h6>
-                                                                    {feature.name}
+                                                                    {resolvedFeature.name}
                                                                 </h6>
-                                                                {feature.summary && (
+                                                                {resolvedFeature.summary && (
                                                                     <p className="feature-preview-summary">
-                                                                        {feature.summary}
+                                                                        {resolvedFeature.summary}
                                                                     </p>
                                                                 )}
                                                             </div>
 
                                                             {/* FEATURE DESCRIPTION */}
-                                                            {feature.description && (
+                                                            {resolvedFeature.description && (
                                                                 <div className="feature-preview-description">
-                                                                    {feature.description
+                                                                    {resolvedFeature.description
                                                                         .split("\n")
                                                                         .map(
                                                                             (
@@ -1101,9 +1109,36 @@ function CharacterForm() {
                                                             )}
 
                                                             {/* FEATURE DETAILS */}
-                                                            {feature.details && (
+                                                            {resolvedFeature.details && (
                                                                 <div className="feature-details-mini">
-                                                                    {Object.entries(feature.details).map(([key, val]) => {
+                                                                    {Object.entries(resolvedFeature.details).map(([key, val]) => {
+                                                                        if (Array.isArray(val?.headers) && Array.isArray(val?.rows)) {
+                                                                            return (
+                                                                                <div key={key} className="feature-preview-table-section">
+                                                                                    <strong className="feature-data-table-title">{key}</strong>
+                                                                                    <div className="feature-data-table-scroll">
+                                                                                        <table className="feature-data-table">
+                                                                                            <thead>
+                                                                                                <tr>
+                                                                                                    {val.headers.map((header, index) => (
+                                                                                                        <th key={index}>{header}</th>
+                                                                                                    ))}
+                                                                                                </tr>
+                                                                                            </thead>
+                                                                                            <tbody>
+                                                                                                {val.rows.map((row, rowIndex) => (
+                                                                                                    <tr key={rowIndex}>
+                                                                                                        {val.headers.map((_, cellIndex) => (
+                                                                                                            <td key={cellIndex}>{row[cellIndex]}</td>
+                                                                                                        ))}
+                                                                                                    </tr>
+                                                                                                ))}
+                                                                                            </tbody>
+                                                                                        </table>
+                                                                                    </div>
+                                                                                </div>
+                                                                            );
+                                                                        }
 
                                                                         /* Options */
                                                                         if (key === "Options" && Array.isArray(val)) {
@@ -1187,7 +1222,8 @@ function CharacterForm() {
                                                                 </div>
                                                             )}
                                                         </div>
-                                                    )
+                                                        );
+                                                    }
                                                 )}
                                             </div>
                                         </div>

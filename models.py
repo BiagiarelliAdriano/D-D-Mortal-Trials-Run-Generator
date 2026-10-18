@@ -246,9 +246,30 @@ class Character(db.Model):
         for key, value in DEFAULT_CHARACTER_DATA.items():
             if key not in data:
                 data[key] = value
-            elif isinstance(value, dict):
+            elif isinstance(value, dict) and isinstance(data[key], dict):
                 for subkey, subvalue in value.items():
                     data[key].setdefault(subkey, subvalue)
+
+        class_levels = data.get("class_levels")
+        valid_class_levels = [
+            class_level
+            for class_level in class_levels
+            if isinstance(class_level, dict)
+            and isinstance(class_level.get("class_name"), str)
+            and class_level["class_name"].strip()
+        ] if isinstance(class_levels, list) else []
+
+        if valid_class_levels:
+            data["class_levels"] = valid_class_levels
+        elif isinstance(data.get("class_name"), str) and data["class_name"].strip():
+            data["class_levels"] = [{
+                "class_name": data["class_name"].strip(),
+                "level": data.get("level", 1),
+                "subclass": data.get("subclass", "")
+            }]
+        else:
+            data["class_levels"] = []
+
         if data.get("hp_max_original", 0) == 0 and data.get("hp_max_base", 0) != 0:
             data["hp_max_original"] = data["hp_max_base"]
         return data

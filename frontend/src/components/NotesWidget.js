@@ -4,11 +4,22 @@ import { useNotification } from '../context/NotificationContext';
 
 const NotesWidget = ({ notes, onUpdateNotes, isEditMode, viewOnly }) => {
     const [localNotes, setLocalNotes] = useState(notes || []);
+    const localNotesRef = useRef(notes || []);
+    const pendingNotesRef = useRef(null);
     const { confirm } = useNotification();
 
     useEffect(() => {
+        const incomingNotes = notes || [];
+        const pendingNotes = pendingNotesRef.current;
+        if (pendingNotes && JSON.stringify(incomingNotes) !== JSON.stringify(pendingNotes)) {
+            return;
+        }
+        if (pendingNotes) {
+            pendingNotesRef.current = null;
+        }
+
         let hasUnsaved = false;
-        const initialNotes = (notes || []).map(n => {
+        const initialNotes = incomingNotes.map(n => {
             const unsavedContent = localStorage.getItem(`unsaved_note_content_${n.id}`);
             const unsavedTitle = localStorage.getItem(`unsaved_note_title_${n.id}`);
 
@@ -32,26 +43,34 @@ const NotesWidget = ({ notes, onUpdateNotes, isEditMode, viewOnly }) => {
             return updated;
         });
 
+        localNotesRef.current = initialNotes;
         setLocalNotes(initialNotes);
 
         // If we recovered data that the database doesn't have yet, sync it back.
         // We DO NOT delete the backup here. We keep it until the next load where it matches the database.
         if (hasUnsaved) {
+            pendingNotesRef.current = initialNotes;
             onUpdateNotes(initialNotes);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [notes]);
+
+    const commitNotes = (updatedNotes) => {
+        localNotesRef.current = updatedNotes;
+        pendingNotesRef.current = updatedNotes;
+        setLocalNotes(updatedNotes);
+        onUpdateNotes(updatedNotes);
+    };
+
     const handleAddNote = () => {
-        if (localNotes.length >= 100) return;
+        if (localNotesRef.current.length >= 100) return;
         const newNote = {
             id: Date.now(),
             title: "New Note",
             content: "",
             height: 150
         };
-        const updated = [...localNotes, newNote];
-        setLocalNotes(updated);
-        onUpdateNotes(updated);
+        commitNotes([...localNotesRef.current, newNote]);
     };
 
     const handleUpdateNote = (id, field, value) => {
@@ -60,21 +79,19 @@ const NotesWidget = ({ notes, onUpdateNotes, isEditMode, viewOnly }) => {
             finalValue = value.substring(0, 45);
         }
 
-        setLocalNotes(prev => {
-            const updated = prev.map(n => n.id === id ? { ...n, [field]: finalValue } : n);
-            // We call onUpdateNotes with the NEWly calculated updated array
-            onUpdateNotes(updated);
-            return updated;
-        });
+        const updated = localNotesRef.current.map(
+            note => note.id === id ? { ...note, [field]: finalValue } : note
+        );
+        commitNotes(updated);
     };
 
     const handleDeleteNote = async (id) => {
         const isConfirmed = await confirm("Delete this note?");
-        if (isConfirmed) {
-            const updated = localNotes.filter(n => n.id !== id);
-            setLocalNotes(updated);
-            onUpdateNotes(updated);
-        }
+        if (isConfirmed !== true) return;
+
+        localStorage.removeItem(`unsaved_note_content_${id}`);
+        localStorage.removeItem(`unsaved_note_title_${id}`);
+        commitNotes(localNotesRef.current.filter(note => note.id !== id));
     };
 
     const execCommand = (command, value = null) => {

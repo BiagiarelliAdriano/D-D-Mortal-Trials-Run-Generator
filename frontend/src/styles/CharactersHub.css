@@ -221,9 +221,11 @@
 .character-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit,
-            minmax(320px, 380px));
+            minmax(260px, 380px));
     gap: 1.5rem;
-    justify-content: start;
+    max-width: 1592px;
+    margin: 0 auto;
+    justify-content: center;
     align-items: stretch;
 }
 

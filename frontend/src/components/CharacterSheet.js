@@ -14,6 +14,7 @@ import LevelUpOverlay from "./LevelUpOverlay";
 import NotesWidget from "./NotesWidget";
 import BackToTop from "./common/BackToTop";
 import API_BASE_URL from "../config";
+import { resolveSpeciesFeature } from "../utils/species";
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
@@ -329,7 +330,13 @@ const calculateAttack = (name, abilities, profBonus, features = [], level = 1, w
 
 // --- Sub-Components ---
 
-export const ValueRenderer = ({ value, level, themeRole, label }) => {
+export const ValueRenderer = ({
+    value,
+    level,
+    themeRole,
+    label,
+    selectedTableRowValue
+}) => {
     if (value === null || value === undefined) return null;
 
     // Helper: checks whether a dict's keys are all level-range style
@@ -419,6 +426,42 @@ export const ValueRenderer = ({ value, level, themeRole, label }) => {
 
     // 4. Objects
     if (typeof value === 'object') {
+        if (Array.isArray(value.headers) && Array.isArray(value.rows)) {
+            return (
+                <div className="feature-data-table-scroll">
+                    <table className="feature-data-table">
+                        <thead>
+                            <tr>
+                                {value.headers.map((header, index) => (
+                                    <th key={index}>{processRichText(header)}</th>
+                                ))}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {value.rows.map((row, rowIndex) => {
+                                const isSelected = typeof selectedTableRowValue === "string" &&
+                                    typeof row[0] === "string" &&
+                                    row[0].toLowerCase() === selectedTableRowValue.toLowerCase();
+
+                                return (
+                                    <tr
+                                        key={rowIndex}
+                                        className={isSelected ? "selected-ancestry-row" : undefined}
+                                        aria-current={isSelected ? "true" : undefined}
+                                    >
+                                        {value.headers.map((_, cellIndex) => (
+                                            <td key={cellIndex}>
+                                                {processRichText(row[cellIndex])}
+                                            </td>
+                                        ))}
+                                    </tr>
+                                );
+                            })}
+                        </tbody>
+                    </table>
+                </div>
+            );
+        }
 
         // Options
         if (Array.isArray(value.Options)) {
@@ -462,6 +505,7 @@ export const ValueRenderer = ({ value, level, themeRole, label }) => {
                                 label={l}
                                 level={level}
                                 themeRole={themeRole}
+                                selectedTableRowValue={selectedTableRowValue}
                             />
                         </span>
                     </div>
@@ -753,7 +797,16 @@ const RichFeature = ({
 
                     {feature.details && (
                         <div className="feature-details">
-                            <ValueRenderer value={feature.details} level={level} themeRole="view_only" />
+                            <ValueRenderer
+                                value={feature.details}
+                                level={level}
+                                themeRole="view_only"
+                                selectedTableRowValue={
+                                    feature.id === "dragonborn_draconic_ancestry"
+                                        ? characterData?.data?.species_variant
+                                        : undefined
+                                }
+                            />
                         </div>
                     )}
                     <div className="feature-notes-section">
@@ -2227,6 +2280,10 @@ function CharacterSheet() {
     const [effectiveMaxHp, setEffectiveMaxHp] = useState(0);
 
     const [characterLoaded, setCharacterLoaded] = useState(false);
+    const notesRevisionRef = useRef(0);
+    const acknowledgedNotesRevisionRef = useRef(0);
+    const latestNotesRef = useRef([]);
+    const notesSaveQueueRef = useRef(Promise.resolve(true));
 
     const openLevelUpSelection = useCallback(() => {
         setShowXpEditor(true);
@@ -2255,6 +2312,8 @@ function CharacterSheet() {
 
     // Consolidated Loading Logic
     const fetchData = useCallback(async () => {
+        const notesRevisionAtStart = notesRevisionRef.current;
+        const acknowledgedNotesRevisionAtStart = acknowledgedNotesRevisionRef.current;
         try {
             // 1. Fetch Global Rules first (Optional but good to have ready)
             const [weaponRes, armorRes, spellSlotsRes] = await Promise.all([
@@ -2280,6 +2339,15 @@ function CharacterSheet() {
                 throw new Error("Failed to load character");
             }
             const data = await charRes.json();
+            const notesChangedDuringRequest =
+                notesRevisionRef.current !== notesRevisionAtStart ||
+                acknowledgedNotesRevisionRef.current !== acknowledgedNotesRevisionAtStart ||
+                notesRevisionRef.current !== acknowledgedNotesRevisionRef.current;
+            if (notesChangedDuringRequest) {
+                data.data.notes = latestNotesRef.current;
+            } else {
+                latestNotesRef.current = data.data.notes || [];
+            }
 
             // Check for pending rest
             if (data.pending_rest) {
@@ -2600,7 +2668,7 @@ function CharacterSheet() {
     }, [baseMaxHp, maxHpModifier]);
 
     const saveCharacter = useCallback((updates) => {
-        fetch(`${API_BASE_URL}/api/characters/${id}`, {
+        return fetch(`${API_BASE_URL}/api/characters/${id}`, {
             method: "PUT",
             headers: {
                 "Content-Type": "application/json",
@@ -2615,8 +2683,12 @@ function CharacterSheet() {
                 if (!data.success) {
                     console.error("Failed to save character updates");
                 }
+                return data.success;
             })
-            .catch(err => console.error("Error saving character:", err));
+            .catch(err => {
+                console.error("Error saving character:", err);
+                return false;
+            });
     }, [id, token]);
 
     // Effect to ensure currentHp doesn't exceed effectiveMaxHp
@@ -3305,16 +3377,16 @@ function CharacterSheet() {
     };
 
     const handleBack = () => {
-        // If history length is 1, it means this was likely opened in a new tab
+        const returnTo = location.state?.returnTo || new URLSearchParams(location.search).get('returnTo');
+        if (typeof returnTo === 'string' && returnTo.startsWith('/') && !returnTo.startsWith('//')) {
+            navigate(returnTo);
+            return;
+        }
+
         if (window.history.length > 1) {
             navigate(-1);
         } else {
-            // Try to close the window, fallback to hub if it fails
-            window.close();
-            // A small delay to check if close worked, otherwise navigate
-            setTimeout(() => {
-                navigate('/characters-hub');
-            }, 100);
+            navigate('/characters');
         }
     };
 
@@ -3344,9 +3416,23 @@ function CharacterSheet() {
         }
     };
 
-    const updateNotes = (newNotes) => {
+    const updateNotes = async (newNotes) => {
         if (viewOnly || loading) return;
-        saveCharacter({ notes: newNotes });
+        const revision = ++notesRevisionRef.current;
+        latestNotesRef.current = newNotes;
+        setCharacter(prev => prev ? {
+            ...prev,
+            data: { ...prev.data, notes: newNotes }
+        } : prev);
+
+        const savePromise = notesSaveQueueRef.current
+            .catch(() => false)
+            .then(() => saveCharacter({ notes: newNotes }));
+        notesSaveQueueRef.current = savePromise;
+
+        if (await savePromise && notesRevisionRef.current === revision) {
+            acknowledgedNotesRevisionRef.current = revision;
+        }
     };
 
     const handleSaveLayout = (current, all) => {
@@ -3478,7 +3564,14 @@ function CharacterSheet() {
 
         // 3. Add Species Features
         if (speciesRules?.features) {
-            allFeatures.push(...speciesRules.features.map(f => ({ ...f, source: 'Species' })));
+            allFeatures.push(...speciesRules.features.map(feature => ({
+                ...resolveSpeciesFeature(
+                    feature,
+                    speciesRules,
+                    character.data?.species_variant
+                ),
+                source: 'Species'
+            })));
         } else if (speciesRules?.traits) { // Backward compatibility for un-migrated species
             allFeatures.push(...speciesRules.traits.map((t, idx) => ({
                 id: `species_trait_${idx}`,
@@ -3915,6 +4008,16 @@ function CharacterSheet() {
                             onClick={() => navigate(isEditMode ? `/characters/${id}` : `/characters/${id}/edit`, { replace: true })}
                         >
                             {isEditMode ? "👁 Switch to View Mode" : "✎ Switch to Edit Mode"}
+                        </button>
+                    )}
+                    {!profileReadOnly && (isOwner || isAdmin) && activeSession && (
+                        <button
+                            className="hosted-run-link-btn"
+                            onClick={() => navigate(`/hosting/${activeSession.id}`)}
+                            title={`Open Hosted Run: ${activeSession.run.title}`}
+                        >
+                            <i className="fa-solid fa-dungeon" aria-hidden="true"></i>
+                            <span>Hosted Run: {activeSession.run.title}</span>
                         </button>
                     )}
                 </div>

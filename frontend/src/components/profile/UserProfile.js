@@ -410,7 +410,7 @@ const UserProfile = () => {
                                     type="button"
                                     key={char.id}
                                     className="character-card"
-                                    onClick={() => window.open(`/characters/${char.id}?view=profile`, '_blank')}
+                                    onClick={() => window.open(`/characters/${char.id}?view=profile&returnTo=${encodeURIComponent(`/profile/${id}`)}`, '_blank')}
                                 >
                                     <div className="card-header">
                                         <h3>{char.name}</h3>

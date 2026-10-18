@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useNotification } from '../../context/NotificationContext';
 import BackToTop from '../common/BackToTop';
@@ -12,6 +12,7 @@ const FINAL_SENTENCE_RATION_MESSAGE = "The Bearer of the Final Sentence grants t
 const HostedRunPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
+    const location = useLocation();
     const { token, user: currentUser, isAdmin } = useAuth();
     const { addAlert, confirm } = useNotification();
 
@@ -591,12 +592,19 @@ const HostedRunPage = () => {
         const phase = state.phase;
 
         if (phase === "selection") {
-            const eligibleParticipants = session.participants.filter(p => p.role === 'Ascendant' && p.character_id);
-            const neededChoices = Object.keys(state.selections).length;
-            const targetChoices = Math.min(4, eligibleParticipants.length);
-
-            const myCharId = eligibleParticipants.find(p => p.user_id === currentUser.id)?.character_id;
-            const myChoice = myCharId ? state.selections[myCharId] : null;
+            const rawSelections = state.selections || [];
+            const selections = Array.isArray(rawSelections)
+                ? rawSelections
+                : Object.entries(rawSelections).map(([character_id, category]) => ({ character_id, category }));
+            const neededChoices = selections.length;
+            const targetChoices = state.required_selections || 4;
+            const myCharId = session.participants.find(
+                p => p.role === 'Ascendant' && p.user_id === currentUser.id && p.character_id
+            )?.character_id;
+            const mySelections = myCharId
+                ? selections.filter(selection => String(selection.character_id) === String(myCharId))
+                : [];
+            const myCategories = mySelections.map(selection => selection.category);
 
             const isDMOrAdmin = currentUser.id === session.dm_id || isAdmin;
             const isLocked = !!state.locked;
@@ -615,12 +623,13 @@ const HostedRunPage = () => {
                                 </button>
                             )}
                         </div>
-                        <p>{isLocked ? "This shop is currently locked by the Dungeon Master." : "Choose a category to stock the shop's shelves."}</p>
+                        <p>{isLocked ? "This shop is currently locked by the Dungeon Master." : `Choose ${targetChoices} unique categories to stock the shop's shelves.`}</p>
                     </div>
                     <div className="shop-category-grid">
                         {state.categories_available.map(cat => {
-                            const chosenByAnyone = Object.values(state.selections).includes(cat);
-                            const chosenByMe = myChoice === cat;
+                            const selection = selections.find(entry => entry.category === cat);
+                            const chosenByAnyone = !!selection;
+                            const chosenByMe = selection && String(selection.character_id) === String(myCharId);
                             let btnClass = "shop-cat-btn ";
                             if (chosenByMe) btnClass += "chosen-me";
                             else if (chosenByAnyone) btnClass += "chosen-other";
@@ -630,8 +639,8 @@ const HostedRunPage = () => {
                                 <button
                                     key={cat}
                                     className={btnClass}
-                                    onClick={() => !chosenByAnyone && !myChoice && !isDMOrAdmin && !isLocked && handleCategorySelect(cat)}
-                                    disabled={chosenByAnyone || !!myChoice || isDMOrAdmin || isLocked}
+                                    onClick={() => !chosenByAnyone && neededChoices < targetChoices && !isDMOrAdmin && !isLocked && handleCategorySelect(cat)}
+                                    disabled={chosenByAnyone || neededChoices >= targetChoices || isDMOrAdmin || isLocked}
                                     title={isLocked ? "Shop is locked" : (chosenByAnyone && !chosenByMe ? "Another party member already chose this." : "")}
                                 >
                                     <span className="cat-name">{cat}</span>
@@ -639,9 +648,9 @@ const HostedRunPage = () => {
                             );
                         })}
                     </div>
-                    {myChoice && !isLocked && (
+                    {!isDMOrAdmin && !isLocked && (
                         <div className="shop-awaiting-msg">
-                            <em><i className="fa-solid fa-hourglass-half"></i> Thank you for choosing. Awaiting the rest of the party... ({neededChoices}/{targetChoices})</em>
+                            <em><i className="fa-solid fa-hourglass-half"></i> Categories chosen: {neededChoices}/{targetChoices}. {myCategories.length > 0 ? `Your choices: ${myCategories.join(", ")}.` : "Choose any available categories."}</em>
                         </div>
                     )}
                 </div>
@@ -1374,7 +1383,7 @@ const HostedRunPage = () => {
                                                 <span>HP: {p.character.data?.hp_current || 0}/{(p.character.data?.hp_max_base || 0) + (p.character.data?.hp_modifier || 0)}</span>
                                             </div>
                                             <div className="char-card-actions">
-                                                <button className="view-sheet-btn" onClick={() => navigate(`/characters/${p.character.id}`)}>
+                                                <button className="view-sheet-btn" onClick={() => navigate(`/characters/${p.character.id}`, { state: { returnTo: `${location.pathname}${location.search}` } })}>
                                                     View Sheet
                                                 </button>
                                                 {p.character.data?.level_up_pending && p.user_id === currentUser.id && (
@@ -1814,7 +1823,7 @@ const HostedRunPage = () => {
                             </div>
                             <p className="reveal-desc">New features and Greater Power await in your character sheet.</p>
                             <div className="reveal-actions">
-                                <button className="reveal-confirm-btn" onClick={() => navigate(`/characters/${levelUpReveal.id}/edit`)}>
+                                <button className="reveal-confirm-btn" onClick={() => navigate(`/characters/${levelUpReveal.id}/edit`, { state: { returnTo: `${location.pathname}${location.search}` } })}>
                                     Update Character Now
                                 </button>
                                 <button className="reveal-dismiss-btn" onClick={handleDismissLevelUpReveal}>
