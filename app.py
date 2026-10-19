@@ -359,7 +359,7 @@ def calculate_multiclass_caster_level(character_data):
             caster_level += math.ceil(class_level / 2)
 
         elif progression == "third":
-            caster_level += math.ceil(class_level / 3)
+            caster_level += class_level // 3
 
         elif progression in ["pact", "pact_magic"]:
             has_pact_magic = True
@@ -386,6 +386,11 @@ def calculate_spell_slots(character_data):
     pact_slots = {}
     normal_caster_level = 0
     pact_classes = []
+    is_multiclass = len({
+        class_entry.get("class_name", "").lower()
+        for class_entry in character_data.get("class_levels", [])
+        if class_entry.get("class_name")
+    }) > 1
     for caster in spellcasting_classes:
         class_entry = caster["class_entry"]
         progression = caster["progression"]
@@ -401,7 +406,11 @@ def calculate_spell_slots(character_data):
         elif progression == "half":
             normal_caster_level += math.ceil(class_level / 2)
         elif progression == "third":
-            normal_caster_level += math.ceil(class_level / 3)
+            normal_caster_level += (
+                class_level // 3
+                if is_multiclass
+                else math.ceil(class_level / 3)
+            )
 
     # Normal multiclass spellcasting
     if normal_caster_level > 0:
@@ -1972,7 +1981,7 @@ def api_clone_character(char_id):
 @jwt_required()
 def api_character_levelup(char_id):
     current_user_id = get_jwt_identity()
-    user = User.query.get(current_user_id)
+    user = db.session.get(User, current_user_id)
     character = db.get_or_404(Character, char_id)
     if str(character.user_id) != str(current_user_id) and not user.is_admin:
         return jsonify({"error": "Unauthorized to level up this character"}), 403

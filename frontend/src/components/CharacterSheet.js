@@ -922,6 +922,27 @@ const DEFAULT_LAYOUTS = {
     ],
 };
 
+const addSpellcastingAtBottom = (layouts) => {
+    const updatedLayouts = { ...layouts };
+    Object.keys(DEFAULT_LAYOUTS).forEach(breakpoint => {
+        const breakpointLayout = layouts[breakpoint] || DEFAULT_LAYOUTS[breakpoint];
+        const otherItems = breakpointLayout.filter(item => item.i !== "spellcasting");
+        const defaultSpellcasting = DEFAULT_LAYOUTS[breakpoint].find(
+            item => item.i === "spellcasting"
+        );
+        const bottomY = otherItems.reduce(
+            (bottom, item) => Math.max(bottom, item.y + item.h),
+            0
+        );
+
+        updatedLayouts[breakpoint] = [
+            ...otherItems,
+            { ...defaultSpellcasting, y: bottomY }
+        ];
+    });
+    return updatedLayouts;
+};
+
 const resolveOptionsForFeature = (feature, characterData, classRules, allClassRules, ruleOptions, availableSpells, targetChoiceId = null) => {
     if (!feature) return [];
 
@@ -2216,6 +2237,8 @@ function CharacterSheet() {
     const [inventoryFilter, setInventoryFilter] = useState("All");
     const [classRules, setClassRules] = useState(null);
     const [layout, setLayout] = useState(null);
+    const spellcastingAvailabilityRef = useRef(null);
+    const spellcastingLayoutPendingRef = useRef(false);
     const [isLayoutLocked, setIsLayoutLocked] = useState(true);
     const [expandedFeatures, setExpandedFeatures] = useState({});
     const [featureFilter, setFeatureFilter] = useState("All");
@@ -3437,8 +3460,37 @@ function CharacterSheet() {
 
     const handleSaveLayout = (current, all) => {
         if (viewOnly || isLayoutLocked || loading) return;
-        setLayout(all);
-        saveCharacter({ layout: all });
+        let layoutsToSave = all;
+        if (hasSpellcasting) {
+            layoutsToSave = { ...all };
+            const layoutsWithSpellcasting = addSpellcastingAtBottom(all);
+            Object.keys(DEFAULT_LAYOUTS).forEach(breakpoint => {
+                const defaultItem = DEFAULT_LAYOUTS[breakpoint].find(
+                    item => item.i === "spellcasting"
+                );
+                const breakpointLayout = all[breakpoint] || [];
+                const spellcastingItem = breakpointLayout.find(
+                    item => item.i === "spellcasting"
+                );
+                if (!spellcastingItem) {
+                    layoutsToSave[breakpoint] = layoutsWithSpellcasting[breakpoint];
+                } else if (
+                    spellcastingItem.w < Math.min(
+                        LAYOUT_CONSTRAINTS.spellcasting.minW,
+                        defaultItem.w
+                    ) ||
+                    spellcastingItem.h < LAYOUT_CONSTRAINTS.spellcasting.minH
+                ) {
+                    layoutsToSave[breakpoint] = breakpointLayout.map(item =>
+                        item.i === "spellcasting"
+                            ? { ...item, w: defaultItem.w, h: defaultItem.h }
+                            : item
+                    );
+                }
+            });
+        }
+        setLayout(layoutsToSave);
+        saveCharacter({ layout: layoutsToSave });
     };
 
     const handleDragStart = (e, index) => {
@@ -3935,6 +3987,54 @@ function CharacterSheet() {
         return spellcastingRules !== null;
     }, [spellcastingRules]);
 
+    const gridLayouts = useMemo(() => {
+        const activeLayouts = layout || DEFAULT_LAYOUTS;
+        if (!characterLoaded || !hasSpellcasting) {
+            return activeLayouts;
+        }
+
+        const spellcastingLayoutIsInvalid = Object.keys(DEFAULT_LAYOUTS).some(breakpoint => {
+            const defaultItem = DEFAULT_LAYOUTS[breakpoint].find(
+                item => item.i === "spellcasting"
+            );
+            const spellcastingItem = activeLayouts[breakpoint]?.find(
+                item => item.i === "spellcasting"
+            );
+            return !spellcastingItem ||
+                spellcastingItem.w < Math.min(
+                    LAYOUT_CONSTRAINTS.spellcasting.minW,
+                    defaultItem.w
+                ) ||
+                spellcastingItem.h < LAYOUT_CONSTRAINTS.spellcasting.minH;
+        });
+
+        if (
+            spellcastingAvailabilityRef.current === false ||
+            spellcastingLayoutIsInvalid
+        ) {
+            return addSpellcastingAtBottom(activeLayouts);
+        }
+        return activeLayouts;
+    }, [characterLoaded, hasSpellcasting, layout]);
+
+    useEffect(() => {
+        if (!characterLoaded) return;
+
+        const wasAvailable = spellcastingAvailabilityRef.current;
+        spellcastingAvailabilityRef.current = hasSpellcasting;
+        if (wasAvailable === false && hasSpellcasting) {
+            spellcastingLayoutPendingRef.current = true;
+        }
+        if (!spellcastingLayoutPendingRef.current || !hasSpellcasting || !layout) return;
+
+        const updatedLayouts = addSpellcastingAtBottom(layout);
+        spellcastingLayoutPendingRef.current = false;
+        setLayout(updatedLayouts);
+        if (!viewOnly && !loading) {
+            saveCharacter({ layout: updatedLayouts });
+        }
+    }, [characterLoaded, hasSpellcasting, layout, loading, saveCharacter, viewOnly]);
+
     if (loading) return <div className="loading-screen">Invoking the Character Sheet...</div>;
 
     if (error) {
@@ -4046,7 +4146,7 @@ function CharacterSheet() {
 
             <ResponsiveGridLayout
                 className="layout"
-                layouts={layout || DEFAULT_LAYOUTS}
+                layouts={gridLayouts}
                 breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
                 cols={{ lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 }}
                 rowHeight={30}
@@ -4598,7 +4698,11 @@ function CharacterSheet() {
                 </div>
                 {
                     hasSpellcasting && spellcastingRules && (
-                        <div key="spellcasting" className="widget card spellcasting-widget">
+                        <div
+                            key="spellcasting"
+                            data-grid={{ x: 0, y: 0, w: 12, h: 12, minH: LAYOUT_CONSTRAINTS.spellcasting.minH }}
+                            className="widget card spellcasting-widget"
+                        >
                             <SpellcastingWidget
                                 hasSpellcasting={hasSpellcasting}
                                 spellcastingRules={spellcastingRules}

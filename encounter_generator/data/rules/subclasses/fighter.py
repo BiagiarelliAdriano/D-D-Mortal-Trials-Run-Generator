@@ -290,7 +290,7 @@ FIGHTER_SUBCLASSES = {
                         "ability": "Intelligence",
                         "progression": "third",
                         "cantrips_known": {3: 2, 10: 3},
-                        "spells_known_count": THIRD_CASTER_PREPARED,
+                        "spells_prepared": THIRD_CASTER_PREPARED,
                         "spell_list": "Wizard",
                         "ritual_casting": False,
                         "focus": "Arcane Focus"

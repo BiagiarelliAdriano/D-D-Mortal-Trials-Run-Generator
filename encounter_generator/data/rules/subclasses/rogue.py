@@ -21,7 +21,7 @@ ROGUE_SUBCLASSES = {
                         "progression": "third",
                         "cantrips_known": {3: 3, 10: 4},
                         "mage_hand_requirement": "One cantrip must be Mage Hand",
-                        "spells_prepared_scaling": THIRD_CASTER_PREPARED,
+                        "spells_prepared": THIRD_CASTER_PREPARED,
                         "spell_list": "Wizard",
                         "focus": "Arcane Focus"
                     }
