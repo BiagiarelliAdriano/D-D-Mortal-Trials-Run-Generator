@@ -2612,7 +2612,7 @@ SPELLS = {
             "name": "Magic Circle",
             "school": "Abjuration",
             "classes": ["Cleric", "Paladin", "Warlock", "Wizard"],
-            "subclasses": ["Abjurer Wizard", "Arcana Trickster Rogue", "Lore Bard", "Eldritch Knight Fighter"],
+            "subclasses": ["Abjurer Wizard", "Arcane Trickster Rogue", "Lore Bard", "Eldritch Knight Fighter"],
             "sources": [],
             "action": ["Short or Long Rest"],
             "range": "10ft",

@@ -15,6 +15,7 @@ import NotesWidget from "./NotesWidget";
 import BackToTop from "./common/BackToTop";
 import API_BASE_URL from "../config";
 import { resolveSpeciesFeature } from "../utils/species";
+import { buildSpellAvailabilityQuery } from "../utils/spellAvailability";
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
@@ -617,6 +618,7 @@ const CombatWidget = ({ character, inventory, features, profBonus, weaponRules, 
 const RichFeature = ({
     feature, isExpanded, onToggle, level, isActive, onActivate, currentUses,
     characterData, classRules, allClassRules, ruleOptions, featureChoices, onUpdateChoice, availableSpells,
+    availableSpellsByClass,
     viewOnly, isAuthorized, featureNotes, setFeatureNotes
 }) => {
     const maxUsesData = feature.details?.uses;
@@ -626,7 +628,15 @@ const RichFeature = ({
 
     const rawChoice = featureChoices?.[feature.id];
     const currentChoices = Array.isArray(rawChoice) ? rawChoice : (rawChoice ? [rawChoice] : []);
-    const options = resolveOptionsForFeature(feature, characterData, classRules, allClassRules, ruleOptions, availableSpells);
+    const options = resolveOptionsForFeature(
+        feature,
+        characterData,
+        classRules,
+        allClassRules,
+        ruleOptions,
+        availableSpells,
+        availableSpellsByClass
+    );
     const flatOptions = Array.isArray(options)
         ? options
         : Object.values(options).flat();
@@ -943,7 +953,7 @@ const addSpellcastingAtBottom = (layouts) => {
     return updatedLayouts;
 };
 
-const resolveOptionsForFeature = (feature, characterData, classRules, allClassRules, ruleOptions, availableSpells, targetChoiceId = null) => {
+const resolveOptionsForFeature = (feature, characterData, classRules, allClassRules, ruleOptions, availableSpells, availableSpellsByClass, targetChoiceId = null) => {
     if (!feature) return [];
 
     // Handle sub-choices for a specific chosen option
@@ -1054,7 +1064,8 @@ const resolveOptionsForFeature = (feature, characterData, classRules, allClassRu
 
     if (id.includes('mystic_arcanum')) {
         const level = id.split('_').pop();
-        return (availableSpells?.[level] || []).map(s => s.name);
+        const warlockSpells = availableSpellsByClass?.warlock || availableSpells;
+        return (warlockSpells?.[level] || []).map(s => s.name);
     }
 
     if (id === 'wizard_spell_mastery') {
@@ -1536,6 +1547,7 @@ const SpellcastingWidget = ({
     saveCharacter,
     character,
     availableSpells,
+    availableSpellsByClass,
     isLayoutLocked,
     currentProficiencyBonus,
     onOpenOverlay,
@@ -1660,9 +1672,10 @@ const SpellcastingWidget = ({
                 {scClasses.map(c => {
                     const isSelected = (activeClassName === c.className);
                     const selectedList = migratedSpells[c.className] || [];
+                    const classSpells = availableSpellsByClass?.[c.className] || {};
                     const cantripsCount = selectedList.filter(name => {
-                        for (const lvl in availableSpells) {
-                            if (availableSpells[lvl].some(s => s.name === name && lvl === "0")) return true;
+                        for (const lvl in classSpells) {
+                            if (classSpells[lvl].some(s => s.name === name && lvl === "0")) return true;
                         }
                         return false;
                     }).length;
@@ -1835,7 +1848,7 @@ const SpellOverlay = ({
     onClose,
     onMinimize,
     onRestore,
-    availableSpells,
+    availableSpellsByClass,
     character,
     spellcastingRules,
     spellSlotsRules,
@@ -1856,19 +1869,23 @@ const SpellOverlay = ({
         }
     }, [scClasses, activeSpellClass]);
 
-    if (!show || !availableSpells) return null;
+    if (!show || !availableSpellsByClass) return null;
 
     const migratedSpells = migrateSpellsData(character.data.spells, scClasses);
+    const activeClassData = scClasses.find(c => c.className === activeSpellClass);
+    const activeAvailableSpells = availableSpellsByClass[activeSpellClass] || {};
 
     // Total spells selected across all classes
     let totalCantripsCount = 0;
     let totalPreparedCount = 0;
 
-    Object.values(migratedSpells).forEach(spellList => {
+    Object.entries(migratedSpells).forEach(([className, spellList]) => {
+        if (className === "wizard_spellbook") return;
         if (!Array.isArray(spellList)) return;
+        const classAvailableSpells = availableSpellsByClass[className] || {};
         const cantrips = spellList.filter(name => {
-            for (const lvl in availableSpells) {
-                if (availableSpells[lvl].some(s => s.name === name && lvl === "0")) return true;
+            for (const lvl in classAvailableSpells) {
+                if (classAvailableSpells[lvl].some(s => s.name === name && lvl === "0")) return true;
             }
             return false;
         }).length;
@@ -1876,7 +1893,6 @@ const SpellOverlay = ({
         totalPreparedCount += (spellList.length - cantrips);
     });
 
-    const activeClassData = scClasses.find(c => c.className === activeSpellClass);
     const activeRules = activeClassData?.rules || spellcastingRules;
     const activeLevel = activeClassData?.level || character.level;
 
@@ -1901,14 +1917,14 @@ const SpellOverlay = ({
         }
     }
 
-    const hasCantrips = !!(availableSpells?.["0"]?.length);
+    const hasCantrips = !!(activeAvailableSpells["0"]?.length);
 
     const cantripsKnownLimit = resolveScalingValue(activeRules?.cantrips_known, activeLevel) || 0;
     const spellsPreparedLimit = resolveScalingValue(activeRules?.spells_prepared, activeLevel) || 0;
 
     const cantripsCountActive = selectedSpellsActive.filter(name => {
-        for (const lvl in availableSpells) {
-            if (availableSpells[lvl].some(s => s.name === name && lvl === "0")) return true;
+        for (const lvl in activeAvailableSpells) {
+            if (activeAvailableSpells[lvl].some(s => s.name === name && lvl === "0")) return true;
         }
         return false;
     }).length;
@@ -2032,11 +2048,11 @@ const SpellOverlay = ({
                 )}
 
                 <div className="spell-overlay-list">
-                    {Object.keys(availableSpells).map(level => {
+                    {Object.keys(activeAvailableSpells).map(level => {
                         if (parseInt(level) > maxSpellLevelForClass && level !== "0") return null;
 
                         const term = spellSearchTerm.toLowerCase();
-                        let spellsAtLevel = availableSpells[level].filter(s =>
+                        let spellsAtLevel = activeAvailableSpells[level].filter(s =>
                             s.name.toLowerCase().includes(term) ||
                             (s.description || "").toLowerCase().includes(term)
                         );
@@ -2250,6 +2266,7 @@ function CharacterSheet() {
     const [activeFeatures, setActiveFeatures] = useState([]); // Array of IDs
     const [spellSlotsRules, setSpellSlotsRules] = useState(null);
     const [availableSpells, setAvailableSpells] = useState(null);
+    const [availableSpellsByClass, setAvailableSpellsByClass] = useState(null);
     const [showSpellOverlay, setShowSpellOverlay] = useState(false);
     const [spellOverlayMinimized, setSpellOverlayMinimized] = useState(false);
     const [featureChoices, setFeatureChoices] = useState({});
@@ -2442,15 +2459,34 @@ function CharacterSheet() {
                 name => classFetches[name]
             );
             rulePromises.push(...classRulesPromises);
-            // Fetch spells for all character classes (multiclass support)
-            const characterClasses = data.data?.class_levels?.length
-                ? data.data.class_levels.map(cls => cls.class_name.toLowerCase())
-                : [data.class?.name?.toLowerCase()].filter(Boolean);
+            // Fetch spells for all character classes with only the character's
+            // selected subclass and spell-granting sources.
+            const classEntries = data.data?.class_levels?.length
+                ? data.data.class_levels
+                : (data.class?.name ? [{
+                    class_name: data.class.name,
+                    subclass: data.data?.subclass
+                }] : []);
+            const characterEntriesByName = new Map();
+            classEntries.forEach(entry => {
+                const className = entry.class_name.toLowerCase();
+                if (!characterEntriesByName.has(className)) {
+                    characterEntriesByName.set(className, entry);
+                }
+            });
+            const characterClasses = [...characterEntriesByName.keys()];
 
             characterClasses.forEach(className => {
                 rulePromises.push(
-                    fetch(`${API_BASE_URL}/api/spells/${className}`)
-                        .then(r => r.json())
+                    classFetches[className].then(classRuleData => {
+                        const query = buildSpellAvailabilityQuery(
+                            characterEntriesByName.get(className),
+                            classRuleData,
+                            data.data
+                        );
+                        return fetch(`${API_BASE_URL}/api/spells/${className}${query}`)
+                            .then(r => r.json());
+                    })
                 );
             });
             if (data.data?.species) {
@@ -2472,36 +2508,24 @@ function CharacterSheet() {
             if (data.class?.name) {
                 resolvedClassRules = loadedClassRules[data.class.name.toLowerCase()];
                 setClassRules(resolvedClassRules);
+            }
 
-                // Merge spell lists from all classes
-                const mergedSpells = {};
-
-                const characterClasses = data.data?.class_levels?.length
-                    ? data.data.class_levels.map(cls => cls.class_name.toLowerCase())
-                    : [data.class.name.toLowerCase()];
-
-                characterClasses.forEach(() => {
-                    const classSpells = ruleResults[resultIdx++];
-
-                    Object.entries(classSpells).forEach(([level, spells]) => {
-
-                        if (!mergedSpells[level]) {
-                            mergedSpells[level] = [];
+            const spellsByClass = {};
+            const mergedSpells = {};
+            characterClasses.forEach(className => {
+                const classSpells = ruleResults[resultIdx++];
+                spellsByClass[className] = classSpells;
+                Object.entries(classSpells).forEach(([level, spells]) => {
+                    if (!mergedSpells[level]) mergedSpells[level] = [];
+                    spells.forEach(spell => {
+                        if (!mergedSpells[level].some(existing => existing.name === spell.name)) {
+                            mergedSpells[level].push(spell);
                         }
-
-                        spells.forEach(spell => {
-                            const alreadyExists = mergedSpells[level]
-                                .some(existing => existing.name === spell.name);
-
-                            if (!alreadyExists) {
-                                mergedSpells[level].push(spell);
-                            }
-                        });
                     });
                 });
-
-                setAvailableSpells(mergedSpells);
-            }
+            });
+            setAvailableSpellsByClass(spellsByClass);
+            setAvailableSpells(mergedSpells);
 
             if (data.data?.species) {
                 const speciesList = ruleResults[resultIdx++];
@@ -3820,29 +3844,34 @@ function CharacterSheet() {
     const toggleSpellSelection = (name, className, mode = "prepared") => {
         const scClasses = getSpellcastingClasses(character, allClassRules);
         const migratedSpells = migrateSpellsData(character.data.spells, scClasses);
+        const classAvailableSpells = availableSpellsByClass?.[className] || {};
+        const isAvailableForClass = Object.values(classAvailableSpells)
+            .some(spells => spells.some(
+                spell => spell.name === name && spell.available_for_selection !== false
+            ));
 
         if (className === "wizard" && mode === "spellbook") {
             const spellbookList = migratedSpells.wizard_spellbook ? [...migratedSpells.wizard_spellbook] : [];
             const preparedList = migratedSpells.wizard ? [...migratedSpells.wizard] : [];
 
-            const isCantrip = availableSpells["0"]?.some(s => s.name === name);
+            const isCantrip = classAvailableSpells["0"]?.some(s => s.name === name);
             if (isCantrip) {
                 const classData = scClasses.find(c => c.className === "wizard");
                 const activeRules = classData?.rules || spellcastingRules;
                 const activeLevel = classData?.level || character.level;
                 const cantripsKnownLimit = resolveScalingValue(activeRules?.cantrips_known, activeLevel) || 0;
-                const cantripsCount = preparedList.filter(n => availableSpells["0"]?.some(s => s.name === n)).length;
+                const cantripsCount = preparedList.filter(n => classAvailableSpells["0"]?.some(s => s.name === n)).length;
 
                 if (preparedList.includes(name)) {
                     migratedSpells.wizard = preparedList.filter(n => n !== name);
-                } else if (cantripsCount < cantripsKnownLimit) {
+                } else if (isAvailableForClass && cantripsCount < cantripsKnownLimit) {
                     migratedSpells.wizard = [...preparedList, name];
                 }
             } else {
                 if (spellbookList.includes(name)) {
                     migratedSpells.wizard_spellbook = spellbookList.filter(n => n !== name);
                     migratedSpells.wizard = preparedList.filter(n => n !== name);
-                } else {
+                } else if (isAvailableForClass) {
                     migratedSpells.wizard_spellbook = [...spellbookList, name];
                 }
             }
@@ -3854,18 +3883,18 @@ function CharacterSheet() {
         if (className === "wizard" && mode === "prepared") {
             const preparedList = migratedSpells.wizard ? [...migratedSpells.wizard] : [];
             const spellbookList = migratedSpells.wizard_spellbook ? [...migratedSpells.wizard_spellbook] : [];
-            const isCantrip = availableSpells["0"]?.some(s => s.name === name);
+            const isCantrip = classAvailableSpells["0"]?.some(s => s.name === name);
 
             if (isCantrip) {
                 const classData = scClasses.find(c => c.className === "wizard");
                 const activeRules = classData?.rules || spellcastingRules;
                 const activeLevel = classData?.level || character.level;
                 const cantripsKnownLimit = resolveScalingValue(activeRules?.cantrips_known, activeLevel) || 0;
-                const cantripsCount = preparedList.filter(n => availableSpells["0"]?.some(s => s.name === n)).length;
+                const cantripsCount = preparedList.filter(n => classAvailableSpells["0"]?.some(s => s.name === n)).length;
 
                 if (preparedList.includes(name)) {
                     migratedSpells.wizard = preparedList.filter(n => n !== name);
-                } else if (cantripsCount < cantripsKnownLimit) {
+                } else if (isAvailableForClass && cantripsCount < cantripsKnownLimit) {
                     migratedSpells.wizard = [...preparedList, name];
                 }
             } else {
@@ -3875,7 +3904,7 @@ function CharacterSheet() {
                 const activeRules = classData?.rules || spellcastingRules;
                 const activeLevel = classData?.level || character.level;
                 const spellsPreparedLimit = resolveScalingValue(activeRules?.spells_prepared, activeLevel) || 0;
-                const cantripsCount = preparedList.filter(n => availableSpells["0"]?.some(s => s.name === n)).length;
+                const cantripsCount = preparedList.filter(n => classAvailableSpells["0"]?.some(s => s.name === n)).length;
                 const preparedCount = preparedList.length - cantripsCount;
 
                 if (preparedList.includes(name)) {
@@ -3898,6 +3927,7 @@ function CharacterSheet() {
             setCharacter(prev => ({ ...prev, data: { ...prev.data, spells: migratedSpells } }));
         } else {
             // Add
+            if (!isAvailableForClass) return;
             const classData = scClasses.find(c => c.className === className);
             if (!classData) return;
             const activeRules = classData.rules;
@@ -3907,8 +3937,8 @@ function CharacterSheet() {
             const spellsPreparedLimit = resolveScalingValue(activeRules.spells_prepared, activeLevel) || 0;
 
             const cantripsCount = currentList.filter(n => {
-                for (const lvl in availableSpells) {
-                    if (availableSpells[lvl].some(s => s.name === n && lvl === "0")) return true;
+                for (const lvl in classAvailableSpells) {
+                    if (classAvailableSpells[lvl].some(s => s.name === n && lvl === "0")) return true;
                 }
                 return false;
             }).length;
@@ -3916,7 +3946,7 @@ function CharacterSheet() {
             const preparedCount = currentList.length - cantripsCount;
 
             let isNewCantrip = false;
-            if (availableSpells["0"]?.some(s => s.name === name)) {
+            if (classAvailableSpells["0"]?.some(s => s.name === name)) {
                 isNewCantrip = true;
             }
 
@@ -4532,6 +4562,7 @@ function CharacterSheet() {
                                 featureNotes={featureNotes}
                                 setFeatureNotes={setFeatureNotes}
                                 availableSpells={availableSpells}
+                                availableSpellsByClass={availableSpellsByClass}
                                 viewOnly={viewOnly}
                                 isAuthorized={isAuthorized}
                             />
@@ -4563,6 +4594,7 @@ function CharacterSheet() {
                                     featureNotes={featureNotes}
                                     setFeatureNotes={setFeatureNotes}
                                     availableSpells={availableSpells}
+                                    availableSpellsByClass={availableSpellsByClass}
                                     viewOnly={viewOnly}
                                 />
                             ))}
@@ -4709,6 +4741,7 @@ function CharacterSheet() {
                                 spellSlotsRules={spellSlotsRules}
                                 character={character}
                                 availableSpells={availableSpells}
+                                availableSpellsByClass={availableSpellsByClass}
                                 isLayoutLocked={isLayoutLocked}
                                 currentProficiencyBonus={currentProficiencyBonus}
                                 onOpenOverlay={() => { setShowSpellOverlay(true); setSpellOverlayMinimized(false); }}
@@ -4752,7 +4785,8 @@ function CharacterSheet() {
                             classRules,
                             allClassRules,
                             ruleOptions,
-                            availableSpells
+                            availableSpells,
+                            availableSpellsByClass
                         )
                     }
                     classRules={classRules}
@@ -4770,7 +4804,7 @@ function CharacterSheet() {
                 }}
                 onMinimize={() => setSpellOverlayMinimized(true)}
                 onRestore={() => setSpellOverlayMinimized(false)}
-                availableSpells={availableSpells}
+                availableSpellsByClass={availableSpellsByClass}
                 character={spellOverlayPreviewMode ? { ...character, level: previewLevel, data: { ...character.data, spells: previewSpells } } : character}
                 spellcastingRules={spellcastingRules}
                 spellSlotsRules={spellSlotsRules}
@@ -5013,7 +5047,15 @@ function CharacterSheet() {
                                                                 return (
                                                                     <>
                                                                         {visibleFeatures.map(feature => {
-                                                                            const options = resolveOptionsForFeature(feature, character, previewClassRules, ruleOptions, availableSpells);
+                                                                            const options = resolveOptionsForFeature(
+                                                                                feature,
+                                                                                character,
+                                                                                previewClassRules,
+                                                                                allClassRules,
+                                                                                ruleOptions,
+                                                                                availableSpells,
+                                                                                availableSpellsByClass
+                                                                            );
                                                                             const choiceLimit = getChoiceLimitForFeature(feature, previewLevel);
                                                                             const hasChoices = options.length > 0 && choiceLimit > 0;
                                                                             const choice = previewChoices[feature.id];

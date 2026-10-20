@@ -2879,39 +2879,112 @@ def get_spells(classname):
     class_spells = {}
 
     classname = classname.lower()
+    selected_subclasses = {
+        _normalize_spell_subclass_access_name(value, classname)
+        for value in request.args.getlist("subclass")
+    }
+    selected_sources = {}
+    for value in request.args.getlist("source"):
+        source_name = _normalize_spell_source_name(value)
+        selected_sources.setdefault(source_name, set()).add(_spell_source_class(value))
+    selected_spell_names = set(request.args.getlist("selected"))
 
     for level, spells_list in SPELLS.items():
         filtered_spells = []
 
         for spell in spells_list:
+            available = any(
+                cls.strip().lower() == classname
+                for cls in spell.get("classes", [])
+            )
 
-            available = False
+            if not available and selected_subclasses:
+                available = any(
+                    _normalize_spell_subclass_access_name(subclass, classname)
+                    in selected_subclasses
+                    for subclass in spell.get("subclasses", [])
+                )
 
-            # Normal class spell list
-            for cls in spell.get("classes", []):
-                if cls.lower() == classname:
-                    available = True
-                    break
+            if not available and selected_sources:
+                available = any(
+                    _normalize_spell_source_name(source) in selected_sources
+                    and (
+                        None in selected_sources[_normalize_spell_source_name(source)]
+                        or classname in selected_sources[_normalize_spell_source_name(source)]
+                    )
+                    for source in spell.get("sources", [])
+                )
 
-            # Subclass spell access
-            if not available:
-                for subclass in spell.get("subclasses", []):
-                    subclass_name = subclass.lower()
-
-                    if classname in subclass_name:
-                        available = True
-                        break
-
-            if available:
+            selected = spell.get("name") in selected_spell_names
+            if available or selected:
                 filtered_spells.append({
                     **spell,
-                    "level": level
+                    "level": level,
+                    "available_for_selection": available,
                 })
 
         if filtered_spells:
             class_spells[level] = filtered_spells
 
     return jsonify(class_spells)
+
+
+def _normalize_spell_subclass_access_name(value, classname):
+    normalized = re.sub(r"[^a-z0-9 ]", " ", str(value).lower())
+    normalized = " ".join(normalized.split())
+    if normalized.endswith(f" {classname}"):
+        normalized = normalized[: -(len(classname) + 1)].strip()
+
+    for prefix in (
+        "college of the ",
+        "college of ",
+        "circle of the ",
+        "circle of ",
+        "domain of the ",
+        "domain of ",
+        "oath of the ",
+        "oath of ",
+        "path of the ",
+        "path of ",
+        "way of the ",
+        "way of ",
+        "warrior of the ",
+        "warrior of ",
+    ):
+        if normalized.startswith(prefix):
+            normalized = normalized[len(prefix):]
+            break
+
+    for suffix in (
+        " domain",
+        " patron",
+        " sorcery",
+        " college",
+        " circle",
+    ):
+        if normalized.endswith(suffix):
+            normalized = normalized[:-len(suffix)]
+            break
+
+    return " ".join(normalized.split())
+
+
+def _normalize_spell_source_name(value):
+    normalized = re.sub(r"\([^)]*\)", "", str(value).lower())
+    return " ".join(re.sub(r"[^a-z0-9 ]", " ", normalized).split())
+
+
+def _spell_source_class(value):
+    match = re.search(r"\(([^()]*)\)\s*$", str(value))
+    if not match:
+        return None
+
+    source_class = re.sub(r"[^a-z0-9 ]", " ", match.group(1).lower())
+    source_class = " ".join(source_class.split())
+    return source_class if source_class in {
+        "artificer", "barbarian", "bard", "cleric", "druid", "fighter",
+        "monk", "paladin", "ranger", "rogue", "sorcerer", "warlock", "wizard",
+    } else None
 
 # ------------------------
 # RUN HOSTING API
