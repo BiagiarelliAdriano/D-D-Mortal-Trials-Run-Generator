@@ -6,6 +6,7 @@ import BackToTop from '../common/BackToTop';
 import UserProfilePill from '../UserProfilePill';
 import '../../styles/HostedRunPage.css';
 import API_BASE_URL from '../../config';
+import { buildSpellAvailabilityQuery } from '../../utils/spellAvailability';
 
 const FINAL_SENTENCE_RATION_MESSAGE = "The Bearer of the Final Sentence grants the Party an additional Ration. Use it wisely!";
 
@@ -38,11 +39,137 @@ const HostedRunPage = () => {
     const [showCommonItems, setShowCommonItems] = useState(false);
     const [levelUpReveal, setLevelUpReveal] = useState(null); // Stores character info for modal
     const [dismissedLevelUps, setDismissedLevelUps] = useState(new Set()); // Local tracking for this session
+    const [shopSpellOptions, setShopSpellOptions] = useState([]);
+    const [shopSpellLoading, setShopSpellLoading] = useState(false);
+    const [shopSpellError, setShopSpellError] = useState('');
+    const [shopHasSpellcastingFeature, setShopHasSpellcastingFeature] = useState(null);
 
     const formatRations = (value) => {
         const numeric = Number(value || 0);
         return Number.isInteger(numeric) ? numeric.toString() : numeric.toFixed(1);
     };
+
+    useEffect(() => {
+        const spellLevels = shopConfirm?.item?.spell_levels;
+        if (!Array.isArray(spellLevels) || spellLevels.length === 0) {
+            setShopSpellOptions([]);
+            setShopSpellError('');
+            setShopHasSpellcastingFeature(null);
+            setShopSpellLoading(false);
+            return undefined;
+        }
+
+        let cancelled = false;
+        const loadEligibleSpells = async () => {
+            setShopSpellLoading(true);
+            setShopSpellError('');
+            setShopSpellOptions([]);
+            setShopHasSpellcastingFeature(null);
+
+            try {
+                const participant = session?.participants.find(
+                    entry => entry.user_id === currentUser?.id
+                );
+                const character = participant?.character;
+                const characterData = character?.data || {};
+                const entries = Array.isArray(characterData.class_levels) && characterData.class_levels.length
+                    ? characterData.class_levels
+                    : (character?.class_name || character?.class?.name)
+                        ? [{
+                            class_name: character.class_name || character.class.name,
+                            level: character.level || characterData.level || 1,
+                            subclass: characterData.subclass
+                        }]
+                        : [];
+                const allowedLevels = new Set(spellLevels.map(Number));
+                const classGroups = await Promise.all(entries.map(async entry => {
+                    const className = entry.class_name?.toLowerCase();
+                    if (!className) return null;
+
+                    const classResponse = await fetch(`${API_BASE_URL}/api/classes/${className}`);
+                    if (!classResponse.ok) {
+                        throw new Error(`Failed to load ${className} spell rules`);
+                    }
+                    const classRules = await classResponse.json();
+                    const subclassName = entry.subclass?.toLowerCase().replace(/\s+/g, '_');
+                    const subclass = subclassName && classRules.subclasses?.[subclassName];
+                    const subclassSpellcasting = Object.values(subclass?.features || {})
+                        .flat()
+                        .find(feature => feature.id?.includes('spellcasting'))?.details;
+                    const spellcastingRules = classRules.spellcasting || subclassSpellcasting;
+                    const progression = spellcastingRules?.progression;
+                    const hasSpellcastingWidget = Boolean(spellcastingRules);
+                    return { entry, className, classRules, progression, hasSpellcastingWidget };
+                }));
+                const spellcastingGroups = classGroups.filter(group => group?.hasSpellcastingWidget);
+                if (spellcastingGroups.length === 0) {
+                    if (!cancelled) setShopHasSpellcastingFeature(false);
+                    return;
+                }
+
+                const slotsResponse = await fetch(`${API_BASE_URL}/api/rules/spell_slots`);
+                if (!slotsResponse.ok) {
+                    throw new Error('Failed to load spell slot rules');
+                }
+                const slotsRules = await slotsResponse.json();
+                const spellGroups = await Promise.all(spellcastingGroups.map(async group => {
+                    const { entry, className, classRules, progression } = group;
+                    const progressionKey = progression === 'pact' ? 'pact_magic' : progression;
+                    const slotsTable = progressionKey ? slotsRules[progressionKey] : null;
+                    let classLevel = Number(entry.level) || 1;
+                    while (classLevel > 0 && !slotsTable?.[classLevel]) classLevel -= 1;
+                    const maxSpellLevel = classLevel > 0
+                        ? Math.max(...Object.keys(slotsTable[classLevel]).map(Number))
+                        : 0;
+                    const query = buildSpellAvailabilityQuery(entry, classRules, characterData);
+                    const spellResponse = await fetch(`${API_BASE_URL}/api/spells/${className}${query}`);
+                    if (!spellResponse.ok) {
+                        throw new Error(`Failed to load ${className} spells`);
+                    }
+                    const spellsByLevel = await spellResponse.json();
+                    const spells = Object.entries(spellsByLevel)
+                        .filter(([spellLevel]) => (
+                            allowedLevels.has(Number(spellLevel)) &&
+                            (Number(spellLevel) === 0 || Number(spellLevel) <= maxSpellLevel)
+                        ))
+                        .flatMap(([, spells]) => spells);
+                    return spells;
+                }));
+
+                const uniqueSpells = new Map();
+                spellGroups.flat().forEach(spell => {
+                    if (spell?.name) uniqueSpells.set(spell.name, spell);
+                });
+                const sortedSpells = [...uniqueSpells.values()]
+                    .sort((left, right) => left.name.localeCompare(right.name));
+
+                if (!cancelled) {
+                    setShopSpellOptions(sortedSpells);
+                    setShopHasSpellcastingFeature(true);
+                    if (sortedSpells.length === 0) {
+                        setShopSpellError('No eligible spells are available in this character’s Manage Spells list.');
+                    }
+                }
+            } catch (err) {
+                if (!cancelled) {
+                    setShopSpellError(err.message || 'Unable to load eligible spells.');
+                }
+            } finally {
+                if (!cancelled) setShopSpellLoading(false);
+            }
+        };
+
+        loadEligibleSpells();
+        return () => { cancelled = true; };
+    }, [
+        shopConfirm?.itemIndex,
+        shopConfirm?.category,
+        shopConfirm?.item?.name,
+        shopConfirm?.isCommon,
+        session?.id,
+        currentUser?.id,
+        token
+    ]);
 
     const fetchSessionDetails = useCallback(async () => {
         try {
@@ -411,7 +538,13 @@ const HostedRunPage = () => {
                     category: shopConfirm.category,
                     item_index: shopConfirm.itemIndex,
                     is_common: shopConfirm.isCommon,
-                    trade_in_indices: shopConfirm.tradeIns || []
+                    trade_in_indices: shopConfirm.tradeIns || [],
+                    variant_name: shopConfirm.variantName,
+                    base_item: shopConfirm.baseItem,
+                    armor_type: shopConfirm.armorType,
+                    armor_effect: shopConfirm.armorEffect,
+                    spell_name: shopConfirm.spellName,
+                    spell_level: shopConfirm.spellLevel
                 })
             });
             const data = await response.json();
@@ -699,7 +832,19 @@ const HostedRunPage = () => {
                                     <button
                                         key={idx}
                                         className={btnClass}
-                                        onClick={() => !sold && affordable && !isDMOrAdmin && !isLocked && setShopConfirm({ category: cat, itemIndex: idx, item, isCommon: isCommonSec, tradeIns: [] })}
+                                        onClick={() => !sold && affordable && !isDMOrAdmin && !isLocked && setShopConfirm({
+                                            category: cat,
+                                            itemIndex: idx,
+                                            item,
+                                            isCommon: isCommonSec,
+                                            tradeIns: [],
+                                            variantName: '',
+                                            baseItem: '',
+                                            armorType: '',
+                                            armorEffect: '',
+                                            spellName: '',
+                                            spellLevel: ''
+                                        })}
                                         disabled={!!sold || !affordable || isDMOrAdmin || isLocked}
                                         title={isLocked ? "Shop is locked" : (sold ? `Bought by ${sold.char_name}` : (!affordable ? `You need ${item.cost} gp (You have ${myGold} gp)` : ""))}
                                     >
@@ -1537,6 +1682,20 @@ const HostedRunPage = () => {
                 const itemToBuy = shopConfirm.item;
                 const isWondrous = shopConfirm.category === 'Wondrous';
                 const baseCost = itemToBuy.cost;
+                const variationType = itemToBuy.variation_type;
+                const variationReady = variationType === 'named'
+                    ? !!shopConfirm.variantName
+                    : variationType === 'armor_effect'
+                        ? !!shopConfirm.armorType && !!shopConfirm.armorEffect
+                        : variationType === 'spell_scroll'
+                            ? shopHasSpellcastingFeature === false ||
+                                (!!shopConfirm.spellName && shopConfirm.spellLevel !== '')
+                            : variationType === 'enspelled'
+                                ? !!shopConfirm.baseItem && (
+                                    shopHasSpellcastingFeature === false ||
+                                    (!!shopConfirm.spellName && shopConfirm.spellLevel !== '')
+                                )
+                                : true;
 
                 // Calculate discount from selected trade-ins
                 const selectedIndices = shopConfirm.tradeIns || [];
@@ -1564,6 +1723,132 @@ const HostedRunPage = () => {
                                     <p className="sq-item-name">{itemToBuy.name}</p>
                                     <span className={`rarity-tag ${itemToBuy.rarity?.toLowerCase()}`}>{itemToBuy.rarity}</span>
                                 </div>
+
+                                {variationType === 'named' && (
+                                    <div className="shop-variation-selector">
+                                        <label htmlFor="shop-item-variation">Choose item variation</label>
+                                        <select
+                                            id="shop-item-variation"
+                                            value={shopConfirm.variantName}
+                                            onChange={event => setShopConfirm({
+                                                ...shopConfirm,
+                                                variantName: event.target.value
+                                            })}
+                                        >
+                                            <option value="">Select a variation</option>
+                                            {(itemToBuy.variant_options || []).map(option => (
+                                                <option key={option} value={option}>{option}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                )}
+
+                                {variationType === 'armor_effect' && (
+                                    <>
+                                        <div className="shop-variation-selector">
+                                            <label htmlFor="shop-armor-type">Choose armor type</label>
+                                            <select
+                                                id="shop-armor-type"
+                                                value={shopConfirm.armorType}
+                                                onChange={event => setShopConfirm({
+                                                    ...shopConfirm,
+                                                    armorType: event.target.value
+                                                })}
+                                            >
+                                                <option value="">Select armor</option>
+                                                {(itemToBuy.armor_options || []).map(option => (
+                                                    <option key={option} value={option}>{option}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div className="shop-variation-selector">
+                                            <label htmlFor="shop-armor-effect">
+                                                Choose {itemToBuy.effect_type?.toLowerCase()}
+                                            </label>
+                                            <select
+                                                id="shop-armor-effect"
+                                                value={shopConfirm.armorEffect}
+                                                onChange={event => setShopConfirm({
+                                                    ...shopConfirm,
+                                                    armorEffect: event.target.value
+                                                })}
+                                            >
+                                                <option value="">Select {itemToBuy.effect_type?.toLowerCase()}</option>
+                                                {(itemToBuy.effect_options || []).map(option => (
+                                                    <option key={option} value={option}>{option}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    </>
+                                )}
+
+                                {variationType === 'enspelled' && (
+                                    <div className="shop-variation-selector">
+                                        <label htmlFor="shop-item-base">Choose the item</label>
+                                        <select
+                                            id="shop-item-base"
+                                            value={shopConfirm.baseItem}
+                                            onChange={event => setShopConfirm({
+                                                ...shopConfirm,
+                                                baseItem: event.target.value
+                                            })}
+                                        >
+                                            <option value="">Select an item</option>
+                                            {(itemToBuy.base_options || []).map(option => (
+                                                <option key={option} value={option}>{option}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                )}
+
+                                {Array.isArray(itemToBuy.spell_levels) && (
+                                    <div className="shop-variation-selector">
+                                        {shopHasSpellcastingFeature === false ? (
+                                            <p className="shop-spell-warning" role="alert">
+                                                You do not have any Spellcasting feature, are you sure you want to buy this?
+                                            </p>
+                                        ) : shopSpellLoading ? (
+                                            <p className="shop-spell-loading">Loading eligible spells...</p>
+                                        ) : shopSpellOptions.length > 0 ? (
+                                            <>
+                                                <label htmlFor="shop-item-spell">Choose a spell from your available spell list</label>
+                                                <select
+                                                    id="shop-item-spell"
+                                                    value={shopConfirm.spellName && shopConfirm.spellLevel !== ''
+                                                        ? JSON.stringify([
+                                                            String(shopConfirm.spellLevel),
+                                                            shopConfirm.spellName
+                                                        ])
+                                                        : ''}
+                                                    onChange={event => {
+                                                        const [spellLevel, spellName] = JSON.parse(event.target.value || '["", ""]');
+                                                        setShopConfirm({
+                                                            ...shopConfirm,
+                                                            spellLevel,
+                                                            spellName
+                                                        });
+                                                    }}
+                                                >
+                                                    <option value="">Select a spell</option>
+                                                    {shopSpellOptions.map(spell => (
+                                                        <option
+                                                            key={`${spell.level}:${spell.name}`}
+                                                            value={JSON.stringify([String(spell.level), spell.name])}
+                                                        >
+                                                            {spell.name} ({Number(spell.level) === 0
+                                                                ? 'Cantrip'
+                                                                : `Level ${spell.level}`})
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </>
+                                        ) : (
+                                            <p className="shop-spell-error">
+                                                {shopSpellError || 'No eligible spells are available for this item.'}
+                                            </p>
+                                        )}
+                                    </div>
+                                )}
 
                                 {isWondrous && (
                                     <div className="trade-in-section">
@@ -1621,7 +1906,7 @@ const HostedRunPage = () => {
                                 <button
                                     className="confirm-btn gold"
                                     onClick={handleBuyItem}
-                                    disabled={remainingGold < 0}
+                                    disabled={remainingGold < 0 || !variationReady || shopSpellLoading}
                                 >
                                     <i className="fa-solid fa-hand-holding-dollar"></i> Confirm & Buy
                                 </button>

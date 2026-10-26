@@ -223,14 +223,243 @@ def generate_common_shop_items():
                     generated.add(generate_scroll_for_rarity("common"))
                     attempts += 1
                 for scroll_name in sorted(generated):
-                    priced.append({"name": scroll_name, "cost": get_item_price(scroll_name, "common", "Scroll")})
+                    priced.append(prepare_shop_item(
+                        scroll_name,
+                        "common",
+                        "Scroll",
+                        get_item_price(scroll_name, "common", "Scroll")
+                    ))
             elif item_name == "enspelled":
                 continue  # skip enspelled in common (safety)
             else:
-                priced.append({"name": item_name, "cost": get_item_price(item_name, "common", category)})
+                priced.append(prepare_shop_item(
+                    item_name,
+                    "common",
+                    category,
+                    get_item_price(item_name, "common", category)
+                ))
         if priced:
             result[category] = priced
     return result
+
+
+def prepare_shop_item(item_name, rarity, category, cost):
+    """Convert randomly generated variants into shop listings with buyer-selected options."""
+    from encounter_generator.data.constants import enspell_levels_by_rarity
+    from encounter_generator.data.items import MAGIC_ITEMS
+
+    item = {
+        "name": item_name,
+        "rarity": rarity,
+        "cost": cost,
+        "sold_to": None,
+        "category": category
+    }
+
+    scroll_match = re.fullmatch(
+        r"Spell Scroll (Cantrip|Level \d+)(?: .+)?",
+        item_name,
+        flags=re.IGNORECASE
+    )
+    if scroll_match:
+        level_label = scroll_match.group(1)
+        spell_level = 0 if level_label.lower() == "cantrip" else int(level_label.split()[1])
+        item.update({
+            "name": f"Spell Scroll {level_label}",
+            "variation_type": "spell_scroll",
+            "spell_levels": [spell_level]
+        })
+        return item
+
+    if item_name.lower().startswith("enspelled "):
+        if category == "Armor":
+            base_options = [
+                armor for armor in MAGIC_ITEMS["common"]["Armor"]
+                if armor.lower() != "shield"
+            ]
+            display_name = "Enspelled Armor"
+        elif category == "Weapon":
+            base_options = MAGIC_ITEMS["common"]["Weapon"]
+            display_name = "Enspelled Weapon"
+        elif category == "Staff":
+            base_options = ["Staff"]
+            display_name = "Enspelled Staff"
+        else:
+            return item
+
+        item.update({
+            "name": display_name,
+            "variation_type": "enspelled",
+            "base_options": sorted(base_options, key=str.casefold),
+            "spell_levels": list(enspell_levels_by_rarity.get(rarity, [0]))
+        })
+        return item
+
+    catalog = MAGIC_ITEMS.get(rarity, {}).get(category, [])
+    variation_patterns = [
+        (r"^Adamantine .+$", "Adamantine Weapon" if category == "Weapon" else "Adamantine Armor"),
+        (r"^Mariner's .+ Armor$", "Mariner's Armor"),
+        (r"^Mithral .+ Armor$", "Mithral Armor"),
+        (r"^Demon .+$", "Demon Armor"),
+        (r"^.+ Dragon Scale Mail$", "Dragon Scale Mail"),
+        (r"^Dwarven .+ Armor$", "Dwarven Armor"),
+        (r"^Elven Chain (?:Mail|Shirt)$", "Elven Chain Armor"),
+        (r"^Ammunition Of .+ Slaying$", "Ammunition Of Slaying"),
+        (r"^.+ \+([123])$", None)
+    ]
+    for pattern, display_name in variation_patterns:
+        if pattern == r"^.+ \+([123])$" and category not in {"Armor", "Weapon"}:
+            continue
+        if re.fullmatch(pattern, item_name, flags=re.IGNORECASE):
+            if display_name is None:
+                enhancement = re.search(r"\+([123])$", item_name)
+                display_name = f"{'Armor' if category == 'Armor' else 'Weapon'} +{enhancement.group(1)}"
+            variants = sorted(
+                (
+                    candidate for candidate in catalog
+                    if re.fullmatch(pattern, candidate, flags=re.IGNORECASE)
+                    and (display_name is not None or category in {"Armor", "Weapon"})
+                ),
+                key=str.casefold
+            )
+            if len(variants) > 1:
+                item.update({
+                    "name": display_name,
+                    "variation_type": "named",
+                    "variant_options": variants
+                })
+                return item
+
+    if category in {"Armor", "Potion"}:
+        resistance_match = re.fullmatch(
+            r"(Armor|Potion) Of (.+) (Resistance|Vulnerability)",
+            item_name,
+            flags=re.IGNORECASE
+        )
+        if resistance_match:
+            item_type, _, effect_type = resistance_match.groups()
+            if item_type == "Armor":
+                effects = sorted({
+                    match.group(1)
+                    for candidate in catalog
+                    if (
+                        match := re.fullmatch(
+                            r"Armor Of (.+ (?:Resistance|Vulnerability))",
+                            candidate,
+                            flags=re.IGNORECASE
+                        )
+                    )
+                    if match.group(1).lower().endswith(effect_type.lower())
+                }, key=str.casefold)
+                if len(effects) > 1:
+                    item.update({
+                        "name": f"Armor Of {effect_type}",
+                        "variation_type": "armor_effect",
+                        "armor_options": sorted(
+                            (
+                                armor for armor in MAGIC_ITEMS["common"]["Armor"]
+                                if armor.lower() != "shield"
+                            ),
+                            key=str.casefold
+                        ),
+                        "effect_options": effects,
+                        "effect_type": effect_type
+                    })
+                    return item
+
+            variants = sorted(
+                (
+                    candidate for candidate in catalog
+                    if re.fullmatch(
+                        rf"{item_type} Of .+ {effect_type}",
+                        candidate,
+                        flags=re.IGNORECASE
+                    )
+                ),
+                key=str.casefold
+            )
+            if len(variants) > 1:
+                item.update({
+                    "name": f"{item_type} Of {effect_type}",
+                    "variation_type": "named",
+                    "variant_options": variants
+                })
+                return item
+
+    if category == "Weapon":
+        weapon_bases = sorted(
+            MAGIC_ITEMS["common"]["Weapon"],
+            key=len,
+            reverse=True
+        )
+        for weapon_base in weapon_bases:
+            prefix = f"{weapon_base} "
+            suffix = f" {weapon_base}"
+            group_name = None
+            variants = []
+
+            if item_name.lower().startswith(prefix.lower()):
+                weapon_effect = item_name[len(prefix):]
+                variants = [
+                    candidate for candidate in catalog
+                    if candidate.lower().endswith(f" {weapon_effect}".lower())
+                    and any(candidate.lower().startswith(f"{base} ".lower()) for base in weapon_bases)
+                ]
+                if len(variants) > 1:
+                    group_name = (
+                        f"Weapon {weapon_effect}"
+                        if weapon_effect.lower().startswith("of ")
+                        else f"{weapon_effect} Weapon"
+                    )
+
+            elif item_name.lower().endswith(suffix.lower()):
+                weapon_effect = item_name[:-len(suffix)]
+                variants = [
+                    candidate for candidate in catalog
+                    if candidate.lower().startswith(f"{weapon_effect} ".lower())
+                    and any(candidate.lower().endswith(f" {base}".lower()) for base in weapon_bases)
+                ]
+                if len(variants) > 1:
+                    group_name = f"{weapon_effect} Weapon"
+
+            if group_name and len(variants) > 1:
+                item.update({
+                    "name": group_name,
+                    "variation_type": "named",
+                    "variant_options": sorted(set(variants), key=str.casefold)
+                })
+                return item
+
+    return item
+
+
+def character_has_spellcasting_feature(character_data):
+    class_levels = character_data.get("class_levels") or [{
+        "class_name": character_data.get("class_name"),
+        "subclass": character_data.get("subclass")
+    }]
+    for class_entry in class_levels:
+        class_name = (class_entry.get("class_name") or "").lower()
+        class_data = CLASSES.get(class_name)
+        if not class_data:
+            continue
+        if class_data.get("spellcasting"):
+            return True
+
+        subclass_name = (class_entry.get("subclass") or "").lower().replace(" ", "_")
+        subclass_data = class_data.get("subclasses", {}).get(subclass_name)
+        if not subclass_data:
+            continue
+        spellcasting_feature = next((
+            feature
+            for feature_levels in subclass_data.get("features", {}).values()
+            for feature in feature_levels
+            if "spellcasting" in feature.get("id", "").lower()
+        ), None)
+        if spellcasting_feature and spellcasting_feature.get("details"):
+            return True
+    return False
+
 
 def get_spellcasting_progression(class_data):
     """
@@ -3791,13 +4020,7 @@ def api_shop_select_category(session_id):
                     item_cat = chosen_cat
                     
                 cost = get_item_price(item_name, rarity, item_cat)
-                priced.append({
-                    "name": item_name, 
-                    "rarity": rarity, 
-                    "cost": cost, 
-                    "sold_to": None,
-                    "category": item_cat
-                })
+                priced.append(prepare_shop_item(item_name, rarity, item_cat, cost))
             items[chosen_cat] = priced
 
         # Check for additional Wondrous category in encounter data
@@ -3815,13 +4038,7 @@ def api_shop_select_category(session_id):
                     item_cat = "Wondrous"
                     
                 cost = get_item_price(item_name, rarity, item_cat)
-                priced_wondrous.append({
-                    "name": item_name, 
-                    "rarity": rarity, 
-                    "cost": cost, 
-                    "sold_to": None,
-                    "category": item_cat
-                })
+                priced_wondrous.append(prepare_shop_item(item_name, rarity, item_cat, cost))
             items["Wondrous"] = priced_wondrous
 
         shop_state["items"] = items
@@ -3885,14 +4102,81 @@ def api_shop_buy_item(session_id):
     if not is_common and item.get("sold_to") is not None:
         return jsonify({"error": "This item has already been purchased"}), 400
 
-    cost = item.get("cost", 0)
-
-    # Check buyer's gold
     character = db.session.get(Character, participant.character_id)
     if not character:
         return jsonify({"error": "Character not found"}), 404
-
     char_data = character.get_data()
+    has_spellcasting_feature = character_has_spellcasting_feature(char_data)
+
+    final_item_name = item["name"]
+    purchased_item_details = {}
+    variation_type = item.get("variation_type")
+    if variation_type == "named":
+        selected_variant = data.get("variant_name")
+        if selected_variant not in item.get("variant_options", []):
+            return jsonify({"error": "Choose a valid item variation"}), 400
+        final_item_name = selected_variant
+    elif variation_type == "armor_effect":
+        armor_type = data.get("armor_type")
+        armor_effect = data.get("armor_effect")
+        if armor_type not in item.get("armor_options", []):
+            return jsonify({"error": "Choose a valid armor type"}), 400
+        if armor_effect not in item.get("effect_options", []):
+            return jsonify({"error": "Choose a valid armor resistance or vulnerability"}), 400
+        final_item_name = f"{armor_type} Of {armor_effect}"
+        purchased_item_details.update({
+            "base_item": armor_type,
+            "armor_effect": armor_effect
+        })
+    elif variation_type in {"spell_scroll", "enspelled"}:
+        selected_spell = data.get("spell_name")
+        selected_spell_level = data.get("spell_level")
+        spell_choice_provided = (
+            selected_spell not in (None, "")
+            or selected_spell_level not in (None, "")
+        )
+        if not has_spellcasting_feature:
+            if spell_choice_provided:
+                return jsonify({"error": "Spell choices are unavailable without a Spellcasting feature"}), 400
+            if variation_type == "enspelled":
+                base_item = data.get("base_item")
+                if base_item not in item.get("base_options", []):
+                    return jsonify({"error": "Choose a valid item base"}), 400
+                final_item_name = f"Enspelled {base_item}"
+                purchased_item_details["base_item"] = base_item
+        else:
+            try:
+                selected_spell_level = int(selected_spell_level)
+            except (TypeError, ValueError):
+                return jsonify({"error": "Choose a valid spell"}), 400
+
+            if selected_spell_level not in item.get("spell_levels", []):
+                return jsonify({"error": "That spell level is not available for this item"}), 400
+
+            valid_spells = {
+                spell.get("name") for spell in SPELLS.get(selected_spell_level, [])
+            }
+            if selected_spell not in valid_spells:
+                return jsonify({"error": "Choose a valid spell for this item"}), 400
+
+            level_label = "Cantrip" if selected_spell_level == 0 else f"Level {selected_spell_level}"
+            if variation_type == "spell_scroll":
+                final_item_name = f"Spell Scroll {level_label} {selected_spell}"
+            else:
+                base_item = data.get("base_item")
+                if base_item not in item.get("base_options", []):
+                    return jsonify({"error": "Choose a valid item base"}), 400
+                final_item_name = f"Enspelled {base_item} {level_label} {selected_spell}"
+                purchased_item_details["base_item"] = base_item
+
+            purchased_item_details.update({
+                "spell": selected_spell,
+                "spell_level": selected_spell_level
+            })
+
+    cost = item.get("cost", 0)
+
+    # Check buyer's gold
     current_gold = int(char_data.get("gold", 0))
 
     # Calculate trade-in discount
@@ -3935,12 +4219,13 @@ def api_shop_buy_item(session_id):
 
     # Add item to character inventory (top)
     inv_item = {
-        "name": item["name"],
+        "name": final_item_name,
         "quantity": 1,
         "category": category,
         "rarity": item.get("rarity", "common"),
         "shop_purchase": True
     }
+    inv_item.update(purchased_item_details)
     if "inventory" not in char_data:
         char_data["inventory"] = []
     char_data["inventory"].insert(0, inv_item)
@@ -3957,7 +4242,7 @@ def api_shop_buy_item(session_id):
     db.session.commit()
 
     return jsonify({
-        "message": f"{character.name} purchased {item['name']} for {cost} gp",
+        "message": f"{character.name} purchased {final_item_name} for {cost} gp",
         "new_gold": char_data["gold"],
         "shop_state": shop_state
     }), 200

@@ -1,0 +1,19 @@
+{
+    "permissions": [
+        {
+            "name": "clipboard-write",
+            "reason": "Allow players to copy the current room ID."
+        }
+    ],
+    "name": "The Mortal Trials",
+    "version": "0.1.0",
+    "manifest_version": 1,
+    "description": "The official tabletop companion for The Mortal Trials.",
+    "action": {
+        "title": "The Mortal Trials",
+        "icon": "/icon.svg",
+        "popover": "/",
+        "width": 400,
+        "height": 600
+    }
+}

@@ -912,10 +912,10 @@ ITEM_DATA = {
     "Longbow": {
         "name": "Longbow",
         "type": "Weapon",
-        "rarity": "",
+        "rarity": "Common",
         "attunement": False,
         "effect": (
-            ""
+            "Martial Weapon, Ranged Weapon. 1d8 Piercing, Ammunition, Range 150/600ft, Heavy, Two-Handed. Mastery: Slow."
         ),
         "activation": None,
         "duration": None,
@@ -923,18 +923,301 @@ ITEM_DATA = {
         "recharge": None,
         "notes": None,
     },
+    "Longsword": {
+        "name": "Longsword",
+        "type": "Weapon",
+        "rarity": "Common",
+        "attunement": False,
+        "effect": (
+            "Martial Weapon, Melee Weapon. 1d8 Slashing, Versatile 1d10. Mastery: Sap."
+        ),
+        "activation": None,
+        "duration": None,
+        "charges": None,
+        "recharge": None,
+        "notes": None,
+    },
+    "Mace": {
+            "name": "Mace",
+            "type": "Weapon",
+            "rarity": "Common",
+            "attunement": False,
+            "effect": (
+                "Simple Weapon, Melee Weapon. 1d6 Bludgeoning. Mastery: Sap."
+            ),
+            "activation": None,
+            "duration": None,
+            "charges": None,
+            "recharge": None,
+            "notes": None,
+        },
+    "Maul": {
+            "name": "Maul",
+            "type": "Weapon",
+            "rarity": "Common",
+            "attunement": False,
+            "effect": (
+                "Martial Weapon, Melee Weapon. 2d6 Bludgeoning, Heavy, Two-Handed. Mastery: Topple."
+            ),
+            "activation": None,
+            "duration": None,
+            "charges": None,
+            "recharge": None,
+            "notes": None,
+        },
+    "Morningstar": {
+            "name": "Morningstar",
+            "type": "Weapon",
+            "rarity": "Common",
+            "attunement": False,
+            "effect": (
+                "Martial Weapon, Melee Weapon. 1d8 Piercing. Mastery: Sap."
+            ),
+            "activation": None,
+            "duration": None,
+            "charges": None,
+            "recharge": None,
+            "notes": None,
+        },
+    "Musket": {
+            "name": "Musket",
+            "type": "Weapon",
+            "rarity": "Common",
+            "attunement": False,
+            "effect": (
+                "Martial Weapon, Ranged Weapon, Firearm. 1d12 Piercing, Ammunition, Range 40/120ft, Loading, Two-Handed. Mastery: Slow."
+            ),
+            "activation": None,
+            "duration": None,
+            "charges": None,
+            "recharge": None,
+            "notes": None,
+        },
+    "Pike": {
+            "name": "Pike",
+            "type": "Weapon",
+            "rarity": "Common",
+            "attunement": False,
+            "effect": (
+                "Martial Weapon, Melee Weapon. 1d10 Piercing, Heavy, Reach, Two-Handed. Mastery: Push."
+            ),
+            "activation": None,
+            "duration": None,
+            "charges": None,
+            "recharge": None,
+            "notes": None,
+        },
+    "Pistol": {
+            "name": "Pistol",
+            "type": "Weapon",
+            "rarity": "Common",
+            "attunement": False,
+            "effect": (
+                "Martial Weapon, Ranged Weapon, Firearm. 1d10 Piercing, Ammunition, Range 30/90ft, Loading. Mastery: Vex."
+            ),
+            "activation": None,
+            "duration": None,
+            "charges": None,
+            "recharge": None,
+            "notes": None,
+        },
+    "Quarterstaff": {
+            "name": "Quarterstaff",
+            "type": "Weapon",
+            "rarity": "Common",
+            "attunement": False,
+            "effect": (
+                "Simple Weapon, Melee Weapon. 1d6 Bludgeoning, Versatile 1d8. Mastery: Topple."
+            ),
+            "activation": None,
+            "duration": None,
+            "charges": None,
+            "recharge": None,
+            "notes": None,
+        },
+    "Rapier": {
+            "name": "Rapier",
+            "type": "Weapon",
+            "rarity": "Common",
+            "attunement": False,
+            "effect": (
+                "Martial Weapon, Melee Weapon. 1d8 Piercing, Finesse. Mastery: Vex."
+            ),
+            "activation": None,
+            "duration": None,
+            "charges": None,
+            "recharge": None,
+            "notes": None,
+        },
+    "Scimitar": {
+            "name": "Scimitar",
+            "type": "Weapon",
+            "rarity": "Common",
+            "attunement": False,
+            "effect": (
+                "Martial Weapon, Melee Weapon. 1d6 Slashing, Finesse, Light. Mastery: Nick."
+            ),
+            "activation": None,
+            "duration": None,
+            "charges": None,
+            "recharge": None,
+            "notes": None,
+        },
+    "Shortbow": {
+            "name": "Shortbow",
+            "type": "Weapon",
+            "rarity": "Common",
+            "attunement": False,
+            "effect": (
+                "Simple Weapon, Ranged Weapon. 1d6 Piercing, Ammunition, Range 80/320ft, Two-Handed. Mastery: Vex."
+            ),
+            "activation": None,
+            "duration": None,
+            "charges": None,
+            "recharge": None,
+            "notes": None,
+        },
+    "Shortsword": {
+            "name": "Shortsword",
+            "type": "Weapon",
+            "rarity": "Common",
+            "attunement": False,
+            "effect": (
+                "Martial Weapon, Melee Weapon. 1d6 Piercing, Finesse, Light. Mastery: Vex."
+            ),
+            "activation": None,
+            "duration": None,
+            "charges": None,
+            "recharge": None,
+            "notes": None,
+        },
+    "Sickle": {
+            "name": "Sickle",
+            "type": "Weapon",
+            "rarity": "Common",
+            "attunement": False,
+            "effect": (
+                "Simple Weapon, Melee Weapon. 1d4 Slashing, Light. Mastery: Nick."
+            ),
+            "activation": None,
+            "duration": None,
+            "charges": None,
+            "recharge": None,
+            "notes": None,
+        },
+    "Sling": {
+            "name": "Sling",
+            "type": "Weapon",
+            "rarity": "Common",
+            "attunement": False,
+            "effect": (
+                "Simple Weapon, Ranged Weapon. 1d4 Bludgeoning, Ammunition, Range 30/120ft. Mastery: Slow."
+            ),
+            "activation": None,
+            "duration": None,
+            "charges": None,
+            "recharge": None,
+            "notes": None,
+        },
+    "Spear": {
+            "name": "Spear",
+            "type": "Weapon",
+            "rarity": "Common",
+            "attunement": False,
+            "effect": (
+                "Simple Weapon, Melee Weapon. 1d6 Piercing, Thrown 20/60ft, Versatile 1d8. Mastery: Sap."
+            ),
+            "activation": None,
+            "duration": None,
+            "charges": None,
+            "recharge": None,
+            "notes": None,
+        },
+    "Trident": {
+            "name": "Trident",
+            "type": "Weapon",
+            "rarity": "Common",
+            "attunement": False,
+            "effect": (
+                "Martial Weapon, Melee Weapon. 1d8 Piercing, Thrown 20/60ft, Versatile 1d10. Mastery: Topple."
+            ),
+            "activation": None,
+            "duration": None,
+            "charges": None,
+            "recharge": None,
+            "notes": None,
+        },
+    "War Pick": {
+            "name": "War Pick",
+            "type": "Weapon",
+            "rarity": "Common",
+            "attunement": False,
+            "effect": (
+                "Martial Weapon, Melee Weapon. 1d8 Piercing, Versatile 1d10. Mastery: Sap."
+            ),
+            "activation": None,
+            "duration": None,
+            "charges": None,
+            "recharge": None,
+            "notes": None,
+        },
+    "Warhammer": {
+            "name": "Warhammer",
+            "type": "Weapon",
+            "rarity": "Common",
+            "attunement": False,
+            "effect": (
+                "Martial Weapon, Melee Weapon. 1d8 Bludgeoning, Versatile 1d10. Mastery: Push."
+            ),
+            "activation": None,
+            "duration": None,
+            "charges": None,
+            "recharge": None,
+            "notes": None,
+        },
+    "Whip": {
+            "name": "Whip",
+            "type": "Weapon",
+            "rarity": "Common",
+            "attunement": False,
+            "effect": (
+                "Martial Weapon, Melee Weapon. 1d4 Slashing, Finesse, Reach. Mastery: Slow."
+            ),
+            "activation": None,
+            "duration": None,
+            "charges": None,
+            "recharge": None,
+            "notes": None,
+        },
+    "Adamantine Armor": {
+            "name": "Adamantine Armor",
+            "type": "Armor",
+            "rarity": "Uncommon",
+            "attunement": False,
+            "effect": (
+                "This suit of armor is reinforced with adamantine, one of the hardest substances in existence. While you're wearing it, any Critical Hit against you becomes a normal hit."
+            ),
+            "activation": None,
+            "duration": None,
+            "charges": None,
+            "recharge": None,
+            "variations": {
+                "Breastplate", "Chain Mail", "Chain Shirt", "Half Plate Armor", "Plate Armor", "Ring Mail", "Scale Mail", "Splint Armor"
+            },
+            "notes": None,
+        },
     "": {
-        "name": "",
-        "type": "",
-        "rarity": "",
-        "attunement": False,
-        "effect": (
-            ""
-        ),
-        "activation": None,
-        "duration": None,
-        "charges": None,
-        "recharge": None,
-        "notes": None,
-    },
+            "name": "",
+            "type": "",
+            "rarity": "",
+            "attunement": False,
+            "effect": (
+                ""
+            ),
+            "activation": None,
+            "duration": None,
+            "charges": None,
+            "recharge": None,
+            "notes": None,
+        },
 }

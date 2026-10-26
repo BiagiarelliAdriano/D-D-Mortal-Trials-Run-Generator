@@ -2219,7 +2219,7 @@ PALADIN = {
                 "id": "paladin_weapon_mastery",
                 "name": "Weapon Mastery",
                 "summary": "Use mastery properties of two weapons; can change choices after a Long Rest.",
-                "description": "Your training with weapons allows you to use the mastery properties of particular weapons. You gain the mastery properties of two weapons of your choice.",
+                "description": "Your training with weapons allows you to use the mastery properties of two kinds of weapons of your choice with which you have proficiency. Whenever you finish a Long Rest, you can change the kinds of weapons you chose.",
                 "details": {
                     "Action": "Passive",
                     "masteries": 2,

@@ -2809,6 +2809,103 @@ h3,
     transform: translateY(-1px);
 }
 
+.inventory-spell-button {
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.inventory-spell-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 10003;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    background: rgba(0, 0, 0, 0.72);
+    backdrop-filter: blur(6px);
+}
+
+.inventory-spell-picker {
+    width: min(520px, 100%);
+    padding: 1.5rem;
+    border: 1px solid var(--accent);
+    border-radius: 14px;
+    background: #242231;
+    color: var(--text-main);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.65), 0 0 22px rgba(255, 215, 0, 0.1);
+}
+
+.inventory-spell-picker h2 {
+    margin: 0 0 0.75rem;
+    color: var(--accent);
+    font-family: var(--font-serif);
+}
+
+.inventory-spell-picker > p {
+    margin: 0 0 1.25rem;
+    color: var(--text-dim);
+}
+
+.inventory-spell-selector {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.inventory-spell-selector label {
+    color: var(--accent);
+    font-weight: 600;
+}
+
+.inventory-spell-selector select {
+    width: 100%;
+    padding: 0.7rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: #292735;
+    color: var(--text-main);
+    color-scheme: dark;
+    font: inherit;
+}
+
+.inventory-spell-selector select option {
+    background: #292735;
+    color: var(--text-main);
+}
+
+.inventory-spell-empty {
+    padding: 0.8rem;
+    border-radius: 8px;
+    background: rgba(255, 215, 0, 0.08);
+    color: var(--text-dim);
+}
+
+.inventory-spell-picker-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    margin-top: 1.25rem;
+}
+
+.inventory-spell-picker-actions button:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+}
+
+.inventory-spell-cancel-btn {
+    padding: 7px 16px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: transparent;
+    color: var(--text-main);
+    cursor: pointer;
+    font: inherit;
+}
+
 .spell-stats-row {
     display: flex;
     gap: 10px;
@@ -3615,18 +3712,24 @@ h3,
     border-radius: 20px;
     color: #ffd700;
     font-weight: bold;
-    cursor: pointer;
+    cursor: default;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     overflow: hidden;
     user-select: none;
 }
 
-.gold-box:hover {
+.gold-box-interactive {
+    cursor: pointer;
+}
+
+.gold-box-interactive:hover,
+.gold-box-interactive:focus-visible {
     background: rgba(255, 215, 0, 0.2);
     border-color: #ffd700;
     box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
     transform: translateY(-1px);
+    outline: none;
 }
 
 .transfer-hint-icon {
@@ -3636,7 +3739,8 @@ h3,
     transition: transform 0.3s;
 }
 
-.gold-box:hover .transfer-hint-icon {
+.gold-box-interactive:hover .transfer-hint-icon,
+.gold-box-interactive:focus-visible .transfer-hint-icon {
     opacity: 1;
     transform: rotate(180deg);
 }
@@ -3728,6 +3832,23 @@ h3,
     max-width: 400px;
     border: 1px solid rgba(255, 215, 0, 0.4);
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 30px rgba(255, 215, 0, 0.1);
+}
+
+.gold-action-balance {
+    margin: 0 0 18px;
+    color: var(--text-dim);
+    text-align: center;
+}
+
+.gold-action-balance strong {
+    color: #ffd700;
+}
+
+.gold-action-buttons,
+.gold-modal-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }
 
 .transfer-target-list {

@@ -16,6 +16,7 @@ import BackToTop from "./common/BackToTop";
 import API_BASE_URL from "../config";
 import { resolveSpeciesFeature } from "../utils/species";
 import { buildSpellAvailabilityQuery } from "../utils/spellAvailability";
+import { checkFeatPrerequisites } from "../utils/featPrerequisites";
 
 const ResponsiveGridLayout = WidthProvider(Responsive);
 
@@ -37,6 +38,74 @@ const XP_THRESHOLDS = {
     6: 14000, 7: 23000, 8: 34000, 9: 48000, 10: 64000,
     11: 85000, 12: 100000, 13: 120000, 14: 140000, 15: 165000,
     16: 195000, 17: 225000, 18: 265000, 19: 305000, 20: 355000
+};
+
+const SCROLL_SPELL_LEVELS_BY_RARITY = {
+    common: [0, 1],
+    uncommon: [2, 3],
+    rare: [4, 5],
+    "very rare": [6, 7, 8],
+    legendary: [9]
+};
+
+const ENSPELLED_SPELL_LEVELS_BY_RARITY = {
+    uncommon: [0, 1],
+    rare: [2, 3],
+    "very rare": [4, 5],
+    legendary: [6, 7, 8]
+};
+
+const getInventorySpellItemDetails = (item, armorRules = {}) => {
+    const name = item?.name || "";
+    const scrollMatch = name.match(/^Spell Scroll (Cantrip|Level \d+)(?: (.+))?$/i);
+    if (scrollMatch) {
+        const parsedSpellLevel = scrollMatch[1].toLowerCase() === "cantrip"
+            ? 0
+            : Number(scrollMatch[1].match(/\d+/)?.[0]);
+        const storedSpellLevel = item.spell_level === null || item.spell_level === undefined || item.spell_level === ""
+            ? NaN
+            : Number(item.spell_level);
+        const spellLevel = Number.isInteger(storedSpellLevel)
+            ? storedSpellLevel
+            : parsedSpellLevel;
+        return {
+            type: "scroll",
+            levels: Number.isInteger(spellLevel)
+                ? [spellLevel]
+                : SCROLL_SPELL_LEVELS_BY_RARITY[item.rarity?.toLowerCase()] || [],
+            spellName: item.spell || scrollMatch[2] || "",
+            spellLevel
+        };
+    }
+
+    if (!/^Enspelled /i.test(name)) return null;
+    const spellMatch = name.match(/^Enspelled (.+?) (Cantrip|Level \d+)(?: (.+))?$/i);
+    const genericMatch = name.match(/^Enspelled (.+)$/i);
+    const baseItem = item.base_item || spellMatch?.[1] || genericMatch?.[1] || "";
+    const allowedLevels = ENSPELLED_SPELL_LEVELS_BY_RARITY[item.rarity?.toLowerCase()] || [0];
+    const parsedSpellLevel = spellMatch
+        ? spellMatch[2].toLowerCase() === "cantrip"
+            ? 0
+            : Number(spellMatch[2].match(/\d+/)?.[0])
+        : null;
+    const storedSpellLevel = item.spell_level === null || item.spell_level === undefined || item.spell_level === ""
+        ? NaN
+        : Number(item.spell_level);
+    const spellLevel = Number.isInteger(storedSpellLevel)
+        ? storedSpellLevel
+        : parsedSpellLevel;
+    const itemCategory = (item.category || "").toLowerCase();
+    const isArmor = itemCategory === "armor" || Boolean(armorRules[baseItem]) ||
+        /^Enspelled .+ Armor(?: |$)/i.test(name);
+    const isWeapon = itemCategory === "weapon" || (!isArmor && !/Enspelled Staff/i.test(name));
+
+    return {
+        type: isArmor ? "armor" : isWeapon ? "weapon" : "staff",
+        baseItem,
+        levels: Number.isInteger(spellLevel) ? [spellLevel] : allowedLevels,
+        spellName: item.spell || spellMatch?.[3] || "",
+        spellLevel
+    };
 };
 
 // --- Helper Utilities ---
@@ -113,71 +182,17 @@ const getChoiceLimitForFeature = (feature, level) => {
 };
 
 /**
- * Checks if a feature or feat prerequisite is met by the character.
- * Handles strings like "Level 4+", "Strength 13+", and nested OR conditions.
- */
-const checkPrerequisites = (prerequisite, character, level = 1, classRules = null) => {
-    if (!prerequisite || !character) return null;
-
-    const checkSingle = (req) => {
-        if (typeof req !== 'string') return null;
-
-        // 1. Level check
-        const levelMatch = req.match(/Level\s+(\d+)/i);
-        if (levelMatch) {
-            const reqLevel = parseInt(levelMatch[1]);
-            if (level < reqLevel) return req;
-        }
-
-        // 2. Ability score check
-        const abilityMatch = req.match(/(Strength|Dexterity|Constitution|Intelligence|Wisdom|Charisma)\s+(\d+)/i);
-        if (abilityMatch) {
-            const ability = abilityMatch[1].toLowerCase();
-            const reqScore = parseInt(abilityMatch[2]);
-            const currentScore = character.data?.abilities?.[ability] || 10;
-            if (currentScore < reqScore) return req;
-        }
-
-        // 3. Armor/Weapon Training check (Simplified)
-        if (req.includes('Armor Training') || req.includes('Weapon Proficiency')) {
-            // This would ideally check character.proficiencies, but simple string check for now
-            // if (!character.data.proficiencies?.includes(req)) return req;
-        }
-
-        // 4. Spellcasting Feature
-        if (req.includes('Spellcasting Feature') || req.includes('Pact Magic')) {
-            const hasMagic = !!(classRules?.spellcasting || character.class?.spellcasting);
-            if (!hasMagic) return req;
-        }
-
-        return null;
-    };
-
-    if (typeof prerequisite === 'string') return checkSingle(prerequisite);
-
-    if (Array.isArray(prerequisite)) {
-        // Find failed requirements
-        const failed = [];
-        for (const req of prerequisite) {
-            if (Array.isArray(req)) {
-                // Nested list is an OR condition
-                const anyMet = req.some(r => !checkSingle(r));
-                if (!anyMet) failed.push(`(${req.join(' or ')})`);
-            } else {
-                const error = checkSingle(req);
-                if (error) failed.push(error);
-            }
-        }
-        return failed.length > 0 ? failed.join(' and ') : null;
-    }
-
-    return null;
-};
-
-/**
  * Renders comparison details for Ability Score Improvements and warnings for unmet prerequisites.
  */
-const PreviewChoiceDetails = ({ feature, choice, character, level }) => {
+const PreviewChoiceDetails = ({
+    feature,
+    choice,
+    character,
+    level,
+    classRules,
+    allClassRules,
+    ruleOptions
+}) => {
     if (!choice) return null;
 
     const choiceName = typeof choice === 'string' ? choice : (choice.name || choice.id);
@@ -212,7 +227,9 @@ const PreviewChoiceDetails = ({ feature, choice, character, level }) => {
 
     // 2. Feat Prerequisite Checking
     if (typeof choice === 'object' && choice.prerequisite) {
-        const warning = checkPrerequisites(choice.prerequisite, character, level);
+        const warning = checkFeatPrerequisites(
+            choice.prerequisite, character, level, classRules, allClassRules, ruleOptions
+        );
         if (warning) {
 
             result.push(
@@ -705,7 +722,9 @@ const RichFeature = ({
                     )}
                     {feature.summary && <p className="feature-summary"><strong>Summary:</strong> {processRichText(feature.summary)}</p>}
                     {feature.prerequisite && (() => {
-                        const warning = checkPrerequisites(feature.prerequisite, characterData, level, classRules);
+                        const warning = checkFeatPrerequisites(
+                            feature.prerequisite, characterData, level, classRules, allClassRules, ruleOptions
+                        );
                         return (
                             <div className={`feat-prerequisite-line ${warning ? 'unmet' : 'met'}`}>
                                 <span className="prereq-icon">{warning ? '⚠' : '✓'}</span>
@@ -1078,7 +1097,19 @@ const resolveOptionsForFeature = (feature, characterData, classRules, allClassRu
     return [];
 };
 
-const FeatureChoiceOverlay = ({ isOpen, onClose, feature, options, onSelect, currentChoice, level, character }) => {
+const FeatureChoiceOverlay = ({
+    isOpen,
+    onClose,
+    feature,
+    options,
+    onSelect,
+    currentChoice,
+    level,
+    character,
+    classRules,
+    allClassRules,
+    ruleOptions
+}) => {
     const [tempChoices, setTempChoices] = useState([]);
     const limit = getChoiceLimitForFeature(feature, level);
     const isMulti = limit > 1;
@@ -1150,7 +1181,9 @@ const FeatureChoiceOverlay = ({ isOpen, onClose, feature, options, onSelect, cur
         const isSelected = count > 0;
         const optName = typeof opt === 'string' ? opt : opt.name;
         const prerequisiteWarning = opt.prerequisite
-            ? checkPrerequisites(opt.prerequisite, character, level)
+            ? checkFeatPrerequisites(
+                opt.prerequisite, character, level, classRules, allClassRules, ruleOptions
+            )
             : null;
         const prerequisiteBlocked = !!prerequisiteWarning;
         const optDescRaw = typeof opt === 'string'
@@ -2161,7 +2194,11 @@ function CharacterSheet() {
     const [pendingRestType, setPendingRestType] = useState(null);
     const [statModConfig, setStatModConfig] = useState({ isOpen: false, type: null, statKey: null, value: 0, label: "" });
     const [showGoldTransferModal, setShowGoldTransferModal] = useState(false);
+    const [showGoldActionModal, setShowGoldActionModal] = useState(false);
+    const [showRemoveGoldModal, setShowRemoveGoldModal] = useState(false);
     const [goldTransferAmount, setGoldTransferAmount] = useState(1);
+    const [goldRemovalAmount, setGoldRemovalAmount] = useState(1);
+    const [isRemovingGold, setIsRemovingGold] = useState(false);
     const [goldTransferRecipient, setGoldTransferRecipient] = useState(null);
     const [revealedGifts, setRevealedGifts] = useState({ gold: [], items: [] }); // { gold: [ids/timestamps], items: [originalIndexes] }
     const [pendingGifts, setPendingGifts] = useState({ gold: [], items: [] });
@@ -2249,6 +2286,8 @@ function CharacterSheet() {
     const [skills, setSkills] = useState({});
     const [maxHpModifier, setMaxHpModifier] = useState(0);
     const [inventoryItems, setInventoryItems] = useState([]);
+    const [inventorySpellItemIndex, setInventorySpellItemIndex] = useState(null);
+    const [inventorySpellChoice, setInventorySpellChoice] = useState("");
     const [gold, setGold] = useState(0);
     const [inventoryFilter, setInventoryFilter] = useState("All");
     const [classRules, setClassRules] = useState(null);
@@ -3207,16 +3246,21 @@ function CharacterSheet() {
     };
 
 
+    const getArmorRulesForItem = (item) => (
+        armorRules[item?.name] || armorRules[item?.base_item] || null
+    );
+
     const toggleEquip = (targetItem) => {
         setInventoryItems(prev => {
-            const isShield = armorRules[targetItem.name]?.type === "Shield";
+            const isShield = getArmorRulesForItem(targetItem)?.type === "Shield";
 
             const next = prev.map((item, idx) => {
                 if (idx === targetItem.originalIndex) {
                     return { ...item, equipped: !item.equipped };
                 }
                 // Only allow one armor to be equipped at a time (excluding shields)
-                if (!isShield && item.equipped && armorRules[item.name] && armorRules[item.name].type !== "Shield") {
+                const itemArmorRules = getArmorRulesForItem(item);
+                if (!isShield && item.equipped && itemArmorRules && itemArmorRules.type !== "Shield") {
                     return { ...item, equipped: false };
                 }
                 return item;
@@ -3270,7 +3314,7 @@ function CharacterSheet() {
 
     const groupedInventory = useMemo(() => inventoryItems.reduce((acc, item, originalIndex) => {
         let category = item.category || "Other";
-        if (armorRules[item.name]) category = "Armor";
+        if (getArmorRulesForItem(item)) category = "Armor";
         else if (weaponRules[item.name]) category = "Weapon";
 
         const term = (character?.data?.inventorySearchTerm || "").toLowerCase();
@@ -3288,6 +3332,106 @@ function CharacterSheet() {
     }, { "All": [] }), [inventoryItems, armorRules, weaponRules, character?.data?.inventorySearchTerm]);
 
     const displayedItems = groupedInventory[inventoryFilter] || [];
+
+    const inventorySpellItem = inventorySpellItemIndex === null
+        ? null
+        : inventoryItems[inventorySpellItemIndex];
+    const inventorySpellItemDetails = getInventorySpellItemDetails(inventorySpellItem, armorRules);
+    const inventorySpellOptions = useMemo(() => {
+        if (!inventorySpellItemDetails || !availableSpellsByClass) return [];
+
+        const allowedSchools = inventorySpellItemDetails.type === "armor"
+            ? new Set(["abjuration", "illusion"])
+            : inventorySpellItemDetails.type === "weapon"
+                ? new Set(["conjuration", "divination", "evocation", "necromancy", "transmutation"])
+                : null;
+        const spellcastingClasses = getSpellcastingClasses(character, allClassRules);
+        const spells = new Map();
+
+        spellcastingClasses.forEach(classEntry => {
+            const classSpells = availableSpellsByClass[classEntry.className] || {};
+            const progression = classEntry.rules?.progression;
+            const progressionKey = progression === "pact" ? "pact_magic" : progression;
+            const slotsTable = progressionKey ? spellSlotsRules?.[progressionKey] : null;
+            let classLevel = Number(classEntry.level) || 0;
+            while (classLevel > 0 && !slotsTable?.[classLevel]) classLevel -= 1;
+            const maxSpellLevel = classLevel > 0
+                ? Math.max(...Object.keys(slotsTable[classLevel]).map(Number))
+                : 0;
+
+            Object.entries(classSpells).forEach(([level, availableAtLevel]) => {
+                const spellLevel = Number(level);
+                if (
+                    !inventorySpellItemDetails.levels.includes(spellLevel) ||
+                    (spellLevel > 0 && spellLevel > maxSpellLevel)
+                ) {
+                    return;
+                }
+                availableAtLevel.forEach(spell => {
+                    if (spell.available_for_selection !== true) return;
+                    if (allowedSchools && !allowedSchools.has(spell.school?.toLowerCase())) return;
+                    spells.set(`${spellLevel}:${spell.name}`, {
+                        ...spell,
+                        level: spellLevel
+                    });
+                });
+            });
+        });
+
+        return [...spells.values()].sort((left, right) =>
+            left.name.localeCompare(right.name) || left.level - right.level
+        );
+    }, [
+        inventorySpellItemDetails,
+        availableSpellsByClass,
+        character,
+        allClassRules,
+        spellSlotsRules
+    ]);
+
+    const openInventorySpellSelector = (item) => {
+        const details = getInventorySpellItemDetails(item, armorRules);
+        if (!details) return;
+        const selectedValue = details.spellName && Number.isInteger(details.spellLevel)
+            ? `${details.spellLevel}:${details.spellName}`
+            : "";
+        setInventorySpellItemIndex(item.originalIndex);
+        setInventorySpellChoice(selectedValue);
+    };
+
+    const saveInventorySpellChoice = async () => {
+        if (!inventorySpellItem || !inventorySpellItemDetails || !inventorySpellChoice) return;
+        const selectedSpell = inventorySpellOptions.find(spell =>
+            `${spell.level}:${spell.name}` === inventorySpellChoice
+        );
+        if (!selectedSpell) {
+            addAlert("Choose an eligible spell before saving.", "warning");
+            return;
+        }
+
+        const levelLabel = selectedSpell.level === 0 ? "Cantrip" : `Level ${selectedSpell.level}`;
+        const updatedItem = {
+            ...inventorySpellItem,
+            name: inventorySpellItemDetails.type === "scroll"
+                ? `Spell Scroll ${levelLabel} ${selectedSpell.name}`
+                : `Enspelled ${inventorySpellItemDetails.baseItem} ${levelLabel} ${selectedSpell.name}`,
+            spell: selectedSpell.name,
+            spell_level: selectedSpell.level
+        };
+        const updatedInventory = inventoryItems.map((item, index) =>
+            index === inventorySpellItemIndex ? updatedItem : item
+        );
+        const saved = await saveCharacter({ inventory: updatedInventory });
+        if (!saved) {
+            addAlert("Could not save the spell assigned to this item.", "error");
+            return;
+        }
+
+        setInventoryItems(updatedInventory);
+        setInventorySpellItemIndex(null);
+        setInventorySpellChoice("");
+        addAlert(`Assigned ${selectedSpell.name} to ${updatedItem.name}.`, "success");
+    };
 
     // --- Drag and Drop Handlers for Inventory ---
     const togglePrivacy = () => {
@@ -3399,6 +3543,43 @@ function CharacterSheet() {
             }
         } catch (err) {
             addAlert("An error occurred during gold transfer", 'error');
+        }
+    };
+
+    const openGoldActions = () => {
+        if (!isOwner || !isEditMode) return;
+        if (activeSession) {
+            setShowGoldActionModal(true);
+            return;
+        }
+        setGoldRemovalAmount(1);
+        setShowRemoveGoldModal(true);
+    };
+
+    const removeGold = async () => {
+        const amount = Number(goldRemovalAmount);
+        if (!Number.isInteger(amount) || amount <= 0 || amount > gold || isRemovingGold) return;
+
+        setIsRemovingGold(true);
+        try {
+            const newBalance = gold - amount;
+            const saved = await saveCharacter({ gold: newBalance });
+            if (!saved) {
+                addAlert("Could not remove gold from this character.", "error");
+                return;
+            }
+
+            setGold(newBalance);
+            setCharacter(prev => ({
+                ...prev,
+                data: { ...prev.data, gold: newBalance }
+            }));
+            setShowRemoveGoldModal(false);
+            addAlert(`Removed ${amount} GP from the inventory.`, "success");
+        } catch (err) {
+            addAlert(err.message || "Could not remove gold from this character.", "error");
+        } finally {
+            setIsRemovingGold(false);
         }
     };
 
@@ -3744,15 +3925,22 @@ function CharacterSheet() {
         let dexBonus = dexMod;
         let shieldBonus = 0;
 
-        const equippedArmor = inventoryItems.find(item => item.equipped && armorRules[item.name] && armorRules[item.name].type !== "Shield");
-        const equippedShield = inventoryItems.find(item => item.equipped && armorRules[item.name] && armorRules[item.name].type === "Shield");
+        const equippedArmor = inventoryItems.find(item => (
+            item.equipped &&
+            getArmorRulesForItem(item) &&
+            getArmorRulesForItem(item).type !== "Shield"
+        ));
+        const equippedShield = inventoryItems.find(item => (
+            item.equipped &&
+            getArmorRulesForItem(item)?.type === "Shield"
+        ));
 
         if (equippedShield) {
-            shieldBonus = armorRules[equippedShield.name]?.bonus || 2;
+            shieldBonus = getArmorRulesForItem(equippedShield)?.bonus || 2;
         }
 
         if (equippedArmor) {
-            const rules = armorRules[equippedArmor.name];
+            const rules = getArmorRulesForItem(equippedArmor);
             baseAC = rules.baseAC;
             if (rules.dexLimit !== null) {
                 dexBonus = Math.min(dexMod, rules.dexLimit);
@@ -4588,6 +4776,7 @@ function CharacterSheet() {
                                     currentUses={featureUses[f.id]}
                                     characterData={character}
                                     classRules={classRules}
+                                    allClassRules={allClassRules}
                                     ruleOptions={ruleOptions}
                                     featureChoices={featureChoices}
                                     onUpdateChoice={(feature, options) => setChoiceOverlay({ isOpen: true, feature, options })}
@@ -4645,9 +4834,23 @@ function CharacterSheet() {
                             />
                             <i className="fa-solid fa-magnifying-glass"></i>
                         </div>
-                        <div className="gold-box" onClick={() => isAuthorized && activeSession && setShowGoldTransferModal(true)}>
+                        <div
+                            className={`gold-box ${isOwner && isEditMode ? "gold-box-interactive" : ""}`}
+                            onClick={openGoldActions}
+                            onKeyDown={event => {
+                                if (event.key === "Enter" || event.key === " ") {
+                                    event.preventDefault();
+                                    openGoldActions();
+                                }
+                            }}
+                            role={isOwner && isEditMode ? "button" : undefined}
+                            tabIndex={isOwner && isEditMode ? 0 : undefined}
+                            aria-label={isOwner && isEditMode ? "Manage inventory gold" : undefined}
+                        >
                             <i className="fa-solid fa-coins"></i> Gold: {gold} GP
-                            {isAuthorized && activeSession && <i className="fa-solid fa-right-left transfer-hint-icon"></i>}
+                            {isOwner && isEditMode && (
+                                <i className={`fa-solid ${activeSession ? "fa-right-left" : "fa-minus"} transfer-hint-icon`}></i>
+                            )}
                         </div>
                         <div className="inv-tabs">
                             {Object.keys(groupedInventory).map(cat => (
@@ -4717,6 +4920,18 @@ function CharacterSheet() {
                                             <i className="fa-solid fa-paper-plane"></i>
                                         </button>
                                     )}
+                                    {!viewOnly && hasSpellcasting && availableSpellsByClass &&
+                                        getInventorySpellItemDetails(item, armorRules) && (
+                                            <button
+                                                className="manage-spells-btn inventory-spell-button"
+                                                type="button"
+                                                title="Choose a spell for this item"
+                                                aria-label={`Choose a spell for ${item.name}`}
+                                                onClick={() => openInventorySpellSelector(item)}
+                                            >
+                                                📖
+                                            </button>
+                                        )}
                                     {!viewOnly && <button className="del-btn" onClick={() => removeFromInventory(item.originalIndex)}>✕</button>}
                                 </div>
                             </div>
@@ -4750,7 +4965,6 @@ function CharacterSheet() {
                                 setSpellSlotsCurrent={setSpellSlotsCurrent}
                                 addAlert={addAlert}
                                 saveCharacter={saveCharacter}
-                                allClassRules={allClassRules}
                             />
                         </div>
                     )
@@ -4790,6 +5004,7 @@ function CharacterSheet() {
                         )
                     }
                     classRules={classRules}
+                    allClassRules={allClassRules}
                     ruleOptions={ruleOptions}
                 />
             )
@@ -4819,6 +5034,73 @@ function CharacterSheet() {
                     });
                 } : toggleSpellSelection}
             />
+
+            {inventorySpellItem && inventorySpellItemDetails && (
+                <div
+                    className="inventory-spell-overlay"
+                    onClick={event => {
+                        if (event.target === event.currentTarget) {
+                            setInventorySpellItemIndex(null);
+                            setInventorySpellChoice("");
+                        }
+                    }}
+                >
+                    <div
+                        className="inventory-spell-picker"
+                        role="dialog"
+                        aria-modal="true"
+                        aria-labelledby="inventory-spell-picker-title"
+                    >
+                        <h2 id="inventory-spell-picker-title">Choose an Item Spell</h2>
+                        <p>{inventorySpellItem.name}</p>
+                        {inventorySpellOptions.length > 0 ? (
+                            <div className="inventory-spell-selector">
+                                <label htmlFor="inventory-spell-choice">Eligible spells</label>
+                                <select
+                                    id="inventory-spell-choice"
+                                    value={inventorySpellChoice}
+                                    onChange={event => setInventorySpellChoice(event.target.value)}
+                                >
+                                    <option value="">Select a spell</option>
+                                    {inventorySpellOptions.map(spell => (
+                                        <option
+                                            key={`${spell.level}:${spell.name}`}
+                                            value={`${spell.level}:${spell.name}`}
+                                        >
+                                            {spell.name} ({spell.level === 0 ? "Cantrip" : `Level ${spell.level}`})
+                                            {spell.school ? ` - ${spell.school}` : ""}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                        ) : (
+                            <p className="inventory-spell-empty">
+                                No eligible spells are available for this item from your Manage Spells options.
+                            </p>
+                        )}
+                        <div className="inventory-spell-picker-actions">
+                            <button
+                                className="manage-spells-btn"
+                                type="button"
+                                onClick={saveInventorySpellChoice}
+                                disabled={!inventorySpellChoice || inventorySpellOptions.length === 0}
+                            >
+                                Assign Spell
+                            </button>
+                            <button
+                                className="inventory-spell-cancel-btn"
+                                type="button"
+                                onClick={() => {
+                                    setInventorySpellItemIndex(null);
+                                    setInventorySpellChoice("");
+                                }}
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             <RestOverlay
                 show={showRestOverlay}
@@ -5107,6 +5389,9 @@ function CharacterSheet() {
                                                                                                 choice={choice}
                                                                                                 character={character}
                                                                                                 level={previewLevel}
+                                                                                                classRules={previewClassRules}
+                                                                                                allClassRules={allClassRules}
+                                                                                                ruleOptions={ruleOptions}
                                                                                             />
                                                                                             {/* Render chosen feat details for feat_or_asi features */}
                                                                                             {feature.id?.includes('feat_or_asi') && choice && (() => {
@@ -5165,7 +5450,14 @@ function CharacterSheet() {
                                                                                             })()}
                                                                                             <div className="preview-feature-desc">
                                                                                                 {feature.prerequisite && (() => {
-                                                                                                    const warning = checkPrerequisites(feature.prerequisite, character, previewLevel, classRules);
+                                                                                                    const warning = checkFeatPrerequisites(
+                                                                                                        feature.prerequisite,
+                                                                                                        character,
+                                                                                                        previewLevel,
+                                                                                                        previewClassRules,
+                                                                                                        allClassRules,
+                                                                                                        ruleOptions
+                                                                                                    );
                                                                                                     return (
                                                                                                         <div className={`feat-prerequisite-line ${warning ? 'unmet' : 'met'}`}>
                                                                                                             <span className="prereq-icon">{warning ? '⚠' : '✓'}</span>
@@ -5308,7 +5600,112 @@ function CharacterSheet() {
                 onClose={() => setChoiceOverlay({ isOpen: false, feature: null })}
                 level={choiceOverlay.isPreview ? previewLevel : character.level}
                 character={character}
+                classRules={
+                    choiceOverlay.isPreview && selectedLevelUpClass
+                        ? allClassRules[selectedLevelUpClass.toLowerCase()]
+                        : classRules
+                }
+                allClassRules={allClassRules}
+                ruleOptions={ruleOptions}
             />
+
+            {
+                showGoldActionModal && (
+                    <div className="modal-overlay gold-transfer-overlay" onClick={() => setShowGoldActionModal(false)}>
+                        <div className="transfer-modal card premium-theme gold-modal gold-action-modal" onClick={event => event.stopPropagation()}>
+                            <div className="modal-header">
+                                <h3><i className="fa-solid fa-coins"></i> Manage Gold</h3>
+                                <button className="close-btn" onClick={() => setShowGoldActionModal(false)}>✕</button>
+                            </div>
+                            <p className="gold-action-balance">Current Balance: <strong>{gold} GP</strong></p>
+                            <div className="gold-action-buttons">
+                                <button
+                                    type="button"
+                                    className="confirm-transfer-btn"
+                                    onClick={() => {
+                                        setShowGoldActionModal(false);
+                                        setGoldRemovalAmount(1);
+                                        setShowRemoveGoldModal(true);
+                                    }}
+                                >
+                                    <i className="fa-solid fa-minus"></i> Remove Gold
+                                </button>
+                                <button
+                                    type="button"
+                                    className="confirm-transfer-btn"
+                                    onClick={() => {
+                                        setShowGoldActionModal(false);
+                                        setGoldTransferAmount(1);
+                                        setGoldTransferRecipient(null);
+                                        setShowGoldTransferModal(true);
+                                    }}
+                                >
+                                    <i className="fa-solid fa-money-bill-transfer"></i> Transfer Gold
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )
+            }
+
+            {
+                showRemoveGoldModal && (
+                    <div className="modal-overlay gold-transfer-overlay" onClick={() => !isRemovingGold && setShowRemoveGoldModal(false)}>
+                        <div className="transfer-modal card premium-theme gold-modal" onClick={event => event.stopPropagation()}>
+                            <div className="modal-header">
+                                <h3><i className="fa-solid fa-coins"></i> Remove Gold</h3>
+                                <button className="close-btn" onClick={() => setShowRemoveGoldModal(false)} disabled={isRemovingGold}>✕</button>
+                            </div>
+                            <div className="gold-transfer-content">
+                                <div className="gold-stats">
+                                    <div className="stat-item">
+                                        <span className="label">Current Balance:</span>
+                                        <span className="value">{gold} GP</span>
+                                    </div>
+                                    <div className="stat-item highlight">
+                                        <span className="label">Balance After Removal:</span>
+                                        <span className="value">{gold - (parseInt(goldRemovalAmount, 10) || 0)} GP</span>
+                                    </div>
+                                </div>
+
+                                <div className="amount-input-group">
+                                    <label htmlFor="gold-removal-amount">Amount to Remove:</label>
+                                    <div className="input-with-unit">
+                                        <input
+                                            id="gold-removal-amount"
+                                            type="number"
+                                            min="1"
+                                            max={gold}
+                                            step="1"
+                                            value={goldRemovalAmount}
+                                            onChange={event => {
+                                                const amount = parseInt(event.target.value, 10);
+                                                setGoldRemovalAmount(
+                                                    Number.isNaN(amount)
+                                                        ? 1
+                                                        : Math.max(1, Math.min(gold || 1, amount))
+                                                );
+                                            }}
+                                        />
+                                        <span>GP</span>
+                                    </div>
+                                </div>
+
+                                <div className="gold-modal-actions">
+                                    <button
+                                        type="button"
+                                        className="confirm-transfer-btn"
+                                        disabled={isRemovingGold || gold <= 0 || goldRemovalAmount <= 0 || goldRemovalAmount > gold}
+                                        onClick={removeGold}
+                                    >
+                                        <i className="fa-solid fa-minus"></i> {isRemovingGold ? "Removing..." : "Remove Gold"}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )
+            }
 
             {
                 showGoldTransferModal && (

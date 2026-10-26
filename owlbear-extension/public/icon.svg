@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 1024 1024">
+  <g fill="#ffffff">
+    <!-- Left outer tower -->
+    <path d="M74 112 L102 132 L102 182 L130 201 L130 152 L160 174 L160 218 L188 238 L188 193 L218 214 L218 253 L247 272 L247 235 L274 255 L274 894 L74 816 Z"/>
+
+    <!-- Right outer tower -->
+    <path d="M950 112 L922 132 L922 182 L894 201 L894 152 L864 174 L864 218 L836 238 L836 193 L806 214 L806 253 L777 272 L777 235 L747 255 L747 894 L950 816 Z"/>
+
+    <!-- Central M-shaped emblem -->
+    <path d="M280 295 L511 486 L741 295 L741 508 L511 699 L280 508 Z"/>
+  </g>
+</svg>

@@ -1,0 +1,165 @@
+#root {
+  width: 100%;
+  min-height: 100vh;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+button {
+  font: inherit;
+}
+
+.app {
+  min-height: 100vh;
+  padding: 24px 20px 16px;
+  background: #1e1e2f;
+  color: #f4f4f4;
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding-bottom: 22px;
+  border-bottom: 1px solid rgba(255, 215, 0, 0.2);
+}
+
+.app-logo {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.app-header h1 {
+  margin: 0;
+  color: #ffd700;
+  font-family: Georgia, serif;
+  font-size: 19px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+}
+
+.app-header p {
+  margin: 5px 0 0;
+  color: #b89b00;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 2px;
+}
+
+.welcome {
+  padding: 27px 0 23px;
+}
+
+.welcome h2 {
+  margin: 0 0 9px;
+  color: #ffd700;
+  font-family: Georgia, serif;
+  font-size: 23px;
+  line-height: 1.2;
+  font-weight: 750;
+}
+
+.welcome p {
+  max-width: 300px;
+  margin: 0;
+  color: #aaa;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.menu {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.menu-button {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 76px;
+  padding: 15px;
+  gap: 13px;
+  color: #f4f4f4;
+  text-align: left;
+  background: rgba(100, 49, 115, 0.4);
+  border: 1px solid rgba(255, 215, 0, 0.2);
+  border-left: 3px solid #643173;
+  border-radius: 8px;
+  cursor: pointer;
+  transition:
+    background 150ms ease,
+    border-color 150ms ease,
+    transform 150ms ease;
+}
+
+.menu-button:hover {
+  background: rgba(100, 49, 115, 0.6);
+  border-color: #ffd700;
+  transform: translateY(-1px);
+}
+
+.menu-button:focus-visible {
+  outline: 2px solid #ffd700;
+  outline-offset: 3px;
+}
+
+.menu-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  color: #ffd700;
+  background: rgba(142, 68, 173, 0.2);
+  border-radius: 6px;
+  font-size: 23px;
+}
+
+.menu-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.menu-text strong {
+  color: #ffd700;
+  font-family: Georgia, serif;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.menu-text small {
+  color: #aaa;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.menu-arrow {
+  color: #ffd700;
+  font-size: 25px;
+}
+
+.app-footer {
+  margin-top: 30px;
+  padding-top: 15px;
+  border-top: 1px solid rgba(255, 215, 0, 0.2);
+  color: #aaa;
+  text-align: center;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 3px;
+}

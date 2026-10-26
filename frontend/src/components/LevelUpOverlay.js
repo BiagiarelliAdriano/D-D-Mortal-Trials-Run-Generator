@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNotification } from "../context/NotificationContext";
 import '../styles/CharacterSheet.css'; // Assuming styles are added here
 import { ValueRenderer } from "./CharacterSheet";
+import { checkFeatPrerequisites } from "../utils/featPrerequisites";
 
 /**
  * Computes the scaling value for a given dictionary at a specific level
@@ -55,51 +56,6 @@ const processRichText = (text) => {
     });
 };
 
-/**
- * Checks if a feature or feat prerequisite is met by the character.
- */
-const checkPrerequisites = (prerequisite, character, level = 1, classRules = null) => {
-    if (!prerequisite || !character) return null;
-
-    const checkSingle = (req) => {
-        if (typeof req !== 'string') return null;
-        const levelMatch = req.match(/Level\s+(\d+)/i);
-        if (levelMatch) {
-            const reqLevel = parseInt(levelMatch[1]);
-            if (level < reqLevel) return req;
-        }
-        const abilityMatch = req.match(/(Strength|Dexterity|Constitution|Intelligence|Wisdom|Charisma)\s+(\d+)/i);
-        if (abilityMatch) {
-            const ability = abilityMatch[1].toLowerCase();
-            const reqScore = parseInt(abilityMatch[2]);
-            const currentScore = character.data?.abilities?.[ability] || 10;
-            if (currentScore < reqScore) return req;
-        }
-        if (req.includes('Spellcasting Feature') || req.includes('Pact Magic')) {
-            const hasMagic = !!(classRules?.spellcasting || character.class?.spellcasting);
-            if (!hasMagic) return req;
-        }
-        return null;
-    };
-
-    if (typeof prerequisite === 'string') return checkSingle(prerequisite);
-
-    if (Array.isArray(prerequisite)) {
-        const failed = [];
-        for (const req of prerequisite) {
-            if (Array.isArray(req)) {
-                const anyMet = req.some(r => !checkSingle(r));
-                if (!anyMet) failed.push(`(${req.join(' or ')})`);
-            } else {
-                const error = checkSingle(req);
-                if (error) failed.push(error);
-            }
-        }
-        return failed.length > 0 ? failed.join(' and ') : null;
-    }
-    return null;
-};
-
 const LevelUpOverlay = ({
     show,
     minimized,
@@ -119,6 +75,7 @@ const LevelUpOverlay = ({
     onUpdateChoice, // Trigger choice modal
     resolveOptionsForFeature, // Function passed down
     classRules,
+    allClassRules,
     ruleOptions
 }) => {
     const { confirm } = useNotification();
@@ -353,6 +310,7 @@ const LevelUpOverlay = ({
                                         resolveOptionsForFeature={resolveOptionsForFeature}
                                         character={character}
                                         classRules={classRules}
+                                        allClassRules={allClassRules}
                                         ruleOptions={ruleOptions}
                                     />
                                 ))}
@@ -388,7 +346,7 @@ const LevelUpOverlay = ({
 };
 
 // Internal reusable card
-const LuFeatureCard = ({ feature, isExpanded, onToggle, currentLevel, upgrades, featureChoices, onUpdateChoice, resolveOptionsForFeature, character, classRules, ruleOptions }) => {
+const LuFeatureCard = ({ feature, isExpanded, onToggle, currentLevel, upgrades, featureChoices, onUpdateChoice, resolveOptionsForFeature, character, classRules, allClassRules, ruleOptions }) => {
 
     // Check if choice needed
     let hasChoices = false;
@@ -569,7 +527,14 @@ const LuFeatureCard = ({ feature, isExpanded, onToggle, currentLevel, upgrades, 
                     {feature.summary && <p className="feature-summary"><strong>Summary:</strong> {processRichText(feature.summary)}</p>}
 
                     {feature.prerequisite && (() => {
-                        const warning = checkPrerequisites(feature.prerequisite, character, currentLevel, classRules);
+                        const warning = checkFeatPrerequisites(
+                            feature.prerequisite,
+                            character,
+                            currentLevel,
+                            classRules,
+                            allClassRules,
+                            ruleOptions
+                        );
                         return (
                             <div className={`feat-prerequisite-line ${warning ? 'unmet' : 'met'}`}>
                                 <span className="prereq-icon">{warning ? '⚠' : '✓'}</span>
