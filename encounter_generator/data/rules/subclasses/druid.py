@@ -13,31 +13,16 @@ DRUID_SUBCLASSES = {
                     "id": "land_spells",
                     "name": "Circle Of The Land Spells",
                     "summary": "Choose a land type (Arid, Polar, Temperate, Tropical) after a Long Rest to gain specific prepared spells.",
-                    "description": "Whenever you finish a Long Rest, choose one type of land: arid, polar, temperate, or tropical. Consult the table below that corresponds to the chosen type; you have the spells listed for your Druid level and lower prepared. \n *-Arid Land-* \n Lv3: Blur, Burning Hands, Fire Bolt. \n Lv5: Fireball. \n Lv7: Blight. \n Lv9: Wall of Stone. \n *-Polar Land-* \n Lv3: Fog Cloud, Hold Person, Ray of Frost. \n Lv5: Sleet Storm. \n Lv7: Ice Storm. \n Lv9: Cone of Cold. \n *-Temperate Land-* \n Lv3: Misty Step, Shocking Grasp, Sleep. \n Lv5: Lightning Bolt. \n Lv7: Freedom of Movement. \n Lv9: Tree Stride. \n *-Tropical Land-* \n Lv3: Acid Splash, Ray of Sickness, Web. \n Lv5: Stinking Cloud. \n Lv7: Polymorph. \n Lv9: Insect Plague.",
+                    "description": "Whenever you finish a Long Rest, choose one type of land: arid, polar, temperate, or tropical. You have the spells listed for your Druid level and lower prepared, as shown in the table.",
                     "details": {
-                        "arid": {
-                            3: ["Blur", "Burning Hands", "Fire Bolt"],
-                            5: ["Fireball"],
-                            7: ["Blight"],
-                            9: ["Wall of Stone"]
-                        },
-                        "polar": {
-                            3: ["Fog Cloud", "Hold Person", "Ray Of Frost"],
-                            5: ["Sleet Storm"],
-                            7: ["Ice Storm"],
-                            9: ["Cone Of Cold"]
-                        },
-                        "temperate": {
-                            3: ["Misty Step", "Shocking Grasp", "Sleep"],
-                            5: ["Lightning Bolt"],
-                            7: ["Freedom Of Movement"],
-                            9: ["Tree Stride"]
-                        },
-                        "tropical": {
-                            3: ["Acid Splash", "Ray Of Sickness", "Web"],
-                            5: ["Stinking Cloud"],
-                            7: ["Polymorph"],
-                            9: ["Insect Plague"]
+                        "Spells by Land": {
+                            "headers": ["Druid Level", "Arid Land", "Polar Land", "Temperate Land", "Tropical Land"],
+                            "rows": [
+                                ["3", "Blur, Burning Hands, Fire Bolt", "Fog Cloud, Hold Person, Ray Of Frost", "Misty Step, Shocking Grasp, Sleep", "Acid Splash, Ray Of Sickness, Web"],
+                                ["5", "Fireball", "Sleet Storm", "Lightning Bolt", "Stinking Cloud"],
+                                ["7", "Blight", "Ice Storm", "Freedom Of Movement", "Polymorph"],
+                                ["9", "Wall Of Stone", "Cone Of Cold", "Tree Stride", "Insect Plague"]
+                            ]
                         }
                     }
                 },

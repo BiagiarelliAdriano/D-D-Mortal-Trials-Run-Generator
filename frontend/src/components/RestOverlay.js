@@ -33,6 +33,12 @@ const resolveScaledUses = (scalingData, level) => {
     return bestValue;
 };
 
+const toSearchableText = (value) => {
+    if (typeof value === "string") return value.toLowerCase();
+    if (value === null || value === undefined) return "";
+    return JSON.stringify(value).toLowerCase();
+};
+
 const RestOverlay = ({
     show,
     character,
@@ -67,8 +73,8 @@ const RestOverlay = ({
     const analyzeRecharge = useCallback((feature, restType) => {
         const level = character?.level || 1;
         const details = feature.details || {};
-        const rechargeRaw = (details.recharge || details.Recharge || "").toLowerCase();
-        const triggerRaw = (details.trigger || details.Trigger || "").toLowerCase();
+        const rechargeRaw = toSearchableText(details.recharge ?? details.Recharge);
+        const triggerRaw = toSearchableText(details.trigger ?? details.Trigger);
 
         const usesData = details.Uses ?? details.uses;
         const maxUses = resolveScaledUses(usesData, level);

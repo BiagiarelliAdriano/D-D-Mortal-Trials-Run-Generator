@@ -200,7 +200,12 @@ function CharacterForm() {
         // Fetch class details
         fetch(`${API_BASE_URL}/api/classes/${className.toLowerCase()}`)
             .then(res => res.json())
-            .then(data => setClassDetails(data))
+            .then(data => {
+                setClassDetails(data);
+                setClassEquipChoice(
+                    data.starting_equipment?.option_a ? "option_a" : null
+                );
+            })
             .catch(err => console.error("Failed to load class details", err));
     };
 
@@ -532,6 +537,15 @@ function CharacterForm() {
             : `${API_BASE_URL}/api/characters`;
 
         const payload = new FormData();
+        const classEquipmentOptions = classDetails?.starting_equipment || {};
+        const submittedClassEquipChoice = Object.prototype.hasOwnProperty.call(
+            classEquipmentOptions,
+            classEquipChoice
+        )
+            ? classEquipChoice
+            : Object.prototype.hasOwnProperty.call(classEquipmentOptions, "option_a")
+                ? "option_a"
+                : "";
         payload.append("name", formData.name);
         payload.append("class_name", formData.class_name);
         payload.append("subclass", formData.subclass);
@@ -592,10 +606,10 @@ function CharacterForm() {
             background_feat: featData,
             background_skills: selectedBg?.skills || [],
             class_skills: classSkills,
-            class_equipment_choice: classEquipChoice
+            class_equipment_choice: submittedClassEquipChoice
         };
         payload.append("choices", JSON.stringify(choices));
-        payload.append("class_starting_equipment_choice", classEquipChoice);
+        payload.append("class_starting_equipment_choice", submittedClassEquipChoice);
 
         // Ensure proficiencies include background skills AND class skills
         const proficiencies = formData.proficiencies || [];

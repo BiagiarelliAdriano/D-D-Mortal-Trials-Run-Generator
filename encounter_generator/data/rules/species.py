@@ -343,7 +343,7 @@ SPECIES = [
                 "id": "goliath_giant_ancestry",
                 "name": "Giant Ancestry",
                 "summary": "Choice of supernatural boon (teleport, damage, reduction).",
-                "description": "You are descended from Giants. You have a supernatural boon from your ancestry that you can use PB times per day.",
+                "description": "You are descended from Giants. Choose one of the following benefits, a supernatural boon from your ancestry. You can use the chosen benefit a number of times equal to your Proficiency Bonus, and you regain all expended uses when you finish a Long Rest.",
                 "details": {
                     "Usage": "PB / Long Rest",
                     "Options": [
@@ -378,7 +378,7 @@ SPECIES = [
                 "id": "goliath_large_form",
                 "name": "Large Form",
                 "summary": "Transform to Large size (lvl 5).",
-                "description": "Starting at character level 5, you can change your size to Large as a Bonus Action. For 10 minutes, you have Advantage on Strength checks and your Speed increases by 10ft.",
+                "description": "Starting at character level 5, you can change your size to Large as a Bonus Action if you're in a big enough space. This transformation lasts for 10 minutes or until you end it (no action required). For that duration, you have Advantage on Strength checks, and your Speed increases by 10ft. Once you use this trait, you can't use it again until you finish a Long Rest.",
                 "details": {
                     "Action": "Bonus Action",
                     "Duration": "10 Minutes",

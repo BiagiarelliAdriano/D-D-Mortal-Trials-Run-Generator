@@ -41,7 +41,7 @@ SORCERER_SUBCLASSES = {
                     "id": "aberrant_sorcery_psionic_spells",
                     "name": "Psionic Spells",
                     "summary": "You always have certain psionic spells prepared.",
-                    "description": "When you reach a Sorcerer level specified in the Psionic Spells list, you thereafter always have the listed spells prepared. \n Lv3: Arms of Hadar, Calm Emotions, Detect Thoughts, Dissonant Whispers, Mind Sliver. \n Lv5: Hunger of Hadar, Sending. \n Lv7: Evard's Black Tentacles, Summon Aberration. \n Lv9: Rary's Telepathic Bond, Telekinesis.",
+                    "description": "When you reach a Sorcerer level specified in the Psionic Spells list, you thereafter always have the listed spells prepared.",
                     "details": {
                         "spells": {
                             3: ["Arms Of Hadar", "Calm Emotions", "Detect Thoughts", "Dissonant Whispers", "Mind Sliver"],
@@ -134,7 +134,7 @@ SORCERER_SUBCLASSES = {
                     "id": "clockwork_sorcery_spells",
                     "name": "Clockwork Spells",
                     "summary": "You always have certain order-themed spells prepared and manifest visual signs of order.",
-                    "description": "When you reach a Sorcerer level specified in the Clockwork Spells list, you thereafter always have the listed spells prepared. \n Lv3: Aid, Alarm, Lesser Restoration, Protection from Evil and Good. \n Lv5: Dispel Magic, Protection from Energy. \n Lv7: Freedom of Movement, Summon Construct. \n Lv9: Greater Restoration, Wall of Force. \n In addition, consult the Manifestations of Order list and choose or randomly determine a way your connection to order manifests while you are casting any of your Sorcerer spells. \n 1d6: \n 1 = Spectral cogwheels hover behind you. \n 2 = The hands of a clock spin in your eyes. \n 3 = Your skin glows with a brassy sheen. \n 4 = Floating equations and geometric objects overlay your body. \n 5 = Your Spellcasting Focus temporarily takes the form of a Tiny clockwork mechanism. \n 6 = The ticking of gears or ringing of a clock can be heard by you and those affected by your magic.",
+                    "description": "When you reach a Sorcerer level specified in the Clockwork Spells list, you thereafter always have the listed spells prepared.",
                     "details": {
                         "spells": {
                             3: ["Aid", "Alarm", "Lesser Restoration", "Protection From Evil And Good"],
@@ -143,12 +143,12 @@ SORCERER_SUBCLASSES = {
                             9: ["Greater Restoration", "Wall Of Force"]
                         },
                         "manifestations": [
-                            "Spectral cogwheels hover behind you",
-                            "The hands of a clock spin in your eyes",
-                            "Your skin glows with a brassy sheen",
-                            "Floating equations and geometric objects overlay your body",
-                            "Your Spellcasting Focus takes the form of a Tiny clockwork mechanism",
-                            "The ticking of gears or ringing of a clock is audible"
+                            "- Spectral cogwheels hover behind you",
+                            "- The hands of a clock spin in your eyes",
+                            "- Your skin glows with a brassy sheen",
+                            "- Floating equations and geometric objects overlay your body",
+                            "- Your Spellcasting Focus takes the form of a Tiny clockwork mechanism",
+                            "- The ticking of gears or ringing of a clock is audible"
                         ]
                     }
                 },
@@ -239,7 +239,7 @@ SORCERER_SUBCLASSES = {
                     "id": "draconic_sorcery_spells",
                     "name": "Draconic Spells",
                     "summary": "You always have certain dragon-themed spells prepared.",
-                    "description": "When you reach a Sorcerer level specified in the Draconic Spells list, you thereafter always have the listed spells prepared. \n Lv3: Alter Self, Chromatic Orb, Command, Dragon's Breath. \n Lv5: Fear, Fly. \n Lv7: Arcane Eye, Charm Monster. \n Lv9: Legend Lore, Summon Dragon.",
+                    "description": "When you reach a Sorcerer level specified in the Draconic Spells list, you thereafter always have the listed spells prepared.",
                     "details": {
                         "spells": {
                             3: ["Alter Self", "Chromatic Orb", "Command", "Dragon's Breath"],

@@ -1885,11 +1885,15 @@ def api_characters():
         # 2. Class Equipment
         class_name = character_data["class_name"]
         cls = CLASSES.get(class_name.lower())
-        class_equip_choice = data.get("class_starting_equipment_choice", "option_a")
+        class_equip_choice = (data.get("class_starting_equipment_choice") or "").strip()
 
         if cls and "starting_equipment" in cls:
-            choice = cls["starting_equipment"].get(class_equip_choice)
+            equipment_options = cls["starting_equipment"]
+            if class_equip_choice not in equipment_options:
+                class_equip_choice = "option_a"
+            choice = equipment_options.get(class_equip_choice)
             if choice:
+                character_data["choices"]["class_equipment_choice"] = class_equip_choice
                 starting_gold += choice.get("gold", 0)
                 items = choice.get("items", [])
                 starting_inventory.extend([parse_equipment_string(i) for i in items])

@@ -348,18 +348,104 @@ const calculateAttack = (name, abilities, profBonus, features = [], level = 1, w
 
 // --- Sub-Components ---
 
+const normalizeChoiceLabel = value => String(value)
+    .toLowerCase()
+    .replace(/['’]/g, " ")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim()
+    .split(/\s+/)
+    .map(word => word === "elves" ? "elf" : word === "ves" ? "f" : word.replace(/s$/, ""))
+    .join(" ");
+
+const matchesChoiceLabel = (optionName, selectedValue) => {
+    if (typeof optionName !== "string" || typeof selectedValue !== "string" || !selectedValue) {
+        return false;
+    }
+
+    const option = normalizeChoiceLabel(optionName);
+    const selected = normalizeChoiceLabel(selectedValue);
+    return option === selected || option.startsWith(`${selected} `);
+};
+
+const getSelectedSpeciesFeatureChoice = (feature, selectedVariant) => {
+    if (!selectedVariant || !feature?.details) return null;
+
+    const options = feature.details.Options;
+    if (Array.isArray(options)) {
+        const selectedOption = options.find(option =>
+            matchesChoiceLabel(option?.name, selectedVariant)
+        );
+        if (selectedOption) return selectedOption.name;
+    }
+
+    for (const value of Object.values(feature.details)) {
+        if (!Array.isArray(value?.rows)) continue;
+        const selectedRow = value.rows.find(row =>
+            Array.isArray(row) && matchesChoiceLabel(row[0], selectedVariant)
+        );
+        if (selectedRow && typeof selectedRow[0] === "string") return selectedRow[0];
+    }
+
+    return null;
+};
+
 export const ValueRenderer = ({
     value,
     level,
     themeRole,
     label,
-    selectedTableRowValue
+    selectedTableRowValue,
+    selectedOptionValue
 }) => {
     if (value === null || value === undefined) return null;
 
     // Helper: checks whether a dict's keys are all level-range style
     // e.g. "1-8", "9-15", "16-20" or "1-2", "3-5" or "17+" or plain ints "1","5"
     const isLevelRangeKey = k => /^\d+$/.test(k) || /^\d+-\d+$/.test(k) || /^\d+\+$/.test(k);
+    const renderTableCell = cell => {
+        if (Array.isArray(cell)) {
+            return cell.map((item, index) => (
+                <span key={index}>
+                    {index > 0 && ", "}
+                    {processRichText(item)}
+                </span>
+            ));
+        }
+        return processRichText(cell);
+    };
+
+    const isLevelKeyedList =
+        typeof value === 'object' &&
+        !Array.isArray(value) &&
+        Object.keys(value).length > 0 &&
+        Object.keys(value).every(key => /^\d+$/.test(key)) &&
+        Object.values(value).every(Array.isArray);
+
+    if (isLevelKeyedList) {
+        const sortedLevels = Object.keys(value).sort((a, b) => Number(a) - Number(b));
+        return (
+            <div className="feature-data-table-scroll">
+                <table className="feature-data-table">
+                    <thead>
+                        <tr>
+                            <th>Level</th>
+                            <th>{label
+                                ? label.replaceAll("_", " ").replace(/\b\w/g, character => character.toUpperCase())
+                                : "Options"}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {sortedLevels.map(spellLevel => (
+                            <tr key={spellLevel}>
+                                <td>{spellLevel}</td>
+                                <td>{renderTableCell(value[spellLevel])}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+        );
+    }
 
     // 1. Level-scaling dictionaries (pure int keys OR range keys like "1-8", "9-15", "16-20")
     const isScaling =
@@ -457,9 +543,7 @@ export const ValueRenderer = ({
                         </thead>
                         <tbody>
                             {value.rows.map((row, rowIndex) => {
-                                const isSelected = typeof selectedTableRowValue === "string" &&
-                                    typeof row[0] === "string" &&
-                                    row[0].toLowerCase() === selectedTableRowValue.toLowerCase();
+                                const isSelected = matchesChoiceLabel(row[0], selectedTableRowValue);
 
                                 return (
                                     <tr
@@ -469,7 +553,7 @@ export const ValueRenderer = ({
                                     >
                                         {value.headers.map((_, cellIndex) => (
                                             <td key={cellIndex}>
-                                                {processRichText(row[cellIndex])}
+                                                {renderTableCell(row[cellIndex])}
                                             </td>
                                         ))}
                                     </tr>
@@ -486,10 +570,16 @@ export const ValueRenderer = ({
             return (
                 <div className="options-list">
                     {value.Options.map((opt, idx) => (
-                        <div key={idx} className="option-item">
+                        <div
+                            key={idx}
+                            className={`option-item ${matchesChoiceLabel(opt.name, selectedOptionValue) ? "selected-species-option" : ""}`}
+                        >
                             <span className="option-name">
                                 {opt.name}
                             </span>
+                            {matchesChoiceLabel(opt.name, selectedOptionValue) && (
+                                <span className="selected-option-label">Selected</span>
+                            )}
                             {opt.description && (
                                 <span className="option-desc">
                                     {processRichText(opt.description)}
@@ -524,6 +614,7 @@ export const ValueRenderer = ({
                                 level={level}
                                 themeRole={themeRole}
                                 selectedTableRowValue={selectedTableRowValue}
+                                selectedOptionValue={selectedOptionValue}
                             />
                         </span>
                     </div>
@@ -638,6 +729,11 @@ const RichFeature = ({
     availableSpellsByClass,
     viewOnly, isAuthorized, featureNotes, setFeatureNotes
 }) => {
+    const [isSurgeTableOpen, setIsSurgeTableOpen] = useState(false);
+    const surgeTable = feature.details?.surge_table;
+    const visibleDetails = surgeTable
+        ? Object.fromEntries(Object.entries(feature.details).filter(([key]) => key !== "surge_table"))
+        : feature.details;
     const maxUsesData = feature.details?.uses;
     const maxUses = maxUsesData ? resolveScalingValue(maxUsesData, level) : null;
     const hasUses = maxUses !== null;
@@ -666,6 +762,13 @@ const RichFeature = ({
         const found = flatOptions.find(o => (typeof o === 'string' ? o : (o.id || o.name)) === choice);
         return found ? (typeof found === 'string' ? { name: found } : found) : { name: choice };
     });
+    const selectedSpeciesVariant = feature.source === "Species"
+        ? characterData?.data?.species_variant
+        : undefined;
+    const selectedSpeciesFeatureChoice = getSelectedSpeciesFeatureChoice(
+        feature,
+        selectedSpeciesVariant
+    );
 
     return (
         <div className={`feature-card ${isExpanded ? "expanded" : "collapsed"} source-${feature.source || 'unknown'} ${isActive ? 'is-active' : ''}`}>
@@ -675,6 +778,9 @@ const RichFeature = ({
                     {chosenOptionsDetails.map((opt, idx) => (
                         <span key={idx} className="feature-choice-badge">{opt.name}</span>
                     ))}
+                    {selectedSpeciesFeatureChoice && (
+                        <span className="feature-choice-badge">{selectedSpeciesFeatureChoice}</span>
+                    )}
                     <span className="feature-source-tag">{feature.source}</span>
                     {isActive && <span className="active-tag">ACTIVE</span>}
                 </div>
@@ -751,6 +857,41 @@ const RichFeature = ({
                             ))}
                         </div>
                     )}
+                    {surgeTable && (
+                        <div className="wild-magic-surge-table-section">
+                            <button
+                                type="button"
+                                className="wild-magic-surge-table-toggle"
+                                aria-expanded={isSurgeTableOpen}
+                                onClick={() => setIsSurgeTableOpen(open => !open)}
+                            >
+                                <span className={`wild-magic-surge-table-chevron ${isSurgeTableOpen ? "open" : ""}`}>
+                                    ▸
+                                </span>
+                                {isSurgeTableOpen ? "Hide" : "View"} Wild Magic Surge Table (d100)
+                            </button>
+                            {isSurgeTableOpen && (
+                                <div className="feature-data-table-scroll">
+                                    <table className="feature-data-table wild-magic-surge-table">
+                                        <thead>
+                                            <tr>
+                                                <th scope="col">d100</th>
+                                                <th scope="col">Effect</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {Object.entries(surgeTable).map(([roll, effect]) => (
+                                                <tr key={roll}>
+                                                    <td>{roll}</td>
+                                                    <td>{processRichText(effect)}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
+                        </div>
+                    )}
                     {chosenOptionsDetails.length > 0 && (
                         <div className="chosen-options-list">
                             {chosenOptionsDetails.map((opt, idx) => {
@@ -824,17 +965,14 @@ const RichFeature = ({
                         </div>
                     )}
 
-                    {feature.details && (
+                    {visibleDetails && Object.keys(visibleDetails).length > 0 && (
                         <div className="feature-details">
                             <ValueRenderer
-                                value={feature.details}
+                                value={visibleDetails}
                                 level={level}
                                 themeRole="view_only"
-                                selectedTableRowValue={
-                                    feature.id === "dragonborn_draconic_ancestry"
-                                        ? characterData?.data?.species_variant
-                                        : undefined
-                                }
+                                selectedTableRowValue={selectedSpeciesVariant}
+                                selectedOptionValue={selectedSpeciesVariant}
                             />
                         </div>
                     )}
@@ -1494,7 +1632,7 @@ const SpellCard = ({
                                     {formatLabel(field)}:
                                 </strong>{" "}
 
-                                {renderValue(value)}
+                                {processRichText(renderValue(value))}
                             </p>
                         );
                     })}
@@ -4760,7 +4898,10 @@ function CharacterSheet() {
 
                 <div key="species" className="widget card species-widget">
                     {!isLayoutLocked && <div className="widget-handle">⠿</div>}
-                    <h3>Species: {character.data.species}</h3>
+                    <h3>
+                        Species: {character.data.species}
+                        {character.data.species_variant && ` — ${character.data.species_variant}`}
+                    </h3>
                     <div className="species-info-content scrollable">
                         {speciesRules?.summary && <p className="species-lore-summary">{speciesRules.summary}</p>}
                         <div className="species-traits-list">
