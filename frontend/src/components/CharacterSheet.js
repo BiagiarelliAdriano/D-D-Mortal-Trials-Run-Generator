@@ -2334,9 +2334,12 @@ function CharacterSheet() {
     const [showGoldTransferModal, setShowGoldTransferModal] = useState(false);
     const [showGoldActionModal, setShowGoldActionModal] = useState(false);
     const [showRemoveGoldModal, setShowRemoveGoldModal] = useState(false);
+    const [showAddGoldModal, setShowAddGoldModal] = useState(false);
     const [goldTransferAmount, setGoldTransferAmount] = useState(1);
     const [goldRemovalAmount, setGoldRemovalAmount] = useState(1);
+    const [goldAdditionAmount, setGoldAdditionAmount] = useState(1);
     const [isRemovingGold, setIsRemovingGold] = useState(false);
+    const [isAddingGold, setIsAddingGold] = useState(false);
     const [goldTransferRecipient, setGoldTransferRecipient] = useState(null);
     const [revealedGifts, setRevealedGifts] = useState({ gold: [], items: [] }); // { gold: [ids/timestamps], items: [originalIndexes] }
     const [pendingGifts, setPendingGifts] = useState({ gold: [], items: [] });
@@ -2412,6 +2415,8 @@ function CharacterSheet() {
     };
 
     const isDM = activeSession && activeSession.dm_id === currentUser?.id;
+    const isHostedRunGoldManager = Boolean(activeSession && (isDM || isAdmin));
+    const canManageGold = Boolean((isOwner && isEditMode) || isHostedRunGoldManager);
     const isAuthorized = isOwner || isAdmin || isDM;
     const canEdit = isEditMode && (isOwner || isAdmin || isDM);
     const viewOnly = !canEdit;
@@ -3685,13 +3690,52 @@ function CharacterSheet() {
     };
 
     const openGoldActions = () => {
-        if (!isOwner || !isEditMode) return;
-        if (activeSession) {
+        if (isOwner && isEditMode && activeSession) {
             setShowGoldActionModal(true);
             return;
         }
+        if (isHostedRunGoldManager && !(isOwner && isEditMode)) {
+            setGoldAdditionAmount(1);
+            setShowAddGoldModal(true);
+            return;
+        }
+        if (!isOwner || !isEditMode) return;
         setGoldRemovalAmount(1);
         setShowRemoveGoldModal(true);
+    };
+
+    const addGold = async () => {
+        const amount = Number(goldAdditionAmount);
+        if (!Number.isInteger(amount) || amount <= 0 || isAddingGold || !activeSession) return;
+
+        setIsAddingGold(true);
+        try {
+            const res = await fetch(`${API_BASE_URL}/api/host/${activeSession.id}/add-gold`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify({ character_id: id, amount })
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                addAlert(data.error || "Could not add gold to this character.", "error");
+                return;
+            }
+
+            setGold(data.new_gold);
+            setCharacter(prev => ({
+                ...prev,
+                data: { ...prev.data, gold: data.new_gold }
+            }));
+            setShowAddGoldModal(false);
+            addAlert(`Added ${amount} GP to the inventory.`, "success");
+        } catch (err) {
+            addAlert(err.message || "Could not add gold to this character.", "error");
+        } finally {
+            setIsAddingGold(false);
+        }
     };
 
     const removeGold = async () => {
@@ -4976,7 +5020,7 @@ function CharacterSheet() {
                             <i className="fa-solid fa-magnifying-glass"></i>
                         </div>
                         <div
-                            className={`gold-box ${isOwner && isEditMode ? "gold-box-interactive" : ""}`}
+                            className={`gold-box ${canManageGold ? "gold-box-interactive" : ""}`}
                             onClick={openGoldActions}
                             onKeyDown={event => {
                                 if (event.key === "Enter" || event.key === " ") {
@@ -4984,13 +5028,13 @@ function CharacterSheet() {
                                     openGoldActions();
                                 }
                             }}
-                            role={isOwner && isEditMode ? "button" : undefined}
-                            tabIndex={isOwner && isEditMode ? 0 : undefined}
-                            aria-label={isOwner && isEditMode ? "Manage inventory gold" : undefined}
+                            role={canManageGold ? "button" : undefined}
+                            tabIndex={canManageGold ? 0 : undefined}
+                            aria-label={canManageGold ? "Manage inventory gold" : undefined}
                         >
                             <i className="fa-solid fa-coins"></i> Gold: {gold} GP
-                            {isOwner && isEditMode && (
-                                <i className={`fa-solid ${activeSession ? "fa-right-left" : "fa-minus"} transfer-hint-icon`}></i>
+                            {canManageGold && (
+                                <i className={`fa-solid ${isHostedRunGoldManager && !(isOwner && isEditMode) ? "fa-plus" : activeSession ? "fa-right-left" : "fa-minus"} transfer-hint-icon`}></i>
                             )}
                         </div>
                         <div className="inv-tabs">
@@ -5760,6 +5804,19 @@ function CharacterSheet() {
                             </div>
                             <p className="gold-action-balance">Current Balance: <strong>{gold} GP</strong></p>
                             <div className="gold-action-buttons">
+                                {isHostedRunGoldManager && (
+                                    <button
+                                        type="button"
+                                        className="confirm-transfer-btn"
+                                        onClick={() => {
+                                            setShowGoldActionModal(false);
+                                            setGoldAdditionAmount(1);
+                                            setShowAddGoldModal(true);
+                                        }}
+                                    >
+                                        <i className="fa-solid fa-plus"></i> Add Gold
+                                    </button>
+                                )}
                                 <button
                                     type="button"
                                     className="confirm-transfer-btn"
@@ -5840,6 +5897,60 @@ function CharacterSheet() {
                                         onClick={removeGold}
                                     >
                                         <i className="fa-solid fa-minus"></i> {isRemovingGold ? "Removing..." : "Remove Gold"}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )
+            }
+
+            {
+                showAddGoldModal && (
+                    <div className="modal-overlay gold-transfer-overlay" onClick={() => !isAddingGold && setShowAddGoldModal(false)}>
+                        <div className="transfer-modal card premium-theme gold-modal" onClick={event => event.stopPropagation()}>
+                            <div className="modal-header">
+                                <h3><i className="fa-solid fa-coins"></i> Add Gold</h3>
+                                <button className="close-btn" onClick={() => setShowAddGoldModal(false)} disabled={isAddingGold}>✕</button>
+                            </div>
+                            <div className="gold-transfer-content">
+                                <div className="gold-stats">
+                                    <div className="stat-item">
+                                        <span className="label">Current Balance:</span>
+                                        <span className="value">{gold} GP</span>
+                                    </div>
+                                    <div className="stat-item highlight">
+                                        <span className="label">Balance After Addition:</span>
+                                        <span className="value">{gold + (parseInt(goldAdditionAmount, 10) || 0)} GP</span>
+                                    </div>
+                                </div>
+
+                                <div className="amount-input-group">
+                                    <label htmlFor="gold-addition-amount">Amount to Add:</label>
+                                    <div className="input-with-unit">
+                                        <input
+                                            id="gold-addition-amount"
+                                            type="number"
+                                            min="1"
+                                            step="1"
+                                            value={goldAdditionAmount}
+                                            onChange={event => {
+                                                const amount = parseInt(event.target.value, 10);
+                                                setGoldAdditionAmount(Number.isNaN(amount) ? 1 : Math.max(1, amount));
+                                            }}
+                                        />
+                                        <span>GP</span>
+                                    </div>
+                                </div>
+
+                                <div className="gold-modal-actions">
+                                    <button
+                                        type="button"
+                                        className="confirm-transfer-btn"
+                                        disabled={isAddingGold || goldAdditionAmount <= 0}
+                                        onClick={addGold}
+                                    >
+                                        <i className="fa-solid fa-plus"></i> {isAddingGold ? "Adding..." : "Add Gold"}
                                     </button>
                                 </div>
                             </div>

@@ -4739,6 +4739,53 @@ def api_transfer_gold(session_id):
         "new_gold": sender_data["gold"]
     }), 200
 
+@app.route("/api/host/<int:session_id>/add-gold", methods=["POST"])
+@jwt_required()
+def api_add_hosted_character_gold(session_id):
+    current_user_id = get_jwt_identity()
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict) or "character_id" not in data or "amount" not in data:
+        return jsonify({"error": "Missing character_id or amount"}), 400
+
+    amount = data["amount"]
+    if isinstance(amount, bool) or not isinstance(amount, int) or amount <= 0:
+        return jsonify({"error": "Amount must be a positive whole number"}), 400
+
+    character_id = data["character_id"]
+    if isinstance(character_id, bool) or not isinstance(character_id, (int, str)):
+        return jsonify({"error": "Invalid character_id"}), 400
+    try:
+        character_id = int(character_id)
+    except ValueError:
+        return jsonify({"error": "Invalid character_id"}), 400
+    if character_id <= 0:
+        return jsonify({"error": "Invalid character_id"}), 400
+
+    session = db.get_or_404(HostedRun, session_id)
+    if not session.is_active:
+        return jsonify({"error": "This session is no longer active"}), 400
+
+    requesting_user = db.session.get(User, current_user_id)
+    if str(session.dm_id) != str(current_user_id) and not (
+        requesting_user and requesting_user.is_admin
+    ):
+        return jsonify({"error": "Only the Run owner or an admin can add gold"}), 403
+
+    participant = SessionParticipant.query.filter_by(
+        hosted_run_id=session.id,
+        character_id=character_id
+    ).first()
+    if not participant or not participant.character:
+        return jsonify({"error": "Character is not in this session"}), 404
+
+    character = participant.character
+    char_data = character.get_data()
+    char_data["gold"] = int(char_data.get("gold", 0)) + amount
+    character.set_data(char_data)
+    db.session.commit()
+
+    return jsonify({"success": True, "new_gold": char_data["gold"]}), 200
+
 # ------------------------
 # Entry Point
 # ------------------------
