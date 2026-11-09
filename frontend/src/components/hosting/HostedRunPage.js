@@ -43,6 +43,7 @@ const HostedRunPage = () => {
     const [shopSpellLoading, setShopSpellLoading] = useState(false);
     const [shopSpellError, setShopSpellError] = useState('');
     const [shopHasSpellcastingFeature, setShopHasSpellcastingFeature] = useState(null);
+    const [removingParticipantId, setRemovingParticipantId] = useState(null);
 
     const formatRations = (value) => {
         const numeric = Number(value || 0);
@@ -708,6 +709,31 @@ const HostedRunPage = () => {
             }
         } catch (err) {
             addAlert(err.message, "error");
+        }
+    };
+
+    const handleRemoveParticipant = async (participant) => {
+        if (!await confirm(`Remove ${participant.username} from this Run and free their slot?`)) return;
+
+        setRemovingParticipantId(participant.user_id);
+        try {
+            const response = await fetch(`${API_BASE_URL}/api/host/${id}/participants/${participant.user_id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            const data = await response.json();
+            if (!response.ok) {
+                throw new Error(data.error || "Failed to remove participant");
+            }
+
+            addAlert(`${participant.username} was removed from the Run`, "success");
+            await fetchSessionDetails();
+        } catch (err) {
+            addAlert(err.message, "error");
+        } finally {
+            setRemovingParticipantId(null);
         }
     };
 
@@ -1491,8 +1517,22 @@ const HostedRunPage = () => {
                 {activeTab === 'party' && (
                     <div className="party-view">
                         <div className="participants-grid">
-                            {session.participants.map(p => (
-                                <div key={p.user_id} className={`participant-card ${p.role === 'DM' ? 'dm' : ''} ${p.user_id === currentUser?.id ? 'is-me' : ''}`}>
+                            {session.participants.map(p => {
+                                const canRemoveParticipant = isDMOrAdmin && !session.is_completed && p.role !== 'DM';
+                                return (
+                                <div key={p.user_id} className={`participant-card ${p.role === 'DM' ? 'dm' : ''} ${p.user_id === currentUser?.id ? 'is-me' : ''} ${canRemoveParticipant ? 'has-remove' : ''}`}>
+                                    {canRemoveParticipant && (
+                                        <button
+                                            type="button"
+                                            className="remove-participant-btn"
+                                            onClick={() => handleRemoveParticipant(p)}
+                                            disabled={removingParticipantId === p.user_id}
+                                            title={`Remove ${p.username} from this Run`}
+                                            aria-label={`Remove ${p.username} from this Run`}
+                                        >
+                                            <i className="fa-solid fa-xmark" aria-hidden="true"></i>
+                                        </button>
+                                    )}
                                     <div className="p-header">
                                         <div className="p-avatar">
                                             <span aria-hidden="true">{p.username.substring(0, 2).toUpperCase()}</span>
@@ -1548,7 +1588,8 @@ const HostedRunPage = () => {
                                         </div>
                                     )}
                                 </div>
-                            ))}
+                                );
+                            })}
                         </div>
                     </div>
                 )}

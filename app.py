@@ -3378,6 +3378,36 @@ def api_leave_hosted_run(session_id):
     db.session.commit()
     return jsonify({"success": True, "message": "Successfully left the session"}), 200
 
+@app.route("/api/host/<int:session_id>/participants/<int:user_id>", methods=["DELETE"])
+@jwt_required()
+def api_remove_hosted_run_participant(session_id, user_id):
+    current_user_id = get_jwt_identity()
+    hosted_run = db.session.get(HostedRun, session_id)
+    if not hosted_run:
+        return jsonify({"error": "Session not found"}), 404
+
+    user = db.session.get(User, current_user_id)
+    is_admin = user.is_admin if user else False
+    if str(hosted_run.dm_id) != str(current_user_id) and not is_admin:
+        return jsonify({"error": "Only the Dungeon Master or an Administrator can remove participants"}), 403
+
+    if hosted_run.is_completed:
+        return jsonify({"error": "Participants cannot be removed from a completed and archived Trial"}), 400
+
+    participant = SessionParticipant.query.filter_by(
+        user_id=user_id,
+        hosted_run_id=session_id
+    ).first()
+    if not participant:
+        return jsonify({"error": "Participant not found"}), 404
+
+    if participant.role == 'DM':
+        return jsonify({"error": "The Dungeon Master cannot be removed from their own session"}), 400
+
+    db.session.delete(participant)
+    db.session.commit()
+    return jsonify({"success": True, "message": "Participant removed successfully"}), 200
+
 @app.route("/api/host/active", methods=["GET"])
 @jwt_required()
 def api_list_active_hosted_runs():

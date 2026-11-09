@@ -472,6 +472,30 @@
     border: 1px solid var(--border);
     border-radius: 15px;
     padding: 1.5rem;
+    position: relative;
+}
+
+.remove-participant-btn {
+    position: absolute;
+    top: 0.45rem;
+    right: 0.5rem;
+    z-index: 1;
+    border: 0;
+    background: transparent;
+    color: #e74c3c;
+    font-size: 1.35rem;
+    line-height: 1;
+    cursor: pointer;
+    padding: 0.25rem;
+}
+
+.remove-participant-btn:hover:not(:disabled) {
+    color: #ff6b5c;
+}
+
+.remove-participant-btn:disabled {
+    cursor: wait;
+    opacity: 0.55;
 }
 
 .participant-card.dm {
@@ -483,6 +507,10 @@
     background: linear-gradient(135deg, var(--bg-card) 0%, rgba(46, 204, 113, 0.05) 100%);
     box-shadow: 0 0 20px rgba(46, 204, 113, 0.1);
     position: relative;
+}
+
+.participant-card.is-me.has-remove::after {
+    right: 46px;
 }
 
 .participant-card.is-me::after {
