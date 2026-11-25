@@ -248,6 +248,7 @@ def prepare_shop_item(item_name, rarity, category, cost):
     from encounter_generator.data.constants import enspell_levels_by_rarity
     from encounter_generator.data.items import MAGIC_ITEMS
 
+    rarity_key = str(rarity or "common").lower()
     item = {
         "name": item_name,
         "rarity": rarity,
@@ -291,11 +292,11 @@ def prepare_shop_item(item_name, rarity, category, cost):
             "name": display_name,
             "variation_type": "enspelled",
             "base_options": sorted(base_options, key=str.casefold),
-            "spell_levels": list(enspell_levels_by_rarity.get(rarity, [0]))
+            "spell_levels": list(enspell_levels_by_rarity.get(rarity_key, [0]))
         })
         return item
 
-    catalog = MAGIC_ITEMS.get(rarity, {}).get(category, [])
+    catalog = MAGIC_ITEMS.get(rarity_key, {}).get(category, [])
     variation_patterns = [
         (r"^Adamantine .+$", "Adamantine Weapon" if category == "Weapon" else "Adamantine Armor"),
         (r"^Mariner's .+ Armor$", "Mariner's Armor"),

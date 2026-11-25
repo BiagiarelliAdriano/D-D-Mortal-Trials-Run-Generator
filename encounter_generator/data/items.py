@@ -87,7 +87,7 @@ MAGIC_ITEMS = {
         "Scroll": ["generate"],
         "Staff": ["Staff Of Tactical Balance"],
         "Wand": ["Wand Of Minor Distortion"],
-        "Weapon": ["Battleaxe", "Club", "Dagger", "Flail", "Glaive", "Greataxe", "Greatclub",
+        "Weapon": ["Battleaxe", "Club", "Dagger", "Flail", "Glaive", "Greataxe", "Greatclub", "Greatsword",
                    "Halberd", "Hand Crossbow", "Handaxe", "Heavy Crossbow", "Javelin", "Lance",
                    "Light Crossbow", "Light Hammer", "Longbow", "Longsword", "Mace", "Maul", "Morningstar",
                    "Pike", "Quarterstaff", "Rapier", "Scimitar", "Shortbow", "Shortsword", "Sickle", "Sling",
