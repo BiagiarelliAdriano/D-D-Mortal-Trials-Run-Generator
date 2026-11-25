@@ -147,11 +147,11 @@ export const AuthProvider = ({ children }) => {
         localStorage.removeItem('needs_reauth');
     };
 
-    const requestRecovery = async (username, requestType) => {
+    const requestRecovery = async (username, requestType, discordId) => {
         const response = await fetch(`${API_BASE_URL}/api/auth/recovery-request`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, request_type: requestType })
+            body: JSON.stringify({ username, request_type: requestType, discord_id: discordId })
         });
         return await response.json();
     };

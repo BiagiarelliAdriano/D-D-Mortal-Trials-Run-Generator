@@ -765,14 +765,14 @@ const HostedRunPage = () => {
                 : [];
             const myCategories = mySelections.map(selection => selection.category);
 
-            const isDMOrAdmin = currentUser.id === session.dm_id || isAdmin;
+            const isRunDM = currentUser?.id === session.dm_id;
             const isLocked = !!state.locked;
             return (
                 <div className={`shop-phase-container ${isLocked ? 'is-locked' : ''}`}>
                     <div className="shop-header-box">
                         <div className="shb-title-row">
                             <h3><i className="fa-solid fa-cart-shopping"></i>The Chamber of Brief Mercy {isLocked && <span className="locked-badge"><i className="fa-solid fa-lock"></i> LOCKED</span>}</h3>
-                            {isDMOrAdmin && (
+                            {isRunDM && (
                                 <button
                                     className={`shop-lock-toggle-btn ${isLocked ? 'locked' : 'unlocked'}`}
                                     onClick={(e) => { e.stopPropagation(); handleToggleShopLock(); }}
@@ -798,8 +798,8 @@ const HostedRunPage = () => {
                                 <button
                                     key={cat}
                                     className={btnClass}
-                                    onClick={() => !chosenByAnyone && neededChoices < targetChoices && !isDMOrAdmin && !isLocked && handleCategorySelect(cat)}
-                                    disabled={chosenByAnyone || neededChoices >= targetChoices || isDMOrAdmin || isLocked}
+                                    onClick={() => !chosenByAnyone && neededChoices < targetChoices && !isRunDM && !isLocked && handleCategorySelect(cat)}
+                                    disabled={chosenByAnyone || neededChoices >= targetChoices || isRunDM || isLocked}
                                     title={isLocked ? "Shop is locked" : (chosenByAnyone && !chosenByMe ? "Another party member already chose this." : "")}
                                 >
                                     <span className="cat-name">{cat}</span>
@@ -807,7 +807,7 @@ const HostedRunPage = () => {
                             );
                         })}
                     </div>
-                    {!isDMOrAdmin && !isLocked && (
+                    {!isRunDM && !isLocked && (
                         <div className="shop-awaiting-msg">
                             <em><i className="fa-solid fa-hourglass-half"></i> Categories chosen: {neededChoices}/{targetChoices}. {myCategories.length > 0 ? `Your choices: ${myCategories.join(", ")}.` : "Choose any available categories."}</em>
                         </div>
@@ -830,7 +830,7 @@ const HostedRunPage = () => {
             const myParticipant = session.participants.find(p => p.user_id === currentUser.id);
             const myGold = myParticipant?.character?.data?.gold || 0;
 
-            const isDMOrAdmin = currentUser.id === session.dm_id || isAdmin;
+            const isRunDM = currentUser?.id === session.dm_id;
             const isLocked = !!state.locked;
 
             const renderItemsList = (itemDict, isCommonSec) => {
@@ -858,7 +858,7 @@ const HostedRunPage = () => {
                                     <button
                                         key={idx}
                                         className={btnClass}
-                                        onClick={() => !sold && affordable && !isDMOrAdmin && !isLocked && setShopConfirm({
+                                        onClick={() => !sold && affordable && !isRunDM && !isLocked && setShopConfirm({
                                             category: cat,
                                             itemIndex: idx,
                                             item,
@@ -871,7 +871,7 @@ const HostedRunPage = () => {
                                             spellName: '',
                                             spellLevel: ''
                                         })}
-                                        disabled={!!sold || !affordable || isDMOrAdmin || isLocked}
+                                        disabled={!!sold || !affordable || isRunDM || isLocked}
                                         title={isLocked ? "Shop is locked" : (sold ? `Bought by ${sold.char_name}` : (!affordable ? `You need ${item.cost} gp (You have ${myGold} gp)` : ""))}
                                     >
                                         <div className="si-details">
@@ -902,7 +902,7 @@ const HostedRunPage = () => {
                                     </span>
                                 )}
                             </h3>
-                            {!isDMOrAdmin && !isLocked && (
+                            {!isRunDM && !isLocked && (
                                 <button
                                     className="shop-sell-btn"
                                     onClick={() => {
@@ -914,7 +914,7 @@ const HostedRunPage = () => {
                                     Sell Items
                                 </button>
                             )}
-                            {isDMOrAdmin && (
+                            {isRunDM && (
                                 <button
                                     className={`shop-lock-toggle-btn ${isLocked ? 'locked' : 'unlocked'}`}
                                     onClick={(e) => {

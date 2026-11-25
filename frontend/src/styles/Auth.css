@@ -310,6 +310,12 @@
     flex-shrink: 0;
 }
 
+.recovery-privacy-notice {
+    margin: 10px 0 0;
+    padding: 10px 12px;
+    font-size: 0.8rem;
+}
+
 /* "← Back to Credentials" button below the submit button */
 .back-step-btn {
     width: 100%;

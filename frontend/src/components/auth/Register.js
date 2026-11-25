@@ -8,7 +8,6 @@ const Register = () => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
-    const [discordId, setDiscordId] = useState('');
     const [securityAnswer, setSecurityAnswer] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
@@ -35,11 +34,6 @@ const Register = () => {
             return;
         }
 
-        if (!discordId.trim()) {
-            setError("Discord ID is required.");
-            return;
-        }
-
         setLoading(true);
 
         try {
@@ -49,7 +43,6 @@ const Register = () => {
                 body: JSON.stringify({
                     username,
                     password,
-                    discord_id: discordId.trim(),
                     security_answer: securityAnswer
                 })
             });
@@ -138,23 +131,6 @@ const Register = () => {
                             />
                         </div>
 
-                        <div className="form-group">
-                            <label>Discord ID</label>
-                            <input
-                                type="text"
-                                value={discordId}
-                                onChange={(e) => setDiscordId(e.target.value.replace(/\D/g, ""))}
-                                required
-                                placeholder="e.g. 1242152068635164899"
-                                pattern="\d+"
-                                title="Discord ID must be a sequence of numbers."
-                                maxLength="19"
-                                minLength="17"
-                            />
-                            <small className="help-text" style={{ fontSize: '0.75rem', opacity: 0.7, marginTop: '4px', display: 'block' }}>
-                                OPTIONAL. Used by the Admin to verify your identity on Discord for account recovery. NOT SHOWN ANYWHERE WITHIN SITE.
-                            </small>
-                        </div>
                     </div>
 
                     <div className="form-actions full-width">

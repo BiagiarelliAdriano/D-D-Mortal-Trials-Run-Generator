@@ -874,15 +874,357 @@ h3,
 
 /* HP Widget */
 .hp-widget {
+    --hp-field-height: 44px;
+    --hp-field-width: 82px;
+    --hp-current-field-width: 150px;
     background: linear-gradient(135deg, rgba(100, 49, 115, 0.6), rgba(30, 30, 47, 0.8)) !important;
 }
 
 .hp-main {
     display: flex;
-    align-items: baseline;
+    align-items: center;
     justify-content: center;
-    gap: 10px;
+    gap: 8px;
+    min-width: 0;
     padding: 10px 0;
+}
+
+.hp-main.has-hp-hint {
+    padding-top: 52px;
+}
+
+.hp-current-control {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 0 0 var(--hp-current-field-width);
+    width: var(--hp-current-field-width);
+}
+
+.hp-current-hint {
+    position: absolute;
+    bottom: calc(100% + 4px);
+    left: 50%;
+    z-index: 5;
+    width: 180px;
+    margin: 0;
+    transform: translateX(-50%);
+    max-width: 180px;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.75rem;
+    line-height: 1.2;
+    pointer-events: none;
+    text-align: center;
+}
+
+.death-save-tracker {
+    display: flex;
+    flex-direction: column;
+    flex: 0 0 auto;
+    gap: 4px;
+}
+
+.death-save-row,
+.death-save-controls {
+    display: flex;
+    align-items: center;
+}
+
+.death-save-row {
+    justify-content: flex-start;
+    gap: 4px;
+}
+
+.death-save-row > label {
+    position: relative;
+    flex: 0 0 40px;
+    color: rgba(255, 255, 255, 0.85);
+    cursor: help;
+    font-size: 0.65rem;
+    letter-spacing: -0.3px;
+    white-space: nowrap;
+}
+
+.death-save-controls {
+    flex-shrink: 0;
+    gap: 3px;
+}
+
+.hp-widget .death-save-controls input {
+    box-sizing: border-box;
+    width: 24px;
+    min-width: 24px;
+    max-width: 24px;
+    height: 24px;
+    margin: 0;
+    padding: 1px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.3);
+    color: white;
+    font-size: 0.8rem;
+    text-align: center;
+}
+
+.death-save-button {
+    position: relative;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    color: white;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.death-save-button.success {
+    background: #238636;
+}
+
+.death-save-button.failure {
+    background: #b4232f;
+}
+
+.death-save-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+}
+
+.death-save-button::after,
+.death-save-row > label::after {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    z-index: 20;
+    padding: 5px 8px;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    background: rgba(20, 20, 30, 0.96);
+    color: white;
+    content: attr(data-tooltip);
+    font-size: 0.7rem;
+    font-weight: 400;
+    line-height: 1.2;
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(-50%, 3px);
+    transition: opacity 0.15s ease, transform 0.15s ease;
+    visibility: hidden;
+    white-space: nowrap;
+}
+
+.death-save-button:hover::after,
+.death-save-button:focus-visible::after,
+.death-save-row > label:hover::after {
+    opacity: 1;
+    transform: translate(-50%, 0);
+    visibility: visible;
+}
+
+.death-save-row > label::after {
+    left: 0;
+    transform: translateY(3px);
+}
+
+.death-save-row > label:hover::after {
+    transform: translateY(0);
+}
+
+.hp-widget .hp-current-input {
+    box-sizing: border-box;
+    width: var(--hp-current-field-width);
+    min-width: var(--hp-current-field-width);
+    max-width: var(--hp-current-field-width);
+    flex: 0 0 var(--hp-current-field-width);
+    height: var(--hp-field-height);
+    min-height: var(--hp-field-height);
+    max-height: var(--hp-field-height);
+    margin: 0;
+    padding: 0 4px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: rgba(0, 0, 0, 0.3);
+    color: white;
+    font-size: 1.8rem;
+    font-weight: 800;
+    font-family: 'Georgia', serif;
+    line-height: 1;
+    text-align: center;
+}
+
+.hp-widget .hp-max.clickable {
+    box-sizing: border-box;
+    width: var(--hp-field-width);
+    min-width: var(--hp-field-width);
+    max-width: var(--hp-field-width);
+    flex: 0 0 var(--hp-field-width);
+    height: var(--hp-field-height);
+    padding: 2px 4px;
+}
+
+.hp-widget .ac-display {
+    flex: 0 0 auto;
+}
+
+@media (max-width: 479px) {
+    .hp-widget {
+        --hp-field-height: 38px;
+        --hp-field-width: 42px;
+        --hp-current-field-width: 90px;
+    }
+
+    .hp-main {
+        gap: 1px;
+    }
+
+    .hp-current-hint {
+        width: 180px;
+    }
+
+    .death-save-row > label {
+        flex-basis: 28px;
+        font-size: 0.58rem;
+    }
+
+    .death-save-row {
+        gap: 2px;
+    }
+
+    .death-save-controls {
+        gap: 2px;
+    }
+
+    .hp-widget .death-save-controls input,
+    .death-save-button {
+        width: 18px;
+        min-width: 18px;
+        max-width: 18px;
+        height: 18px;
+        font-size: 0.7rem;
+    }
+
+    .hp-widget .hp-current-input {
+        font-size: 1rem;
+    }
+
+    .hp-widget .hp-max.clickable {
+        font-size: 1rem;
+    }
+
+    .hp-widget .ac-display {
+        margin-left: 0;
+    }
+
+    .hp-widget .ac-shield {
+        width: 30px;
+        height: 38px;
+    }
+
+    .hp-widget .ac-value {
+        font-size: 0.9rem;
+    }
+
+    .hp-widget .ac-label {
+        font-size: 0.4rem;
+        letter-spacing: 0;
+    }
+}
+
+@media (max-width: 360px) {
+    .hp-widget {
+        --hp-field-height: 34px;
+        --hp-field-width: 34px;
+        --hp-current-field-width: 74px;
+    }
+
+    .hp-main {
+        gap: 0;
+    }
+
+    .death-save-row {
+        gap: 2px;
+    }
+
+    .death-save-row > label {
+        flex-basis: 26px;
+        font-size: 0.52rem;
+    }
+
+    .death-save-controls {
+        gap: 2px;
+    }
+
+    .hp-widget .death-save-controls input,
+    .death-save-button {
+        width: 16px;
+        min-width: 16px;
+        max-width: 16px;
+        height: 16px;
+        font-size: 0.6rem;
+    }
+
+    .hp-widget .hp-current-input {
+        font-size: 0.9rem;
+    }
+
+    .hp-widget .hp-max.clickable {
+        font-size: 0.85rem;
+    }
+
+    .hp-widget .ac-shield {
+        width: 24px;
+        height: 32px;
+    }
+
+    .hp-widget .ac-value {
+        font-size: 0.8rem;
+    }
+
+    .hp-widget .ac-label {
+        font-size: 0.4rem;
+        letter-spacing: 0;
+    }
+}
+
+@media (min-width: 480px) and (max-width: 767px) {
+    .hp-widget {
+        --hp-field-height: 40px;
+        --hp-field-width: 68px;
+        --hp-current-field-width: 110px;
+    }
+
+    .hp-main {
+        gap: 4px;
+    }
+
+    .hp-widget .hp-current-input {
+        font-size: 1.25rem;
+    }
+
+    .hp-widget .hp-max.clickable {
+        font-size: 1.4rem;
+    }
+
+    .hp-widget .ac-display {
+        margin-left: 8px;
+    }
+
+    .hp-widget .ac-shield {
+        width: 52px;
+        height: 60px;
+    }
+
+    .hp-widget .ac-value {
+        font-size: 1.5rem;
+    }
+
+    .hp-widget .ac-label {
+        font-size: 0.6rem;
+        letter-spacing: 1px;
+    }
 }
 
 /* --- Interactive Feature Choices --- */
@@ -1369,18 +1711,6 @@ h3,
 .chosen-feat-effect {
     margin: 0.45rem 0;
     line-height: 1.5;
-}
-
-.hp-current-input {
-    background: rgba(0, 0, 0, 0.3);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    color: white;
-    font-size: 3rem;
-    font-weight: 800;
-    width: 100px;
-    text-align: center;
-    font-family: 'Georgia', serif;
 }
 
 .hp-max {

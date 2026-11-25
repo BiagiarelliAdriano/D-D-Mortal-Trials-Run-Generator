@@ -33,6 +33,79 @@ const proficiencyBonus = (level) => {
     return 2;
 };
 
+const evaluateArithmeticExpression = (expression) => {
+    const input = expression.trim();
+    const tokens = [];
+    const tokenPattern = /\s*(\d+(?:\.\d*)?|\.\d+|[()+\-*/])/y;
+    let offset = 0;
+
+    while (offset < input.length) {
+        tokenPattern.lastIndex = offset;
+        const match = tokenPattern.exec(input);
+        if (!match) throw new Error("Invalid arithmetic expression");
+        tokens.push(match[1]);
+        offset = tokenPattern.lastIndex;
+    }
+
+    let position = 0;
+    const parseExpression = () => {
+        let value = parseTerm();
+        while (tokens[position] === "+" || tokens[position] === "-") {
+            const operator = tokens[position++];
+            const right = parseTerm();
+            value = operator === "+" ? value + right : value - right;
+        }
+        return value;
+    };
+    const parseTerm = () => {
+        let value = parsePrimary();
+        while (tokens[position] === "*" || tokens[position] === "/") {
+            const operator = tokens[position++];
+            const right = parsePrimary();
+            if (operator === "/" && right === 0) {
+                throw new Error("Division by zero");
+            }
+            value = operator === "*" ? value * right : value / right;
+        }
+        return value;
+    };
+    const parsePrimary = () => {
+        if (tokens[position] === "+" || tokens[position] === "-") {
+            const operator = tokens[position++];
+            const value = parsePrimary();
+            return operator === "-" ? -value : value;
+        }
+        if (tokens[position] === "(") {
+            position++;
+            const value = parseExpression();
+            if (tokens[position++] !== ")") {
+                throw new Error("Invalid arithmetic expression");
+            }
+            return value;
+        }
+
+        const token = tokens[position++];
+        if (!token || !/^(?:\d+(?:\.\d*)?|\.\d+)$/.test(token)) {
+            throw new Error("Invalid arithmetic expression");
+        }
+        return Number(token);
+    };
+
+    if (!tokens.length) throw new Error("Invalid arithmetic expression");
+    const result = parseExpression();
+    if (position !== tokens.length || !Number.isFinite(result)) {
+        throw new Error("Invalid arithmetic expression");
+    }
+    return result;
+};
+
+const normalizeDeathSaveCount = (value) => {
+    const count = Number(value);
+    return Number.isFinite(count)
+        ? Math.min(3, Math.max(0, Math.floor(count)))
+        : 0;
+};
+
 const XP_THRESHOLDS = {
     1: 0, 2: 300, 3: 900, 4: 2700, 5: 6500,
     6: 14000, 7: 23000, 8: 34000, 9: 48000, 10: 64000,
@@ -1007,9 +1080,17 @@ const RichFeature = ({
     );
 };
 
+const HP_LAYOUT_CONSTRAINTS = {
+    lg: { minW: 6, maxW: 8, minH: 4, maxH: 6 },
+    md: { minW: 6, maxW: 8, minH: 4, maxH: 6 },
+    sm: { minW: 5, maxW: 6, minH: 4, maxH: 6 },
+    xs: { minW: 4, maxW: 4, minH: 4, maxH: 6 },
+    xxs: { minW: 2, maxW: 2, minH: 4, maxH: 6 },
+};
+
 const LAYOUT_CONSTRAINTS = {
     header: { minW: 6, maxW: 12, minH: 4, maxH: 6 },
-    hp: { minW: 3, maxW: 6, minH: 2, maxH: 5 },
+    hp: HP_LAYOUT_CONSTRAINTS.lg,
     abilities: { minW: 3, maxW: 4, minH: 5, maxH: 7 },
     saves: { minW: 2, maxW: 6, minH: 5, maxH: 7 },
     skills: { minW: 2, maxW: 4, minH: 11, maxH: 11 },
@@ -1024,10 +1105,10 @@ const LAYOUT_CONSTRAINTS = {
 const DEFAULT_LAYOUTS = {
     lg: [
         { i: "header", x: 0, y: 0, w: 12, h: 5, ...LAYOUT_CONSTRAINTS.header },
-        { i: "hp", x: 0, y: 5, w: 4, h: 3, ...LAYOUT_CONSTRAINTS.hp },
-        { i: "abilities", x: 4, y: 5, w: 4, h: 6, ...LAYOUT_CONSTRAINTS.abilities },
-        { i: "saves", x: 8, y: 5, w: 4, h: 6, ...LAYOUT_CONSTRAINTS.saves },
-        { i: "skills", x: 0, y: 8, w: 4, h: 12, ...LAYOUT_CONSTRAINTS.skills },
+        { i: "hp", x: 0, y: 5, w: 6, h: 4, ...HP_LAYOUT_CONSTRAINTS.lg },
+        { i: "abilities", x: 6, y: 5, w: 3, h: 6, ...LAYOUT_CONSTRAINTS.abilities },
+        { i: "saves", x: 9, y: 5, w: 3, h: 6, ...LAYOUT_CONSTRAINTS.saves },
+        { i: "skills", x: 0, y: 9, w: 4, h: 12, ...LAYOUT_CONSTRAINTS.skills },
         { i: "species", x: 4, y: 11, w: 8, h: 8, ...LAYOUT_CONSTRAINTS.species },
         { i: "features", x: 4, y: 19, w: 8, h: 10, ...LAYOUT_CONSTRAINTS.features },
         { i: "combat", x: 4, y: 29, w: 8, h: 10, ...LAYOUT_CONSTRAINTS.combat },
@@ -1037,9 +1118,9 @@ const DEFAULT_LAYOUTS = {
     ],
     md: [
         { i: "header", x: 0, y: 0, w: 10, h: 5, ...LAYOUT_CONSTRAINTS.header },
-        { i: "hp", x: 0, y: 5, w: 5, h: 3, ...LAYOUT_CONSTRAINTS.hp },
-        { i: "abilities", x: 5, y: 5, w: 5, h: 6, ...LAYOUT_CONSTRAINTS.abilities },
-        { i: "saves", x: 0, y: 8, w: 5, h: 6, ...LAYOUT_CONSTRAINTS.saves },
+        { i: "hp", x: 0, y: 5, w: 6, h: 4, ...HP_LAYOUT_CONSTRAINTS.md },
+        { i: "abilities", x: 6, y: 5, w: 4, h: 6, ...LAYOUT_CONSTRAINTS.abilities },
+        { i: "saves", x: 0, y: 9, w: 5, h: 6, ...LAYOUT_CONSTRAINTS.saves },
         { i: "skills", x: 5, y: 11, w: 5, h: 12, ...LAYOUT_CONSTRAINTS.skills },
         { i: "species", x: 0, y: 14, w: 10, h: 8, ...LAYOUT_CONSTRAINTS.species },
         { i: "features", x: 0, y: 22, w: 10, h: 10, ...LAYOUT_CONSTRAINTS.features },
@@ -1050,8 +1131,8 @@ const DEFAULT_LAYOUTS = {
     ],
     sm: [
         { i: "header", x: 0, y: 0, w: 6, h: 6, ...LAYOUT_CONSTRAINTS.header },
-        { i: "hp", x: 0, y: 6, w: 6, h: 3, ...LAYOUT_CONSTRAINTS.hp },
-        { i: "abilities", x: 0, y: 9, w: 6, h: 8, ...LAYOUT_CONSTRAINTS.abilities },
+        { i: "hp", x: 0, y: 6, w: 6, h: 4, ...HP_LAYOUT_CONSTRAINTS.sm },
+        { i: "abilities", x: 0, y: 10, w: 6, h: 8, ...LAYOUT_CONSTRAINTS.abilities },
         { i: "saves", x: 0, y: 17, w: 6, h: 8, ...LAYOUT_CONSTRAINTS.saves },
         { i: "skills", x: 0, y: 25, w: 6, h: 12, ...LAYOUT_CONSTRAINTS.skills },
         { i: "species", x: 0, y: 37, w: 6, h: 10, ...LAYOUT_CONSTRAINTS.species },
@@ -1063,7 +1144,7 @@ const DEFAULT_LAYOUTS = {
     ],
     xs: [
         { i: "header", x: 0, y: 0, w: 4, h: 6, ...LAYOUT_CONSTRAINTS.header },
-        { i: "hp", x: 0, y: 6, w: 4, h: 4, ...LAYOUT_CONSTRAINTS.hp },
+        { i: "hp", x: 0, y: 6, w: 4, h: 4, ...HP_LAYOUT_CONSTRAINTS.xs },
         { i: "abilities", x: 0, y: 10, w: 4, h: 10, ...LAYOUT_CONSTRAINTS.abilities },
         { i: "saves", x: 0, y: 20, w: 4, h: 10, ...LAYOUT_CONSTRAINTS.saves },
         { i: "skills", x: 0, y: 30, w: 4, h: 12, ...LAYOUT_CONSTRAINTS.skills },
@@ -1076,7 +1157,7 @@ const DEFAULT_LAYOUTS = {
     ],
     xxs: [
         { i: "header", x: 0, y: 0, w: 2, h: 8, ...LAYOUT_CONSTRAINTS.header },
-        { i: "hp", x: 0, y: 8, w: 2, h: 4, ...LAYOUT_CONSTRAINTS.hp },
+        { i: "hp", x: 0, y: 8, w: 2, h: 4, ...HP_LAYOUT_CONSTRAINTS.xxs },
         { i: "abilities", x: 0, y: 12, w: 2, h: 12, ...LAYOUT_CONSTRAINTS.abilities },
         { i: "saves", x: 0, y: 24, w: 2, h: 12, ...LAYOUT_CONSTRAINTS.saves },
         { i: "skills", x: 0, y: 36, w: 2, h: 15, ...LAYOUT_CONSTRAINTS.skills },
@@ -2498,8 +2579,30 @@ function CharacterSheet() {
 
     // New HP related states
     const [currentHp, setCurrentHp] = useState(0);
+    const [currentHpInput, setCurrentHpInput] = useState("0");
+    const [showHpHint, setShowHpHint] = useState(false);
+    const [deathSaves, setDeathSaves] = useState({ successes: 0, failures: 0 });
     const [baseMaxHp, setBaseMaxHp] = useState(0);
     const [effectiveMaxHp, setEffectiveMaxHp] = useState(0);
+    const hpInputRef = useRef(null);
+    const lastCurrentHpRef = useRef({ characterId: null, value: null });
+    const deathSaveSaveQueueRef = useRef(Promise.resolve());
+
+    useEffect(() => {
+        setCurrentHpInput(String(currentHp));
+    }, [currentHp]);
+
+    useEffect(() => {
+        if (viewOnly) return;
+
+        const handleDocumentPointerDown = (event) => {
+            const clickedHpInput = hpInputRef.current?.contains(event.target);
+            setShowHpHint(Boolean(clickedHpInput));
+        };
+
+        document.addEventListener("pointerdown", handleDocumentPointerDown, true);
+        return () => document.removeEventListener("pointerdown", handleDocumentPointerDown, true);
+    }, [viewOnly]);
 
     const [characterLoaded, setCharacterLoaded] = useState(false);
     const notesRevisionRef = useRef(0);
@@ -2598,7 +2701,12 @@ function CharacterSheet() {
             setBaseMaxHp(initialBaseMaxHp);
             setMaxHpModifier(initialMaxHpModifier);
             setEffectiveMaxHp(initialBaseMaxHp + initialMaxHpModifier);
-            setCurrentHp(data.data.hp_current || 0);
+            setCurrentHp(Math.floor(data.data.hp_current || 0));
+            const savedDeathSaves = data.data.death_saves || {};
+            setDeathSaves({
+                successes: normalizeDeathSaveCount(savedDeathSaves.successes),
+                failures: normalizeDeathSaveCount(savedDeathSaves.failures)
+            });
 
             // 3. Normalize Inventory (Needs wRules and aRules)
             const rawInventory = data.data.inventory || [];
@@ -2772,11 +2880,17 @@ function CharacterSheet() {
                     const savedForBp = mergedLayout[bp] || [];
                     const savedKeys = new Set(savedForBp.map(item => item.i));
                     const updatedSaved = savedForBp.map(item => {
-                        const constraints = LAYOUT_CONSTRAINTS[item.i];
+                        const constraints = item.i === "hp"
+                            ? HP_LAYOUT_CONSTRAINTS[bp]
+                            : LAYOUT_CONSTRAINTS[item.i];
                         if (constraints) {
                             const merged = { ...item, ...constraints };
                             if (constraints.minH && merged.h < constraints.minH) merged.h = constraints.minH;
                             if (constraints.minW && merged.w < constraints.minW) merged.w = constraints.minW;
+                            if (item.i === "hp") {
+                                merged.h = Math.min(merged.h, constraints.maxH);
+                                merged.w = Math.min(merged.w, constraints.maxW);
+                            }
                             return merged;
                         }
                         return item;
@@ -2920,6 +3034,12 @@ function CharacterSheet() {
             });
     }, [id, token]);
 
+    const saveDeathSaves = useCallback((updates) => {
+        deathSaveSaveQueueRef.current = deathSaveSaveQueueRef.current.then(
+            () => saveCharacter(updates)
+        );
+    }, [saveCharacter]);
+
     // Effect to ensure currentHp doesn't exceed effectiveMaxHp
     useEffect(() => {
         if (loading) return;
@@ -2928,6 +3048,24 @@ function CharacterSheet() {
             saveCharacter({ hp_current: effectiveMaxHp });
         }
     }, [currentHp, effectiveMaxHp, saveCharacter, loading]);
+
+    useEffect(() => {
+        if (!characterLoaded || !character?.id) return;
+
+        const previousHp = lastCurrentHpRef.current;
+        if (previousHp.characterId !== character.id) {
+            lastCurrentHpRef.current = { characterId: character.id, value: currentHp };
+            return;
+        }
+
+        const previousValue = previousHp.value;
+        lastCurrentHpRef.current.value = currentHp;
+        if (previousValue <= 0 && currentHp > 0 && (deathSaves.successes || deathSaves.failures)) {
+            const resetDeathSaves = { successes: 0, failures: 0 };
+            setDeathSaves(resetDeathSaves);
+            saveDeathSaves({ death_saves: resetDeathSaves });
+        }
+    }, [characterLoaded, character?.id, currentHp, deathSaves, saveDeathSaves]);
 
 
     useEffect(() => {
@@ -3294,11 +3432,44 @@ function CharacterSheet() {
     };
 
     const updateCurrentHp = (value) => {
-        let val = parseInt(value) || 0;
-        val = Math.min(val, effectiveMaxHp);
+        let val = Math.floor(value);
+        val = Math.min(val, Math.floor(effectiveMaxHp));
         val = Math.max(0, val);
+        const updates = { hp_current: val };
+        if (currentHp <= 0 && val > 0) {
+            const resetDeathSaves = { successes: 0, failures: 0 };
+            setDeathSaves(resetDeathSaves);
+            updates.death_saves = resetDeathSaves;
+            saveDeathSaves(updates);
+        } else {
+            saveCharacter(updates);
+        }
         setCurrentHp(val);
-        saveCharacter({ hp_current: val });
+    };
+
+    const updateDeathSave = (saveType) => {
+        if (viewOnly || deathSaves[saveType] >= 3) return;
+
+        const updatedDeathSaves = {
+            ...deathSaves,
+            [saveType]: deathSaves[saveType] + 1
+        };
+        setDeathSaves(updatedDeathSaves);
+        saveDeathSaves({ death_saves: updatedDeathSaves });
+    };
+
+    const commitCurrentHpInput = () => {
+        let result;
+        try {
+            result = evaluateArithmeticExpression(currentHpInput);
+        } catch {
+            addAlert("Enter a valid HP calculation using +, -, *, or /.", "warning");
+            return;
+        }
+
+        const value = Math.max(0, Math.floor(Math.min(result, effectiveMaxHp)));
+        updateCurrentHp(value);
+        setCurrentHpInput(String(value));
     };
 
     useEffect(() => {
@@ -4731,16 +4902,104 @@ function CharacterSheet() {
                     {!isLayoutLocked && <div className="widget-handle">⠿</div>}
                     <div className="hp-content">
                         <h3>Hit Points</h3>
-                        <div className="hp-main">
+                        <div className={`hp-main ${!viewOnly ? "has-hp-hint" : ""}`}>
+                            {currentHp <= 0 && (
+                                <div className="death-save-tracker">
+                                    <div className="death-save-row">
+                                        <label
+                                            htmlFor="death-save-successes"
+                                            data-tooltip="Successful Death Saving Throw"
+                                        >
+                                            S.D.S.T.
+                                        </label>
+                                        <div className="death-save-controls">
+                                            <input
+                                                id="death-save-successes"
+                                                type="number"
+                                                value={deathSaves.successes}
+                                                readOnly
+                                                aria-label="Successful Death Saving Throws"
+                                            />
+                                            <button
+                                                type="button"
+                                                className="death-save-button success"
+                                                data-tooltip={
+                                                    viewOnly
+                                                        ? "Only the character owner can record this save"
+                                                        : deathSaves.successes >= 3
+                                                            ? "Maximum of 3 successes recorded"
+                                                            : "Record a successful death save"
+                                                }
+                                                aria-label="Record a successful death saving throw"
+                                                disabled={viewOnly || deathSaves.successes >= 3}
+                                                onClick={() => updateDeathSave("successes")}
+                                            >
+                                                ✓
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div className="death-save-row">
+                                        <label
+                                            htmlFor="death-save-failures"
+                                            data-tooltip="Failed Death Saving Throw"
+                                        >
+                                            F.D.S.T.
+                                        </label>
+                                        <div className="death-save-controls">
+                                            <input
+                                                id="death-save-failures"
+                                                type="number"
+                                                value={deathSaves.failures}
+                                                readOnly
+                                                aria-label="Failed Death Saving Throws"
+                                            />
+                                            <button
+                                                type="button"
+                                                className="death-save-button failure"
+                                                data-tooltip={
+                                                    viewOnly
+                                                        ? "Only the character owner can record this save"
+                                                        : deathSaves.failures >= 3
+                                                            ? "Maximum of 3 failures recorded"
+                                                            : "Record a failed death save"
+                                                }
+                                                aria-label="Record a failed death saving throw"
+                                                disabled={viewOnly || deathSaves.failures >= 3}
+                                                onClick={() => updateDeathSave("failures")}
+                                            >
+                                                ✕
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                             {viewOnly ? (
                                 <span className="hp-current-view">{currentHp}</span>
                             ) : (
-                                <input
-                                    type="number"
-                                    value={currentHp}
-                                    onChange={(e) => updateCurrentHp(e.target.value)}
-                                    className="hp-current-input"
-                                />
+                                <div className="hp-current-control">
+                                    <small className="hp-current-hint" hidden={!showHpHint}>
+                                        Use +, -, *, or / to calculate HP, then press Enter to apply.
+                                    </small>
+                                    <input
+                                        ref={hpInputRef}
+                                        type="text"
+                                        inputMode="decimal"
+                                        maxLength={7}
+                                        value={currentHpInput}
+                                        onChange={(e) => setCurrentHpInput(e.target.value.slice(0, 7))}
+                                        onClick={() => setShowHpHint(true)}
+                                        onFocus={() => setShowHpHint(true)}
+                                        onBlur={() => setShowHpHint(false)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === "Enter") {
+                                                e.preventDefault();
+                                                commitCurrentHpInput();
+                                            }
+                                        }}
+                                        className="hp-current-input"
+                                        aria-label="Current hit points; enter a number or calculation and press Enter"
+                                    />
+                                </div>
                             )}
                             <span
                                 className="hp-sep"

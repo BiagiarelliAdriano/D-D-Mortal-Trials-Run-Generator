@@ -135,15 +135,6 @@ const AdminRecovery = () => {
                                             <label>Matched User:</label>
                                             <span>{req.user_info.username} (ID: {req.user_info.id})</span>
                                         </div>
-                                        <div className="info-row highlight" style={{ backgroundColor: '#2d1b4e', padding: '10px', borderRadius: '4px', border: '1px solid #5b3e96', marginTop: '10px' }}>
-                                            <label style={{ color: '#c4a7e7', display: 'block', marginBottom: '4px' }}>Discord ID:</label>
-                                            <strong style={{ fontSize: '1.1rem', color: '#fff', letterSpacing: '0.5px' }}>
-                                                {req.user_info.discord_id || "No Discord ID Linked"}
-                                            </strong>
-                                            <small style={{ display: 'block', opacity: 0.7, marginTop: '4px', fontSize: '0.75rem', lineHeight: '1.2' }}>
-                                                Verify the Discord account matches this ID before sending the code!
-                                            </small>
-                                        </div>
                                         <div className="info-row" style={{ marginTop: '10px' }}>
                                             <label>Security Question:</label>
                                             <p className="q-text" style={{ margin: '4px 0 0' }}>{req.user_info.security_question || "No security question configured"}</p>
@@ -156,38 +147,41 @@ const AdminRecovery = () => {
                                     </div>
                                 )}
 
-                                {generatedCodes[req.id] && (
+                                <div className="info-row highlight" style={{ backgroundColor: '#2d1b4e', padding: '10px', borderRadius: '4px', border: '1px solid #5b3e96', marginTop: '10px' }}>
+                                    <label style={{ color: '#c4a7e7', display: 'block', marginBottom: '4px' }}>Discord ID for code delivery:</label>
+                                    <strong style={{ fontSize: '1.1rem', color: '#fff', letterSpacing: '0.5px' }}>{req.discord_id || 'Not provided'}</strong>
+                                    <small style={{ display: 'block', opacity: 0.7, marginTop: '4px', fontSize: '0.75rem', lineHeight: '1.2' }}>
+                                        This ID is retained only until the user completes credential recovery.
+                                    </small>
+                                </div>
+
+                                {(generatedCodes[req.id] || req.recovery_code) && (
                                     <div className="generated-code-box" style={{ marginTop: '15px', padding: '12px', background: '#1c3d27', border: '1px solid #27a243', borderRadius: '4px', textAlign: 'center' }}>
                                         <label style={{ display: 'block', color: '#a3f3b9', fontWeight: 'bold', marginBottom: '5px' }}>ONE-TIME RECOVERY CODE</label>
                                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
-                                            <code style={{ fontSize: '1.4rem', color: '#fff', fontWeight: 'bold', letterSpacing: '2px' }}>{generatedCodes[req.id]}</code>
+                                            <code style={{ fontSize: '1.4rem', color: '#fff', fontWeight: 'bold', letterSpacing: '2px' }}>{generatedCodes[req.id] || req.recovery_code}</code>
                                             <button 
                                                 className="action-btn copy" 
-                                                onClick={() => handleCopy(generatedCodes[req.id])}
+                                                onClick={() => handleCopy(generatedCodes[req.id] || req.recovery_code)}
                                                 style={{ background: '#27a243', border: 'none', color: '#fff', padding: '4px 8px', borderRadius: '3px', cursor: 'pointer' }}
                                             >
                                                 <i className="fas fa-copy"></i> Copy
                                             </button>
                                         </div>
-                                        <p style={{ margin: '5px 0 0', fontSize: '0.75rem', color: '#a3f3b9', opacity: 0.8 }}>Send this code to the user via Discord. Expires in 24 hours.</p>
+                                        <p style={{ margin: '5px 0 0', fontSize: '0.75rem', color: '#a3f3b9', opacity: 0.8 }}>Send this code to the user via Discord. Expires in 24 hours. The ID and code remain available until recovery is complete.</p>
                                     </div>
                                 )}
                             </div>
 
                             <div className="req-actions">
-                                {!generatedCodes[req.id] && req.user_info && (
+                                {req.status === 'pending' && !generatedCodes[req.id] && !req.recovery_code && req.user_info && req.discord_id && (
                                     <button className="action-btn reset" style={{ background: '#5b3e96' }} onClick={() => handleAction(req.id, 'approve')}>
                                         <i className="fas fa-check-circle"></i> Approve & Generate Code
                                     </button>
                                 )}
-                                {!generatedCodes[req.id] && (
+                                {req.status === 'pending' && !generatedCodes[req.id] && !req.recovery_code && (
                                     <button className="action-btn deny" onClick={() => handleAction(req.id, 'deny')}>
                                         <i className="fas fa-times"></i> Deny
-                                    </button>
-                                )}
-                                {generatedCodes[req.id] && (
-                                    <button className="action-btn complete" onClick={fetchRequests}>
-                                        <i className="fas fa-check"></i> Done
                                     </button>
                                 )}
                             </div>

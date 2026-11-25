@@ -313,10 +313,10 @@ ITEM_DATA = {
         "effect": (
             "Medium Armor. AC 14 + DEX (Max 2)."
         ),
-        "activation": "Equip",
-        "duration": None,
+        "activation": ["Equip"],
+        "duration": ["Passive"],
         "charges": None,
-        "recharge": None,
+        "recharge": [],
         "notes": None,
     },
     "Chain Mail": {
@@ -328,10 +328,10 @@ ITEM_DATA = {
         "effect": (
             "Heavy Armor. AC16. If STR is less than 13, you gain Disadvantage in Stealth and -10ft Speed."
         ),
-        "activation": "Equip",
-        "duration": None,
+        "activation": ["Equip"],
+        "duration": ["Passive"],
         "charges": None,
-        "recharge": None,
+        "recharge": [],
         "notes": None,
     },
     "Chain Shirt": {
@@ -343,10 +343,10 @@ ITEM_DATA = {
         "effect": (
             "Medium Armor. AC 13 + DEX (Max 2)."
         ),
-        "activation": "Equip",
-        "duration": None,
+        "activation": ["Equip"],
+        "duration": ["Passive"],
         "charges": None,
-        "recharge": None,
+        "recharge": [],
         "notes": None,
     },
     "Half Plate Armor": {
@@ -358,10 +358,10 @@ ITEM_DATA = {
         "effect": (
             "Medium Armor. AC 15 + DEX (Max 2). Disadvantage on Stealth."
         ),
-        "activation": "Equip",
-        "duration": None,
+        "activation": ["Equip"],
+        "duration": ["Passive"],
         "charges": None,
-        "recharge": None,
+        "recharge": [],
         "notes": None,
     },
     "Hide Armor": {
@@ -373,10 +373,10 @@ ITEM_DATA = {
         "effect": (
             "Medium Armor. AC 12 + DEX (Max 2)."
         ),
-        "activation": "Equip",
-        "duration": None,
+        "activation": ["Equip"],
+        "duration": ["Passive"],
         "charges": None,
-        "recharge": None,
+        "recharge": [],
         "notes": None,
     },
     "Leather Armor": {
@@ -388,10 +388,10 @@ ITEM_DATA = {
         "effect": (
             "Light Armor. AC 11 + DEX."
         ),
-        "activation": "Equip",
-        "duration": None,
+        "activation": ["Equip"],
+        "duration": ["Passive"],
         "charges": None,
-        "recharge": None,
+        "recharge": [],
         "notes": None,
     },
     "Padded Armor": {
@@ -403,10 +403,10 @@ ITEM_DATA = {
         "effect": (
             "Light Armor. AC 11 + DEX. Disadvantage on Stealth."
         ),
-        "activation": "Equip",
-        "duration": None,
+        "activation": ["Equip"],
+        "duration": ["Passive"],
         "charges": None,
-        "recharge": None,
+        "recharge": [],
         "notes": None,
     },
     "Plate Armor": {
@@ -418,10 +418,10 @@ ITEM_DATA = {
         "effect": (
             "Heavy Armor. AC 18. If STR is less than 15, you gain Disadvantage on Stealth and -10ft Speed."
         ),
-        "activation": "Equip",
-        "duration": None,
+        "activation": ["Equip"],
+        "duration": ["Passive"],
         "charges": None,
-        "recharge": None,
+        "recharge": [],
         "notes": None,
     },
     "Ring Mail": {
@@ -433,10 +433,10 @@ ITEM_DATA = {
         "effect": (
             "Heavy Armor. AC 14. Disadvantage on Stealth."
         ),
-        "activation": "Equip",
-        "duration": None,
+        "activation": ["Equip"],
+        "duration": ["Passive"],
         "charges": None,
-        "recharge": None,
+        "recharge": [],
         "notes": None,
     },
     "Scale Mail": {
@@ -448,10 +448,10 @@ ITEM_DATA = {
         "effect": (
             "Medium Armor. AC 14 + DEX (Max 2). Disadvantage on Stealth."
         ),
-        "activation": "Equip",
-        "duration": None,
+        "activation": ["Equip"],
+        "duration": ["Passive"],
         "charges": None,
-        "recharge": None,
+        "recharge": [],
         "notes": None,
     },
     "Shield": {
@@ -463,10 +463,10 @@ ITEM_DATA = {
         "effect": (
             "AC + 2"
         ),
-        "activation": "Equip",
-        "duration": None,
+        "activation": ["Equip"],
+        "duration": ["Passive"],
         "charges": None,
-        "recharge": None,
+        "recharge": [],
         "notes": None,
     },
     "Splint Armor": {
@@ -478,10 +478,10 @@ ITEM_DATA = {
         "effect": (
             "Heavy Armor. AC 17. If STR is less than 15, you gain Disadvantage on Stealth and -10ft Speed."
         ),
-        "activation": "Equip",
-        "duration": None,
+        "activation": ["Equip"],
+        "duration": ["Passive"],
         "charges": None,
-        "recharge": None,
+        "recharge": [],
         "notes": None,
     },
     "Studded Leather Armor": {
@@ -493,10 +493,10 @@ ITEM_DATA = {
         "effect": (
             "Light Armor. AC 12 + DEX."
         ),
-        "activation": "Equip",
-        "duration": None,
+        "activation": ["Equip"],
+        "duration": ["Passive"],
         "charges": None,
-        "recharge": None,
+        "recharge": [],
         "notes": None,
     },
     "Potion of Climbing": {
@@ -508,10 +508,10 @@ ITEM_DATA = {
         "effect": (
             "When you drink this potion, you gain a Climb Speed equal to your Speed until the party takes a Short or Long Rest. During this time, you have Advantage on Athletics checks to climb."
         ),
-        "activation": "Bonus Action",
-        "duration": "Short or Long Rest",
+        "activation": ["Bonus Action"],
+        "duration": ["Short Rest", "Long Rest"],
         "charges": None,
-        "recharge": None,
+        "recharge": [],
         "notes": None,
     },
     "Potion of Healing": {
@@ -523,10 +523,10 @@ ITEM_DATA = {
         "effect": (
             "As a Bonus Action, you can drink this magic item or administer it to another creature within 5ft of yourself. The creature that drinks the magical red fluid in this vial regains 2d4 + 2 Hit Points."
         ),
-        "activation": "Bonus Action",
-        "duration": "Instantaneous",
+        "activation": ["Bonus Action"],
+        "duration": ["Instantaneous"],
         "charges": None,
-        "recharge": None,
+        "recharge": [],
         "notes": None,
     },
     "Ring": {
@@ -538,10 +538,10 @@ ITEM_DATA = {
         "effect": (
             "This is a simple ring."
         ),
-        "activation": None,
-        "duration": None,
+        "activation": [],
+        "duration": [],
         "charges": None,
-        "recharge": None,
+        "recharge": [],
         "notes": None,
     },
     "Ring of Momentary Stillness": {
@@ -553,10 +553,10 @@ ITEM_DATA = {
         "effect": (
             "A character can have only one Ring of Momentary Stillness in their Inventory. Once per combat, as a Reaction when an enemy within 5ft hits you with an attack, you may force them to make a DC 10 Dexterity Saving Throw. On a failure, their Speed becomes 0 until the end of their turn. If the creature succeeds the save, the Ring can be used again later in the same Combat. If they fail, the Ring cannot be used again until a Long Rest."
         ),
-        "activation": "Reaction",
-        "duration": "Instantanous",
+        "activation": ["Equip", "Reaction"],
+        "duration": ["Instantaneous"],
         "charges": 1,
-        "recharge": "Long Rest",
+        "recharge": ["Long Rest"],
         "notes": None,
     },
     "Rod": {
@@ -567,10 +567,10 @@ ITEM_DATA = {
         "effect": (
             "This is a simple Rod."
         ),
-        "activation": None,
-        "duration": None,
+        "activation": [],
+        "duration": [],
         "charges": None,
-        "recharge": None,
+        "recharge": [],
         "notes": None,
     },
     "Rod of Sudden Resistance": {
@@ -581,10 +581,10 @@ ITEM_DATA = {
         "effect": (
             "A character can have only one Rod of Sudden Resistance in their Inventory. Once per combat, as a Reaction to taking damage from a source you can see, you may reduce the damage taken by 1d6. If you reduce the damage to 0, the Rod is considered 'used'. If not, you may use it again later in this combat. If 'used', the Rod cannot be used again until a Long Rest."
         ),
-        "activation": "Reaction",
-        "duration": "Instantaneous",
+        "activation": ["Reaction"],
+        "duration": ["Instantaneous"],
         "charges": 1,
-        "recharge": "Long Rest",
+        "recharge": ["Long Rest"],
         "notes": None,
     },
     "Spell Scroll Cantrip": {
@@ -595,10 +595,10 @@ ITEM_DATA = {
         "effect": (
             "A Spell Scroll bears the words of a single spell, written in a mystical cipher. If the spell is on your spell list, you can read the scroll and cast its spell without Material components. Otherwise, the scroll unintelligible. Casting the spell by reading the scroll requires the spell's normal casting time. Once the spell is cast, the scroll crumbles to dust. If the casting is interrupted, the scroll isn't lost. If the spell is on your spell list but of a higher level than you can normally cast, you make a DC 10 Ability Check using your spellcasting ability to determine whether you cast the spell. On a failed check, the spell disappears from the scroll with no other effect. If the spell requires a Saving Throw or an Attack Roll, the Spell Save DC is 13, and the Attack Bonus is +5."
         ),
-        "activation": None,
-        "duration": None,
+        "activation": [],
+        "duration": [],
         "charges": None,
-        "recharge": None,
+        "recharge": [],
         "notes": None,
     },
     "Spell Scroll 1st Level": {
@@ -609,10 +609,10 @@ ITEM_DATA = {
         "effect": (
             "A Spell Scroll bears the words of a single spell, written in a mystical cipher. If the spell is on your spell list, you can read the scroll and cast its spell without Material components. Otherwise, the scroll is unintelligible. Casting the spell by reading the scroll requires the spell's normal casting time. Once the spell is cast, the scroll crumbles to dust. If the casting is interrupted, the scroll isn't lost. If the spell is on your spell list but of a higher level than you can normally cast, you make a DC 10 Ability Check using your spellcasting ability to determine whether you cast the spell. On a failed check, the spell disappears from the scroll with no other effect. If the spell requires a Saving Throw or an Attack Roll, the Spell Save DC is 13, and the Attack Bonus is +5."
         ),
-        "activation": None,
-        "duration": None,
+        "activation": [],
+        "duration": [],
         "charges": None,
-        "recharge": None,
+        "recharge": [],
         "notes": None,
     },
     "Spell Scroll Remove Curse": {
@@ -626,7 +626,7 @@ ITEM_DATA = {
         "activation": "Action",
         "duration": "Instantaneous",
         "charges": None,
-        "recharge": None,
+        "recharge": [],
         "notes": None,
     },
     "Staff": {
@@ -637,10 +637,10 @@ ITEM_DATA = {
         "effect": (
             "Spellcasting Focus, Simple Weapon, Melee Weapon. 1d6 Bludgeoning, Versatile 1d8."
         ),
-        "activation": None,
-        "duration": None,
+        "activation": [],
+        "duration": [],
         "charges": None,
-        "recharge": None,
+        "recharge": [],
         "notes": None,
     },
     "Staff of Tactical Balance": {
@@ -651,10 +651,10 @@ ITEM_DATA = {
         "effect": (
             "A character can have only one Staff of Tactical Balance in their Inventory. Once per combat, when making an Ability Check, Attack Roll, or Saving Throw, you may roll a 1d4 and add to the result. You may choose to use the Staff after seeing the die result but before the outcome is determined. If the roll of the Staff of Tactical Balance die is 1, the Staff is not expended and can be used again this combat. In other cases, the Staff is 'used' and regains its ability on a Long Rest."
         ),
-        "activation": "Free",
-        "duration": "Instantaneous",
+        "activation": [],
+        "duration": ["Passive"],
         "charges": 1,
-        "recharge": "Long Rest",
+        "recharge": ["Long Rest"],
         "notes": None,
     },
     "Wand": {
@@ -665,10 +665,10 @@ ITEM_DATA = {
         "effect": (
             "This is a simple Wand. It can be used as Spellcasting Focus."
         ),
-        "activation": None,
-        "duration": None,
+        "activation": [],
+        "duration": [],
         "charges": None,
-        "recharge": None,
+        "recharge": [],
         "notes": None,
     },
     "Wand of Minor Distortion": {
@@ -679,10 +679,10 @@ ITEM_DATA = {
         "effect": (
             "A character can have only one Wand of Minor Distortion in their Inventory. Once per combat, as a Bonus Action, you may wave this wand to subtly distoory space around you. Choose one enemy within 15ft. They must succeed on a DC 10 Wisdom Saving Throw or suffer Disadvantage on their next Attack Roll. If the target succeeds on the Save, the Wand's use is not expended and may be used again in a future turn during the same combat. If they fail, the Wand cannot be used again until a Long Rest."
         ),
-        "activation": "Bonus Action",
-        "duration": "Instantaneous",
+        "activation": ["Bonus Action"],
+        "duration": ["Instantaneous"],
         "charges": 1,
-        "recharge": "Long Rest",
+        "recharge": ["Long Rest"],
         "notes": None,
     },
     "Battleaxe": {
@@ -693,10 +693,10 @@ ITEM_DATA = {
         "effect": (
             "Martial Weapon, Melee Weapon. 1d8 Slashing. Versatile (1d10). Mastery: Topple."
         ),
-        "activation": None,
-        "duration": None,
+        "activation": [],
+        "duration": [],
         "charges": None,
-        "recharge": None,
+        "recharge": [],
         "notes": None,
     },
     "Club": {
@@ -707,10 +707,10 @@ ITEM_DATA = {
         "effect": (
             "Simple Weapon, Melee Weapon. 1d4 Bludgeoning. Light. Mastery: Slow."
         ),
-        "activation": None,
-        "duration": None,
+        "activation": [],
+        "duration": [],
         "charges": None,
-        "recharge": None,
+        "recharge": [],
         "notes": None,
     },
     "Dagger": {
@@ -721,10 +721,10 @@ ITEM_DATA = {
         "effect": (
             "Simple Weapon, Melee Weapon. 1d4 Piercing. Finesse. Light. Thrown 20/60ft. Mastery: Nick."
         ),
-        "activation": None,
-        "duration": None,
+        "activation": [],
+        "duration": [],
         "charges": None,
-        "recharge": None,
+        "recharge": [],
         "notes": None,
     },
     "Flail": {
@@ -735,10 +735,10 @@ ITEM_DATA = {
         "effect": (
             "Martial Weapon, Melee Weapon. 1d8 Bludgeoning. Mastery: Sap."
         ),
-        "activation": None,
-        "duration": None,
+        "activation": [],
+        "duration": [],
         "charges": None,
-        "recharge": None,
+        "recharge": [],
         "notes": None,
     },
     "Glaive": {
@@ -749,10 +749,10 @@ ITEM_DATA = {
         "effect": (
             "Martial Weapon, Melee Weapon. 1d10 Slashing. Heavy. Reach. Two-Handed. Mastery: Graze."
         ),
-        "activation": None,
-        "duration": None,
+        "activation": [],
+        "duration": [],
         "charges": None,
-        "recharge": None,
+        "recharge": [],
         "notes": None,
     },
     "Greataxe": {
@@ -763,10 +763,10 @@ ITEM_DATA = {
         "effect": (
             "Martial Weapon, Melee Weapon. 1d12 Slashing. Heavy. Two-Handed. Mastery: Cleave."
         ),
-        "activation": None,
-        "duration": None,
+        "activation": [],
+        "duration": [],
         "charges": None,
-        "recharge": None,
+        "recharge": [],
         "notes": None,
     },
     "Greatclub": {
@@ -777,10 +777,10 @@ ITEM_DATA = {
         "effect": (
             "Simple Weapon, Melee Weapon. 1d8 Bludgeoning. Two-Handed. Mastery: Push."
         ),
-        "activation": None,
-        "duration": None,
+        "activation": [],
+        "duration": [],
         "charges": None,
-        "recharge": None,
+        "recharge": [],
         "notes": None,
     },
     "Greatsword": {
@@ -791,10 +791,10 @@ ITEM_DATA = {
         "effect": (
             "Martial Weapon, Melee Weapon. 2d6 Slashing. Heavy. Two-Handed. Mastery: Graze."
         ),
-        "activation": None,
-        "duration": None,
+        "activation": [],
+        "duration": [],
         "charges": None,
-        "recharge": None,
+        "recharge": [],
         "notes": None,
     },
     "Halberd": {
@@ -805,10 +805,10 @@ ITEM_DATA = {
         "effect": (
             "Martial Weapon, Melee Weapon. 1d10 Slashing. Heavy. Reach. Two-Handed. Mastery: Cleave."
         ),
-        "activation": None,
-        "duration": None,
+        "activation": [],
+        "duration": [],
         "charges": None,
-        "recharge": None,
+        "recharge": [],
         "notes": None,
     },
     "Hand Crossbow": {
@@ -819,10 +819,10 @@ ITEM_DATA = {
         "effect": (
             "Martial Weapon, Ranged Weapon. 1d6 Piercing. Ammunition. Range 30/120ft. Light. Loading. Mastery: Vex."
         ),
-        "activation": None,
-        "duration": None,
+        "activation": [],
+        "duration": [],
         "charges": None,
-        "recharge": None,
+        "recharge": [],
         "notes": None,
     },
     "Handaxe": {
@@ -833,10 +833,10 @@ ITEM_DATA = {
         "effect": (
             "Simple Weapon, Melee Weapon. 1d6 Slashing. Light. Thrown 20/60ft. Mastery: Vex."
         ),
-        "activation": None,
-        "duration": None,
+        "activation": [],
+        "duration": [],
         "charges": None,
-        "recharge": None,
+        "recharge": [],
         "notes": None,
     },
     "Heavy Crossbow": {
@@ -847,10 +847,10 @@ ITEM_DATA = {
         "effect": (
             "Martial Weapon, Ranged Weapon. 1d10 Piercing. Ammunition. Range 100/400ft. Heavy. Loading. Two-Handed. Mastery: Push."
         ),
-        "activation": None,
-        "duration": None,
+        "activation": [],
+        "duration": [],
         "charges": None,
-        "recharge": None,
+        "recharge": [],
         "notes": None,
     },
     "Javelin": {
@@ -861,10 +861,10 @@ ITEM_DATA = {
         "effect": (
             "Simple Weapon, Melee Weapon. 1d6 Piercing. Thrown 30/120ft. Mastery: Slow."
         ),
-        "activation": None,
-        "duration": None,
+        "activation": [],
+        "duration": [],
         "charges": None,
-        "recharge": None,
+        "recharge": [],
         "notes": None,
     },
     "Lance": {
@@ -875,10 +875,10 @@ ITEM_DATA = {
         "effect": (
             "Martial Weapon, Melee Weapon. 1d10 Piercing. Heavy. Reach. Two-Handed (unless mounted). Mastery: Topple."
         ),
-        "activation": None,
-        "duration": None,
+        "activation": [],
+        "duration": [],
         "charges": None,
-        "recharge": None,
+        "recharge": [],
         "notes": None,
     },
     "Light Crossbow": {
@@ -889,10 +889,10 @@ ITEM_DATA = {
         "effect": (
             "Simple Weapon, Ranged Weapon. 1d8 Piercing. Ammunition. Range 80/320ft. Loading. Two-Handed. Mastery: Slow."
         ),
-        "activation": None,
-        "duration": None,
+        "activation": [],
+        "duration": [],
         "charges": None,
-        "recharge": None,
+        "recharge": [],
         "notes": None,
     },
     "Light Hammer": {
@@ -903,10 +903,10 @@ ITEM_DATA = {
         "effect": (
             "Simple Weapon, Melee Weapon. 1d4 Bludgeoning. Light. Thrown 20/60ft. Mastery: Nick."
         ),
-        "activation": None,
-        "duration": None,
+        "activation": [],
+        "duration": [],
         "charges": None,
-        "recharge": None,
+        "recharge": [],
         "notes": None,
     },
     "Longbow": {
@@ -917,10 +917,10 @@ ITEM_DATA = {
         "effect": (
             "Martial Weapon, Ranged Weapon. 1d8 Piercing, Ammunition, Range 150/600ft, Heavy, Two-Handed. Mastery: Slow."
         ),
-        "activation": None,
-        "duration": None,
+        "activation": [],
+        "duration": [],
         "charges": None,
-        "recharge": None,
+        "recharge": [],
         "notes": None,
     },
     "Longsword": {
@@ -931,10 +931,10 @@ ITEM_DATA = {
         "effect": (
             "Martial Weapon, Melee Weapon. 1d8 Slashing, Versatile 1d10. Mastery: Sap."
         ),
-        "activation": None,
-        "duration": None,
+        "activation": [],
+        "duration": [],
         "charges": None,
-        "recharge": None,
+        "recharge": [],
         "notes": None,
     },
     "Mace": {
@@ -945,10 +945,10 @@ ITEM_DATA = {
         "effect": (
             "Simple Weapon, Melee Weapon. 1d6 Bludgeoning. Mastery: Sap."
         ),
-        "activation": None,
-        "duration": None,
+        "activation": [],
+        "duration": [],
         "charges": None,
-        "recharge": None,
+        "recharge": [],
         "notes": None,
     },
     "Maul": {
@@ -959,10 +959,10 @@ ITEM_DATA = {
         "effect": (
             "Martial Weapon, Melee Weapon. 2d6 Bludgeoning, Heavy, Two-Handed. Mastery: Topple."
         ),
-        "activation": None,
-        "duration": None,
+        "activation": [],
+        "duration": [],
         "charges": None,
-        "recharge": None,
+        "recharge": [],
         "notes": None,
     },
     "Morningstar": {
@@ -973,10 +973,10 @@ ITEM_DATA = {
         "effect": (
             "Martial Weapon, Melee Weapon. 1d8 Piercing. Mastery: Sap."
         ),
-        "activation": None,
-        "duration": None,
+        "activation": [],
+        "duration": [],
         "charges": None,
-        "recharge": None,
+        "recharge": [],
         "notes": None,
     },
     "Musket": {
@@ -987,10 +987,10 @@ ITEM_DATA = {
         "effect": (
             "Martial Weapon, Ranged Weapon, Firearm. 1d12 Piercing, Ammunition, Range 40/120ft, Loading, Two-Handed. Mastery: Slow."
         ),
-        "activation": None,
-        "duration": None,
+        "activation": [],
+        "duration": [],
         "charges": None,
-        "recharge": None,
+        "recharge": [],
         "notes": None,
     },
     "Pike": {
@@ -1001,10 +1001,10 @@ ITEM_DATA = {
         "effect": (
             "Martial Weapon, Melee Weapon. 1d10 Piercing, Heavy, Reach, Two-Handed. Mastery: Push."
         ),
-        "activation": None,
-        "duration": None,
+        "activation": [],
+        "duration": [],
         "charges": None,
-        "recharge": None,
+        "recharge": [],
         "notes": None,
     },
     "Pistol": {
@@ -1015,10 +1015,10 @@ ITEM_DATA = {
         "effect": (
             "Martial Weapon, Ranged Weapon, Firearm. 1d10 Piercing, Ammunition, Range 30/90ft, Loading. Mastery: Vex."
         ),
-        "activation": None,
-        "duration": None,
+        "activation": [],
+        "duration": [],
         "charges": None,
-        "recharge": None,
+        "recharge": [],
         "notes": None,
     },
     "Quarterstaff": {
@@ -1029,10 +1029,10 @@ ITEM_DATA = {
         "effect": (
             "Simple Weapon, Melee Weapon. 1d6 Bludgeoning, Versatile 1d8. Mastery: Topple."
         ),
-        "activation": None,
-        "duration": None,
+        "activation": [],
+        "duration": [],
         "charges": None,
-        "recharge": None,
+        "recharge": [],
         "notes": None,
     },
     "Rapier": {
@@ -1043,10 +1043,10 @@ ITEM_DATA = {
         "effect": (
             "Martial Weapon, Melee Weapon. 1d8 Piercing, Finesse. Mastery: Vex."
         ),
-        "activation": None,
-        "duration": None,
+        "activation": [],
+        "duration": [],
         "charges": None,
-        "recharge": None,
+        "recharge": [],
         "notes": None,
     },
     "Scimitar": {
@@ -1057,10 +1057,10 @@ ITEM_DATA = {
         "effect": (
             "Martial Weapon, Melee Weapon. 1d6 Slashing, Finesse, Light. Mastery: Nick."
         ),
-        "activation": None,
-        "duration": None,
+        "activation": [],
+        "duration": [],
         "charges": None,
-        "recharge": None,
+        "recharge": [],
         "notes": None,
     },
     "Shortbow": {
@@ -1071,10 +1071,10 @@ ITEM_DATA = {
         "effect": (
             "Simple Weapon, Ranged Weapon. 1d6 Piercing, Ammunition, Range 80/320ft, Two-Handed. Mastery: Vex."
         ),
-        "activation": None,
-        "duration": None,
+        "activation": [],
+        "duration": [],
         "charges": None,
-        "recharge": None,
+        "recharge": [],
         "notes": None,
     },
     "Shortsword": {
@@ -1085,10 +1085,10 @@ ITEM_DATA = {
         "effect": (
             "Martial Weapon, Melee Weapon. 1d6 Piercing, Finesse, Light. Mastery: Vex."
         ),
-        "activation": None,
-        "duration": None,
+        "activation": [],
+        "duration": [],
         "charges": None,
-        "recharge": None,
+        "recharge": [],
         "notes": None,
     },
     "Sickle": {
@@ -1099,10 +1099,10 @@ ITEM_DATA = {
         "effect": (
             "Simple Weapon, Melee Weapon. 1d4 Slashing, Light. Mastery: Nick."
         ),
-        "activation": None,
-        "duration": None,
+        "activation": [],
+        "duration": [],
         "charges": None,
-        "recharge": None,
+        "recharge": [],
         "notes": None,
     },
     "Sling": {
@@ -1113,10 +1113,10 @@ ITEM_DATA = {
         "effect": (
             "Simple Weapon, Ranged Weapon. 1d4 Bludgeoning, Ammunition, Range 30/120ft. Mastery: Slow."
         ),
-        "activation": None,
-        "duration": None,
+        "activation": [],
+        "duration": [],
         "charges": None,
-        "recharge": None,
+        "recharge": [],
         "notes": None,
     },
     "Spear": {
@@ -1127,10 +1127,10 @@ ITEM_DATA = {
         "effect": (
             "Simple Weapon, Melee Weapon. 1d6 Piercing, Thrown 20/60ft, Versatile 1d8. Mastery: Sap."
         ),
-        "activation": None,
-        "duration": None,
+        "activation": [],
+        "duration": [],
         "charges": None,
-        "recharge": None,
+        "recharge": [],
         "notes": None,
     },
     "Trident": {
@@ -1141,10 +1141,10 @@ ITEM_DATA = {
         "effect": (
             "Martial Weapon, Melee Weapon. 1d8 Piercing, Thrown 20/60ft, Versatile 1d10. Mastery: Topple."
         ),
-        "activation": None,
-        "duration": None,
+        "activation": [],
+        "duration": [],
         "charges": None,
-        "recharge": None,
+        "recharge": [],
         "notes": None,
     },
     "War Pick": {
@@ -1155,10 +1155,10 @@ ITEM_DATA = {
         "effect": (
             "Martial Weapon, Melee Weapon. 1d8 Piercing, Versatile 1d10. Mastery: Sap."
         ),
-        "activation": None,
-        "duration": None,
+        "activation": [],
+        "duration": [],
         "charges": None,
-        "recharge": None,
+        "recharge": [],
         "notes": None,
     },
     "Warhammer": {
@@ -1169,10 +1169,10 @@ ITEM_DATA = {
         "effect": (
             "Martial Weapon, Melee Weapon. 1d8 Bludgeoning, Versatile 1d10. Mastery: Push."
         ),
-        "activation": None,
-        "duration": None,
+        "activation": [],
+        "duration": [],
         "charges": None,
-        "recharge": None,
+        "recharge": [],
         "notes": None,
     },
     "Whip": {
@@ -1183,10 +1183,10 @@ ITEM_DATA = {
         "effect": (
             "Martial Weapon, Melee Weapon. 1d4 Slashing, Finesse, Reach. Mastery: Slow."
         ),
-        "activation": None,
-        "duration": None,
+        "activation": [],
+        "duration": [],
         "charges": None,
-        "recharge": None,
+        "recharge": [],
         "notes": None,
     },
     "Adamantine Armor": {
@@ -1197,10 +1197,10 @@ ITEM_DATA = {
         "effect": (
             "This suit of armor is reinforced with adamantine, one of the hardest substances in existence. While you're wearing it, any Critical Hit against you becomes a normal hit."
         ),
-        "activation": None,
-        "duration": None,
+        "activation": ["Equip"],
+        "duration": ["Passive"],
         "charges": None,
-        "recharge": None,
+        "recharge": [],
         "variations": [
             {"base_item": "Breastplate", "name": "Adamantine Breastplate"},
             {"base_item": "Chain Mail", "name": "Adamantine Chain Mail"},
@@ -1221,10 +1221,10 @@ ITEM_DATA = {
         "effect": (
             "Requires attunement. Bound into this armor is a Cantrip. The Cantrip is determined when the armor is created and must belong to the Abjuration or Illusion school of magic. The armor has 6 charges and regains 1d6 expended charges after taking a Long Rest. While wearing the armor, you can expand 1 charge to cast its spell. The spell's Saving Throw DC is 13, and its attack bonus is +5."
         ),
-        "activation": None,
-        "duration": None,
+        "activation": ["Equip"],
+        "duration": [],
         "charges": 6,
-        "recharge": "Long Rest",
+        "recharge": ["Long Rest"],
         "variations": [
             {"base_item": "Breastplate", "name": "Enspelled Breastplate Cantrip"},
             {"base_item": "Chain Mail", "name": "Enspelled Chain Mail Cantrip"},
@@ -1249,10 +1249,10 @@ ITEM_DATA = {
         "effect": (
             "Requires attunement. Bound into this armor is a level 1 spell. The spell is determined when the armor is created and must belong to the Abjuration or Illusion school of magic. The armor has 6 charges and regains 1d6 expended charges after taking a Long Rest. While wearing the armor, you can expand 1 charge to cast its spell. The spell's Saving Throw DC is 13, and its attack bonus is +5."
         ),
-        "activation": None,
-        "duration": None,
+        "activation": ["Equip"],
+        "duration": [],
         "charges": 6,
-        "recharge": "Long Rest",
+        "recharge": ["Long Rest"],
         "variations": [
             {"base_item": "Breastplate", "name": "Enspelled Brestaplate Level 1"},
             {"base_item": "Chain Mail", "name": "Enspelled Chain Mail Level 1"},
@@ -1277,10 +1277,10 @@ ITEM_DATA = {
         "effect": (
             "While wearing this armor, you have a Swim Speed equal to your Speed. In addition, if you start your turn underwater with 0 Hit Points, you immediately regain 1d4 Hit Points. The armor can't heal anyone again until you take a Long Rest. The armor is decorated with fish and shell motifs."
         ),
-        "activation": None,
-        "duration": None,
+        "activation": ["Equip"],
+        "duration": ["Passive"],
         "charges": None,
-        "recharge": None,
+        "recharge": [],
         "variations": [
             {"base_item": "Breastplate", "name": "Mariner's Breasplate"},
             {"base_item": "Chain Mail", "name": "Mariner's Chain Mail"},
@@ -1305,10 +1305,10 @@ ITEM_DATA = {
         "effect": (
             "Mithral is a light, flexible metal. A mithral chain shirt or breastplate can be worn under normal clothes. If the armor normally imposes Disadvantage on Dexterity (Stealth) checks or has a Strength requirement, the mithral version of the armor doesn't."
         ),
-        "activation": None,
-        "duration": None,
+        "activation": ["Equip"],
+        "duration": ["Passive"],
         "charges": None,
-        "recharge": None,
+        "recharge": [],
         "variations": [
             {"base_item": "Breastplate", "name": "Mithral Breasplate"},
             {"base_item": "Chain Mail", "name": "Mithral Chain Mail"},
@@ -1329,10 +1329,10 @@ ITEM_DATA = {
         "effect": (
             "While holding this shield, you have Advantage on Initiative rolls and Wisdom (Perception) checks. The shield is emblazoned with a symbol of an eye."
         ),
-        "activation": None,
-        "duration": None,
+        "activation": ["Equip"],
+        "duration": ["Passive"],
         "charges": None,
-        "recharge": None,
+        "recharge": [],
         "notes": None,
     },
     "Shield +1": {
@@ -1343,10 +1343,10 @@ ITEM_DATA = {
         "effect": (
             "While holding this shield, you have a +1 bonus to AC. This bonus is in addition to the shield's normal bonus to AC."
         ),
-        "activation": None,
-        "duration": None,
+        "activation": ["Equip"],
+        "duration": ["Passive"],
         "charges": None,
-        "recharge": None,
+        "recharge": [],
         "notes": None,
     },
     "Oil of Slipperiness": {
@@ -1357,10 +1357,10 @@ ITEM_DATA = {
         "effect": (
             "You can throw the oil as an Action at a 10ft square within 30ft. Creatures that move through it must succeed on a Dexterity Saving Throw (DC 13) or fall Prone. The oil lasts for 2 Rounds."
         ),
-        "activation": "Action",
-        "duration": "2 Rounds",
+        "activation": ["Action"],
+        "duration": ["2 Rounds"],
         "charges": None,
-        "recharge": None,
+        "recharge": [],
         "notes": None,
     },
     "Potion of Fire Breath": {
@@ -1371,10 +1371,10 @@ ITEM_DATA = {
         "effect": (
             "After drinking this potion, you can take a Bonus Action to exhale fire at a target within 30ft of yourself. The target makes a DC 13 Dexterity Saving Throw, taking 4d6 Fire damage on a failed Save or half as much damage on a successful one. The effect ends after you exhale the fire three times or at the end of the current Encounter. This potion's oragen liquid flickers, and smoke fills the top of the container and wafts out whenever it is opened."
         ),
-        "activation": "Bonus Action",
-        "duration": "3 uses / End of Encounter",
-        "charges": None,
-        "recharge": None,
+        "activation": ["Bonus Action"],
+        "duration": ["End of Encounter"],
+        "charges": 3,
+        "recharge": [],
         "notes": None,
     },
     "Potion of Greater Healing": {
@@ -1383,12 +1383,12 @@ ITEM_DATA = {
         "rarity": "Uncommon",
         "attunement": False,
         "effect": (
-             "You regain 4d4+4 Hit Points when you drink this potion. The potion's red liquid glimmers when agitated."
+            "You regain 4d4+4 Hit Points when you drink this potion. The potion's red liquid glimmers when agitated."
         ),
-        "activation": "Bonus Action",
-        "duration": None,
+        "activation": ["Bonus Action"],
+        "duration": ["Instantaneous"],
         "charges": None,
-        "recharge": None,
+        "recharge": [],
         "notes": None,
     },
     "Potion of Growth": {
@@ -1397,12 +1397,12 @@ ITEM_DATA = {
         "rarity": "Uncommon",
         "attunement": False,
         "effect": (
-             "When you drink this potion, you gain the 'Enlarge' effect of the Enlarge/Reduce spell for the rest of the current Encounter (no Concentration required). The red in the potion's liquid continuously expands from a tiny bead to color the clear liquid around it and then contracts. Shaking the bottle fails to interrupt this process."
+            "When you drink this potion, you gain the 'Enlarge' effect of the Enlarge/Reduce spell for the rest of the current Encounter (no Concentration required). The red in the potion's liquid continuously expands from a tiny bead to color the clear liquid around it and then contracts. Shaking the bottle fails to interrupt this process."
         ),
-        "activation": "Bonus Action",
-        "duration": "End of Encounter",
+        "activation": ["Bonus Action"],
+        "duration": ["End of Encounter"],
         "charges": None,
-        "recharge": None,
+        "recharge": [],
         "notes": None,
     },
     "Potion of Hill Giant Strength": {
@@ -1411,12 +1411,12 @@ ITEM_DATA = {
         "rarity": "Uncommon",
         "attunement": False,
         "effect": (
-             "When you drink this potion, your Strength score changes to 21 for the rest of the current Encounter. The potion has no effect on you if your Strength is equal to or greater than that score. This potion's transparent liquid has floating in it a sliver of fingernail from a hill giant."
+            "When you drink this potion, your Strength score changes to 21 for the rest of the current Encounter. The potion has no effect on you if your Strength is equal to or greater than that score. This potion's transparent liquid has floating in it a sliver of fingernail from a hill giant."
         ),
-        "activation": "Bonus Action",
-        "duration": "End of Encounter",
+        "activation": ["Bonus Action"],
+        "duration": ["End of Encounter"],
         "charges": None,
-        "recharge": None,
+        "recharge": [],
         "notes": None,
     },
     "Potion of Poison": {
@@ -1425,12 +1425,12 @@ ITEM_DATA = {
         "rarity": "Uncommon",
         "attunement": False,
         "effect": (
-             "This concoction looks, smells, and tastes like a Potion of Healing or another beneficial potion. However, it is actually poison masked by illusion magic. Identify reveals its true nature. If you drink this potion, you take 4d6 Poison damage and must succeed on a DC 13 Constitution Saving Throw or have the Poisoned condition for the rest of the current Encounter."
+            "This concoction looks, smells, and tastes like a Potion of Healing or another beneficial potion. However, it is actually poison masked by illusion magic. Identify reveals its true nature. If you drink this potion, you take 4d6 Poison damage and must succeed on a DC 13 Constitution Saving Throw or have the Poisoned condition for the rest of the current Encounter."
         ),
-        "activation": "Bonus Action",
-        "duration": "End of Encounter",
+        "activation": ["Bonus Action"],
+        "duration": ["End of Encounter"],
         "charges": None,
-        "recharge": None,
+        "recharge": [],
         "notes": None,
     },
     "Potion of Pugilism": {
@@ -1439,12 +1439,12 @@ ITEM_DATA = {
         "rarity": "Uncommon",
         "attunement": False,
         "effect": (
-             "After you drink this potion, each Unarmed Strike you make deals an extra 1d6 Force damage on a hit. This effect lasts until the end of the current Encounter. This potion is a thick green fluid that tasts like a spinach."
+            "After you drink this potion, each Unarmed Strike you make deals an extra 1d6 Force damage on a hit. This effect lasts until the end of the current Encounter. This potion is a thick green fluid that tasts like a spinach."
         ),
-        "activation": "Bonus Action",
-        "duration": "End of Encounter",
+        "activation": ["Bonus Action"],
+        "duration": ["End of Encounter"],
         "charges": None,
-        "recharge": None,
+        "recharge": [],
         "notes": None,
     },
     "Potion of Resistance": {
@@ -1453,12 +1453,12 @@ ITEM_DATA = {
         "rarity": "Uncommon",
         "attunement": False,
         "effect": (
-             "When you drink this, you gain Resistance to a certain type of damage for the rest of the current Encounter, randomly chosen when this item is found or chosen when present in the Shop."
+            "When you drink this, you gain Resistance to a certain type of damage for the rest of the current Encounter, randomly chosen when this item is found or chosen when present in the Shop."
         ),
-        "activation": "Bonus Action",
-        "duration": "End of Encounter",
+        "activation": ["Bonus Action"],
+        "duration": ["End of Encounter"],
         "charges": None,
-        "recharge": None,
+        "recharge": [],
         "variations": [
             {"base_item": "Potion of Resistance", "name": "Potion of Acid Resistance"},
             {"base_item": "Potion of Resistance", "name": "Potion of Cold Resistance"},
@@ -1479,12 +1479,12 @@ ITEM_DATA = {
         "rarity": "Uncommon",
         "attunement": True,
         "effect": (
-             "Requires attunement. While wearing this ring, you can cast Jump from it, but can target only yourself when you do so."
+            "Requires attunement. While wearing this ring, you can cast Jump from it, but can target only yourself when you do so."
         ),
-        "activation": "Bonus Action",
-        "duration": "End of Encounter",
+        "activation": ["Equip", "Bonus Action"],
+        "duration": [],
         "charges": None,
-        "recharge": None,
+        "recharge": [],
         "notes": None,
     },
     "Ring of Mind Shielding": {
@@ -1493,12 +1493,12 @@ ITEM_DATA = {
         "rarity": "Uncommon",
         "attunement": True,
         "effect": (
-             "Requires attunement. While wearing this ring, you gain the following benefits: You are Immune to magic that allows others to read your thoughts, determine whether you are lying, know your alignment, or know your creature type. You choose whether to allow telepathic communication with you. When an enemy targets you with an Attack Roll, spell, or ability that requires a Saving Throw, you can gain Advantage on an Intelligence, Wisdom, or Charisma Saving Throw made during that enemy's turn. You can use this feature once per Encounter. You can take a Magic Action to cause the ring to become imperceptible. If you die while wearing this ring, your soul enters it (if it's empty). While inside, you can telepathically speak with anyone wearing the ring."
+            "Requires attunement. While wearing this ring, you gain the following benefits: You are Immune to magic that allows others to read your thoughts, determine whether you are lying, know your alignment, or know your creature type. You choose whether to allow telepathic communication with you. When an enemy targets you with an Attack Roll, spell, or ability that requires a Saving Throw, you can gain Advantage on an Intelligence, Wisdom, or Charisma Saving Throw made during that enemy's turn. You can use this feature once per Encounter. You can take a Magic Action to cause the ring to become imperceptible. If you die while wearing this ring, your soul enters it (if it's empty). While inside, you can telepathically speak with anyone wearing the ring."
         ),
-        "activation": "Action",
-        "duration": None,
+        "activation": ["Equip", "Action"],
+        "duration": ["Passive", "Instantaneous"],
         "charges": None,
-        "recharge": None,
+        "recharge": ["Once per Encounter"],
         "notes": None,
     },
     "Ring of Warmth": {
@@ -1507,12 +1507,12 @@ ITEM_DATA = {
         "rarity": "Uncommon",
         "attunement": True,
         "effect": (
-             "Requires attunement. If you take Cold damage while wearing this ring, the ring reduces the damage you take by 2d8. In addition, while wearing this ring, you and everything you wear and carry are unharmed by temperatures of 0 degrees Fahrenheit or lower."
+            "Requires attunement. If you take Cold damage while wearing this ring, the ring reduces the damage you take by 2d8. In addition, while wearing this ring, you and everything you wear and carry are unharmed by temperatures of 0 degrees Fahrenheit or lower."
         ),
-        "activation": None,
-        "duration": None,
+        "activation": ["Equip"],
+        "duration": ["Passive"],
         "charges": None,
-        "recharge": None,
+        "recharge": [],
         "notes": None,
     },
     "Immovable Rod": {
@@ -1521,12 +1521,12 @@ ITEM_DATA = {
         "rarity": "Uncommon",
         "attunement": False,
         "effect": (
-             "This iron rod has a button on one end. You can take a Bonus Action to press the button, which causes the rod to become magically fixed in place. Until you or another creature takes a Bonus Action to push the button again, the rod doesn't move, even if it defies gravity. The rod can hold up to 8000 pounds of weight. More weight causes the rod to deactivate and fall. A creature can take a Bonus Action to make a DC 30 Strength (Athletics) check, moving the fixed rod up to 10ft on a successful check. While the rod is fixed and within 5ft of you, you can use it to brace yourself. As a Reaction when you are pushed, pulled, or knocked Prone, you may anchor yourself using the rod. If you do, you reduce any forced movement by up to 10ft, and you cannot fall Prone for that attack."
+            "This iron rod has a button on one end. You can take a Bonus Action to press the button, which causes the rod to become magically fixed in place. Until you or another creature takes a Bonus Action to push the button again, the rod doesn't move, even if it defies gravity. The rod can hold up to 8000 pounds of weight. More weight causes the rod to deactivate and fall. A creature can take a Bonus Action to make a DC 30 Strength (Athletics) check, moving the fixed rod up to 10ft on a successful check. While the rod is fixed and within 5ft of you, you can use it to brace yourself. As a Reaction when you are pushed, pulled, or knocked Prone, you may anchor yourself using the rod. If you do, you reduce any forced movement by up to 10ft, and you cannot fall Prone for that attack."
         ),
         "activation": ["Bonus Action", "Reaction"],
-        "duration": None,
+        "duration": ["Instantaneous"],
         "charges": None,
-        "recharge": None,
+        "recharge": [],
         "notes": None,
     },
     "Rod of the Pact Keeper +1": {
@@ -1535,10 +1535,10 @@ ITEM_DATA = {
         "rarity": "Uncommon",
         "attunement": True,
         "effect": (
-             "Requires attunement by a Warlock. While holding this rod, you gain a +1 bonus to spell Attack Rolls and to the Saving Throw DCs of your Warlock spells. In addition, you can regain one spell slot as a Magic Action while holding the rod. You can't use this property again until you take a Long Rest."
+            "Requires attunement by a Warlock. While holding this rod, you gain a +1 bonus to spell Attack Rolls and to the Saving Throw DCs of your Warlock spells. In addition, you can regain one spell slot as a Magic Action while holding the rod. You can't use this property again until you take a Long Rest."
         ),
-        "activation": "Action",
-        "duration": None,
+        "activation": ["Action"],
+        "duration": ["Passive", "Instantaneous"],
         "charges": None,
         "recharge": ["Long Rest"],
         "notes": None,
@@ -1549,12 +1549,12 @@ ITEM_DATA = {
         "rarity": "Uncommon",
         "attunement": False,
         "effect": (
-             "A Spell Scroll bears the words of a single spell, written in a mystical cipher. If the spell is on your spell list, you can read the scroll and cast its spell without Material components. Otherwise, the scroll is unintelligible. Casting the spell by reading the scroll requires the spell's normal casting time. Once the spell is cast, the scroll crumbles to dust. If the casting is interrupted, the scroll isn't lost. If the spell is on your spell list but of a higher level than you can normally cast, you make a DC 12 Ability Check using your spellcasting ability to determine whether you cast the spell. On a failed check, the spell disappears from the scroll with no other effect. If the spell requires a Saving Throw or an Attack Roll, the spell save DC is 13, and the attack bonus is +5."
+            "A Spell Scroll bears the words of a single spell, written in a mystical cipher. If the spell is on your spell list, you can read the scroll and cast its spell without Material components. Otherwise, the scroll is unintelligible. Casting the spell by reading the scroll requires the spell's normal casting time. Once the spell is cast, the scroll crumbles to dust. If the casting is interrupted, the scroll isn't lost. If the spell is on your spell list but of a higher level than you can normally cast, you make a DC 12 Ability Check using your spellcasting ability to determine whether you cast the spell. On a failed check, the spell disappears from the scroll with no other effect. If the spell requires a Saving Throw or an Attack Roll, the spell save DC is 13, and the attack bonus is +5."
         ),
-        "activation": None,
-        "duration": None,
+        "activation": [],
+        "duration": [],
         "charges": None,
-        "recharge": None,
+        "recharge": [],
         "notes": None,
     },
     "Spell Scroll 3rd Level": {
@@ -1563,12 +1563,12 @@ ITEM_DATA = {
         "rarity": "Uncommon",
         "attunement": False,
         "effect": (
-             "A Spell Scroll bears the words of a single spell, written in a mystical cipher. If the spell is on your spell list, you can read the scroll and cast its spell without Material components. Otherwise, the scroll is unintelligible. Casting the spell by reading the scroll requires the spell's normal casting time. Once the spell is cast, the scroll crumbles to dust. If the casting is interrupted, the scroll isn't lost. If the spell is on your spell list but of a higher level than you can normally cast, you make a DC 13 Ability Check using your spellcasting ability to determine whether you cast the spell. On a failed check, the spell disappears from the scroll with no other effect. If the spell requires a Saving Throw or an Attack Roll, the spell save DC is 15, and the attack bonus is +7."
+            "A Spell Scroll bears the words of a single spell, written in a mystical cipher. If the spell is on your spell list, you can read the scroll and cast its spell without Material components. Otherwise, the scroll is unintelligible. Casting the spell by reading the scroll requires the spell's normal casting time. Once the spell is cast, the scroll crumbles to dust. If the casting is interrupted, the scroll isn't lost. If the spell is on your spell list but of a higher level than you can normally cast, you make a DC 13 Ability Check using your spellcasting ability to determine whether you cast the spell. On a failed check, the spell disappears from the scroll with no other effect. If the spell requires a Saving Throw or an Attack Roll, the spell save DC is 15, and the attack bonus is +7."
         ),
-        "activation": None,
-        "duration": None,
+        "activation": [],
+        "duration": [],
         "charges": None,
-        "recharge": None,
+        "recharge": [],
         "notes": None,
     },
     "Enspelled Staff Cantrip": {
@@ -1577,12 +1577,12 @@ ITEM_DATA = {
         "rarity": "Uncommon",
         "attunement": True,
         "effect": (
-             "Requires attunement by a Spellcaster. Bound into this staff is a cantrip. The cantrip is determined when the staff is created and can be of any school of magic. The staff has 6 charges and regains 1d6 expended charges after taking a Long Rest. While holding the staff, you can expend 1 charge to cast its spell. If you expend the staff's last charge, roll 1d20. On a 1, the staff loses its properties and becomes a nonmagical Quarterstaff. The spell's Saving Throw DC is 13, and its attack bonus is +5."
+            "Requires attunement by a Spellcaster. Bound into this staff is a cantrip. The cantrip is determined when the staff is created and can be of any school of magic. The staff has 6 charges and regains 1d6 expended charges after taking a Long Rest. While holding the staff, you can expend 1 charge to cast its spell. If you expend the staff's last charge, roll 1d20. On a 1, the staff loses its properties and becomes a nonmagical Quarterstaff. The spell's Saving Throw DC is 13, and its attack bonus is +5."
         ),
-        "activation": None,
-        "duration": None,
+        "activation": [],
+        "duration": [],
         "charges": 6,
-        "recharge": "Long Rest",
+        "recharge": ["Long Rest"],
         "notes": None,
     },
     "Enspelled Staff Level 1": {
@@ -1591,12 +1591,12 @@ ITEM_DATA = {
         "rarity": "Uncommon",
         "attunement": True,
         "effect": (
-             "Requires attunement by a Spellcaster. Bound into this staff is a level 1 spell. The spell is determined when the staff is created and can be of any school of magic. The staff has 6 charges and regains 1d6 expended charges after taking a Long Rest. While holding the staff, you can expend 1 charge to cast its spell. If you expend the staff's last charge, roll 1d20. On a 1, the staff loses its properties and becomes a nonmagical Quarterstaff. The spell's Saving Throw DC is 13, and its attack bonus is +5."
+            "Requires attunement by a Spellcaster. Bound into this staff is a level 1 spell. The spell is determined when the staff is created and can be of any school of magic. The staff has 6 charges and regains 1d6 expended charges after taking a Long Rest. While holding the staff, you can expend 1 charge to cast its spell. If you expend the staff's last charge, roll 1d20. On a 1, the staff loses its properties and becomes a nonmagical Quarterstaff. The spell's Saving Throw DC is 13, and its attack bonus is +5."
         ),
-        "activation": None,
-        "duration": None,
+        "activation": [],
+        "duration": [],
         "charges": 6,
-        "recharge": "Long Rest",
+        "recharge": ["Long Rest"],
         "notes": None,
     },
     "Staff of the Adder": {
@@ -1605,12 +1605,12 @@ ITEM_DATA = {
         "rarity": "Uncommon",
         "attunement": True,
         "effect": (
-             "Requires attunement. As a Bonus Action, you can turn the head of this staff into that of an animate, venomous snake for the rest of the current Encounter or revert the staff to its inanimate form. When you take the Attack Action, you can make one of the attack rolls using the animated snake head, which has a reach of 5ft. Apply your Proficiency Bonus and Wisdom modifier to the attack roll. On a hit, the target takes 1d6 Piercing damage and 3d6 Poison damage. The snake head can be attacked while it is animate. It has AC 15, HP 20, and Immunity to Poison and Psychic damage. If the head drops to 0 Hit Points, the staff is destroyed. As long as it's not destroyed, the staff regains all lost Hit Points when it reverts to its inanimate form."
+            "Requires attunement. As a Bonus Action, you can turn the head of this staff into that of an animate, venomous snake for the rest of the current Encounter or revert the staff to its inanimate form. When you take the Attack Action, you can make one of the attack rolls using the animated snake head, which has a reach of 5ft. Apply your Proficiency Bonus and Wisdom modifier to the attack roll. On a hit, the target takes 1d6 Piercing damage and 3d6 Poison damage. The snake head can be attacked while it is animate. It has AC 15, HP 20, and Immunity to Poison and Psychic damage. If the head drops to 0 Hit Points, the staff is destroyed. As long as it's not destroyed, the staff regains all lost Hit Points when it reverts to its inanimate form."
         ),
-        "activation": "Bonus Action",
-        "duration": "End of Encounter",
+        "activation": ["Bonus Action"],
+        "duration": ["End of Encounter"],
         "charges": None,
-        "recharge": None,
+        "recharge": [],
         "notes": None,
     },
     "Staff of the Python": {
@@ -1619,10 +1619,10 @@ ITEM_DATA = {
         "rarity": "Uncommon",
         "attunement": True,
         "effect": (
-             "Requires attunement. As a Magic Action, you can throw this staff so that it lands in an unoccupied space within 10ft of you, causing the staff to become a Giant Constrictor Snake in that space. The snake is under your control and shares your Initiative count, taking its turn immediately after yours. On your turn, you can mentally command the snake (no action required) if it is within 60ft of you and you don't have the Incapacitated condition. You decide what action the snake takes and where it moves during its turn, or you can issue it a general command, such as to attack your enemies or guard a location. Absent commands from you, the snake defends itself. As a Bonus Action, you can command the snake to revert to staff form in its current space, and you can't use the staff's property again until you take either a Short or a Long Rest. If the snake is reduced to 0 Hit Points, it dies and reverts to its staff form; the staff then shatters and is destroyed. If the snake reverts to staff form before losing all its Hit Points, it regeains all of them."
+            "Requires attunement. As a Magic Action, you can throw this staff so that it lands in an unoccupied space within 10ft of you, causing the staff to become a Giant Constrictor Snake in that space. The snake is under your control and shares your Initiative count, taking its turn immediately after yours. On your turn, you can mentally command the snake (no action required) if it is within 60ft of you and you don't have the Incapacitated condition. You decide what action the snake takes and where it moves during its turn, or you can issue it a general command, such as to attack your enemies or guard a location. Absent commands from you, the snake defends itself. As a Bonus Action, you can command the snake to revert to staff form in its current space, and you can't use the staff's property again until you take either a Short or a Long Rest. If the snake is reduced to 0 Hit Points, it dies and reverts to its staff form; the staff then shatters and is destroyed. If the snake reverts to staff form before losing all its Hit Points, it regeains all of them."
         ),
-        "activation": "Action",
-        "duration": None,
+        "activation": ["Action"],
+        "duration": [],
         "charges": None,
         "recharge": ["Short Rest", "Long Rest"],
         "notes": None,
@@ -1633,12 +1633,12 @@ ITEM_DATA = {
         "rarity": "Uncommon",
         "attunement": False,
         "effect": (
-             "This wand has 3 charges. While holding it, you can expend 1 charge to cast Detect Magic from it, as also a Bonus Action, name a creature. If the named creature is within 30ft of you, you immediately know its exact location, even if invisible or hidden. The wand regains 1d3 expended charges after taking a Long Rest."
+            "This wand has 3 charges. While holding it, you can expend 1 charge to cast Detect Magic from it, as also a Bonus Action, name a creature. If the named creature is within 30ft of you, you immediately know its exact location, even if invisible or hidden. The wand regains 1d3 expended charges after taking a Long Rest."
         ),
         "activation": ["Action", "Bonus Action"],
-        "duration": None,
+        "duration": [],
         "charges": 3,
-        "recharge": "Long Rest",
+        "recharge": ["Long Rest"],
         "notes": None,
     },
     "Wand of Magic Missiles": {
@@ -1647,12 +1647,12 @@ ITEM_DATA = {
         "rarity": "Uncommon",
         "attunement": False,
         "effect": (
-             "This wand has 7 charges. While holding it, you can expend no more than 3 charges to cast Magic Missile from it. For 1 charge, you cast the level 1 version of the spell. You can increase the spell's level by 1 for each additional charge you expend. The wand regains 1d6 + 1 expended charges after taking a Long Rest. If you expend the wand's last charge, roll 1d20. On a 1, the wand crumbles into ashes and is destroyed."
+            "This wand has 7 charges. While holding it, you can expend no more than 3 charges to cast Magic Missile from it. For 1 charge, you cast the level 1 version of the spell. You can increase the spell's level by 1 for each additional charge you expend. The wand regains 1d6 + 1 expended charges after taking a Long Rest. If you expend the wand's last charge, roll 1d20. On a 1, the wand crumbles into ashes and is destroyed."
         ),
-        "activation": "Action",
-        "duration": None,
+        "activation": ["Action"],
+        "duration": ["Instantaneous"],
         "charges": 7,
-        "recharge": "Long Rest",
+        "recharge": ["Long Rest"],
         "notes": None,
     },
     "Wand of Secrets": {
@@ -1661,26 +1661,3797 @@ ITEM_DATA = {
         "rarity": "Uncommon",
         "attunement": False,
         "effect": (
-             "This wand has 3 charges and regains 1d3 expended charges after taking a Long Rest. While holding it, you can take a Bonus Action and expend 1 charge to target a creature within 60ft of you. You learn one of the following, your choice: its damage Immunities or Resistances; its highest Saving Throw stat; the next Action the creature is most likely to take (as judged by the DM based on its current behavior and tactical intent)."
+            "This wand has 3 charges and regains 1d3 expended charges after taking a Long Rest. While holding it, you can take a Bonus Action and expend 1 charge to target a creature within 60ft of you. You learn one of the following, your choice: its damage Immunities or Resistances; its highest Saving Throw stat; the next Action the creature is most likely to take (as judged by the DM based on its current behavior and tactical intent)."
         ),
-        "activation": "Bonus Action",
-        "duration": None,
+        "activation": ["Bonus Action"],
+        "duration": ["Instantaneous"],
         "charges": 3,
-        "recharge": "Long Rest",
+        "recharge": ["Long Rest"],
         "notes": None,
     },
-    "": {
-        "name": "",
-        "type": "",
-        "rarity": "",
+    "Wand of Web": {
+        "name": "Wand of Web",
+        "type": "Wand",
+        "rarity": "Uncommon",
+        "attunement": True,
+        "effect": (
+            "Requires attunement by a spellcaster. This wand has 7 charges. While holding it, you can expend 1 charge to cast Web (save DC 13) from it. The wand regains 1d6 + 1 expended charges after taking a Long Rest. If you expend the wand's last charge, roll 1d20. On a 1, the wand crumbles into ashes and is destroyed."
+        ),
+        "activation": ["Action"],
+        "duration": [],
+        "charges": 7,
+        "recharge": ["Long Rest"],
+        "notes": None,
+    },
+    "Wand of the War Mage +1": {
+        "name": "Wand of the War Mage +1",
+        "type": "Wand",
+        "rarity": "Uncommon",
+        "attunement": True,
+        "effect": (
+            "Requires attunement by a spellcaster. While you are holding this wand, you gain a +1 bonus to spell Attack Rolls. In addition, you ignore half cover when making a spell attack."
+        ),
+        "activation": [],
+        "duration": ["Passive"],
+        "charges": None,
+        "recharge": [],
+        "notes": None,
+    },
+    "Adamantine Weapon": {
+        "name": "Adamantine Weapon",
+        "type": "Weapon",
+        "rarity": "Uncommon",
         "attunement": False,
         "effect": (
-             ""
+            "This weapon or piece of Ammunition is made of adamantine, one of the hardest substances in existence. Piercing Power: When attacking with this item, the target's AC is treated as 1 lower for that attack. Armor Breaker: On a hit, this attack ignores any Resistance to the weapon's damage type."
         ),
-        "activation": None,
-        "duration": None,
+        "activation": [],
+        "duration": [],
+        "charges": None,
+        "recharge": [],
+        "variations": [
+            {"base_item": "Arrow", "name": "Adamantine Arrow"},
+            {"base_item": "Battleaxe", "name": "Adamantine Battleaxe"},
+            {"base_item": "Bolt", "name": "Adamantine Bolt"},
+            {"base_item": "Club", "name": "Adamantine Club"},
+            {"base_item": "Dagger", "name": "Adamantine Dagger"},
+            {"base_item": "Firearm Bullet", "name": "Adamantine Firearm Bullet"},
+            {"base_item": "Flail", "name": "Adamantine Flail"},
+            {"base_item": "Glaive", "name": "Adamantine Glaive"},
+            {"base_item": "Greataxe", "name": "Adamantine Greataxe"},
+            {"base_item": "Greatclub", "name": "Adamantine Greatclub"},
+            {"base_item": "Greatsword", "name": "Adamantine Greatsword"},
+            {"base_item": "Halberd", "name": "Adamantine Halberd"},
+            {"base_item": "Handaxe", "name": "Adamantine Handaxe"},
+            {"base_item": "Javelin", "name": "Adamantine Javelin"},
+            {"base_item": "Lance", "name": "Adamantine Lance"},
+            {"base_item": "Light Hammer", "name": "Adamantine Light Hammer"},
+            {"base_item": "Longsword", "name": "Adamantine Longsword"},
+            {"base_item": "Mace", "name": "Adamantine Mace"},
+            {"base_item": "Maul", "name": "Adamantine Maul"},
+            {"base_item": "Morningstar", "name": "Adamantine Morningstar"},
+            {"base_item": "Pike", "name": "Adamantine Pike"},
+            {"base_item": "Quarterstaff", "name": "Adamantine Quarterstaff"},
+            {"base_item": "Rapier", "name": "Adamantine Rapier"},
+            {"base_item": "Scimitar", "name": "Adamantine Scimitar"},
+            {"base_item": "Shortsword", "name": "Adamantine Shortsword"},
+            {"base_item": "Sickle", "name": "Adamantine Sickle"},
+            {"base_item": "Sling Bullet", "name": "Adamantine Sling Bullet"},
+            {"base_item": "Spear", "name": "Adamantine Spear"},
+            {"base_item": "Trident", "name": "Adamantine Trident"},
+            {"base_item": "War Pick", "name": "Adamantine War Pick"},
+            {"base_item": "Warhammmer", "name": "Adamantine Warhammer"},
+            {"base_item": "Whip", "name": "Adamantine Whip"}
+        ],
+        "notes": None,
+    },
+    "Ammunition +1": {
+        "name": "Ammunition +1",
+        "type": "Weapon",
+        "rarity": "Uncommon",
+        "attunement": False,
+        "effect": (
+            "You have a +1 bonus to attack and damage rolls made with this piece of magic ammunition. Once it hits a target, the ammunition is no longer magical. When this is randomly given, it's 1, when it's in a shop it's a set of 20."
+        ),
+        "activation": [],
+        "duration": ["Passive"],
+        "charges": None,
+        "recharge": [],
+        "variations": [
+            {"base_item": "Arrow", "name": "Arrow +1"},
+            {"base_item": "Bolt", "name": "Bolt +1"},
+            {"base_item": "Firearm Bullet", "name": "Firearm Bullet +1"},
+        ],
+        "notes": None,
+    },
+    "Enspelled Weapon Cantrip": {
+        "name": "Enspelled Weapon Cantrip",
+        "type": "Weapon",
+        "rarity": "Uncommon",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. Bound into this weapon is a Cantrip. The Cantrip is determined when the weapon is created and must belong to the Conjuration, Divination, Evocation, Necromancy, or Transmutation school of magic. The weapon has 6 charges and regains 1d6 expended charges after taking a Long Rest. While holding the weapon, you can expend 1 charge to cast its spell. The spell's Saving Throw DC is 13, and its Attack Bonus is +5."
+        ),
+        "activation": [],
+        "duration": [],
+        "charges": 6,
+        "recharge": ["Long Rest"],
+        "variations": [
+            {"base_item": "Battleaxe", "name": "Enspelled Battleaxe Cantrip"},
+            {"base_item": "Club", "name": "Enspelled Club Cantrip"},
+            {"base_item": "Dagger", "name": "Enspelled Dagger Cantrip"},
+            {"base_item": "Flail", "name": "Enspelled Flail Cantrip"},
+            {"base_item": "Glaive", "name": "Enspelled Glaive Cantrip"},
+            {"base_item": "Greataxe", "name": "Enspelled Greataxe Cantrip"},
+            {"base_item": "Greatclub", "name": "Enspelled Greatclub Cantrip"},
+            {"base_item": "Greatsword", "name": "Enspelled Greatsword Cantrip"},
+            {"base_item": "Halberd", "name": "Enspelled Halberd Cantrip"},
+            {"base_item": "Hand Crossbow", "name": "Enspelled Hand Crossbow Cantrip"},
+            {"base_item": "Handaxe", "name": "Enspelled Handaxe Cantrip"},
+            {"base_item": "Heavy Crossbow", "name": "Enspelled Heavy Crossbow Cantrip"},
+            {"base_item": "Javelin", "name": "Enspelled Javelin Cantrip"},
+            {"base_item": "Lance", "name": "Enspelled Lance Cantrip"},
+            {"base_item": "Light Crossbow", "name": "Enspelled Light Crossbow Cantrip"},
+            {"base_item": "Light Hammer", "name": "Enspelled Light Hammer Cantrip"},
+            {"base_item": "Longbow", "name": "Enspelled Longbow Cantrip"},
+            {"base_item": "Longsword", "name": "Enspelled Longsword Cantrip"},
+            {"base_item": "Mace", "name": "Enspelled Mace Cantrip"},
+            {"base_item": "Maul", "name": "Enspelled Maul Cantrip"},
+            {"base_item": "Morningstar", "name": "Enspelled Morningstar Cantrip"},
+            {"base_item": "Musket", "name": "Enspelled Musket Cantrip"},
+            {"base_item": "Pike", "name": "Enspelled Pike Cantrip"},
+            {"base_item": "Pistol", "name": "Enspelled Pistol Cantrip"},
+            {"base_item": "Quarterstaff", "name": "Enspelled Quarterstaff Cantrip"},
+            {"base_item": "Rapier", "name": "Enspelled Rapier Cantrip"},
+            {"base_item": "Scimitar", "name": "Enspelled Scimitar Cantrip"},
+            {"base_item": "Shortbow", "name": "Enspelled Shortbow Cantrip"},
+            {"base_item": "Shortsword", "name": "Enspelled Shortsword Cantrip"},
+            {"base_item": "Sickle", "name": "Enspelled Sickle Cantrip"},
+            {"base_item": "Sling", "name": "Enspelled Sling Cantrip"},
+            {"base_item": "Spear", "name": "Enspelled Spear Cantrip"},
+            {"base_item": "Staff", "name": "Enspelled Staff Cantrip"},
+            {"base_item": "Trident", "name": "Enspelled Trident Cantrip"},
+            {"base_item": "War Pick", "name": "Enspelled War Pick Cantrip"},
+            {"base_item": "Warhammer", "name": "Enspelled Warhammer Cantrip"},
+            {"base_item": "Whip", "name": "Enspelled Whip Cantrip"}
+        ],
+        "notes": None,
+    },
+    "Enspelled Weapon Level 1": {
+        "name": "Enspelled Weapon Level 1",
+        "type": "Weapon",
+        "rarity": "Uncommon",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. Bound into this weapon is a level 1 spell. The spell is determined when the weapon is created and must belong to the Conjuration, Divination, Evocation, Necromancy, or Transmutation school of magic. The weapon has 6 charges and regains 1d6 expended charges after taking a Long Rest. While holding the weapon, you can expend 1 charge to cast its spell. The spell's Saving Throw DC is 13, and its Attack Bonus is +5."
+        ),
+        "activation": [],
+        "duration": [],
+        "charges": 6,
+        "recharge": ["Long Rest"],
+        "variations": [
+            {"base_item": "Battleaxe", "name": "Enspelled Battleaxe Level 1"},
+            {"base_item": "Club", "name": "Enspelled Club Level 1"},
+            {"base_item": "Dagger", "name": "Enspelled Dagger Level 1"},
+            {"base_item": "Flail", "name": "Enspelled Flail Level 1"},
+            {"base_item": "Glaive", "name": "Enspelled Glaive Level 1"},
+            {"base_item": "Greataxe", "name": "Enspelled Greataxe Level 1"},
+            {"base_item": "Greatclub", "name": "Enspelled Greatclub Level 1"},
+            {"base_item": "Greatsword", "name": "Enspelled Greatsword Level 1"},
+            {"base_item": "Halberd", "name": "Enspelled Halberd Level 1"},
+            {"base_item": "Hand Crossbow", "name": "Enspelled Hand Crossbow Level 1"},
+            {"base_item": "Handaxe", "name": "Enspelled Handaxe Level 1"},
+            {"base_item": "Heavy Crossbow", "name": "Enspelled Heavy Crossbow Level 1"},
+            {"base_item": "Javelin", "name": "Enspelled Javelin Level 1"},
+            {"base_item": "Lance", "name": "Enspelled Lance Level 1"},
+            {"base_item": "Light Crossbow", "name": "Enspelled Light Crossbow Level 1"},
+            {"base_item": "Light Hammer", "name": "Enspelled Light Hammer Level 1"},
+            {"base_item": "Longbow", "name": "Enspelled Longbow Level 1"},
+            {"base_item": "Longsword", "name": "Enspelled Longsword Level 1"},
+            {"base_item": "Mace", "name": "Enspelled Mace Level 1"},
+            {"base_item": "Maul", "name": "Enspelled Maul Level 1"},
+            {"base_item": "Morningstar", "name": "Enspelled Morningstar Level 1"},
+            {"base_item": "Musket", "name": "Enspelled Musket Level 1"},
+            {"base_item": "Pike", "name": "Enspelled Pike Level 1"},
+            {"base_item": "Pistol", "name": "Enspelled Pistol Level 1"},
+            {"base_item": "Quarterstaff", "name": "Enspelled Quarterstaff Level 1"},
+            {"base_item": "Rapier", "name": "Enspelled Rapier Level 1"},
+            {"base_item": "Scimitar", "name": "Enspelled Scimitar Level 1"},
+            {"base_item": "Shortbow", "name": "Enspelled Shortbow Level 1"},
+            {"base_item": "Shortsword", "name": "Enspelled Shortsword Level 1"},
+            {"base_item": "Sickle", "name": "Enspelled Sickle Level 1"},
+            {"base_item": "Sling", "name": "Enspelled Sling Level 1"},
+            {"base_item": "Spear", "name": "Enspelled Spear Level 1"},
+            {"base_item": "Staff", "name": "Enspelled Staff Level 1"},
+            {"base_item": "Trident", "name": "Enspelled Trident Level 1"},
+            {"base_item": "War Pick", "name": "Enspelled War Pick Level 1"},
+            {"base_item": "Warhammer", "name": "Enspelled Warhammer Level 1"},
+            {"base_item": "Whip", "name": "Enspelled Whip Level 1"}
+        ],
+        "notes": None,
+    },
+    "Javelin of Lightning": {
+        "name": "Javelin of Lightning",
+        "type": "Weapon",
+        "rarity": "Uncommon",
+        "attunement": False,
+        "effect": (
+            "Each time you make an Attack Roll with this magic weapon and hit, you can have it deal Lightning damage instead of Piercing damage. Lightning Bolt. When you throw this weapon at a target no farther than 120ft from you, you can forgo making a Ranged Attack Roll and instead turn the weapon into a bolt of lightning. This bolt forms a 5ft wide Line between you and the target. The target and each other creature in the Line (excluding you) makes a DC 13 Dexterity Saving Throw, taking 4d6 Lightning damage on a failed Save or half as much damage on a successful one. Immediately after dealing this damage, the weapon reappears in your hand. This property can't be used again until you take a Long Rest."
+        ),
+        "activation": [],
+        "duration": [],
+        "charges": None,
+        "recharge": ["Long Rest"],
+        "notes": None,
+    },
+    "Lucky Strike Dagger": {
+        "name": "Lucky Strike Dagger",
+        "type": "Weapon",
+        "rarity": "Uncommon",
+        "attunement": False,
+        "effect": (
+            "When you hit a creature with this weapon and apply your Sneak Attack damage, if any of the Sneak Attack d6s roll a 6, you immediately can deal additional damage equal to your Rogue level."
+        ),
+        "activation": [],
+        "duration": [],
+        "charges": None,
+        "recharge": [],
+        "notes": None,
+    },
+    "Sword of Vengeance": {
+        "name": "Sword of Vengeance",
+        "type": "Weapon",
+        "rarity": "Uncommon",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. You gain a +1 bonus to Attack and Damage Rolls made with this magic weapon. Curse. This weapon is cursed and possessed by a vengeful spirit. Becoming attuned to it extends the curse to you. As long as you remain cursed, you are unwilling to part with the weapon, keeping it on your person at all times. While attuned to this weapon, you have Disadvantage on Attack Rolls made with weapons other than this one. In addition, while the weapon is on your person, you must succeed on a DC 15 Wisdom Saving Throw whenever you take damage from another creature in combat. On a failed Save, you must attack the creature that damaged you until you drop to 0 Hit Points or it does or until you can't reach the creature to make a melee attack against it. YOu can break the curse in the usual ways. Alternatively, casting Banishment on the weapon forces the vengeful spirit to leave it. The weapon then becomes a +1 Weapon with no other properties."
+        ),
+        "activation": [],
+        "duration": [],
+        "charges": None,
+        "recharge": [],
+        "variations": [
+            {"base_item": "Glaive", "name": "Glaive of Vengeance"},
+            {"base_item": "Greatsword", "name": "Greatsword of Vengeance"},
+            {"base_item": "Longsword", "name": "Longsword of Vengeance"},
+            {"base_item": "Rapier", "name": "Rapier of Vengeance"},
+            {"base_item": "Scimitar", "name": "Scimitar of Vengeance"},
+            {"base_item": "Shortsword", "name": "Shortsword of Vengeance"}
+        ],
+        "notes": None,
+    },
+    "Trident of Fish Command": {
+        "name": "Trident of Fish Command",
+        "type": "Weapon",
+        "rarity": "Uncommon",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. This magic weapon has 3 charges, and it regains 1d3 expended charges after taking a Long Rest. This trident hums with the essence of oceanic dominion, imbued with ancient authority over creatures that dwell in water, or the primal instincts within all beasts. Command the Wild: As a Bonus Action, you may expend 1 charge to target a Beast or Monstrosity within 30ft. The creature must succeed on a DC 15 Wisdom Saving Throw, or it is Charmed by you until the end of its next turn. While Charmed this way, it cannot target you with attacks or harmful abilities. If the creature has a Swim Speed, it makes the Saving Throw with Disadvantage. Creatures immune to being Charmed automatically succeed."
+        ),
+        "activation": ["Bonus Action"],
+        "duration": ["End of Next Turn"],
+        "charges": 3,
+        "recharge": ["Long Rest"],
+        "notes": None,
+    },
+    "Weapon of Warning": {
+        "name": "Weapon of Warning",
+        "type": "Weapon",
+        "rarity": "Uncommon",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. As long as this weapon is within your reach and you are attuned to it, you and allies within 30ft of you have Advantage on Initiative Rolls."
+        ),
+        "activation": [],
+        "duration": [],
+        "charges": None,
+        "recharge": [],
+        "variations": [
+            {"base_item": "Battleaxe", "name": "Battleaxe of Warning"},
+            {"base_item": "Club", "name": "Club of Warning"},
+            {"base_item": "Dagger", "name": "Dagger of Warning"},
+            {"base_item": "Flail", "name": "Flail of Warning"},
+            {"base_item": "Glaive", "name": "Glaive of Warning"},
+            {"base_item": "Greataxe", "name": "Greataxe of Warning"},
+            {"base_item": "Greatclub", "name": "Greatclub of Warning"},
+            {"base_item": "Greatsword", "name": "Greatsword of Warning"},
+            {"base_item": "Halberd", "name": "Halberd of Warning"},
+            {"base_item": "Hand Crossbow", "name": "Hand Crossbow of Warning"},
+            {"base_item": "Handaxe", "name": "Handaxe of Warning"},
+            {"base_item": "Heavy Crossbow", "name": "Heavy Crossbow of Warning"},
+            {"base_item": "Javelin", "name": "Javelin of Warning"},
+            {"base_item": "Lance", "name": "Lance of Warning"},
+            {"base_item": "Light Crossbow", "name": "Light Crossbow of Warning"},
+            {"base_item": "Light Hammer", "name": "Light Hammer of Warning"},
+            {"base_item": "Longbow", "name": "Longbow of Warning"},
+            {"base_item": "Longsword", "name": "Longsword of Warning"},
+            {"base_item": "Mace", "name": "Mace of Warning"},
+            {"base_item": "Maul", "name": "Maul of Warning"},
+            {"base_item": "Morningstar", "name": "Morningstar of Warning"},
+            {"base_item": "Musket", "name": "Musket of Warning"},
+            {"base_item": "Pike", "name": "Pike of Warning"},
+            {"base_item": "Pistol", "name": "Pistol of Warning"},
+            {"base_item": "Quarterstaff", "name": "Quarterstaff of Warning"},
+            {"base_item": "Rapier", "name": "Rapier of Warning"},
+            {"base_item": "Scimitar", "name": "Scimitar of Warning"},
+            {"base_item": "Shortbow", "name": "Shortbow of Warning"},
+            {"base_item": "Shortsword", "name": "Shortsword of Warning"},
+            {"base_item": "Sickle", "name": "Sickle of Warning"},
+            {"base_item": "Sling", "name": "Sling of Warning"},
+            {"base_item": "Spear", "name": "Spear of Warning"},
+            {"base_item": "Staff", "name": "Staff of Warning"},
+            {"base_item": "Trident", "name": "Trident of Warning"},
+            {"base_item": "War Pick", "name": "War Pick of Warning"},
+            {"base_item": "Warhammer", "name": "Warhammer of Warning"},
+            {"base_item": "Whip", "name": "Whip of Warning"}
+        ],
+        "notes": None,
+    },
+    "Weapon +1": {
+        "name": "Weapon +1",
+        "type": "Weapon",
+        "rarity": "Uncommon",
+        "attunement": False,
+        "effect": (
+            "You have a +1 bonus to Attack and Damage Rolls made with this magic weapon."
+        ),
+        "activation": [],
+        "duration": [],
+        "charges": None,
+        "recharge": [],
+        "variations": [
+            {"base_item": "Battleaxe", "name": "Battleaxe +1"},
+            {"base_item": "Club", "name": "Club +1"},
+            {"base_item": "Dagger", "name": "Dagger +1"},
+            {"base_item": "Flail", "name": "Flail +1"},
+            {"base_item": "Glaive", "name": "Glaive +1"},
+            {"base_item": "Greataxe", "name": "Greataxe +1"},
+            {"base_item": "Greatclub", "name": "Greatclub +1"},
+            {"base_item": "Greatsword", "name": "Greatsword +1"},
+            {"base_item": "Halberd", "name": "Halberd +1"},
+            {"base_item": "Hand Crossbow", "name": "Hand Crossbow +1"},
+            {"base_item": "Handaxe", "name": "Handaxe +1"},
+            {"base_item": "Heavy Crossbow", "name": "Heavy Crossbow +1"},
+            {"base_item": "Javelin", "name": "Javelin +1"},
+            {"base_item": "Lance", "name": "Lance +1"},
+            {"base_item": "Light Crossbow", "name": "Light Crossbow +1"},
+            {"base_item": "Light Hammer", "name": "Light Hammer +1"},
+            {"base_item": "Longbow", "name": "Longbow +1"},
+            {"base_item": "Longsword", "name": "Longsword +1"},
+            {"base_item": "Mace", "name": "Mace +1"},
+            {"base_item": "Maul", "name": "Maul +1"},
+            {"base_item": "Morningstar", "name": "Morningstar +1"},
+            {"base_item": "Musket", "name": "Musket +1"},
+            {"base_item": "Pike", "name": "Pike +1"},
+            {"base_item": "Pistol", "name": "Pistol +1"},
+            {"base_item": "Quarterstaff", "name": "Quarterstaff +1"},
+            {"base_item": "Rapier", "name": "Rapier +1"},
+            {"base_item": "Scimitar", "name": "Scimitar +1"},
+            {"base_item": "Shortbow", "name": "Shortbow +1"},
+            {"base_item": "Shortsword", "name": "Shortsword +1"},
+            {"base_item": "Sickle", "name": "Sickle +1"},
+            {"base_item": "Sling", "name": "Sling +1"},
+            {"base_item": "Spear", "name": "Spear +1"},
+            {"base_item": "Staff", "name": "Staff +1"},
+            {"base_item": "Trident", "name": "Trident +1"},
+            {"base_item": "War Pick", "name": "War Pick +1"},
+            {"base_item": "Warhammer", "name": "Warhammer +1"},
+            {"base_item": "Whip", "name": "Whip +1"}
+        ],
+        "notes": None,
+    },
+    "Armor of Resistance": {
+        "name": "Armor of Resistance",
+        "type": "Armor",
+        "rarity": "Rare",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. You have Resistance to one type of damage while you wear this armor."
+        ),
+        "activation": ["Equip"],
+        "duration": ["Passive"],
+        "charges": None,
+        "recharge": [],
+        "variations": [
+            {"base_item": "Breastplate", "name": "Breastplate of Acid Resistance"},
+            {"base_item": "Breastplate", "name": "Breastplate of Cold Resistance"},
+            {"base_item": "Breastplate", "name": "Breastplate of Fire Resistance"},
+            {"base_item": "Breastplate", "name": "Breastplate of Force Resistance"},
+            {"base_item": "Breastplate", "name": "Breastplate of Lightning Resistance"},
+            {"base_item": "Breastplate", "name": "Breastplate of Necrotic Resistance"},
+            {"base_item": "Breastplate", "name": "Breastplate of Poison Resistance"},
+            {"base_item": "Breastplate", "name": "Breastplate of Psychic Resistance"},
+            {"base_item": "Breastplate", "name": "Breastplate of Radiant Resistance"},
+            {"base_item": "Breastplate", "name": "Breastplate of Thunder Resistance"},
+            {"base_item": "Chain Mail", "name": "Chain Mail of Acid Resistance"},
+            {"base_item": "Chain Mail", "name": "Chain Mail of Cold Resistance"},
+            {"base_item": "Chain Mail", "name": "Chain Mail of Fire Resistance"},
+            {"base_item": "Chain Mail", "name": "Chain Mail of Force Resistance"},
+            {"base_item": "Chain Mail", "name": "Chain Mail of Lightning Resistance"},
+            {"base_item": "Chain Mail", "name": "Chain Mail of Necrotic Resistance"},
+            {"base_item": "Chain Mail", "name": "Chain Mail of Poison Resistance"},
+            {"base_item": "Chain Mail", "name": "Chain Mail of Psychic Resistance"},
+            {"base_item": "Chain Mail", "name": "Chain Mail of Radiant Resistance"},
+            {"base_item": "Chain Mail", "name": "Chain Mail of Thunder Resistance"},
+            {"base_item": "Chain Shirt", "name": "Chain Shirt of Acid Resistance"},
+            {"base_item": "Chain Shirt", "name": "Chain Shirt of Cold Resistance"},
+            {"base_item": "Chain Shirt", "name": "Chain Shirt of Fire Resistance"},
+            {"base_item": "Chain Shirt", "name": "Chain Shirt of Force Resistance"},
+            {"base_item": "Chain Shirt", "name": "Chain Shirt of Lightning Resistance"},
+            {"base_item": "Chain Shirt", "name": "Chain Shirt of Necrotic Resistance"},
+            {"base_item": "Chain Shirt", "name": "Chain Shirt of Poison Resistance"},
+            {"base_item": "Chain Shirt", "name": "Chain Shirt of Psychic Resistance"},
+            {"base_item": "Chain Shirt", "name": "Chain Shirt of Radiant Resistance"},
+            {"base_item": "Chain Shirt", "name": "Chain Shirt of Thunder Resistance"},
+            {"base_item": "Half Plate Armor", "name": "Half Plate Armor of Acid Resistance"},
+            {"base_item": "Half Plate Armor", "name": "Half Plate Armor of Cold Resistance"},
+            {"base_item": "Half Plate Armor", "name": "Half Plate Armor of Fire Resistance"},
+            {"base_item": "Half Plate Armor", "name": "Half Plate Armor of Force Resistance"},
+            {"base_item": "Half Plate Armor", "name": "Half Plate Armor of Lightning Resistance"},
+            {"base_item": "Half Plate Armor", "name": "Half Plate Armor of Necrotic Resistance"},
+            {"base_item": "Half Plate Armor", "name": "Half Plate Armor of Poison Resistance"},
+            {"base_item": "Half Plate Armor", "name": "Half Plate Armor of Psychic Resistance"},
+            {"base_item": "Half Plate Armor", "name": "Half Plate Armor of Radiant Resistance"},
+            {"base_item": "Half Plate Armor", "name": "Half Plate Armor of Thunder Resistance"},
+            {"base_item": "Hide Armor", "name": "Hide Armor of Acid Resistance"},
+            {"base_item": "Hide Armor", "name": "Hide Armor of Cold Resistance"},
+            {"base_item": "Hide Armor", "name": "Hide Armor of Fire Resistance"},
+            {"base_item": "Hide Armor", "name": "Hide Armor of Force Resistance"},
+            {"base_item": "Hide Armor", "name": "Hide Armor of Lightning Resistance"},
+            {"base_item": "Hide Armor", "name": "Hide Armor of Necrotic Resistance"},
+            {"base_item": "Hide Armor", "name": "Hide Armor of Poison Resistance"},
+            {"base_item": "Hide Armor", "name": "Hide Armor of Psychic Resistance"},
+            {"base_item": "Hide Armor", "name": "Hide Armor of Radiant Resistance"},
+            {"base_item": "Hide Armor", "name": "Hide Armor of Thunder Resistance"},
+            {"base_item": "Leather Armor", "name": "Leather Armor of Acid Resistance"},
+            {"base_item": "Leather Armor", "name": "Leather Armor of Cold Resistance"},
+            {"base_item": "Leather Armor", "name": "Leather Armor of Fire Resistance"},
+            {"base_item": "Leather Armor", "name": "Leather Armor of Force Resistance"},
+            {"base_item": "Leather Armor", "name": "Leather Armor of Lightning Resistance"},
+            {"base_item": "Leather Armor", "name": "Leather Armor of Necrotic Resistance"},
+            {"base_item": "Leather Armor", "name": "Leather Armor of Poison Resistance"},
+            {"base_item": "Leather Armor", "name": "Leather Armor of Psychic Resistance"},
+            {"base_item": "Leather Armor", "name": "Leather Armor of Radiant Resistance"},
+            {"base_item": "Leather Armor", "name": "Leather Armor of Thunder Resistance"},
+            {"base_item": "Padded Armor", "name": "Padded Armor of Acid Resistance"},
+            {"base_item": "Padded Armor", "name": "Padded Armor of Cold Resistance"},
+            {"base_item": "Padded Armor", "name": "Padded Armor of Fire Resistance"},
+            {"base_item": "Padded Armor", "name": "Padded Armor of Force Resistance"},
+            {"base_item": "Padded Armor", "name": "Padded Armor of Lightning Resistance"},
+            {"base_item": "Padded Armor", "name": "Padded Armor of Necrotic Resistance"},
+            {"base_item": "Padded Armor", "name": "Padded Armor of Poison Resistance"},
+            {"base_item": "Padded Armor", "name": "Padded Armor of Psychic Resistance"},
+            {"base_item": "Padded Armor", "name": "Padded Armor of Radiant Resistance"},
+            {"base_item": "Padded Armor", "name": "Padded Armor of Thunder Resistance"},
+            {"base_item": "Plate Armor", "name": "Plate Armor of Acid Resistance"},
+            {"base_item": "Plate Armor", "name": "Plate Armor of Cold Resistance"},
+            {"base_item": "Plate Armor", "name": "Plate Armor of Fire Resistance"},
+            {"base_item": "Plate Armor", "name": "Plate Armor of Force Resistance"},
+            {"base_item": "Plate Armor", "name": "Plate Armor of Lightning Resistance"},
+            {"base_item": "Plate Armor", "name": "Plate Armor of Necrotic Resistance"},
+            {"base_item": "Plate Armor", "name": "Plate Armor of Poison Resistance"},
+            {"base_item": "Plate Armor", "name": "Plate Armor of Psychic Resistance"},
+            {"base_item": "Plate Armor", "name": "Plate Armor of Radiant Resistance"},
+            {"base_item": "Plate Armor", "name": "Plate Armor of Thunder Resistance"},
+            {"base_item": "Ring Mail", "name": "Ring Mail of Acid Resistance"},
+            {"base_item": "Ring Mail", "name": "Ring Mail of Cold Resistance"},
+            {"base_item": "Ring Mail", "name": "Ring Mail of Fire Resistance"},
+            {"base_item": "Ring Mail", "name": "Ring Mail of Force Resistance"},
+            {"base_item": "Ring Mail", "name": "Ring Mail of Lightning Resistance"},
+            {"base_item": "Ring Mail", "name": "Ring Mail of Necrotic Resistance"},
+            {"base_item": "Ring Mail", "name": "Ring Mail of Poison Resistance"},
+            {"base_item": "Ring Mail", "name": "Ring Mail of Psychic Resistance"},
+            {"base_item": "Ring Mail", "name": "Ring Mail of Radiant Resistance"},
+            {"base_item": "Ring Mail", "name": "Ring Mail of Thunder Resistance"},
+            {"base_item": "Scale Mail", "name": "Scale Mail of Acid Resistance"},
+            {"base_item": "Scale Mail", "name": "Scale Mail of Cold Resistance"},
+            {"base_item": "Scale Mail", "name": "Scale Mail of Fire Resistance"},
+            {"base_item": "Scale Mail", "name": "Scale Mail of Force Resistance"},
+            {"base_item": "Scale Mail", "name": "Scale Mail of Lightning Resistance"},
+            {"base_item": "Scale Mail", "name": "Scale Mail of Necrotic Resistance"},
+            {"base_item": "Scale Mail", "name": "Scale Mail of Poison Resistance"},
+            {"base_item": "Scale Mail", "name": "Scale Mail of Psychic Resistance"},
+            {"base_item": "Scale Mail", "name": "Scale Mail of Radiant Resistance"},
+            {"base_item": "Scale Mail", "name": "Scale Mail of Thunder Resistance"},
+            {"base_item": "Splint Armor", "name": "Splint Armor of Acid Resistance"},
+            {"base_item": "Splint Armor", "name": "Splint Armor of Cold Resistance"},
+            {"base_item": "Splint Armor", "name": "Splint Armor of Fire Resistance"},
+            {"base_item": "Splint Armor", "name": "Splint Armor of Force Resistance"},
+            {"base_item": "Splint Armor", "name": "Splint Armor of Lightning Resistance"},
+            {"base_item": "Splint Armor", "name": "Splint Armor of Necrotic Resistance"},
+            {"base_item": "Splint Armor", "name": "Splint Armor of Poison Resistance"},
+            {"base_item": "Splint Armor", "name": "Splint Armor of Psychic Resistance"},
+            {"base_item": "Splint Armor", "name": "Splint Armor of Radiant Resistance"},
+            {"base_item": "Splint Armor", "name": "Splint Armor of Thunder Resistance"},
+            {"base_item": "Studded Leather Armor", "name": "Studded Leather Armor of Acid Resistance"},
+            {"base_item": "Studded Leather Armor", "name": "Studded Leather Armor of Cold Resistance"},
+            {"base_item": "Studded Leather Armor", "name": "Studded Leather Armor of Fire Resistance"},
+            {"base_item": "Studded Leather Armor", "name": "Studded Leather Armor of Force Resistance"},
+            {"base_item": "Studded Leather Armor", "name": "Studded Leather Armor of Lightning Resistance"},
+            {"base_item": "Studded Leather Armor", "name": "Studded Leather Armor of Necrotic Resistance"},
+            {"base_item": "Studded Leather Armor", "name": "Studded Leather Armor of Poison Resistance"},
+            {"base_item": "Studded Leather Armor", "name": "Studded Leather Armor of Psychic Resistance"},
+            {"base_item": "Studded Leather Armor", "name": "Studded Leather Armor of Radiant Resistance"},
+            {"base_item": "Studded Leather Armor", "name": "Studded Leather Armor of Thunder Resistance"},
+        ],
+        "notes": None,
+    },
+    "Armor of Vulnerability": {
+        "name": "Armor of Vulnerability",
+        "type": "Armor",
+        "rarity": "Rare",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. This item can have different variations: Bludgeoning, Piercing, Slashing. While wearing this armor, you have Resistance to the chosen damage. Curse. This armor is cursed, a fact that is revealed only when the Identify spell is cast on the armor or you attune to it. Attuning to the armor curses you until you are targeted by a Remove Curse spell or similar magic; removing the armor fails to end the curse. While cursed, you have Vulnerability to the other two types of damage."
+        ),
+        "activation": ["Equip"],
+        "duration": ["Passive"],
+        "charges": None,
+        "recharge": [],
+        "variations": [
+            {"base_item": "Breastplate", "name": "Breastplate of Bludgeoning Vulnerability"},
+            {"base_item": "Breastplate", "name": "Breastplate of Piercing Vulnerability"},
+            {"base_item": "Breastplate", "name": "Breastplate of Slashing Vulnerability"},
+            {"base_item": "Chain Mail", "name": "Chain Mail of Bludgeoning Vulnerability"},
+            {"base_item": "Chain Mail", "name": "Chain Mail of Piercing Vulnerability"},
+            {"base_item": "Chain Mail", "name": "Chain Mail of Slashing Vulnerability"},
+            {"base_item": "Chain Shirt", "name": "Chain Shirt of Bludgeoning Vulnerability"},
+            {"base_item": "Chain Shirt", "name": "Chain Shirt of Piercing Vulnerability"},
+            {"base_item": "Chain Shirt", "name": "Chain Shirt of Slashing Vulnerability"},
+            {"base_item": "Half Plate Armor", "name": "Half Plate Armor of Bludgeoning Vulnerability"},
+            {"base_item": "Half Plate Armor", "name": "Half Plate Armor of Piercing Vulnerability"},
+            {"base_item": "Half Plate Armor", "name": "Half Plate Armor of Slashing Vulnerability"},
+            {"base_item": "Hide Armor", "name": "Hide Armor of Bludgeoning Vulnerability"},
+            {"base_item": "Hide Armor", "name": "Hide Armor of Piercing Vulnerability"},
+            {"base_item": "Hide Armor", "name": "Hide Armor of Slashing Vulnerability"},
+            {"base_item": "Leather Armor", "name": "Leather Armor of Bludgeoning Vulnerability"},
+            {"base_item": "Leather Armor", "name": "Leather Armor of Piercing Vulnerability"},
+            {"base_item": "Leather Armor", "name": "Leather Armor of Slashing Vulnerability"},
+            {"base_item": "Padded Armor", "name": "Padded Armor of Bludgeoning Vulnerability"},
+            {"base_item": "Padded Armor", "name": "Padded Armor of Piercing Vulnerability"},
+            {"base_item": "Padded Armor", "name": "Padded Armor of Slashing Vulnerability"},
+            {"base_item": "Plate Armor", "name": "Plate Armor of Bludgeoning Vulnerability"},
+            {"base_item": "Plate Armor", "name": "Plate Armor of Piercing Vulnerability"},
+            {"base_item": "Plate Armor", "name": "Plate Armor of Slashing Vulnerability"},
+            {"base_item": "Ring Mail", "name": "Ring Mail of Bludgeoning Vulnerability"},
+            {"base_item": "Ring Mail", "name": "Ring Mail of Piercing Vulnerability"},
+            {"base_item": "Ring Mail", "name": "Ring Mail of Slashing Vulnerability"},
+            {"base_item": "Scale Mail", "name": "Scale Mail of Bludgeoning Vulnerability"},
+            {"base_item": "Scale Mail", "name": "Scale Mail of Piercing Vulnerability"},
+            {"base_item": "Scale Mail", "name": "Scale Mail of Slashing Vulnerability"},
+            {"base_item": "Splint Armor", "name": "Splint Armor of Bludgeoning Vulnerability"},
+            {"base_item": "Splint Armor", "name": "Splint Armor of Piercing Vulnerability"},
+            {"base_item": "Splint Armor", "name": "Splint Armor of Slashing Vulnerability"},
+            {"base_item": "Studded Leather Armor", "name": "Studded Leather Armor of Bludgeoning Vulnerability"},
+            {"base_item": "Studded Leather Armor", "name": "Studded Leather Armor of Piercing Vulnerability"},
+            {"base_item": "Studded Leather Armor", "name": "Studded Leather Armor of Slashing Vulnerability"},
+        ],
+        "notes": None,
+    },
+    "Armor +1": {
+        "name": "Armor +1",
+        "type": "Armor",
+        "rarity": "Rare",
+        "attunement": False,
+        "effect": (
+            "You have a +1 bonus to AC while wearing this armor."
+        ),
+        "activation": ["Equip"],
+        "duration": ["Passive"],
+        "charges": None,
+        "recharge": [],
+        "variations": [
+            {"base_item": "Breastplate", "name": "Breastplate +1"},
+            {"base_item": "Chain Mail", "name": "Chain Mail +1"},
+            {"base_item": "Chain Shirt", "name": "Chain Shirt +1"},
+            {"base_item": "Half Plate Armor", "name": "Half Plate Armor +1"},
+            {"base_item": "Hide Armor", "name": "Hide Armor +1"},
+            {"base_item": "Leather Armor", "name": "Leather Armor +1"},
+            {"base_item": "Padded Armor", "name": "Padded Armor +1"},
+            {"base_item": "Plate Armor", "name": "Plate Armor +1"},
+            {"base_item": "Ring Mail", "name": "Ring Mail +1"},
+            {"base_item": "Scale Mail", "name": "Scale Mail +1"},
+            {"base_item": "Splint Armor", "name": "Splint Armor +1"},
+            {"base_item": "Studded Leather Armor", "name": "Studded Leather Armor +1"}
+        ],
+        "notes": None,
+    },
+    "Enspelled Armor Level 2": {
+        "name": "Enspelled Armor Level 2",
+        "type": "Armor",
+        "rarity": "Rare",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. Bound into this armor is a level 2 spell. The spell is determined when the armor is created and must belong to the Abjuration or Illusion school of magic. The armor has 6 charges and regains 1d6 expended charges and regains 1d6 expended charges after taking a Long Rest. While wearing the armor, you can expend 1 charge to cast its spell. The spell's Saving Throw DC is 13, and its Attack Bonus is +5."
+        ),
+        "activation": ["Equip"],
+        "duration": [],
+        "charges": 6,
+        "recharge": ["Long Rest"],
+        "variations": [
+            {"base_item": "Breastplate", "name": "Enspelled Breastplate Level 2"},
+            {"base_item": "Chain Mail", "name": "Enspelled Chain Mail Level 2"},
+            {"base_item": "Chain Shirt", "name": "Enspelled Chain Shirt Level 2"},
+            {"base_item": "Half Plate Armor", "name": "Enspelled Half Plate Armor Level 2"},
+            {"base_item": "Hide Armor", "name": "Enspelled Hide Armor Level 2"},
+            {"base_item": "Leather Armor", "name": "Enspelled Leather Armor Level 2"},
+            {"base_item": "Padded Armor", "name": "Enspelled Padded Armor Level 2"},
+            {"base_item": "Plate Armor", "name": "Enspelled Plate Armor Level 2"},
+            {"base_item": "Ring Mail", "name": "Enspelled Ring Mail Level 2"},
+            {"base_item": "Scale Mail", "name": "Enspelled Scale Mail Level 2"},
+            {"base_item": "Splint Armor", "name": "Enspelled Splint Armor Level 2"},
+            {"base_item": "Studded Leather Armor", "name": "Enspelled Studded Leather Armor Level 2"}
+        ],
+        "notes": None,
+    },
+    "Enspelled Armor Level 3": {
+        "name": "Enspelled Armor Level 3",
+        "type": "Armor",
+        "rarity": "Rare",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. Bound into this armor is a level 3 spell. The spell is determined when the armor is created and must belong to the Abjuration or Illusion school of magic. The armor has 6 charges and regains 1d6 expended charges after taking a Long Rest. While wearing the armor, you can expend 1 charge to cast its spell. The spell's Saving Throw DC is 15, and its Attack Bonus is +7."
+        ),
+        "activation": ["Equip"],
+        "duration": [],
+        "charges": 6,
+        "recharge": ["Long Rest"],
+        "variations": [
+            {"base_item": "Breastplate", "name": "Enspelled Breastplate Level 3"},
+            {"base_item": "Chain Mail", "name": "Enspelled Chain Mail Level 3"},
+            {"base_item": "Chain Shirt", "name": "Enspelled Chain Shirt Level 3"},
+            {"base_item": "Half Plate Armor", "name": "Enspelled Half Plate Armor Level 3"},
+            {"base_item": "Hide Armor", "name": "Enspelled Hide Armor Level 3"},
+            {"base_item": "Leather Armor", "name": "Enspelled Leather Armor Level 3"},
+            {"base_item": "Padded Armor", "name": "Enspelled Padded Armor Level 3"},
+            {"base_item": "Plate Armor", "name": "Enspelled Plate Armor Level 3"},
+            {"base_item": "Ring Mail", "name": "Enspelled Ring Mail Level 3"},
+            {"base_item": "Scale Mail", "name": "Enspelled Scale Mail Level 3"},
+            {"base_item": "Splint Armor", "name": "Enspelled Splint Armor Level 3"},
+            {"base_item": "Studded Leather Armor", "name": "Enspelled Studded Leather Armor Level 3"}
+        ],
+        "notes": None,
+    },
+    "Arrow-catching Shield": {
+        "name": "Arrow-catching Shield",
+        "type": "Armor",
+        "rarity": "Rare",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. You gain a +2 bonus to AC against Ranged Attack Rolls while you wield this Shield. This bonus is in addition to the Shield's normal bonus to AC. Whenever an attacker makes a Ranged Attack Roll against a target within 5ft of you, you can take a Reaction to become the target of the attack instead."
+        ),
+        "activation": ["Equip"],
+        "duration": ["Passive"],
+        "charges": None,
+        "recharge": [],
+        "notes": None,
+    },
+    "Elven Chain": {
+        "name": "Elven Chain",
+        "type": "Armor",
+        "rarity": "Rare",
+        "attunement": False,
+        "effect": (
+            "You gain a +1 bonus to AC while you wear this armor. You are considered trained with this armor even if you lack training with Medium or Heavy armor."
+        ),
+        "activation": ["Equip"],
+        "duration": ["Passive"],
+        "charges": None,
+        "recharge": [],
+        "variations": [
+            {"base_item": "Chain Mail", "name": "Elven Chain Mail"},
+            {"base_item": "Chain Shirt", "name": "Elven Chain Shirt"}
+        ],
+        "notes": None,
+    },
+    "Glamoured Studded Leather": {
+        "name": "Glamoured Studded Leather",
+        "type": "Armor",
+        "rarity": "Rare",
+        "attunement": False,
+        "effect": (
+            "While wearing this armor, you gain a +1 bonus to AC. You can also take a Bonus Action to cause the armor to assume the appearance of a normal set of clothing or some other kind of armor. You decide what it looks like, including color, style, and accessories, but the armor retains its normal bulk and weight. The illusory appearance lasts until you use this property again or doff the armor. Presence of Glamour: While wearing this armor, the first creature you force to make a Charisma Saving Throw during each of your turns does so with Disadvantage."
+        ),
+        "activation": ["Equip", "Bonus Action"],
+        "duration": ["Passive"],
+        "charges": None,
+        "recharge": [],
+        "notes": None,
+    },
+    "Shield of Missile Attraction": {
+        "name": "Shield of Missile Attraction",
+        "type": "Armor",
+        "rarity": "Rare",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. While holding this Shield, you have Resistance to damage from attacks made with Ranged weapons. Curse. This Shield is cursed. Attuning to it curses you until you are targeted by a Remove Curse spell or similar magic. Removing the Shield fails to end the curse on you. Whenever an attack with a Ranged weapon targets a creature within 10ft of you, the curse causes you to become the target instead."
+        ),
+        "activation": ["Equip"],
+        "duration": ["Passive"],
+        "charges": None,
+        "recharge": [],
+        "notes": None,
+    },
+    "Shield +2": {
+        "name": "Shield +2",
+        "type": "Armor",
+        "rarity": "Rare",
+        "attunement": False,
+        "effect": (
+            "While holding this shield, you have a +2 bonus to AC. This bonus is in addition to the shield's normal bonus to AC."
+        ),
+        "activation": ["Equip"],
+        "duration": ["Passive"],
+        "charges": None,
+        "recharge": [],
+        "notes": None,
+    },
+    "Elixir of Health": {
+        "name": "Elixir of Health",
+        "type": "Potion",
+        "rarity": "Rare",
+        "attunement": False,
+        "effect": (
+            "When you drink this potion, you are cured of all magical contagions. In addition, the following conditions end on you: Blinded, Deafened, Paralyzed, and Poisoned. The clear, red liquid has tiny bubbles of light in it."
+        ),
+        "activation": ["Bonus Action"],
+        "duration": ["Instantaneous"],
+        "charges": None,
+        "recharge": [],
+        "notes": None,
+    },
+    "Oil of Etherealness": {
+        "name": "Oil of Etherealness",
+        "type": "Potion",
+        "rarity": "Rare",
+        "attunement": False,
+        "effect": (
+            "One vial of this oil can cover one Medium or smaller creature, along with the equipment it's wearing and carrying (one additional vial is required for each size category above Medium). You can apply the Oil of Etherealness when taking either a Short or Long Rest. The affected creature then gains the effect of the Etherealness spell for the next Encounter. Beads of this cloudy, gray oil form on the outside of its container and quickly evaporate."
+        ),
+        "activation": ["Short Rest", "Long Rest"],
+        "duration": ["End of Encounter"],
+        "charges": None,
+        "recharge": [],
+        "notes": None,
+    },
+    "Potion of Diminution": {
+        "name": "Potion of Diminution",
+        "type": "Potion",
+        "rarity": "Rare",
+        "attunement": False,
+        "effect": (
+            "When you drink this potion, you gain the 'Reduce' effect of the Enlarge/Reduce spell for the rest of the current Encounter (no Concentration required). The red in the potion's liquid continuously contracts to a tiny bead and then expands to color the clear liquid around it. Shaking the bottle fails to interrupt this process."
+        ),
+        "activation": ["Bonus Action"],
+        "duration": ["End of Encounter"],
+        "charges": None,
+        "recharge": [],
+        "notes": None,
+    },
+    "Potion of Fire Giant Strength": {
+        "name": "Potion of Fire Giant Strength",
+        "type": "Potion",
+        "rarity": "Rare",
+        "attunement": False,
+        "effect": (
+            "When you drink this potion, your Strength score changes to 25 for the rest of the current Encounter. The potion has no effect on you if your Strength is equal to or greater than that score. This potion's transparent liquid has floating in it a sliver of fingernail from a fire giant."
+        ),
+        "activation": ["Bonus Action"],
+        "duration": ["End of Encounter"],
+        "charges": None,
+        "recharge": [],
+        "notes": None,
+    },
+    "Potion of Frost Giant Strength": {
+        "name": "Potion of Frost Giant Strength",
+        "type": "Potion",
+        "rarity": "Rare",
+        "attunement": False,
+        "effect": (
+            "When you drink this potion, your Strength score changes to 23 for the rest of the current Encounter. The potion has no effect on you if your Strength is equal to or greater than that score. This potion's transparent liquid has floating in it a sliver of fingernail from a frost giant."
+        ),
+        "activation": ["Bonus Action"],
+        "duration": ["End of Encounter"],
+        "charges": None,
+        "recharge": [],
+        "notes": None,
+    },
+    "Potion of Gaseous Form": {
+        "name": "Potion of Gaseous Form",
+        "type": "Potion",
+        "rarity": "Rare",
+        "attunement": False,
+        "effect": (
+            "When you drink this potion, you gain the effect of the Gaseous Form spell for the rest of the current Encounter (no Concentration required) or until you end the effect as a Bonus Action. This potion's container seems to hold fog that moves and pours like water."
+        ),
+        "activation": ["Bonus Action"],
+        "duration": ["End of Encounter"],
+        "charges": None,
+        "recharge": [],
+        "notes": None,
+    },
+    "Potion of Heroism": {
+        "name": "Potion of Heroism",
+        "type": "Potion",
+        "rarity": "Rare",
+        "attunement": False,
+        "effect": (
+            "When you drink this potion, you gain 10 Temporary Hit Points that last for the rest of the current Encounter. For the same duration, you are under the effect of the Bless spell (no Concentration required). This potion's blue liquid bubbles and steams as if boiling."
+        ),
+        "activation": ["Bonus Action"],
+        "duration": ["End of Encounter"],
+        "charges": None,
+        "recharge": [],
+        "notes": None,
+    },
+    "Potion of Invisibility": {
+        "name": "Potion of Invisibility",
+        "type": "Potion",
+        "rarity": "Rare",
+        "attunement": False,
+        "effect": (
+            "This potion's container looks empty but feels as though it holds liquid. When you drink the potion, you have the Invisible condition for the rest of the current Encounter. The effect ends early if you make an Attack Roll, deal damage, or cast a spell."
+        ),
+        "activation": ["Bonus Action"],
+        "duration": ["End of Encounter"],
+        "charges": None,
+        "recharge": [],
+        "notes": None,
+    },
+    "Potion of Invulnerability": {
+        "name": "Potion of Invulnerability",
+        "type": "Potion",
+        "rarity": "Rare",
+        "attunement": False,
+        "effect": (
+            "For the rest of the current Encounter after you drink this potion, you have Resistance to all damage. This potion's syrupy liquid looks like liquefied iron."
+        ),
+        "activation": ["Bonus Action"],
+        "duration": ["End of Encounter"],
+        "charges": None,
+        "recharge": [],
+        "notes": None,
+    },
+    "Potion of Mind Reading": {
+        "name": "Potion of Mind Reading",
+        "type": "Potion",
+        "rarity": "Rare",
+        "attunement": False,
+        "effect": (
+            "When you drink this potion, you gain the effect of the Detect Thoughts spell (save DC 13) for the rest of the current Encounter (no Concentration required). This potion's dense, purple liquid has an ovoid cloud of pink floating in it. Once per Round, when you are targeting a creature with Detect Thoughts and that creature targets you with an attack, ability, or harmful effect, you may use your Reaction to predict their Action. When you do, you gain the benefits of the Dodge Action against that specific creature's effect only (until the start of your next turn). If multiple enemies act simultaneously, this benefit applies only to the first valid trigger. This ability is only available if you're currently maintaining Detect Thoughts on that creature."
+        ),
+        "activation": ["Bonus Action"],
+        "duration": ["End of Encounter"],
+        "charges": None,
+        "recharge": [],
+        "notes": None,
+    },
+    "Potion of Stone Giant Strength": {
+        "name": "Potion of Stone Giant Strength",
+        "type": "Potion",
+        "rarity": "Rare",
+        "attunement": False,
+        "effect": (
+            "When you drink this potion, your Strength score changes to 23 for the rest of the current Encounter. The potion has no effect on you if your Strength is equal to or greater than that score. This potion's transparent liquid has floating in it a sliver of fingernail from a stone giant."
+        ),
+        "activation": ["Bonus Action"],
+        "duration": ["End of Encounter"],
+        "charges": None,
+        "recharge": [],
+        "notes": None,
+    },
+    "Potion of Superior Healing": {
+        "name": "Potion of Superior Healing",
+        "type": "Potion",
+        "rarity": "Rare",
+        "attunement": False,
+        "effect": (
+            "You regain 8d4 + 8 Hit Points when you drink this potion. The potion's red liquid glimmers when agitated."
+        ),
+        "activation": ["Bonus Action"],
+        "duration": ["Instantaneous"],
+        "charges": None,
+        "recharge": [],
+        "notes": None,
+    },
+    "Predator's Eye Band": {
+        "name": "Predator's Eye Band",
+        "type": "Ring",
+        "rarity": "Rare",
+        "attunement": True,
+        "effect": (
+            "Requires attunement by a Ranger. While attuned to this ring, you have the following benefits: Relentless Focus. When you cast Hunter's Mark, you can focus the Concentration needed for the spell into this ring, allowing you to Concentrate on other spells. While this ring holds Concentration, you have Advantage on all Concentration checks to maintain it. Additionally, while stored this way, you can Concentrate on one other Ranger spell at the same time without breaking the ring's Hunter's Mark. Savage Overcharge. When you cast Hunter's Mark using a spell slot of level 2 or higher, you can apply one of these effects: Hunter Precision. As long as you have your Hunter's Mark on a creature, you are able to discern the most vulnerable spot of that creature. The extra damage granted by Hunter's Mark increases by 1d6 for each spell slot level above 1, but can only be applied once per turn. Unveiling Eyes. As long as you have your Hunter's Mark on a creature, your eyes mutate to be able to see that creature no matter what. Creatures that are affected by Hunter's Mark do not gain any benefit from any effect that hide their presence or impose Disadvantage to hit them."
+        ),
+        "activation": ["Equip"],
+        "duration": ["Passive"],
+        "charges": None,
+        "recharge": [],
+        "notes": None,
+    },
+    "Ring of Animal Influence": {
+        "name": "Ring of Animal Influence",
+        "type": "Ring",
+        "rarity": "Rare",
+        "attunement": False,
+        "effect": (
+            "This ring has 3 charges, and it regains 1d3 expended charges after taking a Long Rest. While wearing this ring, you can expend 1 charge to cast one of the following spells (Save DC 13) from it: Animal Friendship - Fear (affects Beasts and Monstrosities only) - Speak with Animals. As a Bonus Action, you can expend 1 charge to channel the wild force within the ring. Until the start of your next turn: All Beasts and Monstrosities within 30ft of you must succeed on a Wisdom Saving Throw (DC 13) or become Frightened of you until the end of their next turn. If no valid creature type is nearby, instead gain Advantage on your next Intimidation or Animal Handling check, or add +2 damage to the next weapon attack you make before the end of your next turn."
+        ),
+        "activation": ["Equip", "Bonus Action"],
+        "duration": ["Start of Your Next Turn"],
+        "charges": 3,
+        "recharge": ["Long Rest"],
+        "notes": None,
+    },
+    "Ring of Evasion": {
+        "name": "Ring of Evasion",
+        "type": "Ring",
+        "rarity": "Rare",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. This ring has 3 charges, and it regains 1d3 expended charges after taking a Long Rest. When you fail a Dexterity Saving Throw while wearing the ring, you can take a Reaction to expend 1 charge to succeed on that save instead."
+        ),
+        "activation": ["Equip", "Reaction"],
+        "duration": ["Passive"],
+        "charges": 3,
+        "recharge": ["Long Rest"],
+        "notes": None,
+    },
+    "Ring of Feather Falling": {
+        "name": "Ring of Feather Falling",
+        "type": "Ring",
+        "rarity": "Rare",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. When you fall while wearing this ring, you descend 60ft per Round and take no damage from falling."
+        ),
+        "activation": ["Equip"],
+        "duration": ["Passive"],
+        "charges": None,
+        "recharge": [],
+        "notes": None,
+    },
+    "Ring of Free Action": {
+        "name": "Ring of Free Action",
+        "type": "Ring",
+        "rarity": "Rare",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. While you wear this ring, Difficult Terrain doesn't cost you extra movement. In addition, magic can neither reduce any of your Speeds nor cause you to have the Paralyzed or Restrained condition."
+        ),
+        "activation": ["Equip"],
+        "duration": ["Passive"],
+        "charges": None,
+        "recharge": [],
+        "notes": None,
+    },
+    "Ring of Protection": {
+        "name": "Ring of Protection",
+        "type": "Ring",
+        "rarity": "Rare",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. You gain a +1 bonus to AC and Saving Throws while wearing this ring."
+        ),
+        "activation": ["Equip"],
+        "duration": ["Passive"],
+        "charges": None,
+        "recharge": [],
+        "notes": None,
+    },
+    "Ring of Resistance": {
+        "name": "Ring of Resistance",
+        "type": "Ring",
+        "rarity": "Rare",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. You have Resistance to one damage type while wearing this ring."
+        ),
+        "activation": ["Equip"],
+        "duration": ["Passive"],
+        "charges": None,
+        "recharge": [],
+        "variations": [
+            {"base_item": "Ring of Resistance", "name": "Ring of Acid Resistance"},
+            {"base_item": "Ring of Resistance", "name": "Ring of Cold Resistance"},
+            {"base_item": "Ring of Resistance", "name": "Ring of Fire Resistance"},
+            {"base_item": "Ring of Resistance", "name": "Ring of Force Resistance"},
+            {"base_item": "Ring of Resistance", "name": "Ring of Lightning Resistance"},
+            {"base_item": "Ring of Resistance", "name": "Ring of Necrotic Resistance"},
+            {"base_item": "Ring of Resistance", "name": "Ring of Poison Resistance"},
+            {"base_item": "Ring of Resistance", "name": "Ring of Psychic Resistance"},
+            {"base_item": "Ring of Resistance", "name": "Ring of Radiant Resistance"},
+            {"base_item": "Ring of Resistance", "name": "Ring of Thunder Resistance"}
+        ],
+        "notes": None,
+    },
+    "Ring of Spell Storing": {
+        "name": "Ring of Spell Storing",
+        "type": "Ring",
+        "rarity": "Rare",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. This ring stores spells cast into it, holding them until the attuned wearer uses them. The ring can store up to 5 levels worth of spells at a time. When found, it contains 1d6 - 1 levels of stored spells chosen by the DM. Any creature can cast a spell of level 1 through 5 into the ring by touching the ring as the spell is cast. The spell has no effect other than to be stored in the ring. If the ring can't hold the spell, the spell is expended without effect. The level of the slot used to cast the spell determines how much space it uses. While wearing this ring, you can cast any spell stored in it. The spell uses the slot level, spell save DC, spell attack bonus, and spellcasting ability of the original cast but is otherwise treated as if you cast the spell. The spell cast from the ring is no longer stored in it, freeing up space."
+        ),
+        "activation": [],
+        "duration": [],
+        "charges": 5,
+        "recharge": [],
+        "notes": None,
+    },
+    "Ring of the Ram": {
+        "name": "Ring of the Ram",
+        "type": "Ring",
+        "rarity": "Rare",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. This ring has 3 charges and regains 1d3 expended charges after taking a Long Rest. While wearing the ring, you can take a Magic Action to expend 1 to 3 charges to make a Ranged Spell Attack against one creature you can see within 60ft of yourself. The ring produces a spectral ram's head and makes its Attack Roll a +7 bonus. On a hit, for each charge you spend, the target takes 2d10 Force damage and is pushed 5ft away from you. Alternatively, you can expend 1 to 3 of the ring's charges as a Magic Action to try to break a nonmagical object you can see within 60ft of yourself that isn't being worn or carried. The ring makes a Strength check with a +5 bonus for each charge you spend."
+        ),
+        "activation": ["Equip", "Action"],
+        "duration": ["Instantaneous"],
+        "charges": 3,
+        "recharge": ["Long Rest"],
+        "notes": None,
+    },
+    "Ring of the Unyielding Cohort": {
+        "name": "Ring of the Unyielding Cohort",
+        "type": "Ring",
+        "rarity": "Rare",
+        "attunement": True,
+        "effect": (
+            "Requires attunement by a Fighter. This ring has a number of charges equal to your Proficiency Bonus. It regains 1 charge on a Short Rest and all charges on a Long Rest. While attuned to this ring, you regain one use of your Second Wind feature when you roll a Natural 20 on an Attack Roll against an opposing creature. Also, when you use your Second Wind feature you can also expend one charge to activate one of the following effects: Last One Standing. If there is an Unconscious ally next to you, you can apply the effect of your Second Wind feature on that ally instead, and they gain Hit Points by the maximum amount instead of rolling. Frontline General. If there is an opposing creature within 30ft of you, you can attempt to goad that creature. It makes a Wisdom Saving Throw (DC 10 + your Wisdom modifier). On a failed Save, the creature becomes Goaded until the start of your next turn. A Goaded creature has Disadvantage on all Attacks against any creature other than you."
+        ),
+        "activation": ["Equip", "Bonus Action"],
+        "duration": ["Passive", "Instantaneous"],
+        "charges": None,
+        "recharge": ["Short Rest", "Long Rest"],
+        "notes": None,
+    },
+    "Ring of X-Ray Vision": {
+        "name": "Ring of X-Ray Vision",
+        "type": "Ring",
+        "rarity": "Rare",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. While wearing this ring, you can take a Magic Action to gain X-Ray vision with a range of 30ft for the rest of the current Encounter. To you, solid objects within that radius appear transparent and don't prevent light from passing through them. The vision can penetrate 1ft of stone, 1 inch of common metal, or up to 3ft of wood or dirt. Thicker substances or a thin sheet of lead block the vision. You gain Advantage on Perception and Investigation checks involving hidden enemies, illusions, or terrain-based hazards. You can see hidden, invisible, or obscured creatures behind cover or thin walls (provided they are within the penetration limit). Attacks made against creatures behind cover or hiding count them as not having cover for you. Once per turn while X-Ray vision is active, when you target a creature that's behind cover or obscured by terrain, you can reroll one Attack Roll or force the target to reroll one successful Dexterity Saving Throw (you choose). The creature needs to use the new result. Whenever you use the ring again before taking a Long Rest, you must succeed on a DC 15 Constitution Saving Throw or gain 1 Exhaustion level."
+        ),
+        "activation": ["Equip", "Action"],
+        "duration": ["Passive"],
+        "charges": 1,
+        "recharge": ["Long Rest"],
+        "notes": None,
+    },
+    "Rod of Rulership": {
+        "name": "Rod of Rulership",
+        "type": "Rod",
+        "rarity": "Rare",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. This item has 3 charges. You can take a Magic Action and expended 1 charge to present the rod and command obedience from each creature of your choice that you can see within 120ft of yourself. Each target must succeed on a DC 15 Wisdom Saving Throw or have the Charmed condition for 8 hours. While Charmed in this way, the creature regards you as its trusted leader. If harmed by you or your allies or commanded to do something contrary to its nature, a target ceases to be Charmed in this way. Once used, this property can't be used again until taking a Long Rest."
+        ),
+        "activation": ["Action"],
+        "duration": ["End of Encounter"],
+        "charges": 3,
+        "recharge": ["Long Rest"],
+        "notes": None,
+    },
+    "Rod of the Pact Keeper +2": {
+        "name": "Rod of the Pact Keeper +2",
+        "type": "Rod",
+        "rarity": "Rare",
+        "attunement": True,
+        "effect": (
+            "Requires attunement by a Warlock. While holding this rod, you gain a +2 bonus to Spell Attack Rolls and to the Saving Throw DCs of your Warlock spells. In addition, you can regain one spell slots as a Magic Action while holding the rod. You can't use this property again until you finish a Long Rest."
+        ),
+        "activation": ["Action"],
+        "duration": ["Passive"],
+        "charges": None,
+        "recharge": ["Long Rest"],
+        "notes": None,
+    },
+    "Tentacle Rod": {
+        "name": "Tentacle Rod",
+        "type": "Rod",
+        "rarity": "Rare",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. This rod ends in three rubbery tentacles. While holding the rod, you can take a Magic Action to direct the tentacles to stretch outward, each one attacking a creature you can see within 15ft of yourself. For each tentacle, make a Melee Attack Roll with a +9 bonus. A tentacle deals 1d6 Psychic damage on a hit. If you hit the same target with all three tentacles, the target must succeed on a DC 15 Dexterity Saving Throw or have the Restrained condition until you have the Incapacitated condition, until you take a Bonus Action to release the target, or until the target is no longer within 15ft of you. While Restrained in this way, the target takes 3d6 Psychic damage at the start of each of its turns. At the end of each of its turns, the target repeats the Save, ending the effect on itself on a success."
+        ),
+        "activation": ["Action"],
+        "duration": [],
+        "charges": None,
+        "recharge": [],
+        "notes": None,
+    },
+    "Scroll of Protection": {
+        "name": "Scroll of Protection",
+        "type": "Spell Scroll",
+        "rarity": "Rare",
+        "attunement": False,
+        "effect": (
+            "Using an Action to read the scroll encloses you in an invisible barries that extends from you to form a 5ft radius, 10ft high cylinder. For the rest of the current Encounter, this barrier prevents a certain type of creature from entering or affecting anything within the cylinder. The cylinder moves with you and remains centered on you. However, if you move in such a way that a creature of that certain type would be inside the cylinder, the effect ends. A creature can attempt to overcome the barrier by using an Action to make a DC 15 Charisma check. On a success, the creature ceases to be affected by the barrier."
+        ),
+        "activation": ["Action"],
+        "duration": ["End of Encounter"],
         "charges": None,
         "recharge": None,
+        "variations": [
+            {"base_item": "Scroll of Protection", "name": "Scroll of Aberrations Protection"},
+            {"base_item": "Scroll of Protection", "name": "Scroll of Beasts Protection"},
+            {"base_item": "Scroll of Protection", "name": "Scroll of Celestials Protection"},
+            {"base_item": "Scroll of Protection", "name": "Scroll of Constructs Protection"},
+            {"base_item": "Scroll of Protection", "name": "Scroll of Dragons Protection"},
+            {"base_item": "Scroll of Protection", "name": "Scroll of Elementals Protection"},
+            {"base_item": "Scroll of Protection", "name": "Scroll of Humanoids Protection"},
+            {"base_item": "Scroll of Protection", "name": "Scroll of Fey Protection"},
+            {"base_item": "Scroll of Protection", "name": "Scroll of Fiends Protection"},
+            {"base_item": "Scroll of Protection", "name": "Scroll of Giants Protection"},
+            {"base_item": "Scroll of Protection", "name": "Scroll of Monstrosities Protection"},
+            {"base_item": "Scroll of Protection", "name": "Scroll of Oozes Protection"},
+            {"base_item": "Scroll of Protection", "name": "Scroll of Plants Protection"},
+            {"base_item": "Scroll of Protection", "name": "Scroll of Undead Protection"}
+        ],
+        "notes": None,
+    },
+    "Spell Scroll 4th Level": {
+        "name": "Spell Scroll 4th Level",
+        "type": "Spell Scroll",
+        "rarity": "Rare",
+        "attunement": False,
+        "effect": (
+            "A Spell Scroll bears the words of a single spell, written in a mystical cipher. If the spell is on your spell list, you can read the scroll and cast its spell without Material components. Otherwise, the scroll is unintelligible. Casting the spell by reading the scroll requires the spell's normal casting time. Once the spell is cast, the scroll crumbles to dust. If the casting is interrupted, the scroll isn't lost. If the spell is on your spell list but of a higher level than you can normally cast, you make a DC 14 Ability Check using your spellcasting ability to determine whether you cast the spell. On a failed check, the spell disappears from the scroll with no other effect. If the spell requires a Saving Throw or an Attack Roll, the spell save DC is 15, and the Attack Bonus is +7."
+        ),
+        "activation": [],
+        "duration": [],
+        "charges": None,
+        "recharge": [],
+        "notes": None,
+    },
+    "Spell Scroll 5th Level": {
+        "name": "Spell Scroll 5th Level",
+        "type": "Spell Scroll",
+        "rarity": "Rare",
+        "attunement": False,
+        "effect": (
+            "A Spell Scroll bears the words of a single spell, written in a mystical cipher. If the spell is on your spell list, you can read the scroll and cast its spell without Material components. Otherwise, the scroll is unintelligible. Casting the spell by reading the scroll requires the spell's normal casting time. Once the spell is cast, the scroll crumbles to dust. If the casting is interrupted, the scroll isn't lost. If the spell is on your spell list but of a higher level than you can normally cast, you make a DC 15 Ability Check using your spellcasting ability to determine whether you cast the spell. On a failed check, the spell disappears from the scroll with no other effect. If the spell requires a Saving Throw or an Attack Roll, the spell save DC is 17, and the Attack Bonus is +9."
+        ),
+        "activation": [],
+        "duration": [],
+        "charges": None,
+        "recharge": [],
+        "notes": None,
+    },
+    "Enspelled Staff Level 2": {
+        "name": "Enspelled Staff Level 2",
+        "type": "Staff",
+        "rarity": "Rare",
+        "attunement": True,
+        "effect": (
+            "Requires attunement by a Spellcaster. Bound into this staff is a level 1 spell. The spell is determined when the staff is created and can be of any school of magic. The staff has 6 charges and regains 1d6 expended charges after taking a Long Rest. While holding the staff, you can expend 1 charge to cast its spell. If you expend the staff's last charge, roll 1d20. On a 1, the staff loses its properties and becomes a nonmagical Quarterstaff. The spell's Saving Throw DC is 13, and its Attack Bonus is +5."
+        ),
+        "activation": [],
+        "duration": [],
+        "charges": 6,
+        "recharge": ["Long Rest"],
+        "notes": None,
+    },
+    "Enspelled Staff Level 3": {
+        "name": "Enspelled Staff Level 3",
+        "type": "Staff",
+        "rarity": "Rare",
+        "attunement": True,
+        "effect": (
+            "Requires attunement by a Spellcaster. Bound into this staff is a level 3 spell. The spell is determined when the staff is created and can be of any school of magic. The staff has 6 charges and regains 1d6 expended charges after taking a Long Rest. While holding the staff, you can expend 1 charge to cast its spell. If you expend the staff's last charge, roll 1d20. On a 1, the staff loses its properties and becomes a nonmagical Quarterstaff. The spell's Saving Throw DC is 15, and its Attack Bonus is +7."
+        ),
+        "activation": [],
+        "duration": [],
+        "charges": 6,
+        "recharge": ["Long Rest"],
+        "notes": None,
+    },
+    "Staff of Charming": {
+        "name": "Staff of Charming",
+        "type": "Staff",
+        "rarity": "Rare",
+        "attunement": True,
+        "effect": (
+            "Requires attunement by a Bard, Cleric, Druid, Sorcerer, Warlock, or Wizard. This staff has 10 charges. While holding the staff, you can use any of its properties: Cast Spell. You can expend 1 of the staff's charges to cast Charm Person, Command, or Comprehend Languages from it using your spell save DC. Reflect Enchantment. If you succeed on a Saving Throw against an Enchantment spell that targets only you, you can take a Reaction to expend 1 charge from the staff and turn the spell back on its caster as if you had cast the spell. Resist Enchantment. If you fail a Saving Throw against an Enchantment spell that targets only you, you can turn your failed Save into a successful one. You can't use this property of the staff again until taking a Long Rest. The staff regains 1d8 + 2 expended charges after taking a Long Rest. If you expend the last charge, roll 1d20. On a 1, the staff crumbles to dust and is destroyed."
+        ),
+        "activation": ["Reaction"],
+        "duration": ["Instantaneous", "Passive"],
+        "charges": 10,
+        "recharge": ["Long Rest"],
+        "notes": None,
+    },
+    "Staff of Healing": {
+        "name": "Staff of Healing",
+        "type": "Staff",
+        "rarity": "Rare",
+        "attunement": True,
+        "effect": (
+            "Requires attunement by a Bard, Cleric, or Druid. This staff has 10 charges. While holding the staff, you can cast one of the following spells from it, using your spellcasting ability modifier. Cure Wounds costs 1 charge per spell level (maximum 4 for a level 4 spell), Lesser Restoration costs 2, Mass Cure Wounds costs 5. The staff regains 1d6 + 4 expended charges after taking a Long Rest. If you expend the last charge, roll 1d20. On a 1, the staff vanishes in a flash of light, lost forever."
+        ),
+        "activation": [],
+        "duration": [],
+        "charges": 10,
+        "recharge": ["Long Rest"],
+        "notes": None,
+    },
+    "Staff of Swarming Insects": {
+        "name": "Staff of Swarming Insects",
+        "type": "Staff",
+        "rarity": "Rare",
+        "attunement": True,
+        "effect": (
+            "Requires attunement by a Bard, Cleric, Druid, Sorcerer, Warlock or Wizard. This staff has 10 charges. Insect Cloud. While holding the staff, you can take a Magic Action and expend 1 charge to cause a swarm of harmless flying insects to fill a 30ft Emanation origination from you. The insects remain for the rest of the current Encounter, making the area Heavily Obscured for creatures other than you. A strong wind (like that created by Gust of Wind) disperses the swarm and ends the effect. Spells. While holding the staff, you can cast one of the following spells, using your spell save DC and spell attack modifier. Giant Insect costs 4, Insect Plague costs 5. The staff regains 1d6 + 4 expended charges after taking a Long Rest. If you expend the last charge, roll 1d20. On a 1, a swarm of insects consumes and destroys the staff, then disperses."
+        ),
+        "activation": ["Action"],
+        "duration": ["End of Encounter"],
+        "charges": 10,
+        "recharge": ["Long Rest"],
+        "notes": None,
+    },
+    "Staff of Withering": {
+        "name": "Staff of Withering",
+        "type": "Staff",
+        "rarity": "Rare",
+        "attunement": True,
+        "effect": (
+            "Requires attunement by a Cleric, Druid or Warlock. This staff has 3 charges and regains 1d3 expended charges after taking a Long Rest. The staff can be wielded as a magic Quarterstaff. On a hit, it deals damage as a normal Quarterstaff, and you can expend 1 charge to deal an extra 2d10 Necrotic damage to the target and force it to make a DC 15 Constitution Saving Throw. On a failed save, the target has Disadvantage for the rest of the current Encounter on any Ability Check or Saving Throw that uses Strength or Constitution. At the end of the creature's turn, they can repeat the Saving Throw and end the effect on a success."
+        ),
+        "activation": [],
+        "duration": ["Passive"],
+        "charges": 3,
+        "recharge": ["Long Rest"],
+        "notes": None,
+    },
+    "Staff of the Woodlands": {
+        "name": "Staff of the Woodlands",
+        "type": "Staff",
+        "rarity": "Rare",
+        "attunement": True,
+        "effect": (
+            "Requires attunement by a Druid. This staff has 6 charges and can be wielded as a magic Quarterstaff that grants a +2 bonus to Attack Rolls and Damage Rolls made with it. While holding it, you have a +2 bonus to Spell Attack Rolls. Spells. While holding the staff, you can cast one of the following spells from it, using your spell save DC. Animal Friendship costs 1. Awaken costs 5. Barkskin costs 2. Locate Animals or Plants costs 2. Pass Without Trace costs 2. Speak with Animals costs 1. Speak with Plants costs 3. Wall of Thorns costs 6. Tree Form. You can take a Magic Action to plant one end of the staff in earth in an unoccupied space and expend 1 charge to transform the staff into a healthy tree. The tree is 60ft tall and has a 5ft diameter trunk, and its branches at the top spread out in a 20ft radius. The tree appears ordinary but radiates a faint aura of Transmutation magic that can be discerned with the Detect Magic spell. While touching the tree and using a Magic Action, you return the staff to its normal form. Any creature in the tree falls when the tree reverts to a staff. The staff regains 1d6 expended charges after taking a Long Rest. If you expend the last charge, roll 1d20. On a 1, the staff loses its properties and becomes a nonmagical Quarterstaff."
+        ),
+        "activation": ["Action"],
+        "duration": [],
+        "charges": 6,
+        "recharge": ["Long Rest"],
+        "notes": None,
+    },
+    "Wand of Binding": {
+        "name": "Wand of Binding",
+        "type": "Wand",
+        "rarity": "Rare",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. This wand has 7 charges. While holding the wand, you can cast one of the following spells (save DC 17) from it. Hold Monster costs 5. Hold Person costs 2. The wand regains 1d6 + 1 expended charges after taking a Long Rest. If you expend the wand's last charge, roll 1d20. On a 1, the wand crumbles into ashes and is destroyed."
+        ),
+        "activation": [],
+        "duration": [],
+        "charges": 7,
+        "recharge": ["Long Rest"],
+        "notes": None,
+    },
+    "Wand of Enemy Detection": {
+        "name": "Wand of Enemy Detection",
+        "type": "Wand",
+        "rarity": "Rare",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. This wand has 7 charges. While holding it, you can take a Magic Action to expend 1 charge. For the rest of the current Encounter, you know the direction of all creatures Hostile to you within 60ft, but not their distance from you. The wand can sense the presence of Hostile creatures that are Invisible, ethereal, disguised, or hidden, as well as those in plain sight. The effect ends if you stop holding the wand. The wand regains 1d6 + 1 expended charges after taking a Long Rest. If you expend the wand's last charge, roll 1d20. On a 1, the wand crumbles into ashes and is destroyed."
+        ),
+        "activation": ["Action"],
+        "duration": ["End of Encounter"],
+        "charges": 7,
+        "recharge": ["Long Rest"],
+        "notes": None,
+    },
+    "Wand of Fear": {
+        "name": "Wand of Fear",
+        "type": "Wand",
+        "rarity": "Rare",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. This wand has 7 charges. While holding the wand, you can cast one of the following spells (save DC 15) from it. Command (flee or grovel only) costs 1. Fear (60ft cone) costs 3. The wand regains 1d6 + 1 expended charges after taking a Long Rest. If you expend the wand's last charge, roll 1d20. On a 1, the wand crumbles into ashes and is destroyed."
+        ),
+        "activation": [],
+        "duration": [],
+        "charges": 7,
+        "recharge": ["Long Rest"],
+        "notes": None,
+    },
+    "Wand of Fireballs": {
+        "name": "Wand of Fireballs",
+        "type": "Wand",
+        "rarity": "Rare",
+        "attunement": True,
+        "effect": (
+            "Requires attunement by a Spellcaster. This wand has 7 charges. While holding it, you can expend no more than 3 charges to cast Fireball (save DC 15) from it. For 1 charge, you cast the level 3 version of the spell. You can increase the spell's level by 1 for each additional charge you expend. The wand regains 1d6 + 1 expended charges after taking a Long Rest. If you expend the wand's last charge, roll 1d20. On a 1, the wand crumbles into ashes and is destroyed."
+        ),
+        "activation": [],
+        "duration": [],
+        "charges": 7,
+        "recharge": ["Long Rest"],
+        "notes": None,
+    },
+    "Wand of Lightning Bolts": {
+        "name": "Wand of Lightning Bolts",
+        "type": "Wand",
+        "rarity": "Rare",
+        "attunement": True,
+        "effect": (
+            "Requires attunement by a Spellcaster. This wand has 7 charges. While holding it, you can expend no more than 3 charges to cast Lightning Bolt (save DC 15) from it. For 1 charge, you cast the level 3 version of the spell. You can increase the spell's level by 1 for each additional charge you expend. The wand regains 1d6 + 1 expended charges after taking a Long Rest. If you expend the wand's last charge, roll 1d20. On a 1, the wand crumbles into ashes and is destroyed."
+        ),
+        "activation": [],
+        "duration": [],
+        "charges": 7,
+        "recharge": ["Long Rest"],
+        "notes": None,
+    },
+    "Wand of Paralysis": {
+        "name": "Wand of Paralysis",
+        "type": "Wand",
+        "rarity": "Rare",
+        "attunement": True,
+        "effect": (
+            "Requires attunement by a spellcaster. This wand has 7 charges. While holding it, you can take a Magic Action to expend 1 charge to cause a thin blue ray to streak from the tip toward a creature you can see within 60ft of yourself. The target must succeed on a DC 15 Constitution Saving Throw or have the Paralyzed condition for the rest of the current Encounter. At the end of each of the target's turns, it repeats the Save, ending the effect on itself on a success. The wand regains 1d6 + 1 expended charges after taking a Long Rest. If you expend the wand's last charge, roll 1d20. On a 1, the wand crumbles into ashes and is destroyed."
+        ),
+        "activation": ["Action"],
+        "duration": ["End of Encounter"],
+        "charges": 7,
+        "recharge": ["Long Rest"],
+        "notes": None,
+    },
+    "Wand of Wonder": {
+        "name": "Wand of Wonder",
+        "type": "Wand",
+        "rarity": "Rare",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. This wand has 7 charges. While holding it, you can take a Magic Action to expend 1 charge while choosing a point within 120ft of yourself. That location becomes the point of origin of a spell or other magical effect determined by rolling on the Wand of Wonder Effects table. Spells cast from the wand has a Save DC of 15. If a spell's maximum range is normally less than 120ft, it becomes 120ft when cast from the wand. If an effect has multiple possible subjects, the DM determines randomly which among them are effected. The wand regains 1d6 + 1 expended charges after taking a Long Rest. If you expend the wand's last charge, roll 1d20. On a 1, the wand crumbles into dust and is destroyed."
+        ),
+        "activation": ["Action"],
+        "duration": [],
+        "charges": 7,
+        "recharge": ["Long Rest"],
+        "wand_of_wonder_table": [
+            ["01-20", "You cast a spell originating from the chosen point. Roll 1d10 to determine the spell: on a 1-2, Darkness; on a 3-4, Faerie Fire; on a 5-6, Fireball; on a 7-8, Slow; on a 9-10, Stinking Cloud."],
+            ["21-25", "Nothing happens at the chosen point of origin. Instead, you have the Stunned condition until the start of your next turn, believing something awesome just happened."],
+            ["26-30", "You cast Gust of Wind. The Line created by the spell extends from you to the chosen point of origin."],
+            ["31-35", "Nothing happens at the chosen point of origin. Instead, you take 1d6 Psychic damage."],
+            ["36-40", "Heavy rain falls for 1 minute in a 120ft high, 60ft radius Cylinder centered on the chosen point of origin. During that time, the area of effect is Lightly Obscured."],
+            ["41-45", "A cloud of 600 oversized butterflies fills a 60ft high, 30ft radius Cylinder centered on the chosen point of origin. The butterflies remain for 10 minutes, during which time the area or effect is Heavily Obscured."],
+            ["46-50", "You cast Lightning Bolt. The Line created by the spell extends from you to the chosen point of origin."],
+            ["51-55", "The creature closes to the chosen point of origin is enlarged as if you had cast Enlarge/Reduce on it. If the target isn't you and can't be affected by that spell, you become the target instead."],
+            ["56-60", "A magically formed creature appears in an unoccupied space as close to the chosen point of origin as possible. The creature isn't under your control, acts as it normally would, and disappears after 1 hour or when it drops to 0 Hit Points. Roll 1d4 to determine which creature appears. On a 1, a Rhinoceros appears; on a 2, an Elephant appears; and on a 3-4, a Rat appears."],
+            ["61-64", "Grass covers a 60ft radius circle of ground, which the center of that circle as close to the chosen point of origin as possible. Grass that's already there grows to ten times its normal size and remains overgrown for 1 minute."],
+            ["65-68", "An object of the DM's choice disappears into the Ethereal Plane. The object must be neither worn nor carried, within 120ft of the chosen point of origin, and no larger than 10ft in any dimension. If there are no such objects in range, nothing happens."],
+            ["69-72", "Nothing happens at the chosen point of origin. Instead, you shrink as if you had cast Enlarge/Reduce on yourself and remain in that state for 1 minute."],
+            ["73-77", "Leaves grow from the creature nearest to the chosen point of origin. Unless they are picked off, the leaves turn brown and fall off after the current Encounter ends."],
+            ["78-82", "Nothing happens at the chosen point of origin. Instead, a burst of colorful, shimmering light extends from you in a 30ft Emanation. Each creature in the area must succeed on a DC 15 Constitution Saving Throw or have the Blinded condition for 1 minute. A creature repeats the Save at the end of each of its turns, ending the effect on itself on a success."],
+            ["83-87", "Nothing happens at the chosen point of origin. Instead, you cast Invisibility on yourself."],
+            ["88-92", "Nothing happens at the chosen point of origin. Instead, a stream of 1d4 x 10 gems, each worth of origin. Each gem deals 1 Bludgeoning damage, and the total damage of the gems is divided equally among all creatures in the Line."],
+            ["93-97", "You cast Polymorph, targeting the creature closest to the chosen point of origin. Roll 1d4 to determine the target's new form. On a 1, the new form is a Black Bear; on a 2, the new form is a Giant Wasp; on a 3-4, the new form is a Frog."],
+            ["98-00", "The creature closest to the chosen point of origin makes a DC 15 Constitution Saving Throw. On a failed Save, the creature has the Restrained condition and begins to turn to stone. While Restrained in this way, the creature repeats the Save at the end of its next turn. On a successful Save, the effect ends. On a failed save, the creature has the Petrified condition instead of the Restrained condition. The petrification lasts until the creature is freed by the Greater Restoration spell or similar magic."]
+        ],
+        "notes": None,
+    },
+    "Wand of the War Mage +2": {
+        "name": "Wand of the War Mage +2",
+        "type": "Wand",
+        "rarity": "Rare",
+        "attunement": True,
+        "effect": (
+            "Requires attunement by a Spellcaster. While holding this wand, you gain a +2 bonus to Spell Attack Rolls. In addition, you ignore Half Cover when making a Spell Attack Roll."
+        ),
+        "activation": [],
+        "duration": ["Passive"],
+        "charges": None,
+        "recharge": [],
+        "notes": None,
+    },
+    "Ammunition +2": {
+        "name": "Ammunition +2",
+        "type": "Weapon",
+        "rarity": "Rare",
+        "attunement": False,
+        "effect": (
+            "You have a +2 bonus to Attack and Damage Rolls made with this piece of magic ammunition. Once it hits a target, the ammunition is no longer magical."
+        ),
+        "activation": [],
+        "duration": ["Passive"],
+        "charges": None,
+        "recharge": [],
+        "variations": [
+            {"base_item": "Arrow", "name": "Arrow +2"},
+            {"base_item": "Bolt", "name": "Bolt +2"},
+            {"base_item": "Firearm Bullet", "name": "Firearm Bullet +2"},
+        ],
+        "notes": None,
+    },
+    "Berserker Axe": {
+        "name": "Berserker Axe",
+        "type": "Weapon",
+        "rarity": "Rare",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. You gain a +1 bonus to Attack Rolls and Damage Rolls made with this magic weapon. In addition, while you are attuned to this weapon, your Hit Point maximum increases by 1 for each level you have attained. This weapon is cursed, and becoming attuned to it extends the curse to you. As long as you remain cursed, you are unwilling to part with the weapon, keeping it within reach at all times. You also have Disadvantage on Attack Rolls with weapons other than this one. Whenever another creature damages you while the weapon is in your possession, you must succeed on a DC 15 Wisdom Saving Throw or go berserk. This berserk state ends when you start your turn and there are no creatures within 60ft of you that you can see or hear. While berserk, you regard the creature nearest to you that you can see or hear as your enemy. If there are multiple possible creatures, choose one at random. On each of your turns, you must move as close to the creature as possible and take the Attack Action, targeting the creature. If you're unable to get close enough to the creature to attack it with the weapon, your turn ends after you've used up all your available movement. If the creature dies or can no longer be seen or heard by you, the next nearest creature that you can see or hear becomes your new target."
+        ),
+        "activation": [],
+        "duration": [],
+        "charges": None,
+        "recharge": [],
+        "variations": [
+            {"base_item": "Battleaxe", "name": "Berserker Battleaxe"},
+            {"base_item": "Greataxe", "name": "Berserker Greataxe"},
+            {"base_item": "Halberd", "name": "Berserker Halberd"}
+        ],
+        "notes": None,
+    },
+    "Dagger of Venom": {
+        "name": "Dagger of Venom",
+        "type": "Weapon",
+        "rarity": "Rare",
+        "attunement": False,
+        "effect": (
+            "You gain a +1 bonus to Attack Rolls and Damage Rolls made with this magic weapon. You can take a Bonus Action to magically coat the blade with poison. The poison remains for the rest of the Encounter or until an attack using this weapon hits a creature. That creature must succeed on a DC 15 Constitution Saving Throw or take 2d10 Poison damage and have the Poisoned condition for 10 Rounds of the current Encounter. The weapon can't be used this way again until taking a Long Rest."
+        ),
+        "activation": ["Bonus Action"],
+        "duration": ["End of Encounter"],
+        "charges": None,
+        "recharge": ["Long Rest"],
+        "notes": None,
+    },
+    "Dragon Slayer": {
+        "name": "Dragon Slayer",
+        "type": "Weapon",
+        "rarity": "Rare",
+        "attunement": False,
+        "effect": (
+            "You gain a +1 bonus to Attack Rolls and Damage Rolls made with this magic weapon. The weapon deals an extra 3d6 damage of the weapon's type if the target is a Dragon."
+        ),
+        "activation": [],
+        "duration": ["Passive"],
+        "charges": None,
+        "recharge": [],
+        "variations": [
+            {"base_item": "Battleaxe", "name": "Battleaxe Dragon Slayer"},
+            {"base_item": "Club", "name": "Club Dragon Slayer"},
+            {"base_item": "Dagger", "name": "Dagger Dragon Slayer"},
+            {"base_item": "Flail", "name": "Flail Dragon Slayer"},
+            {"base_item": "Glaive", "name": "Glaive Dragon Slayer"},
+            {"base_item": "Greataxe", "name": "Greataxe Dragon Slayer"},
+            {"base_item": "Greatclub", "name": "Greatclub Dragon Slayer"},
+            {"base_item": "Greatsword", "name": "Greatsword Dragon Slayer"},
+            {"base_item": "Halberd", "name": "Halberd Dragon Slayer"},
+            {"base_item": "Hand Crossbow", "name": "Hand Crossbow Dragon Slayer"},
+            {"base_item": "Handaxe", "name": "Handaxe Dragon Slayer"},
+            {"base_item": "Heavy Crossbow", "name": "Heavy Crossbow Dragon Slayer"},
+            {"base_item": "Javelin", "name": "Javelin Dragon Slayer"},
+            {"base_item": "Lance", "name": "Lance Dragon Slayer"},
+            {"base_item": "Light Crossbow", "name": "Light Crossbow Dragon Slayer"},
+            {"base_item": "Light Hammer", "name": "Light Hammer Dragon Slayer"},
+            {"base_item": "Longbow", "name": "Longbow Dragon Slayer"},
+            {"base_item": "Longsword", "name": "Longsword Dragon Slayer"},
+            {"base_item": "Mace", "name": "Mace Dragon Slayer"},
+            {"base_item": "Maul", "name": "Maul Dragon Slayer"},
+            {"base_item": "Morningstar", "name": "Morningstar Dragon Slayer"},
+            {"base_item": "Musket", "name": "Musket Dragon Slayer"},
+            {"base_item": "Pike", "name": "Pike Dragon Slayer"},
+            {"base_item": "Pistol", "name": "Pistol Dragon Slayer"},
+            {"base_item": "Quarterstaff", "name": "Quarterstaff Dragon Slayer"},
+            {"base_item": "Rapier", "name": "Rapier Dragon Slayer"},
+            {"base_item": "Scimitar", "name": "Scimitar Dragon Slayer"},
+            {"base_item": "Shortbow", "name": "Shortbow Dragon Slayer"},
+            {"base_item": "Shortsword", "name": "Shortsword Dragon Slayer"},
+            {"base_item": "Sickle", "name": "Sickle Dragon Slayer"},
+            {"base_item": "Sling", "name": "Sling Dragon Slayer"},
+            {"base_item": "Spear", "name": "Spear Dragon Slayer"},
+            {"base_item": "Staff", "name": "Staff Dragon Slayer"},
+            {"base_item": "Trident", "name": "Trident Dragon Slayer"},
+            {"base_item": "War Pick", "name": "War Pick Dragon Slayer"},
+            {"base_item": "Warhammer", "name": "Warhammer Dragon Slayer"},
+            {"base_item": "Whip", "name": "Whip Dragon Slayer"}
+        ],
+        "notes": None,
+    },
+    "Enspelled Weapon Level 2": {
+        "name": "Enspelled Weapon Level 2",
+        "type": "Weapon",
+        "rarity": "Rare",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. Bound into this weapon is a level 2 spell. The spell is determined when the weapon is created and must belong to the Conjuration, Divination, Evocation, Necromancy, or Transmutation school of magic. The weapon has 6 charges and regains 1d6 expended charges after taking a Long Rest. While holding the weapon, you can expend 1 charge to cast its spell. The spell's Saving Throw DC is 13, and its Attack Bonus is +5."
+        ),
+        "activation": [],
+        "duration": [],
+        "charges": 6,
+        "recharge": ["Long Rest"],
+        "variations": [
+            {"base_item": "Battleaxe", "name": "Enspelled Battleaxe Level 2"},
+            {"base_item": "Club", "name": "Enspelled Club Level 2"},
+            {"base_item": "Dagger", "name": "Enspelled Dagger Level 2"},
+            {"base_item": "Flail", "name": "Enspelled Flail Level 2"},
+            {"base_item": "Glaive", "name": "Enspelled Glaive Level 2"},
+            {"base_item": "Greataxe", "name": "Enspelled Greataxe Level 2"},
+            {"base_item": "Greatclub", "name": "Enspelled Greatclub Level 2"},
+            {"base_item": "Greatsword", "name": "Enspelled Greatsword Level 2"},
+            {"base_item": "Halberd", "name": "Enspelled Halberd Level 2"},
+            {"base_item": "Hand Crossbow", "name": "Enspelled Hand Crossbow Level 2"},
+            {"base_item": "Handaxe", "name": "Enspelled Handaxe Level 2"},
+            {"base_item": "Heavy Crossbow", "name": "Enspelled Heavy Crossbow Level 2"},
+            {"base_item": "Javelin", "name": "Enspelled Javelin Level 2"},
+            {"base_item": "Lance", "name": "Enspelled Lance Level 2"},
+            {"base_item": "Light Crossbow", "name": "Enspelled Light Crossbow Level 2"},
+            {"base_item": "Light Hammer", "name": "Enspelled Light Hammer Level 2"},
+            {"base_item": "Longbow", "name": "Enspelled Longbow Level 2"},
+            {"base_item": "Longsword", "name": "Enspelled Longsword Level 2"},
+            {"base_item": "Mace", "name": "Enspelled Mace Level 2"},
+            {"base_item": "Maul", "name": "Enspelled Maul Level 2"},
+            {"base_item": "Morningstar", "name": "Enspelled Morningstar Level 2"},
+            {"base_item": "Musket", "name": "Enspelled Musket Level 2"},
+            {"base_item": "Pike", "name": "Enspelled Pike Level 2"},
+            {"base_item": "Pistol", "name": "Enspelled Pistol Level 2"},
+            {"base_item": "Quarterstaff", "name": "Enspelled Quarterstaff Level 2"},
+            {"base_item": "Rapier", "name": "Enspelled Rapier Level 2"},
+            {"base_item": "Scimitar", "name": "Enspelled Scimitar Level 2"},
+            {"base_item": "Shortbow", "name": "Enspelled Shortbow Level 2"},
+            {"base_item": "Shortsword", "name": "Enspelled Shortsword Level 2"},
+            {"base_item": "Sickle", "name": "Enspelled Sickle Level 2"},
+            {"base_item": "Sling", "name": "Enspelled Sling Level 2"},
+            {"base_item": "Spear", "name": "Enspelled Spear Level 2"},
+            {"base_item": "Staff", "name": "Enspelled Staff Level 2"},
+            {"base_item": "Trident", "name": "Enspelled Trident Level 2"},
+            {"base_item": "War Pick", "name": "Enspelled War Pick Level 2"},
+            {"base_item": "Warhammer", "name": "Enspelled Warhammer Level 2"},
+            {"base_item": "Whip", "name": "Enspelled Whip Level 2"}
+        ],
+        "notes": None,
+    },
+    "Enspelled Weapon Level 3": {
+        "name": "Enspelled Weapon Level 3",
+        "type": "Weapon",
+        "rarity": "Level 3",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. Bound into this weapon is a level 3 spell. The spell is determined when the weapon is created and must belong to the Conjuration, Divination, Evocation, Necromancy, or Transmutation school of magic. The weapon has 6 charges and regains 1d6 expended charges after taking a Long Rest. While holding the weapon, you can expend 1 charge to cast its spell. The spell's Saving Throw DC is 15, and its Attack Bonus is +7."
+        ),
+        "activation": [],
+        "duration": [],
+        "charges": 6,
+        "recharge": ["Long Rest"],
+        "varations": [
+            {"base_item": "Battleaxe", "name": "Enspelled Battleaxe Level 3"},
+            {"base_item": "Club", "name": "Enspelled Club Level 3"},
+            {"base_item": "Dagger", "name": "Enspelled Dagger Level 3"},
+            {"base_item": "Flail", "name": "Enspelled Flail Level 3"},
+            {"base_item": "Glaive", "name": "Enspelled Glaive Level 3"},
+            {"base_item": "Greataxe", "name": "Enspelled Greataxe Level 3"},
+            {"base_item": "Greatclub", "name": "Enspelled Greatclub Level 3"},
+            {"base_item": "Greatsword", "name": "Enspelled Greatsword Level 3"},
+            {"base_item": "Halberd", "name": "Enspelled Halberd Level 3"},
+            {"base_item": "Hand Crossbow", "name": "Enspelled Hand Crossbow Level 3"},
+            {"base_item": "Handaxe", "name": "Enspelled Handaxe Level 3"},
+            {"base_item": "Heavy Crossbow", "name": "Enspelled Heavy Crossbow Level 3"},
+            {"base_item": "Javelin", "name": "Enspelled Javelin Level 3"},
+            {"base_item": "Lance", "name": "Enspelled Lance Level 3"},
+            {"base_item": "Light Crossbow", "name": "Enspelled Light Crossbow Level 3"},
+            {"base_item": "Light Hammer", "name": "Enspelled Light Hammer Level 3"},
+            {"base_item": "Longbow", "name": "Enspelled Longbow Level 3"},
+            {"base_item": "Longsword", "name": "Enspelled Longsword Level 3"},
+            {"base_item": "Mace", "name": "Enspelled Mace Level 3"},
+            {"base_item": "Maul", "name": "Enspelled Maul Level 3"},
+            {"base_item": "Morningstar", "name": "Enspelled Morningstar Level 3"},
+            {"base_item": "Musket", "name": "Enspelled Musket Level 3"},
+            {"base_item": "Pike", "name": "Enspelled Pike Level 3"},
+            {"base_item": "Pistol", "name": "Enspelled Pistol Level 3"},
+            {"base_item": "Quarterstaff", "name": "Enspelled Quarterstaff Level 3"},
+            {"base_item": "Rapier", "name": "Enspelled Rapier Level 3"},
+            {"base_item": "Scimitar", "name": "Enspelled Scimitar Level 3"},
+            {"base_item": "Shortbow", "name": "Enspelled Shortbow Level 3"},
+            {"base_item": "Shortsword", "name": "Enspelled Shortsword Level 3"},
+            {"base_item": "Sickle", "name": "Enspelled Sickle Level 3"},
+            {"base_item": "Sling", "name": "Enspelled Sling Level 3"},
+            {"base_item": "Spear", "name": "Enspelled Spear Level 3"},
+            {"base_item": "Staff", "name": "Enspelled Staff Level 3"},
+            {"base_item": "Trident", "name": "Enspelled Trident Level 3"},
+            {"base_item": "War Pick", "name": "Enspelled War Pick Level 3"},
+            {"base_item": "Warhammer", "name": "Enspelled Warhammer Level 3"},
+            {"base_item": "Whip", "name": "Enspelled Whip level 3"}
+        ],
+        "notes": None,
+    },
+    "Fearful Blade": {
+        "name": "Fearful Blade",
+        "type": "Weapon",
+        "rarity": "Rare",
+        "attunement": True,
+        "effect": (
+            "Requires attunement by a character with Strength of at least 16. You have a +1 bonus to Attack and Damage Rolls made with this magic weapon. In addition, while you are attuned to this weapon, you gain the following effects: Fearful Presence. Once per Turn, when you strike an opposing creature with this weapon, you can make that creature roll a Wisdom Saving Throw (DC 8 + Proficiency Bonus + Strength Modifier) or be Frightened by you and this weapon. At the end of each of its turns, the creature repeats the Save, ending the condition on itself on a success. The weapon is cursed and possessed by a fearful spirit. Becoming attuned to it extends the curse to you. As long as you remain cursed, you are unwilling to part with the weapon, keeping it within reach at all times. You also have Disadvantage on Attack Rolls with weapons other than this one. Whenever a creature fails the Saving Throw caused by Fearful Presence, they can immediately take a Reaction to move up to their Speed and take the Hide Action. This movement doesn't provoke Opportunity Attacks and if the creature successfully hides, they automatically save against the effect the next time they would roll. You can break the curse in the usual ways. Alternatively, casting Command on the weapon forces the fearful spirit to no longer help enemies against Fearful Presence, ignoring the curse effect of this weapon."
+        ),
+        "activation": [],
+        "duration": ["Passive"],
+        "charges": None,
+        "recharge": [],
+        "variations": [
+            {"base_item": "Battleaxe", "name": "Fearful Battleaxe"},
+            {"base_item": "Club", "name": "Fearful Club"},
+            {"base_item": "Flail", "name": "Fearful Flail"},
+            {"base_item": "Greataxe", "name": "Fearful Greataxe"},
+            {"base_item": "Greatclub", "name": "Fearful Greatclub"},
+            {"base_item": "Greatsword", "name": "Fearful Greatsword"},
+            {"base_item": "Longsword", "name": "Fearful Longsword"},
+            {"base_item": "Mace", "name": "Fearful Mace"},
+            {"base_item": "Maul", "name": "Fearful Maul"},
+            {"base_item": "Morningstar", "name": "Fearful Morningstar"},
+            {"base_item": "Quarterstaff", "name": "Fearful Quarterstaff"},
+            {"base_item": "Rapier", "name": "Fearful Rapier"},
+            {"base_item": "Scimitar", "name": "Fearful Scimitar"},
+            {"base_item": "Shortsword", "name": "Fearful Shortsword"},
+            {"base_item": "Sickle", "name": "Fearful Sickle"},
+            {"base_item": "Staff", "name": "Fearful Staff"},
+            {"base_item": "War Pick", "name": "Fearful War Pick"},
+            {"base_item": "Warhammer", "name": "Fearful Warhammer"},
+            {"base_item": "Whip", "name": "Fearful Whip"}
+        ],
+        "notes": None,
+    },
+    "Flame Tongue": {
+        "name": "Flame Tongue",
+        "type": "Weapon",
+        "rarity": "Rare",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. While holding this magic weapon, you can take a Bonus Action and use a command word to cause flames to engulf the damage-dealing part of the weapon. These flames shed Bright Light in a 40ft radius and Dim Light for an additional 40ft. While the weapon is ablaze, it deals an extra 2d6 Fire damage on a hit. The flames last until you take a Bonus Action to issue the command again or until you drop, stow, or sheathe the weapon."
+        ),
+        "activation": ["Bonus Action"],
+        "duration": [],
+        "charges": None,
+        "recharge": [],
+        "variations": [
+            {"base_item": "Battleaxe", "name": "Flame Tongue Battleaxe"},
+            {"base_item": "Club", "name": "Flame Tongue Club"},
+            {"base_item": "Dagger", "name": "Flame Tongue Dagger"},
+            {"base_item": "Flail", "name": "Flame Tongue Flail"},
+            {"base_item": "Glaive", "name": "Flame Tongue Glaive"},
+            {"base_item": "Greataxe", "name": "Flame Tongue Greataxe"},
+            {"base_item": "Greatclub", "name": "Flame Tongue Greatclub"},
+            {"base_item": "Greatsword", "name": "Flame Tongue Greatsword"},
+            {"base_item": "Halberd", "name": "Flame Tongue Halberd"},
+            {"base_item": "Handaxe", "name": "Flame Tongue Handaxe"},
+            {"base_item": "Javelin", "name": "Flame Tongue Javelin"},
+            {"base_item": "Lance", "name": "Flame Tongue Lance"},
+            {"base_item": "Light Hammer", "name": "Flame Tongue Light Hammer"},
+            {"base_item": "Longsword", "name": "Flame Tongue Longsword"},
+            {"base_item": "Mace", "name": "Flame Tongue Mace"},
+            {"base_item": "Maul", "name": "Flame Tongue Maul"},
+            {"base_item": "Morningstar", "name": "Flame Tongue Morningstar"},
+            {"base_item": "Pike", "name": "Flame Tongue Pike"},
+            {"base_item": "Quarterstaff", "name": "Flame Tongue Quarterstaff"},
+            {"base_item": "Rapier", "name": "Flame Tongue Rapier"},
+            {"base_item": "Scimitar", "name": "Flame Tongue Scimitar"},
+            {"base_item": "Shortsword", "name": "Flame Tongue Shortsword"},
+            {"base_item": "Sickle", "name": "Flame Tongue Sickle"},
+            {"base_item": "Spear", "name": "Flame Tongue Spear"},
+            {"base_item": "Trident", "name": "Flame Tongue Trident"},
+            {"base_item": "War Pick", "name": "Flame Tongue War Pick"},
+            {"base_item": "Warhammer", "name": "Flame Tongue Warhammer"},
+            {"base_item": "Whip", "name": "Flame Tongue Whip"}
+        ],
+        "notes": None,
+    },
+    "Fury Blade": {
+        "name": "Fury Blade",
+        "type": "Weapon",
+        "rarity": "Rare",
+        "attunement": True,
+        "effect": (
+            "Requires attunement by a Barbarian. Once per Round, if you are Raging and you hit a creature with this weapon, you can double your Rage bonus for the damage of this Attack. If you activated Reckless Attack on the same turn, you can also add 2d6 damage of the same type of this weapon to the Damage Roll. If the hit was a Critical Hit and you activated Reckless Attack, all creatures within 30ft in the moment of the strike cannot have Advantage on their attacks against you until the start of your next turn."
+        ),
+        "activation": [],
+        "duration": ["Passive"],
+        "charges": None,
+        "recharge": [],
+        "variations": [
+            {"base_item": "Battleaxe", "name": "Fury Battleaxe"},
+            {"base_item": "Club", "name": "Fury Club"},
+            {"base_item": "Flail", "name": "Fury Flail"},
+            {"base_item": "Greataxe", "name": "Fury Greataxe"},
+            {"base_item": "Greatclub", "name": "Fury Greatclub"},
+            {"base_item": "Greatsword", "name": "Fury Greatsword"},
+            {"base_item": "Longsword", "name": "Fury Longsword"},
+            {"base_item": "Mace", "name": "Fury Mace"},
+            {"base_item": "Maul", "name": "Fury Maul"},
+            {"base_item": "Morningstar", "name": "Fury Morningstar"},
+            {"base_item": "Quarterstaff", "name": "Fury Quarterstaff"},
+            {"base_item": "Rapier", "name": "Fury Rapier"},
+            {"base_item": "Scimitar", "name": "Fury Scimitar"},
+            {"base_item": "Shortsword", "name": "Fury Shortsword"},
+            {"base_item": "Sickle", "name": "Fury Sickle"},
+            {"base_item": "Staff", "name": "Fury Staff"},
+            {"base_item": "War Pick", "name": "Fury War Pick"},
+            {"base_item": "Warhammer", "name": "Fury Warhammer"},
+            {"base_item": "Whip", "name": "Fury Whip"}
+        ],
+        "notes": None,
+    },
+    "Giant Slayer": {
+        "name": "Giant Slayer",
+        "type": "Weapon",
+        "rarity": "Rare",
+        "attunement": False,
+        "effect": (
+            "You gain a +1 bonus to Attack Rolls and Damage Rolls made with this magic weapon. When you hit a Giant with this weapon, the Giant takes an extra 2d6 damage of the weapon's type and must succeed on a DC 15 Strength Saving Throw or have the Prone condition."
+        ),
+        "activation": [],
+        "duration": ["Passive"],
+        "charges": None,
+        "recharge": [],
+        "variations": [
+            {"base_item": "Battleaxe", "name": "Giant Slayer Battleaxe"},
+            {"base_item": "Club", "name": "Giant Slayer Club"},
+            {"base_item": "Dagger", "name": "Giant Slayer Dagger"},
+            {"base_item": "Flail", "name": "Giant Slayer Flail"},
+            {"base_item": "Glaive", "name": "Giant Slayer Glaive"},
+            {"base_item": "Greataxe", "name": "Giant Slayer Greataxe"},
+            {"base_item": "Greatclub", "name": "Giant Slayer Greatclub"},
+            {"base_item": "Greatsword", "name": "Giant Slayer Greatsword"},
+            {"base_item": "Halberd", "name": "Giant Slayer Halberd"},
+            {"base_item": "Hand Crossbow", "name": "Giant Slayer Hand Crossbow"},
+            {"base_item": "Handaxe", "name": "Giant Slayer Handaxe"},
+            {"base_item": "Heavy Crossbow", "name": "Giant Slayer Heavy Crossbow"},
+            {"base_item": "Javelin", "name": "Giant Slayer Javelin"},
+            {"base_item": "Lance", "name": "Giant Slayer Lance"},
+            {"base_item": "Light Crossbow", "name": "Giant Slayer Light Crossbow"},
+            {"base_item": "Light Hammer", "name": "Giant Slayer Light Hammer"},
+            {"base_item": "Longbow", "name": "Giant Slayer Longbow"},
+            {"base_item": "Longsword", "name": "Giant Slayer Longsword"},
+            {"base_item": "Mace", "name": "Giant Slayer Mace"},
+            {"base_item": "Maul", "name": "Giant Slayer Maul"},
+            {"base_item": "Morningstar", "name": "Giant Slayer Morningstar"},
+            {"base_item": "Musket", "name": "Giant Slayer Musket"},
+            {"base_item": "Pike", "name": "Giant Slayer Pike"},
+            {"base_item": "Pistol", "name": "Giant Slayer Pistol"},
+            {"base_item": "Quarterstaff", "name": "Giant Slayer Quarterstaff"},
+            {"base_item": "Rapier", "name": "Giant Slayer Rapier"},
+            {"base_item": "Scimitar", "name": "Giant Slayer Scimitar"},
+            {"base_item": "Shortbow", "name": "Giant Slayer Shortbow"},
+            {"base_item": "Shortsword", "name": "Giant Slayer Shortsword"},
+            {"base_item": "Sickle", "name": "Giant Slayer Sickle"},
+            {"base_item": "Sling", "name": "Giant Slayer Sling"},
+            {"base_item": "Spear", "name": "Giant Slayer Spear"},
+            {"base_item": "Staff", "name": "Giant Slayer Staff"},
+            {"base_item": "Trident", "name": "Giant Slayer Trident"},
+            {"base_item": "War Pick", "name": "Giant Slayer War Pick"},
+            {"base_item": "Warhammer", "name": "Giant Slayer Warhammer"},
+            {"base_item": "Whip", "name": "Giant Slayer Whip"}
+        ],
+        "notes": None,
+    },
+    "Mace of Disruption": {
+        "name": "Mace of Disruption",
+        "type": "Weapon",
+        "rarity": "Rare",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. When you hit a Fiend or an Undead with this magic weapon, that creature takes an extra 2d6 Radiant damage. If the target has 25 Hit Points or fewer after taking this damage, it must succeed on a DC 15 Wisdom Saving Throw or be destroyed. On a successful Save, the creature has the Frightened condition until the end of your next turn."
+        ),
+        "activation": [],
+        "duration": ["Passive"],
+        "charges": None,
+        "recharge": [],
+        "notes": None,
+    },
+    "Mace of Smiting": {
+        "name": "Mace of Smiting",
+        "type": "Weapon",
+        "rarity": "Rare",
+        "attunement": False,
+        "effect": (
+            "You gain a +1 bonus to Attack Rolls and Damage Rolls made with this magic weapon. The bonus increases to +3 when you use the weapon to attack a Construct. When you roll a 20 on an Attack Roll made with this weapon, the target takes an extra 7 Bludgeoning damage, or 14 Bludgeoning damage if it's a Construct. If a Construct has 25 Hit Points or fewer after taking this damage, it is destroyed."
+        ),
+        "activation": [],
+        "duration": ["Passive"],
+        "charges": None,
+        "recharge": [],
+        "notes": None,
+    },
+    "Mace of Terror": {
+        "name": "Mace of Terror",
+        "type": "Weapon",
+        "rarity": "Rare",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. This magic weapon has 3 charges and regains 1d3 expended charges after taking a Long Rest. While holding the weapon, you can take a Magic Action and expend 1 charge to release a wave of terror from it. Each creature of your choice within 30ft of you must succeed on a DC 15 Wisdom Saving Throw or have the Frightened condition for the rest of the current Encounter. While Frightened in this way, a creature must spend its turns trying to move as far away from you as it can, and it can't make Opportunity Attacks. For its Action, it can use only the Dash Action or try to escape from an effect that prevents it from moving. If it has nowhere it can move, the creature can take the Dodge Action. At the end of each of its turns, a creature repeats the Save, ending the effect on itself on a success."
+        ),
+        "activation": ["Action"],
+        "duration": ["End of Encounter"],
+        "charges": 3,
+        "recharge": ["Long Rest"],
+        "notes": None,
+    },
+    "Sun Blade": {
+        "name": "Sun Blade",
+        "type": "Weapon",
+        "rarity": "Rare",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. This item appears to be a sword hilt. Blade of Radiance. While grasping the hilt, you can take a Bonus Action to cause a blade of pure radiance to spring into existence or make the blade disappear. While the blade exists, this magic weapon functions as a Longsword with Finesse. If you are proficient with Longswords or Shortswords, you are proficient with the Sun Blade. You gain a +2 bonus to Attack Rolls and Damage Rolls made with this weapon, which deals Radiant damage instead of Slashing damage. When you hit an Undead with it, that target takes an extra 1d8 Radiant damage. Sunlight. The sword's luminous blade emits Bright Light in a 15ft radius and Dim Light is sunlight. While the blade persists, you can take a Magic Action to expand or reduce its radius of Bright Light and Dim Light by 5ft each, to a maximum of 30ft each or a minimum of 10ft each."
+        ),
+        "activation": ["Bonus Action"],
+        "duration": ["Passive"],
+        "charges": None,
+        "recharge": [],
+        "notes": None,
+    },
+    "Sword of Life Stealing": {
+        "name": "Sword of Life Stealing",
+        "type": "Weapon",
+        "rarity": "Rare",
+        "attunement": False,
+        "effect": (
+            "When you attack a creature with this magic weapon and roll a 20 on the d20 for the Attack Roll, that target takes an extra 15 Necrotic damage if it isn't a Construct or an Undead, and you gain Temporary Hit Points equal to the amount of Necrotic damage taken."
+        ),
+        "activation": [],
+        "duration": ["Passive"],
+        "charges": None,
+        "recharge": [],
+        "variations": [
+            {"base_item": "Glaive", "name": "Glaive of Life Stealing"},
+            {"base_item": "Greatsword", "name": "Greatsword of Life Stealing"},
+            {"base_item": "Longsword", "name": "Longsword of Life Stealing"},
+            {"base_item": "Rapier", "name": "Rapier of Life Stealing"},
+            {"base_item": "Scimitar", "name": "Scimitar of Life Stealing"},
+            {"base_item": "Shortsword", "name": "Shortsword of Life Stealing"}
+        ],
+        "notes": None,
+    },
+    "Sword of Wounding": {
+        "name": "Sword of Wounding",
+        "type": "Weapon",
+        "rarity": "Rare",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. When you hit a creature with an attack using this magic weapon, the target takes an extra 2d6 Necrotic damage and must succeed on a DC 15 Constitution Saving Throw or be unable to regain Hit Points for the rest of the current Encounter. The target repeats the Save at the end of each of its turns, ending the effect on itself on a success."
+        ),
+        "activation": [],
+        "duration": ["Passive"],
+        "charges": None,
+        "recharge": [],
+        "variations": [
+            {"base_item": "Glaive", "name": "Glaive of Wounding"},
+            {"base_item": "Greatsword", "name": "Greatsword of Wounding"},
+            {"base_item": "Longsword", "name": "Longsword of Wounding"},
+            {"base_item": "Rapier", "name": "Rapier of Wounding"},
+            {"base_item": "Scimitar", "name": "Scimitar of Wounding"},
+            {"base_item": "Shortsword", "name": "Shortsword of Wounding"}
+        ],
+        "notes": None,
+    },
+    "Vicious Weapon": {
+        "name": "Vicious Weapon",
+        "type": "Weapon",
+        "rarity": "Rare",
+        "attunement": False,
+        "effect": (
+            "This magic weapon deals an extra 2d6 damage to any creature it hits. This extra damage is of the same type as the weapon's normal damage."
+        ),
+        "activation": [],
+        "duration": ["Passive"],
+        "charges": None,
+        "recharge": [],
+        "variations": [
+            {"base_item": "Battleaxe", "name": "Vicious Battleaxe"},
+            {"base_item": "Club", "name": "Vicious Club"},
+            {"base_item": "Dagger", "name": "Vicious Dagger"},
+            {"base_item": "Flail", "name": "Vicious Flail"},
+            {"base_item": "Glaive", "name": "Vicious Glaive"},
+            {"base_item": "Greataxe", "name": "Vicious Greataxe"},
+            {"base_item": "Greatclub", "name": "Vicious Greatclub"},
+            {"base_item": "Greatsword", "name": "Vicious Greatsword"},
+            {"base_item": "Halberd", "name": "Vicious Halberd"},
+            {"base_item": "Hand Crossbow", "name": "Vicious Hand Crossbow"},
+            {"base_item": "Handaxe", "name": "Vicious Handaxe"},
+            {"base_item": "Heavy Crossbow", "name": "Vicious Heavy Crossbow"},
+            {"base_item": "Javelin", "name": "Vicious Javelin"},
+            {"base_item": "Lance", "name": "Vicious Lance"},
+            {"base_item": "Light Crossbow", "name": "Vicious Light Crossbow"},
+            {"base_item": "Light Hammer", "name": "Vicious Light Hammer"},
+            {"base_item": "Longbow", "name": "Vicious Longbow"},
+            {"base_item": "Longsword", "name": "Vicious Longsword"},
+            {"base_item": "Mace", "name": "Vicious Mace"},
+            {"base_item": "Maul", "name": "Vicious Maul"},
+            {"base_item": "Morningstar", "name": "Vicious Morningstar"},
+            {"base_item": "Musket", "name": "Vicious Musket"},
+            {"base_item": "Pike", "name": "Vicious Pike"},
+            {"base_item": "Pistol", "name": "Vicious Pistol"},
+            {"base_item": "Quarterstaff", "name": "Vicious Quarterstaff"},
+            {"base_item": "Rapier", "name": "Vicious Rapier"},
+            {"base_item": "Scimitar", "name": "Vicious Scimitar"},
+            {"base_item": "Shortbow", "name": "Vicious Shortbow"},
+            {"base_item": "Shortsword", "name": "Vicious Shortsword"},
+            {"base_item": "Sickle", "name": "Vicious Sickle"},
+            {"base_item": "Sling", "name": "Vicious Sling"},
+            {"base_item": "Spear", "name": "Vicious Spear"},
+            {"base_item": "Staff", "name": "Vicious Staff"},
+            {"base_item": "Trident", "name": "Vicious Trident"},
+            {"base_item": "War Pick", "name": "Vicious War Pick"},
+            {"base_item": "Warhammer", "name": "Vicious Warhammer"},
+            {"base_item": "Whip", "name": "Vicious Whip"}
+        ],
+        "notes": None,
+    },
+    "Weapon +2": {
+        "name": "Weapon +2",
+        "type": "Weapon",
+        "rarity": "Rare",
+        "attunement": False,
+        "effect": (
+            "You have a +2 bonus to Attack and Damage Rolls made with this magic weapon."
+        ),
+        "activation": [],
+        "duration": ["Passive"],
+        "charges": None,
+        "recharge": [],
+        "variations": [
+            {"base_item": "Battleaxe", "name": "Battleaxe +2"},
+            {"base_item": "Club", "name": "Club +2"},
+            {"base_item": "Dagger", "name": "Dagger +2"},
+            {"base_item": "Flail", "name": "Flail +2"},
+            {"base_item": "Glaive", "name": "Glaive +2"},
+            {"base_item": "Greataxe", "name": "Greataxe +2"},
+            {"base_item": "Greatclub", "name": "Greatclub +2"},
+            {"base_item": "Greatsword", "name": "Greatsword +2"},
+            {"base_item": "Halberd", "name": "Halberd +2"},
+            {"base_item": "Hand Crossbow", "name": "Hand Crossbow +2"},
+            {"base_item": "Handaxe", "name": "Handaxe +2"},
+            {"base_item": "Heavy Crossbow", "name": "Heavy Crossbow +2"},
+            {"base_item": "Javelin", "name": "Javelin +2"},
+            {"base_item": "Lance", "name": "Lance +2"},
+            {"base_item": "Light Crossbow", "name": "Light Crossbow +2"},
+            {"base_item": "Light Hammer", "name": "Light Hammer +2"},
+            {"base_item": "Longbow", "name": "Longbow +2"},
+            {"base_item": "Longsword", "name": "Longsword +2"},
+            {"base_item": "Mace", "name": "Mace +2"},
+            {"base_item": "Maul", "name": "Maul +2"},
+            {"base_item": "Morningstar", "name": "Morningstar +2"},
+            {"base_item": "Musket", "name": "Musket +2"},
+            {"base_item": "Pike", "name": "Pike +2"},
+            {"base_item": "Pistol", "name": "Pistol +2"},
+            {"base_item": "Quarterstaff", "name": "Quarterstaff +2"},
+            {"base_item": "Rapier", "name": "Rapier +2"},
+            {"base_item": "Scimitar", "name": "Scimitar +2"},
+            {"base_item": "Shortbow", "name": "Shortbow +2"},
+            {"base_item": "Shortsword", "name": "Shortsword +2"},
+            {"base_item": "Sickle", "name": "Sickle +2"},
+            {"base_item": "Sling", "name": "Sling +2"},
+            {"base_item": "Spear", "name": "Spear +2"},
+            {"base_item": "Staff", "name": "Staff +2"},
+            {"base_item": "Trident", "name": "Trident +2"},
+            {"base_item": "War Pick", "name": "War Pick +2"},
+            {"base_item": "Warhammer", "name": "Warhammer +2"},
+            {"base_item": "Whip", "name": "Whip +2"}
+        ],
+        "notes": None,
+    },
+    "Animated Shield": {
+        "name": "Animated Shield",
+        "type": "Armor",
+        "rarity": "Very Rare",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. While holding this Shield, you can take a Bonus Action to cause it to animate. The Shield leaps into the air and hovers in your space to protect you as if you were wielding it, leaving your hands free. The Shield remains animate for the rest of the current Encounter, until you take a Bonus Action to end this effect, or until you die or have the Incapacitated condition, at which point the Shield falls to the ground or into your hand if you have one free."
+        ),
+        "activation": ["Equip", "Bonus Action"],
+        "duration": ["End of Encounter"],
+        "charges": None,
+        "recharge": [],
+        "notes": None,
+    },
+    "Armor +2": {
+        "name": "Armor +2",
+        "type": "Armor",
+        "rarity": "Very Rare",
+        "attunement": False,
+        "effect": (
+            "You have a +2 bonus to AC while wearing this armor."
+        ),
+        "activation": ["Equip"],
+        "duration": ["Passive"],
+        "charges": None,
+        "recharge": [],
+        "variations": [
+            {"base_item": "Breastplate", "name": "Breastplate +2"},
+            {"base_item": "Chain Mail", "name": "Chain Mail +2"},
+            {"base_item": "Chain Shirt", "name": "Chain Shirt +2"},
+            {"base_item": "Half Plate Armor", "name": "Half Plate Armor +2"},
+            {"base_item": "Hide Armor", "name": "Hide Armor +2"},
+            {"base_item": "Leather Armor", "name": "Leather Armor +2"},
+            {"base_item": "Padded Armor", "name": "Padded Armor +2"},
+            {"base_item": "Plate Armor", "name": "Plate Armor +2"},
+            {"base_item": "Ring Mail", "name": "Ring Mail +2"},
+            {"base_item": "Scale Mail", "name": "Scale Mail +2"},
+            {"base_item": "Splint Armor", "name": "Splint Armor +2"},
+            {"base_item": "Studded Leather Armor", "name": "Studded Leather Armor +2"}
+        ],
+        "notes": None,
+    },
+    "Enspelled Armor Level 4": {
+        "name": "Enspelled Armor Level 4",
+        "type": "Armor",
+        "rarity": "Very Rare",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. Bound into this armor is a level 4 spell. The spell is determined when the armor is created and must belong to the Abjuration or Illusion school of magic. The armor has 6 charges and regains 1d6 expended charges after taking a Long Rest. While wearing the armor, you can expend 1 charge to cast its spell. The spell's Saving Throw DC is 15, and its Attack Bonus is +7."
+        ),
+        "activation": ["Equip"],
+        "duration": [],
+        "charges": 6,
+        "recharge": ["Long Rest"],
+        "variations": [
+            {"base_item": "Breastplate", "name": "Enspelled Breastplate Level 4"},
+            {"base_item": "Chain Mail", "name": "Enspelled Chain Mail Level 4"},
+            {"base_item": "Chain Shirt", "name": "Enspelled Chain Shirt Level 4"},
+            {"base_item": "Half Plate Armor", "name": "Enspelled Half Plate Armor Level 4"},
+            {"base_item": "Leather Armor", "name": "Enspelled Leather Armor Level 4"},
+            {"base_item": "Padded Armor", "name": "Enspelled Padded Armor Level 4"},
+            {"base_item": "Plate Armor", "name": "Enspelled Plate Armor Level 4"},
+            {"base_item": "Ring Mail", "name": "Enspelled Ring Mail Level 4"},
+            {"base_item": "Scale Mail", "name": "Enspelled Scale Mail Level 4"},
+            {"base_item": "Splint Armor", "name": "Enspelled Splint Armor Level 4"},
+            {"base_item": "Studded Leather Armor", "name": "Enspelled Studded Leather Armor Level 4"}
+        ],
+        "notes": None,
+    },
+    "Enspelled Armor Level 5": {
+        "name": "Enspelled Armor Level 5",
+        "type": "Armor",
+        "rarity": "Very Rare",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. Bound into this armor is a level 5 spell. The spell is determined when the armor is created and must belong to the Abjuration or Illusion school of magic. The armor has 6 charges and regains 1d6 expended charges after taking a Long Rest. While wearing the armor, you can expend 1 charge to cast its spell. The spell's Saving Throw DC is 17, and its Attack Bonus is +9."
+        ),
+        "activation": ["Equip"],
+        "duration": [],
+        "charges": 6,
+        "recharge": ["Long Rest"],
+        "variations": [
+            {"base_item": "Breastplate", "name": "Enspelled Breastplate Level 5"},
+            {"base_item": "Chain Mail", "name": "Enspelled Chain Mail Level 5"},
+            {"base_item": "Chain Shirt", "name": "Enspelled Chain Shirt Level 5"},
+            {"base_item": "Half Plate Armor", "name": "Enspelled Half Plate Armor Level 5"},
+            {"base_item": "Leather Armor", "name": "Enspelled Leather Armor Level 5"},
+            {"base_item": "Padded Armor", "name": "Enspelled Padded Armor Level 5"},
+            {"base_item": "Plate Armor", "name": "Enspelled Plate Armor Level 5"},
+            {"base_item": "Ring Mail", "name": "Enspelled Ring Mail Level 5"},
+            {"base_item": "Scale Mail", "name": "Enspelled Scale Mail Level 5"},
+            {"base_item": "Splint Armor", "name": "Enspelled Splint Armor Level 5"},
+            {"base_item": "Studded Leather Armor", "name": "Enspelled Studded Leather Armor Level 5"}
+        ],
+        "notes": None,
+    },
+    "Demon Armor": {
+        "name": "Demon Armor",
+        "type": "Armor",
+        "rarity": "Very Rare",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. While wearing this armor, you gain a +1 bonus to AC, and you know Abyssal. In addition, the armor's clawed gauntlets allow your Unarmed Strikes to deal 1d8 Slashing damage instead of the usual Bludgeoning damage, and you gain a +1 bonus to the Attack and Damage Rolls of your Unarmed Strikes. Curse. Once you don this cursed armor, you can't doff it unless you are targeted by a Remove Curse spell or similar magic. While wearing the armor, you have Disadvantage on Attack Rolls against demons and on Saving Throws against their spells and special abilities."
+        ),
+        "activation": ["Equip"],
+        "duration": ["Passive"],
+        "charges": None,
+        "recharge": [],
+        "variations": [
+            {"base_item": "Breastplate", "name": "Demon Breastplate"},
+            {"base_item": "Chain Mail", "name": "Demon Chain Mail"},
+            {"base_item": "Chain Shirt", "name": "Demon Chain Shirt"},
+            {"base_item": "Half Plate Armor", "name": "Demon Half Plate Armor"},
+            {"base_item": "Hide Armor", "name": "Demon Hide Armor"},
+            {"base_item": "Leather Armor", "name": "Demon Leather Armor"},
+            {"base_item": "Padded Armor", "name": "Demon Padded Armor"},
+            {"base_item": "Plate Armor", "name": "Demon Plate Armor"},
+            {"base_item": "Ring Mail", "name": "Demon Ring Mail"},
+            {"base_item": "Scale Mail", "name": "Demon Scale Mail"},
+            {"base_item": "Splint Armor", "name": "Demon Splint Armor"},
+            {"base_item": "Studded Leather Armor", "name": "Demon Studded Leather Armor"}
+        ],
+        "notes": None,
+    },
+    "Dragon Scale Mail": {
+        "name": "Dragon Scale Mail",
+        "type": "Armor",
+        "rarity": "Very Rare",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. Dragon Scale Mail is made of the scales of one kind of dragon. Sometimes dragons collect their cast-off scales and gift them to humanoids. Other times, hunters carefully skin and preserve the hide of a dead dragon. In either case, Dragon Scale Mail is highly valued. While wearing this armor, you gain a +1 bonus to AC, you have Advantage on Saving Throws against the Frightful Presence and breath weapons of dragons. You also gain an elemental damage Resistance depending on the type of dragon the scale mail is made out of. Additionally, you can focus your sense as an Action to magically discern the distance and direction to the closest dragon of that type within the battlefield. This special Action can't be used again until the next Long Rest."
+        ),
+        "activation": ["Equip", "Action"],
+        "duration": ["Passive"],
+        "charges": None,
+        "recharge": [],
+        "damage_resistance_table": [
+            {"item": "Black Dragon Scale Mail", "name": "Acid"},
+            {"item": "Blue Dragon Scale Mail", "name": "Lightning"},
+            {"item": "Brass Dragon Scale Mail", "name": "Fire"},
+            {"item": "Bronze Dragon Scale Mail", "name": "Lightning"},
+            {"item": "Copper Dragon Scale Mail", "name": "Acid"},
+            {"item": "Gold Dragon Scale Mail", "name": "Fire"},
+            {"item": "Green Dragon Scale Mail", "name": "Poison"},
+            {"item": "Red Dragon Scale Mail", "name": "Fire"},
+            {"item": "Silver Dragon Scale Mail", "name": "Cold"},
+            {"item": "White Dragon Scale Mail", "name": "Cold"}
+        ],
+        "variations": [
+            {"base_item": "Dragon Scale Mail", "name": "Black Dragon Scale Mail"},
+            {"base_item": "Dragon Scale Mail", "name": "Blue Dragon Scale Mail"},
+            {"base_item": "Dragon Scale Mail", "name": "Brass Dragon Scale Mail"},
+            {"base_item": "Dragon Scale Mail", "name": "Bronze Dragon Scale Mail"},
+            {"base_item": "Dragon Scale Mail", "name": "Copper Dragon Scale Mail"},
+            {"base_item": "Dragon Scale Mail", "name": "Gold Dragon Scale Mail"},
+            {"base_item": "Dragon Scale Mail", "name": "Green Dragon Scale Mail"},
+            {"base_item": "Dragon Scale Mail", "name": "Red Dragon Scale Mail"},
+            {"base_item": "Dragon Scale Mail", "name": "Silver Dragon Scale Mail"},
+            {"base_item": "Dragon Scale Mail", "name": "White Dragon Scale Mail"}
+        ],
+        "notes": None,
+    },
+    "Dwarven Plate": {
+        "name": "Dwarven Plate",
+        "type": "Armor",
+        "rarity": "Very Rare",
+        "attunement": False,
+        "effect": (
+            "While wearing this armor, you gain a +2 bonus to AC. In addition, if an effect moves you against your will along the ground, you can take a Reaction to reduce the distance you are moved by up to 10ft."
+        ),
+        "activation": ["Equip", "Reaction"],
+        "duration": ["Passive"],
+        "charges": None,
+        "recharge": [],
+        "variations": [
+            {"base_item": "Half Plate Armor", "name": "Dwarven Half Plate Armor"},
+            {"base_item": "Plate Armor", "name": "Dwarven Plate Armor"}
+        ],
+        "notes": None,
+    },
+    "Shield +3": {
+        "name": "Shield +3",
+        "type": "Armor",
+        "rarity": "Very Rare",
+        "attunement": False,
+        "effect": (
+            "While holding this shield, you have a +3 bonus to AC. This bonus is in addition to the shield's normal bonus to AC."
+        ),
+        "activation": ["Equip"],
+        "duration": ["Passive"],
+        "charges": None,
+        "recharge": [],
+        "notes": None,
+    },
+    "Shield of the Cavalier": {
+        "name": "Shield of the Cavalier",
+        "type": "Armor",
+        "rarity": "Very Rare",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. While holding this Shield, you have a +2 bonus to AC. This bonus is in addition to the Shield's normal bonus to AC. The Shield has the following additional properties that you can use while holding it. Forceful Bash. When you take the Attack, you can make one of the Attack Rolls using the Shield against a target within 5ft of yourself. Apply your Proficiency Bonus and Strength modifier to the Attack Roll. On a hit, the Shield deals Force damage to the target equal to 2d6 + 2 plus your Strength modifier, and if the target is a creature, you can push it up to 10ft directly away from yourself. If the creature is your size or smaller, you can also knock it down, giving it the Prone condition. Protective Field. As a Reaction, when you or an ally you can see within 5ft of you is targeted by an Attack or makes a Saving Throw against an area of effect, you can use the Shield to create an immobile 5ft Emanation originating from you. When the Emanation appears, any creatures or objects not fully contained within it are pushed into the nearest unoccupied spaces outside it. The attack or area of effect that triggered the Reaction has no effect on creatures and objects inside the Emanation, which lasts as long as you maintain Concentration, for the rest of the Encounter. Nothing can pass into or out of the Emanation. A creature or object inside the Emanation can't be damaged by attacks or effects originating from outside, nor can a creature inside the Emanation damage anything outside it. Once this property is used, it can't be used again until you take a Long Rest."
+        ),
+        "activation": ["Equip", "Reaction"],
+        "duration": ["Passive"],
+        "charges": None,
+        "recharge": ["Long Rest"],
+        "notes": None,
+    },
+    "Spellguard Shield": {
+        "name": "Spellguard Shield",
+        "type": "Armor",
+        "rarity": "Very Rare",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. While holding this Shield, you have Advantage on Saving Throws against spells and other magical effects, and Spell Attack Rolls have Disadvantage against you."
+        ),
+        "activation": ["Equip"],
+        "duration": ["Passive"],
+        "charges": None,
+        "recharge": [],
+        "notes": None,
+    },
+    "Oil of Sharpness": {
+        "name": "Oil of Sharpness",
+        "type": "Potion",
+        "rarity": "Very Rare",
+        "attunement": False,
+        "effect": (
+            "One vial of this oil can coat one Melee weapon or twenty pieces of ammunition, but only ammunition and Melee weapons that are nonmagical and deal Slashing or Piercing damage are affected. You can apply the Oil of Sharpness when you take either a Short or Long Rest, after which the oil magically seeps into whatever it coats, turning the coated weapon into a +3 Weapon or the coated ammunition into +3 Ammunition. This clear, gelatinous oil sparkles with tiny, ultrathin silver shards."
+        ),
+        "activation": ["Short Rest", "Long Rest"],
+        "duration": ["Passive"],
+        "charges": None,
+        "recharge": [],
+        "notes": None,
+    },
+    "Potion of Cloud Giant Strength": {
+        "name": "Potion of Cloud Giant Strength",
+        "type": "Potion",
+        "rarity": "Very Rare",
+        "attunement": False,
+        "effect": (
+            "When you drink this potion, your Strength score changes to 27 for the rest of the current Encounter. The potion has no effect on you if your Strength is equal to or greater than that score. This potion's transparent liquid has floating in it a sliver of fingernail from a cloud giant."
+        ),
+        "activation": ["Bonus Action"],
+        "duration": ["End of Encounter"],
+        "charges": None,
+        "recharge": [],
+        "notes": None,
+    },
+    "Potion of Flying": {
+        "name": "Potion of Flying",
+        "type": "Potion",
+        "rarity": "Very Rare",
+        "attunement": False,
+        "effect": (
+            "When you drink this potion, you gain a Fly Speed equal to your Speed for the rest of the current Encounter and can Hover. If you're in the air when the potion wears off, you fall unless you have some other means of staying aloft. This potion's clear liquid floats at the top of its container and has cloudy white impurities drifting in it."
+        ),
+        "activation": ["Bonus Action"],
+        "duration": ["End of Encounter"],
+        "charges": None,
+        "recharge": [],
+        "notes": None,
+    },
+    "Potion of Greater Invisibility": {
+        "name": "Potion of Greater Invisibility",
+        "type": "Potion",
+        "rarity": "Very Rare",
+        "attunement": False,
+        "effect": (
+            "This potion's container looks empty but feels as though it holds liquid. When you drink the potion, you have the Invisible condition for the rest of the current Encounter."
+        ),
+        "activation": ["Bonus Action"],
+        "duration": ["End of Encounter"],
+        "charges": None,
+        "recharge": [],
+        "notes": None,
+    },
+    "Potion of Speed": {
+        "name": "Potion of Speed",
+        "type": "Potion",
+        "rarity": "Very Rare",
+        "attunement": False,
+        "effect": (
+            "When you drink this potion, you gain the effect of the Haste spell for 10 Rounds of the current Encounter (no Concentration required) without suffering the wave of lethargy that typically occurs when the effect ends. This potion's yellow fluid is streaked with black and swirls on its own."
+        ),
+        "activation": ["Bonus Action"],
+        "duration": ["10 Rounds"],
+        "charges": None,
+        "recharge": [],
+        "notes": None,
+    },
+    "Potion of Supreme Healing": {
+        "name": "Potion of Supreme Healing",
+        "type": "Potion",
+        "rarity": "Very Rare",
+        "attunement": False,
+        "effect": (
+            "You regain 10d4 + 20 Hit Points when you drink this potion. The potion's red liquid glimmers when agitated."
+        ),
+        "activation": ["Bonus Action"],
+        "duration": ["Instantaneous"],
+        "charges": None,
+        "recharge": [],
+        "notes": None,
+    },
+    "Potion of Vitality": {
+        "name": "Potion of Vitality",
+        "type": "Potion",
+        "rarity": "Very Rare",
+        "attunement": False,
+        "effect": (
+            "When you drink this potion, it removes any Exhaustion levels you have and ends the Poisoned condition on you. For the next 3 Encounters, you regain the maximum number of Hit Points for any Hit Point Die you spend. This potion's crimson liquid regularly pulses with dull light, calling to mind a heartbeat."
+        ),
+        "activation": ["Bonus Action"],
+        "duration": ["3 Encounters"],
+        "charges": None,
+        "recharge": [],
+        "notes": None,
+    },
+    "Ring of Regeneration": {
+        "name": "Ring of Regeneration",
+        "type": "Ring",
+        "rarity": "Very Rare",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. While wearing this ring, if you are Bloodied, you regain 1d6 Hit Points at the start of your turn, if you have at least 1 Hit Point."
+        ),
+        "activation": ["Equip"],
+        "duration": ["Passive"],
+        "charges": None,
+        "recharge": [],
+        "notes": None,
+    },
+    "Ring of Shooting Stars": {
+        "name": "Ring of Shooting Stars",
+        "type": "Ring",
+        "rarity": "Very Rare",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. You can cast Dancing Lights or Light from the ring. The ring has 6 charges and regains 1d6 expended charges after taking a Long Rest. You can expend its charges to use the following properties. Faerie Fire. You can expend 1 charge to cast Faerie Fire from the ring. Lightning Spheres. You can expend 2 charges as a Magic Action to create up to four 3ft diameter spheres of lightning. Each sphere appears in an unoccupied space you can see within 120ft of yourself. The spheres last as long as you maintain Concentration, for the rest of the current Encounter. Each sphere sheds Dim Light in a 30ft radius. As a Bonus Action, you can move each sphere up to 30ft, but no farther than 120ft away from yourself. The first time the sphere comes within 5ft of a creature other than you that isn't behind Total Cover, the sphere discharges lightning at that creature and disappears. That creature makes a DC 15 Dexterity Saving Throw. On a failed Save, the creature takes Lightning damage based on the number of spheres you created. On a successful Save, the creature takes half as much damage. 1 Sphere = 4d12 ; 2 Spheres = 5d4 ; 3 Spheres = 2d6 ; 4 Spheres = 2d4. Shooting Stars. You can expend 1 to 3 charges as a Magic Action. For every charge you expend, you launch a glowing mote of light from the ring at a point you can see within 60ft of yourself. Each creature in a 15ft Cube originating from that point is showered in sparks and makes a DC 15 Dexterity Saving Throw, taking 5d4 Radiant damage on a failed Save or half as much damage on a successful one."
+        ),
+        "activation": ["Equip", "Action", "Bonus Action"],
+        "duration": [],
+        "charges": 6,
+        "recharge": ["Long Rest"],
+        "notes": None,
+    },
+    "Ring of Telekinesis": {
+        "name": "Ring of Telekinesis",
+        "type": "Ring",
+        "rarity": "Very Rare",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. While wearing this ring, you can cast Telekinesis from it."
+        ),
+        "activation": ["Equip"],
+        "duration": [],
+        "charges": None,
+        "recharge": [],
+        "notes": None,
+    },
+    "Rod of Absorption": {
+        "name": "Rod of Absorption",
+        "type": "Rod",
+        "rarity": "Very Rare",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. While holding this rod, you can take a Reaction to absorb a spell that is targeting only you and doesn't create an area of effect. The absorbed spell's effect is canceled, and the spell's energy, not the spell itself, is stored in the rod. The energy has the same level as the spell when it was cast. A canceled spell dissipates with no effect, and any resources used to cast it are wasted. The rod can absorb and store up to 50 levels of energy over the course of its existence. Once the rod absorbs 50 levels of energy, it can't absorb more. If you are targeted by a spell that the rod can't store, the rod has no effect on that spell. When you become attuned to the rod, you know how many levels of energy the rod has absorbed over the course of its existence and how many levels of spell energy it currently has stored. If you are a spellcaster holding the rod, you can convert energy stored in it into spell slots to cast spells you have preparedor know. You can create spell slots only of a level equal to or lower than your own spell slots, up to a maximum of level 5. You use the stored levels in place of your slots but otherwise cast the spell as normal. For example, you can use 3 levels stored in the rod as a level 3 spell slot. A newly found rod typically has 1d10 levels of spell energy stored in it. A rod that can no longer absorb spell energy and has no energy remaining becomes nonmagical."
+        ),
+        "activation": ["Reaction"],
+        "duration": [],
+        "charges": 50,
+        "recharge": [],
+        "notes": None,
+    },
+    "Rod of Alertness": {
+        "name": "Rod of Alertness",
+        "type": "Rod",
+        "rarity": "Very Rare",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. This rod has the following properties. Alertness. While holding the rod, you have Advantage on Wisdom (Perception) checks and on Initiative Rolls. While holding the rod, you can cast the following spells from it: Detect Evil and Good, Detect Magic, Detect Poison and Disease, See Invisibility. Protective Aura. As a Magic Action, you can plant the haft end of the rod in the ground, whereupon the rod's head sheds Bright Light in a 60ft radius and Dim Light for an additional 60ft. While in that Bright Light, you and your allies gain a +1 bonus to AC and Saving Throws and can sense the location of any Invisible creature that is also in the Bright Light. The rod's head stops glowing and the effect ends at the end of current Encounter or when a creature takes a Magic Action to pull the rod from the ground. Once used, this property can't be used again until you take a Long Rest."
+        ),
+        "activation": ["Action"],
+        "duration": ["End of Encounter"],
+        "charges": None,
+        "recharge": ["Long Rest"],
+        "notes": None,
+    },
+    "Rod of the Pact Keeper +3": {
+        "name": "Rod of the Pact Keeper +3",
+        "type": "Rod",
+        "rarity": "Very Rare",
+        "attunement": True,
+        "effect": (
+            "Requires attunement by a Warlock. While holding this rod, you gain a +3 bonus to Spell Attack Rolls and to the Saving Throw DCs of your Warlock spells. In addition, you can regain one spell slot as a Magic Action while holding the rod. You can't use this property again until you finish a Long Rest."
+        ),
+        "activation": ["Action"],
+        "duration": ["Passive"],
+        "charges": None,
+        "recharge": ["Long Rest"],
+        "notes": None,
+    },
+    "Spell Scroll Level 6": {
+        "name": "Spell Scroll Level 6",
+        "type": "Spell Scroll",
+        "rarity": "Very Rare",
+        "attunement": False,
+        "effect": (
+            "A Spell Scroll bears the words of a single spell, written in a mystical cipher. If the spell is on your spell list, you can read the scroll and cast its spell without Material components. Otherwise, the scroll is unintelligble. Casting the spell by reading the scroll requires the spell's normal casting time. Once the spell is cast, the scroll crumbles to dust. If the casting is interrupted, the scroll isn't lost. If the spell is on your spell list but of a higher level than you can normally cast, you make a DC 16 Ability Check using your spellcasting ability to determine whether you cast the spell. On a failed check, the spell disappears from the scroll with no other effect. If the spell requires a Saving Throw or an Attack Roll, the spell save DC is 17, and the Attack Bonus is +9."
+        ),
+        "activation": [],
+        "duration": [],
+        "charges": None,
+        "recharge": [],
+        "notes": None,
+    },
+    "Spell Scroll Level 7": {
+        "name": "Spell Scroll Level 7",
+        "type": "Spell Scroll",
+        "rarity": "Very Rare",
+        "attunement": False,
+        "effect": (
+            "A Spell Scroll bears the words of a single spell, written in a mystical cipher. If the spell is on your spell list, you can read the scroll and cast its spell without Material components. Otherwise, the scroll is unintelligible. Casting the spell by reading the scroll requires the spell's normal casting time. Once the spell is cast, the scroll crumbles to dust. If the casting is interrupted, the scroll isn't lost. If the spell is on your spell list but of a higher level than you can normally cast, you make a DC 17 Ability Check using your spellcasting ability to determine whether you cast the spell. On a failed check, the spell disappears from the scroll with no other effect. If the spell requires a Saving Throw or an Attack Roll, the spell save DC 18, and the Attack Bonus is +10."
+        ),
+        "activation": [],
+        "duration": [],
+        "charges": None,
+        "recharge": [],
+        "notes": None,
+    },
+    "Spell Scroll Level 8": {
+        "name": "Spell Scroll Level 8",
+        "type": "Spell Scroll",
+        "rarity": "Very Rare",
+        "attunement": False,
+        "effect": (
+            "A Spell Scroll bears the words of a single spell, written in a mystical cipher. If the spell is on your spell list, you can read the scroll and cast its spell without Material components. Otherwise, the scroll is unintelligible. Casting the spell by reading the scroll requires the spell's normal casting time. Once the spell is cast, the scroll crumbles to dust. If the casting is interrupted, the scroll isn't lost. If the spell is on your spell list but of a higher level than you can normally cast, you make a DC 18 Ability Check using your spellcasting ability to determine whether you cast the spell. On a failed check, the spell disappears from the scroll with no other effect. If the spell requires a Saving Throw or an Attack Roll, the spell save DC is 18, and the Attack Bonus is +10."
+        ),
+        "activation": [],
+        "duration": [],
+        "charges": None,
+        "recharge": [],
+        "notes": None,
+    },
+    "Enspelled Staff Level 4": {
+        "name": "Enspelled Staff Level 4",
+        "type": "Staff",
+        "rarity": "Very Rare",
+        "attunement": True,
+        "effect": (
+            "Requires attunement by a Spellcaster. Bound into this staff is a level 4 spell. The spell is determined when the staff is created and can be of any school of magic. The staff has 6 charges and regains 1d6 expended charges after taking a Long Rest. While holding the staff, you can expend 1 charge to cast its spell. If you expend the staff's last charge, roll 1d20. On a 1, the staff loses its properties and becomes a nonmagical Quarterstaff. The spell's Saving Throw DC is 15, and its Attack Bonus is +7."
+        ),
+        "activation": [],
+        "duration": [],
+        "charges": 6,
+        "recharge": ["Long Rest"],
+        "notes": None,
+    },
+    "Enspelled Staff Level 5": {
+        "name": "Enspelled Staff Level 5",
+        "type": "Staff",
+        "rarity": "Very Rare",
+        "attunement": True,
+        "effect": (
+            "Requires attunement by a Spellcaster. Bound into this staff is a level 5 spell. The spell is determined when the staff is created and can be of any school of magic. The staff has 6 charges and regains 1d6 expended charges after taking a Long Rest. While holding the staff, you can expend 1 charge to cast its spell. If you expend the staff's last charge, roll 1d20. On a 1, the staff loses its properties and becomes a nonmagical Quarterstaff. The spell's Saving Throw DC is 17, and its Attack Bonus is +9."
+        ),
+        "activation": [],
+        "duration": [],
+        "charges": 6,
+        "recharge": ["Long Rest"],
+        "notes": None,
+    },
+    "Quarterstaff of the Acrobat": {
+        "name": "Quarterstaff of the Acrobat",
+        "type": "Staff",
+        "rarity": "Very Rare",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. You have a +2 bonus to Attack Rolls and Damage Rolls made with this magic weapon. While holding this weapon, you can cause it to emit green Dim Light out to 10ft, either as a Bonus Action or after you roll Initiative, or you can extinguish the light as a Bonus Action. While holding this weapon, you can take a Bonus Action to alter its form, turning it into a 6-inch rod (for ease of storage) or a 10ft pole, or reverting it a Quarterstaff; the weapon will elongate only as far as the surrounding space allows. In certain forms, the weapon has the following additional properties. Acrobatic Assist (Quarterstaff and 10ft Pole Forms only). While holding this weapon, you have Advantage on Dexterity (Acrobatics) checks. Attack Deflection (Quarterstaff Form only). When you are hit by an attack while holding the weapon, you can take a Reaction to twirl the weapon around you, gaining a +5 bonus to your AC against the triggering attack, potentially causing the attack to miss you. You can't use this property again until you finish a Short or Long Rest. Ranged Weapon (Quarterstaff Form only). This weapon has Thrown with a normal range of 120ft. Immediately after you make a Ranged Attack with the weapon, it flies back to your hand."
+        ),
+        "activation": ["Bonus Action", "Reaction"],
+        "duration": ["Passive"],
+        "charges": None,
+        "recharge": ["Short Rest", "Long Rest"],
+        "notes": None,
+    },
+    "Staff of Fire": {
+        "name": "Staff of Fire",
+        "type": "Staff",
+        "rarity": "Very Rare",
+        "attunement": True,
+        "effect": (
+            "Requires attunement by a Druid, Sorcerer, Warlock, or Wizard. You have Resistance to Fire damage while you hold this staff. The has 10 charges. While holding the staff, you can cast one of the following spells from it, using your spell save DC. Burning Hands costs 1, Fireball costs 3, Wall of Fire costs 4. The staff regains 1d6 + 4 expended charges after taking a Long REst. If you expend the last charge, roll 1d20. On a 1, the staff crumbles into cinders and is destroyed."
+        ),
+        "activation": [],
+        "duration": [],
+        "charges": 10,
+        "recharge": ["Long Rest"],
+        "notes": None,
+    },
+    "Staff of Frost": {
+        "name": "Staff of Frost",
+        "type": "Staff",
+        "rarity": "Very Rare",
+        "attunement": True,
+        "effect": (
+            "Requires attunement by a Druid, Sorcerer, Warlock, or Wizard. You have Resistance to Cold damage while you hold this staff. The staff has 10 charges. While holding the staff, you can cast one of the following spells from it, using your spell save DC. Cone of Cold costs 5, Fog Cloud costs 1, Ice Storm costs 4, Wall of Ice costs 4. The staff regains 1d6 + 4 expended charges after taking a Long Rest. If you expend the last charge, roll 1d20. On a 1, the staff turns to water and is destroyed."
+        ),
+        "activation": [],
+        "duration": [],
+        "charges": 10,
+        "recharge": ["Long Rest"],
+        "notes": None,
+    },
+    "Staff of Power": {
+        "name": "Staff of Power",
+        "type": "Staff",
+        "rarity": "Very Rare",
+        "attunement": True,
+        "effect": (
+            "Requires attunement by a Sorcerer, Warlock, or Wizard. This staff has 20 charges and can be wielded as a magic Quarterstaff that grants a +2 bonus to Attack Rolls and Damage Rolls made with it. While holding it, you gain a +2 bonus to AC, Saving Throws, and Spell Attack Rolls. While holding the staff, you can cast one of the following spells from it, using your spell save DC. Cone of Cold costs 5, Fireball (Level 5 version) costs 5, Globe of Invulnerability costs 6, Hold Monster costs 5, Levitate costs 2, Lightning Bolt (level 5 version) costs 5, Magic Missile costs 1, Ray of Enfeeblement costs 1, Wall of Force costs 5. The staff regains 2d8 + 4 expended charges after taking a Long Rest. If you expend the last charge, roll 1d20. On a 1, the staff retains its +2 bonus to Attack Rolls and Damage Rolls but loses all other properties. On a 20, the staff regains 1d8 +2 charges. Retributive Strike. You can take a Magic Action to break the staff over your knee or against a solid surface. The staff is destroyed and releases its magic in an explosion that fills a 30ft Emanation originating from itself. You have a 50 percent chance to instantly travel to a random Floor of the Tower, avoiding the explosion. If you fail to avoid the effect, you take Force damage equal to 16 times the number of charges in the staff. Each other creature in the area makes a DC 17 Dexterity Saving Throw. On a failed Save, a creature takes Force damage equal to 4 times the number of charges in the staff. On a successful Save, a creature takes half as much damage."
+        ),
+        "activation": ["Action"],
+        "duration": ["Passive"],
+        "charges": 20,
+        "recharge": ["Long Rest"],
+        "notes": None,
+    },
+    "Staff of Striking": {
+        "name": "Staff of Striking",
+        "type": "Staff",
+        "rarity": "Very Rare",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. This staff can be wielded as a magic Quarterstaff that grants a +3 bonus to Attack Rolls and Damage Rolls made with it. The staff has 10 charges. When you hit with a melee attack using it, you can expend up to 3 charges. For each charge you expend, the target takes an extra 1d6 Force damage. The staff regains 1d6 + 4 expended charges after taking a Long Rest. If you expend the last charge, roll 1d20. On a 1, the staff becomes a nonmagical Quarterstaff."
+        ),
+        "activation": [],
+        "duration": ["Passive"],
+        "charges": 10,
+        "recharge": ["Long Rest"],
+        "notes": None,
+    },
+    "Staff of Thunder and Lightning": {
+        "name": "Staff of Thunder and Lightning",
+        "type": "Staff",
+        "rarity": "Very Rare",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. This staff can be wielded as a magic Quarterstaff that grants a +2 bonus to Attack Rolls and Damage Rolls made with it. It also has the following additional properties. Once one of these properties is used, it can't be used again until you take a Long Rest. Lightning. When you hit with a melee attack using the staff, you can cause the target to take an extra 2d6 Lightning damage (no action required). Thunder. When you hit with a melee attack using the staff, you can cause the staff to emit a crack of thunder audible out to 300ft (no action required). The target you hit must succeed on a DC 17 Constitution Saving Throw or have the Stunned condition until the end of your next turn. Thunder and Lightning. Immediately after you hit with a melee attack using the staff, you can take a Bonus Action to use the Lightning and Thunder properties at the same time. Doing so doesn't expend the daily use of those properties, only the use of this one. Lightning Strike. You can take a Magic Action to cause a bolt of lightning to leap from the staff's tip in a Line that is 5ft wide and 120ft long. Each creature in that Line makes a DC 17 Dexterity Saving Throw, taking 9d6 Lightning damage on a failed Save or half as much damage on a successful one. Thunderclap. You can take a Magic Action to cause the staff to produce a thunderclap audible out to 600ft. Every creature within a 60ft Emanation originating from you makes a DC 17 Constitution Saving Throw. On a failed Save, a creature takes 2d6 Thunder damage and has the Deafened condition for the rest of the current Encounter. On a successful Save, a creature takes half as much damage only."
+        ),
+        "activation": ["Action", "Bonus Action"],
+        "duration": ["Passive"],
+        "charges": None,
+        "recharge": ["Long Rest"],
+        "notes": None,
+    },
+    "Wand of Polymorph": {
+        "name": "Wand of Polymorph",
+        "type": "Wand",
+        "rarity": "Very Rare",
+        "attunement": True,
+        "effect": (
+            "Requires attunement by a Spellcaster. This wand has 7 charges. While holding it, you can expend 1 charge to cast Polymorph (save DC 15) from it. The wand regains 1d6 + 1 expended charges after taking a Long Rest. If you expend the wand's last charge, roll 1d20. On a 1, the wand crumbles into ashes and is destroyed."
+        ),
+        "activation": [],
+        "duration": [],
+        "charges": 7,
+        "recharge": ["Long Rest"],
+        "notes": None,
+    },
+    "Wand of the War Mage +3": {
+        "name": "Wand of the War Mage +3",
+        "type": "Wand",
+        "rarity": "Very Rare",
+        "attunement": True,
+        "effect": (
+            "Requires attunement by a Spellcaster. While holding this wand, you gain a +3 bonus to Spell Attack Rolls. In addition, you ignore Half Cover when making a Spell Attack Roll."
+        ),
+        "activation": [],
+        "duration": ["Passive"],
+        "charges": None,
+        "recharge": [],
+        "notes": None,
+    },
+    "Ammunition +3": {
+        "name": "Ammunition +3",
+        "type": "Weapon",
+        "rarity": "Very Rare",
+        "attunement": False,
+        "effect": (
+            "You have a +3 bonus to Attack and Damage Rolls made with this piece of magic ammunition. Once it hits a target, the ammunition is no longer magical."
+        ),
+        "activation": [],
+        "duration": ["Passive"],
+        "charges": None,
+        "recharge": [],
+        "variations": [
+            {"base_item": "Arrow", "name": "Arrow +3"},
+            {"base_item": "Bolt", "name": "Bolt +3"},
+            {"base_item": "Firearm Bullet", "name": "Firearm Bullet +3"},
+        ],
+        "notes": None,
+    },
+    "Ammunition of Slaying": {
+        "name": "Ammunition of Slaying",
+        "type": "Weapon",
+        "rarity": "Very Rare",
+        "attunement": False,
+        "effect": (
+            "This magic ammunition is meant to slay creatures of a particular type. If a creature of that type takes damage from the ammunition, the creature makes a DC 17 Constitution Saving Throw, taking an extra 6d10 Force damage on a failed Save or half as much extra damage on a successful one. After dealing damage to a creature, the ammunition becomes a nonmagical."
+        ),
+        "activation": [],
+        "duration": ["Passive"],
+        "charges": None,
+        "recharge": [],
+        "creature_type": [
+            {"result": "01-10", "name": "Aberrations"},
+            {"result": "11-15", "name": "Beasts"},
+            {"result": "16-20", "name": "Celestials"},
+            {"result": "21-25", "name": "Constructs"},
+            {"result": "26-35", "name": "Dragons"},
+            {"result": "36-45", "name": "Elementals"},
+            {"result": "46-50", "name": "Humanoids"},
+            {"result": "51-60", "name": "Fey"},
+            {"result": "61-70", "name": "Fiends"},
+            {"result": "71-75", "name": "Giants"},
+            {"result": "76-80", "name": "Monstrosities"},
+            {"result": "81-85", "name": "Oozes"},
+            {"result": "86-90", "name": "Plants"},
+            {"result": "91-00", "name": "Undead"}
+        ],
+        "variations": [
+            {"base_item": "Arrow", "name": "Arrow of Slaying"},
+            {"base_item": "Bolt", "name": "Bolt of Slaying"},
+            {"base_item": "Firearm Bullet", "name": "Firearm Bullet of Slaying"}
+        ],
+        "notes": None,
+    },
+    "Dancing Sword": {
+        "name": "Dancing Sword",
+        "type": "Weapon",
+        "rarity": "Very Rare",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. You can take a Bonus Action to toss this magic weapon into the air. When you do so, the weapon begins to Hover, flies up to 30ft, and attacks one creature of your choice within 5ft of itself. The weapon uses your Attack Roll and adds your ability modifier to Damage Rolls. While the weapon Hovers, you can take a Bonus Action to cause it to fly up to 30ft to another spot within 30ft of you. As part of the same Bonus Action, you can cause the weapon to attack one creature within 5ft of the weapon. After the Hovering weapon attacks for the fourth time, it flies back to you and tries to return to your hand. If you have no hand free, the weapon falls to the ground in your space. If the weapon has no unobstructed path to you, it moves as close to you as it can and then falls to the ground. It also ceases to Hover if you grasp it or are more than 30ft away from it."
+        ),
+        "activation": ["Bonus Action"],
+        "duration": [],
+        "charges": None,
+        "recharge": [],
+        "variations": [
+            {"base_item": "Greatsword", "name": "Dancing Greatsword"},
+            {"base_item": "Longsword", "name": "Dancing Longsword"},
+            {"base_item": "Rapier", "name": "Dancing Rapier"},
+            {"base_item": "Scimitar", "name": "Dancing Scimitar"},
+            {"base_item": "Shortsword", "name": "Dancing Shortsword"}
+        ],
+        "notes": None,
+    },
+    "Dwarven Thrower": {
+        "name": "Dwarven Thrower",
+        "type": "Weapon",
+        "rarity": "Very Rare",
+        "attunement": True,
+        "effect": (
+            "Requires attunement by a Dwarf. You gain a +3 bonus to Attack Rolls and Damage Rolls made with this magic weapon. It has Thrown with a normal range of 20ft and a long range of 60ft. When you hit with a Ranged Attack using this weapon, it deals an extra 1d8 Force damage, or an extra 2d8 Force damage if the target is a Giant. Immediately after hitting or missing, the weapon flies back to your hand."
+        ),
+        "activation": [],
+        "duration": ["Passive"],
+        "charges": None,
+        "recharge": [],
+        "notes": None,
+    },
+    "Energy Bow": {
+        "name": "Energy Bow",
+        "type": "Weapon",
+        "rarity": "Very Rare",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. You gain a +1 bonus to Attack Rolls and Damage Rolls made with this magic weapon, which has no string. Each time you pull your arm back in a firing motion, a magical arrow made of golden energy appears nocked and ready to fire. An arrow produced by this weapon deals Force damage instead of Piercing damage on a hit, and it disappears after it hits or misses its target. Until it disappears, the arrow emits Bright Light in a 20ft radius and Dim Light for an additional 20ft. This weapon has the following additional properties. Arrow of Restraint. Whenever you use this weapon to make a Ranged Attack against a creature, you can try to restrain the target instead of dealing damage to it. If the arrow hits, the target must succeed on a DC 15 Strength Saving Throw or have the Restrained condition for 10 Rounds of the current Encounter. As an Action, a creature Restrained by an arrow can make a DC 20 Strength (Athletics) check to try to break the restraint, ending the effect on itself on a successful check. Arrow of Transport. As a Magic Action, you can fire one energy arrow from this weapon at a target you can see within 60ft of yourself. The target can be either a willing Medium or smaller creature or an object that isn't being worn or carried, provided the object is small enough to fit inside a 5ft Cube. The arrow teleports the target to an unoccupied space you can see within 10ft of you. Energy Ladder. As a Magic Action, you can loose a flurry of energy arrows from this weapon at a wall up to 60ft away from yourself. The arrows become glowing rungs that stick out of the wall, forming a magical ladder up to 60ft long on the wall. This ladder lasts for the rest of the current Encounter before disappearing."
+        ),
+        "activation": ["Action", "Bonus Action"],
+        "duration": ["Passive"],
+        "charges": None,
+        "recharge": [],
+        "variations": [
+            {"base_item": "Longbow", "name": "Energy Longbow"},
+            {"base_item": "Shortbow", "name": "Energy Shortbow"}
+        ],
+        "notes": None,
+    },
+    "Enspelled Weapon Level 4": {
+        "name": "Enspelled Weapon Level 4",
+        "type": "Weapon",
+        "rarity": "Very Rare",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. Bound into this weapon is a level 4 spell. The spell is determined when the weapon is created and must belong to the Conjuration, Divination, Evocation, Necromancy, or Transmutation school of magic. The weapon has 6 charges and regains 1d6 expended charges after taking a Long Rest. While holding the weapon, you can expend 1 charge to cast its spell. The spell's Saving Throw DC is 15, and its Attack Bonus is +7."
+        ),
+        "activation": [],
+        "duration": [],
+        "charges": 6,
+        "recharge": ["Long Rest"],
+        "variations": [
+            {"base_item": "Blatteaxe", "name": "Enspelled Battleaxe Level 4"},
+            {"base_item": "Club", "name": "Enspelled Club Level 4"},
+            {"base_item": "Dagger", "name": "Enspelled Dagger Level 4"},
+            {"base_item": "Flail", "name": "Enspelled Flail Level 4"},
+            {"base_item": "Glaive", "name": "Enspelled Glaive Level 4"},
+            {"base_item": "Greataxe", "name": "Enspelled Greataxe Level 4"},
+            {"base_item": "Greatclub", "name": "Enspelled Greatclub Level 4"},
+            {"base_item": "Greatsword", "name": "Enspelled Greatsword Level 4"},
+            {"base_item": "Halberd", "name": "Enspelled Halberd Level 4"},
+            {"base_item": "Hand Crossbow", "name": "Enspelled Hand Crossbow Level 4"},
+            {"base_item": "Handaxe", "name": "Enspelled Handaxe Level 4"},
+            {"base_item": "Heavy Crossbow", "name": "Enspelled Heavy Crossbow Level 4"},
+            {"base_item": "Javelin", "name": "Enspelled Javelin Level 4"},
+            {"base_item": "Lance", "name": "Enspelled Lance Level 4"},
+            {"base_item": "Light Crossbow", "name": "Enspelled Light Crossbow Level 4"},
+            {"base_item": "Light Hammer", "name": "Enspelled Light Hammer Level 4"},
+            {"base_item": "Longbow", "name": "Enspelled Longbow Level 4"},
+            {"base_item": "Longsword", "name": "Enspelled Longsword Level 4"},
+            {"base_item": "Mace", "name": "Enspelled Mace Level 4"},
+            {"base_item": "Maul", "name": "Enspelled Maul Level 4"},
+            {"base_item": "Morningstar", "name": "Enspelled Morningstar Level 4"},
+            {"base_item": "Musket", "name": "Enspelled Musket Level 4"},
+            {"base_item": "Pike", "name": "Enspelled Pike Level 4"},
+            {"base_item": "Pistol", "name": "Enspelled Pistol Level 4"},
+            {"base_item": "Quarterstaff", "name": "Enspelled Quarterstaff Level 4"},
+            {"base_item": "Rapier", "name": "Enspelled Rapier Level 4"},
+            {"base_item": "Scimitar", "name": "Enspelled Scimitar Level 4"},
+            {"base_item": "Shortbow", "name": "Enspelled Shortbow Level 4"},
+            {"base_item": "Shortsword", "name": "Enspelled Shortsword Level 4"},
+            {"base_item": "Sickle", "name": "Enspelled Sickle Level 4"},
+            {"base_item": "Sling", "name": "Enspelled Sling Level 4"},
+            {"base_item": "Spear", "name": "Enspelled Spear Level 4"},
+            {"base_item": "Staff", "name": "Enspelled Staff Level 4"},
+            {"base_item": "Trident", "name": "Enspelled Trident Level 4"},
+            {"base_item": "War Pick", "name": "Enspelled War Pick Level 4"},
+            {"base_item": "Warhammer", "name": "Enspelled Warhammer Level 4"},
+            {"base_item": "Whip", "name": "Enspelled Whip Level 4"}
+        ],
+        "notes": None,
+    },
+    "Enspelled Weapon Level 5": {
+        "name": "Enspelled Weapon Level 5",
+        "type": "Weapon",
+        "rarity": "Very Rare",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. Bound into this weapon is a level 5 spell. The spell is determined when the weapon is created and must belong to the Conjuration, Divination, Evocation, Necromancy, or Transmutation school of magic. The weapon has 6 charges and regains 1d6 expended charges after taking a Long Rest. While holding the weapon, you can expend 1 charge to cast its spell. The spell's Saving Throw DC is 17, and its Attack Bonus is +9."
+        ),
+        "activation": [],
+        "duration": [],
+        "charges": 6,
+        "recharge": ["Long Rest"],
+        "variations": [
+            {"base_item": "Battleaxe", "name": "Enspelled Battleaxe Level 5"},
+            {"base_item": "Club", "name": "Enspelled Club Level 5"},
+            {"base_item": "Dagger", "name": "Enspelled Dagger Level 5"},
+            {"base_item": "Flail", "name": "Enspelled Flail Level 5"},
+            {"base_item": "Glaive", "name": "Enspelled Glaive Level 5"},
+            {"base_item": "Greataxe", "name": "Enspelled Greataxe Level 5"},
+            {"base_item": "Greatclub", "name": "Enspelled Greatclub Level 5"},
+            {"base_item": "Greatsword", "name": "Enspelled Greatsword Level 5"},
+            {"base_item": "Halberd", "name": "Enspelled Halberd Level 5"},
+            {"base_item": "Hand Crossbow", "name": "Enspelled Hand Crossbow Level 5"},
+            {"base_item": "Handaxe", "name": "Enspelled Handaxe Level 5"},
+            {"base_item": "Heavy Crossbow", "name": "Enspelled Heavy Crossbow Level 5"},
+            {"base_item": "Javelin", "name": "Enspelled Javelin Level 5"},
+            {"base_item": "Lance", "name": "Enspelled Lance Level 5"},
+            {"base_item": "Light Crossbow", "name": "Enspelled Light Crossbow Level 5"},
+            {"base_item": "Light Hammer", "name": "Enspelled Light Hammer Level 5"},
+            {"base_item": "Longbow", "name": "Enspelled Longbow Level 5"},
+            {"base_item": "Longsword", "name": "Enspelled Longsword Level 5"},
+            {"base_item": "Mace", "name": "Enspelled Mace Level 5"},
+            {"base_item": "Maul", "name": "Enspelled Maul Level 5"},
+            {"base_item": "Morningstar", "name": "Enspelled Morningstar Level 5"},
+            {"base_item": "Musket", "name": "Enspelled Musket Level 5"},
+            {"base_item": "Pike", "name": "Enspelled Pike Level 5"},
+            {"base_item": "Pistol", "name": "Enspelled Pistol Level 5"},
+            {"base_item": "Quarterstaff", "name": "Enspelled Quarterstaff Level 5"},
+            {"base_item": "Rapier", "name": "Enspelled Rapier Level 5"},
+            {"base_item": "Scimitar", "name": "Enspelled Scimitar Level 5"},
+            {"base_item": "Shortbow", "name": "Enspelled Shortbow Level 5"},
+            {"base_item": "Shortsword", "name": "Enspelled Shortsword Level 5"},
+            {"base_item": "Sickle", "name": "Enspelled Sickle Level 5"},
+            {"base_item": "Sling", "name": "Enspelled Sling Level 5"},
+            {"base_item": "Spear", "name": "Enspelled Spear Level 5"},
+            {"base_item": "Staff", "name": "Enspelled Staff Level 5"},
+            {"base_item": "Trident", "name": "Enspelled Trident Level 5"},
+            {"base_item": "War Pick", "name": "Enspelled War Pick Level 5"},
+            {"base_item": "Warhammer", "name": "Enspelled Warhammer Level 5"},
+            {"base_item": "Whip", "name": "Enspelled Whip Level 5"}
+        ],
+        "notes": None,
+    },
+    "Executioner's Axe": {
+        "name": "Executioner's Axe",
+        "type": "Weapon",
+        "rarity": "Very Rare",
+        "attunement": False,
+        "effect": (
+            "You gain +1 bonus to Attack Rolls and Damage Rolls made with this magic weapon. Any Humanoid you hit with the weapon takes an extra 2d6 Slashing damage, and you gain Temporary Hit Points equal to the extra damage dealt. "
+        ),
+        "activation": [],
+        "duration": ["Passive"],
+        "charges": None,
+        "recharge": [],
+        "variations": [
+            {"base_item": "Battleaxe", "name": "Executioner's Battleaxe"},
+            {"base_item": "Greataxe", "name": "Executioner's Greataxe"},
+            {"base_item": "Halberd", "name": "Executioner's Halberd"},
+            {"base_item": "Handaxe", "name": "Executioner's Handaxe"}
+        ],
+        "notes": None,
+    },
+    "Frost Brand": {
+        "name": "Frost Brand",
+        "type": "Weapon",
+        "rarity": "Very Rare",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. When you hit with an Attack Roll using this magic weapon, the target takes an extra 1d6 Cold damage. In addition, while you hold the weapon, you have Resistance to Fire damage. In freezing temperatures, the weapon sheds Bright Light in a 10ft radius and Dim Light for an additional 10ft. When you draw this weapon, you can extinguish all nonmagical flames within 30ft of yourself. Once used, this property can't be used again for the rest of the current Encounter."
+        ),
+        "activation": [],
+        "duration": ["Passive"],
+        "charges": None,
+        "recharge": ["Long Rest"],
+        "variations": [
+            {"base_item": "Glaive", "name": "Frost Brand Glaive"},
+            {"base_item": "Greatsword", "name": "Frost Brand Greatsword"},
+            {"base_item": "Longsword", "name": "Frost Brand Longsword"},
+            {"base_item": "Rapier", "name": "Frost Brand Rapier"},
+            {"base_item": "Scimitar", "name": "Frost Brand Scimitar"},
+            {"base_item": "Shortsword", "name": "Frost Brand Shortsword"}
+        ],
+        "notes": None,
+    },
+    "Lute of Thunderous Thumping": {
+        "name": "Lute of Thunderous Thumping",
+        "type": "Weapon",
+        "rarity": "Very Rare",
+        "attunement": False,
+        "effect": (
+            "This reinforced lute can be wielded as a magic Club that deals an extra 2d8 Thunder damage on a hit. Sing and Swing. If you're a Bard, you can use your Charisma modifier instead of your Strength modifier when making a Melee Attack Roll with the lute, provided you sing or hum while making the attack."
+        ),
+        "activation": [],
+        "duration": ["Passive"],
+        "charges": None,
+        "recharge": [],
+        "notes": None,
+    },
+    "Nine Lives Stealer": {
+        "name": "Nine Lives Stealer",
+        "type": "Weapon",
+        "rarity": "Very Rare",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. You gain a +2 bonus to Attack Rolls and Damage Rolls made with this magic weapon. Life Stealing. The weapon has 1d8 + 1 charges. When you attack a creature that has fewer than 100 Hit Points with this weapon and roll a 20 on the d20 for the Attack Roll, the creature must succeed on a DC 15 Constitution Saving Throw or be slain instantly as the sword tears its life force from its body. Constructs and Undead succeed on the Save automatically. The weapon loses 1 charge if the creature is slain. When the weapon has no charges remaining, it loses this property."
+        ),
+        "activation": [],
+        "duration": ["Passive"],
+        "charges": "1d8 + 1",
+        "recharge": [],
+        "variations": [
+            {"base_item": "Glaive", "name": "Nine Lives Stealer Glaive"},
+            {"base_item": "Greatsword", "name": "Nine Lives Stealer Greatsword"},
+            {"base_item": "Longsword", "name": "Nine Lives Stealer Longsword"},
+            {"base_item": "Rapier", "name": "Nine Lives Stealer Rapier"},
+            {"base_item": "Scimitar", "name": "Nine Lives Stealer Scimitar"},
+            {"base_item": "Shortsword", "name": "Nine Lives Stealer Shortsword"}
+        ],
+        "notes": None,
+    },
+    "Oathbow": {
+        "name": "Oathbow",
+        "type": "Weapon",
+        "rarity": "Very Rare",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. When you nock an arrow on this bow, it whispers in Elvish 'Swift defeat to my enemies.' When you use this weapon to make a Ranged Attack, you can utter or sign the following command words: 'Swift death to you who have wronged me.' The target of your attack becomes your sworn enemy until it dies. You can have only one such sworn enemy at a time. When your sworn enemy dies, you can choose a new one after taking a Long Rest. When you make a Ranged Attack Roll with this weapon against your sworn enemy, you have Advantage on the roll. In addition, your target gains no benefit from Half Cover or Three-Quarters Cover, and you suffer no Disadvantage due to long range. If the attack hits, your sworn enemy takes an extra 3d6 Piercing damage. While your sworn enemy lives, you have Disadvantage on Attack Rolls with all other weapons."
+        ),
+        "activation": [],
+        "duration": ["Passive"],
+        "charges": None,
+        "recharge": ["Long Rest"],
+        "variations": [
+            {"base_item": "Longbow", "name": "Oathbow Longbow"},
+            {"base_item": "Shortbow", "name": "Oathbow Shortbow"}
+        ],
+        "notes": None,
+    },
+    "Scimitar of Speed": {
+        "name": "Scimitar of Speed",
+        "type": "Weapon",
+        "rarity": "Very Rare",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. You gain a +2 bonus to Attack Rolls and Damage Rolls made with this magic weapon. In addition, you can make one attack with it as a Bonus Action on each of your turns."
+        ),
+        "activation": ["Bonus Action"],
+        "duration": ["Passive"],
+        "charges": None,
+        "recharge": [],
+        "notes": None,
+    },
+    "Sword of Sharpness": {
+        "name": "Sword of Sharpness",
+        "type": "Weapon",
+        "rarity": "Very Rare",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. When you attack a creature with this weapon and roll a 20 on the d20 for the Attack Roll, that target takes an extra 14 Slashing damage and gains 1 Exhaustion level."
+        ),
+        "activation": [],
+        "duration": ["Passive"],
+        "charges": None,
+        "recharge": [],
+        "variations": [
+            {"base_item": "Glaive", "name": "Glaive of Sharpness"},
+            {"base_item": "Greatsword", "name": "Greatsword of Sharpness"},
+            {"base_item": "Longsword", "name": "Longsword of Sharpness"},
+            {"base_item": "Scimitar", "name": "Scimitar of Sharpness"}
+        ],
+        "notes": None,
+    },
+    "Thunderous Greatclub": {
+        "name": "Thunderous Greatclub",
+        "type": "Weapon",
+        "rarity": "Very Rare",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. While you are attuned to this magic weapon, your Strength is 20 unless your Strength is already equal to or greater than that score. The weapon deals an extra 1d8 Thunder damage to any creature it hits and an extra 3d8 Thunder damage to objects it hits that aren't being worn or carried. The weapon has the following additional properties. Clap of Thunder. As a Magic Action, you can strike the weapon against a hard surface to create a loud clap of thunder audible out to 300ft. You also create a 30ft Cone of thunderous energy. Each creature in the Cone must succeed on a DC 15 Strength Saving Throw or have the Prone condition. Nonmagical objects in the Cone that aren't being worn or carried take 3d8 Thunder damage. Earthquake. As a Magic Action, you can strike the weapon against the ground to create an intense seismic disturbance in a 50ft radius circle centered on the point of impact. Structures in contact with the ground in that area take 50 Bludgeoning damage, and each creature on the ground in that area must succeed on a DC 20 Dexterity Saving Throw or have the Prone condition. If that creature is also Concentrating, it must succeed on a DC 20 Constitution is broken. In addition, you can cause a 30ft deep, 10ft wide fissure to open up on the ground anywhere in the area. Any creature on a spot where the fissure opens must make a DC 20 Dexterity Saving Throw, falling into the fissure on a failed Save or moving with the fissure's edge on a successful one. Any structure on a spot where the fissure opens collapses into the fissure. Once you use this property, it can't be used again until you take a Long Rest."
+        ),
+        "activation": ["Action"],
+        "duration": ["Passive"],
+        "charges": None,
+        "recharge": ["Long Rest"],
+        "notes": None,
+    },
+    "Weapon +3": {
+        "name": "Weapon +3",
+        "type": "Weapon",
+        "rarity": "Very Rare",
+        "attunement": False,
+        "effect": (
+            "You have a +3 bonus to Attack and Damage Rolls made with this magic weapon."
+        ),
+        "activation": [],
+        "duration": [],
+        "charges": None,
+        "recharge": [],
+        "variations": [
+            {"base_item": "Battleaxe", "name": "Battleaxe +3"},
+            {"base_item": "Club", "name": "Club +3"},
+            {"base_item": "Dagger", "name": "Dagger +3"},
+            {"base_item": "Flail", "name": "Flail +3"},
+            {"base_item": "Glaive", "name": "Glaive +3"},
+            {"base_item": "Greataxe", "name": "Greataxe +3"},
+            {"base_item": "Greatclub", "name": "Greatclub +3"},
+            {"base_item": "Greatsword", "name": "Greatsword +3"},
+            {"base_item": "Halberd", "name": "Halberd +3"},
+            {"base_item": "Hand Crossbow", "name": "Hand Crossbow +3"},
+            {"base_item": "Handaxe", "name": "Handaxe +3"},
+            {"base_item": "Heavy Crossbow", "name": "Heavy Crossbow +3"},
+            {"base_item": "Javelin", "name": "Javelin +3"},
+            {"base_item": "Lance", "name": "Lance +3"},
+            {"base_item": "Light Crossbow", "name": "Light Crossbow +3"},
+            {"base_item": "Light Hammer", "name": "Light Hammer +3"},
+            {"base_item": "Longbow", "name": "Longbow +3"},
+            {"base_item": "Longsword", "name": "Longsword +3"},
+            {"base_item": "Mace", "name": "Mace +3"},
+            {"base_item": "Maul", "name": "Maul +3"},
+            {"base_item": "Morningstar", "name": "Morningstar +3"},
+            {"base_item": "Musket", "name": "Musket +3"},
+            {"base_item": "Pike", "name": "Pike +3"},
+            {"base_item": "Pistol", "name": "Pistol +3"},
+            {"base_item": "Quarterstaff", "name": "Quarterstaff +3"},
+            {"base_item": "Rapier", "name": "Rapier +3"},
+            {"base_item": "Scimitar", "name": "Scimitar +3"},
+            {"base_item": "Shortbow", "name": "Shortbow +3"},
+            {"base_item": "Shortsword", "name": "Shortsword +3"},
+            {"base_item": "Sickle", "name": "Sickle +3"},
+            {"base_item": "Sling", "name": "Sling +3"},
+            {"base_item": "Spear", "name": "Spear +3"},
+            {"base_item": "Staff", "name": "Staff +3"},
+            {"base_item": "Trident", "name": "Trident +3"},
+            {"base_item": "War Pick", "name": "War Pick +3"},
+            {"base_item": "Warhammer", "name": "Warhammer +3"},
+            {"base_item": "Whip", "name": "Whip +3"}
+        ],
+        "notes": None,
+    },
+    "Armor of Invulnerability": {
+        "name": "Armor of Invulnerability",
+        "type": "Armor",
+        "rarity": "Legendary",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. You have Resistance to Bludgeoning, Piercing, Slashing damage while you wear this armor. Additionally, you can use an Action to make yourself Immune to Bludgeoning, Piercing, Slashing damage for the rest of the current Encounter or until you are no longer wearing the armor. Once this special action is used, it can't be used again until you take a Long Rest."
+        ),
+        "activation": ["Equip", "Action"],
+        "duration": ["Passive", "End of Encounter"],
+        "charges": None,
+        "recharge": ["Long Rest"],
+        "notes": None,
+    },
+    "Armor +3": {
+        "name": "Armor +3",
+        "type": "Armor",
+        "rarity": "Legendary",
+        "attunement": False,
+        "effect": (
+            "You have a +3 bonus to AC while wearing this armor."
+        ),
+        "activation": ["Equip"],
+        "duration": ["Passive"],
+        "charges": None,
+        "recharge": [],
+        "variations": [
+            {"base_item": "Breastplate", "name": "Breastplate +3"},
+            {"base_item": "Chain Mail", "name": "Chain Mail +3"},
+            {"base_item": "Chain Shirt", "name": "Chain Shirt +3"},
+            {"base_item": "Half Plate Armor", "name": "Half Plate Armor +3"},
+            {"base_item": "Hide Armor", "name": "Hide Armor +3"},
+            {"base_item": "Leather Armor", "name": "Leather Armor +3"},
+            {"base_item": "Padded Armor", "name": "Padded Armor +3"},
+            {"base_item": "Plate Armor", "name": "Plate Armor +3"},
+            {"base_item": "Ring Mail", "name": "Ring Mail +3"},
+            {"base_item": "Scale Mail", "name": "Scale Mail +3"},
+            {"base_item": "Splint Armor", "name": "Splint Armor +3"},
+            {"base_item": "Studded Leather Armor", "name": "Studded Leather Armor +3"}
+        ],
+        "notes": None,
+    },
+    "Efreeti Chain": {
+        "name": "Efreeti Chain",
+        "type": "Armor",
+        "rarity": "Legendary",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. While wearing this armor, you gain a +3 bonus to AC, you have Immunity to Fire damage, and you know Primordial. In addition, you can stand on and move across molten rock as if it were solid ground."
+        ),
+        "activation": ["Equip"],
+        "duration": ["Passive"],
+        "charges": None,
+        "recharge": [],
+        "variations": [
+            {"base_item": "Chain Mail", "name": "Efreeti Chain Mail"},
+            {"base_item": "Chain Shirt", "name": "Efreeti Chain Shirt"}
+        ],
+        "notes": None,
+    },
+    "Enspelled Armor Level 6": {
+        "name": "Enspelled Armor Level 6",
+        "type": "Armor",
+        "rarity": "Legendary",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. Bound into this armor is a level 6 spell. The spell is determined when the armor is created and must belong to the Abjuration or Illusion school of magic. The armor has 6 charges and regains 1d6 expended charges after taking a Long Rest. While wearing the armor, you can expend 1 charge to cast its spell. The spell's Saving Throw DC is 17, and its Attack Bonus is +9."
+        ),
+        "activation": ["Equip"],
+        "duration": [],
+        "charges": 6,
+        "recharge": ["Long Rest"],
+        "variations": [
+            {"base_item": "Breastplate", "name": "Enspelled Breastplate Level 6"},
+            {"base_item": "Chain Mail", "name": "Enspelled Chain Mail Level 6"},
+            {"base_item": "Chain Shirt", "name": "Enspelled Chain Shirt Level 6"},
+            {"base_item": "Half Plate Armor", "name": "Enspelled Half Plate Armor Level 6"},
+            {"base_item": "Hide Armor", "name": "Enspelled Hide Armor Level 6"},
+            {"base_item": "Leather Armor", "name": "Enspelled Leather Armor Level 6"},
+            {"base_item": "Padded Armor", "name": "Enspelled Padded Armor Level 6"},
+            {"base_item": "Plate Armor", "name": "Enspelled Plate Armor Level 6"},
+            {"base_item": "Ring Mail", "name": "Enspelled Ring Mail Level 6"},
+            {"base_item": "Scale Mail", "name": "Enspelled Scale Mail Level 6"},
+            {"base_item": "Splint Armor", "name": "Enspelled Splint Armor Level 6"},
+            {"base_item": "Studded Leather Armor", "name": "Enspelled Studded Leather Armor Level 6"}
+        ],
+        "notes": None,
+    },
+    "Enspelled Armor Level 7": {
+        "name": "Enspelled Armor Level 7",
+        "type": "Armor",
+        "rarity": "Legendary",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. Bound into this armor is a level 7 spell. The spell is determined when the armor is created and must belong to the Abjuration or Illusion school of magic. The armor has 6 charges and regains 1d6 expended charges after taking a Long Rest. While wearing the armor, you can expend 1 charge to cast its spell. The spell's Saving Throw DC is 18, and its Attack Bonus is +10."
+        ),
+        "activation": ["Equip"],
+        "duration": [],
+        "charges": 6,
+        "recharge": ["Long Rest"],
+        "variations": [
+            {"base_item": "Breastplate", "name": "Enspelled Breastplate Level 7"},
+            {"base_item": "Chain Mail", "name": "Enspelled Chain Mail Level 7"},
+            {"base_item": "Chain Shirt", "name": "Enspelled Chain Shirt Level 7"},
+            {"base_item": "Half Plate Armor", "name": "Enspelled Half Plate Armor Level 7"},
+            {"base_item": "Hide Armor", "name": "Enspelled Hide Armor Level 7"},
+            {"base_item": "Leather Armor", "name": "Enspelled Leather Armor Level 7"},
+            {"base_item": "Padded Armor", "name": "Enspelled Padded Armor Level 7"},
+            {"base_item": "Plate Armor", "name": "Enspelled Plate Armor Level 7"},
+            {"base_item": "Ring Mail", "name": "Enspelled Ring Mail Level 7"},
+            {"base_item": "Scale Mail", "name": "Enspelled Scale Mail Level 7"},
+            {"base_item": "Splint Armor", "name": "Enspelled Splint Armor Level 7"},
+            {"base_item": "Studded Leather Armor", "name": "Enspelled Studded Leather Armor Level 7"}
+        ],
+        "notes": None,
+    },
+    "Enspelled Armor Level 8": {
+        "name": "Enspelled Armor Level 8",
+        "type": "Armor",
+        "rarity": "Legendary",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. Bound into this armor is a level 8 spell. The spell is determined when the armor is created and must belong to the Abjuration or Illusion school of magic. The armor has 6 charges and regains 1d6 expended charges after taking a Long Rest. While wearing the armor, you can expend 1 charge to cast its spell. The spell's Saving Throw DC is 18, and its Attack Bonus is +10."
+        ),
+        "activation": ["Equip"],
+        "duration": [],
+        "charges": 6,
+        "recharge": ["Long Rest"],
+        "variations": [
+            {"base_item": "Breastplate", "name": "Enspelled Breastplate Level 8"},
+            {"base_item": "Chain Mail", "name": "Enspelled Chain Mail Level 8"},
+            {"base_item": "Chain Shirt", "name": "Enspelled Chain Shirt Level 8"},
+            {"base_item": "Half Plate Armor", "name": "Enspelled Half Plate Armor Level 8"},
+            {"base_item": "Hide Armor", "name": "Enspelled Hide Armor Level 8"},
+            {"base_item": "Leather Armor", "name": "Enspelled Leather Armor Level 8"},
+            {"base_item": "Padded Armor", "name": "Enspelled Padded Armor Level 8"},
+            {"base_item": "Plate Armor", "name": "Enspelled Plate Armor Level 8"},
+            {"base_item": "Ring Mail", "name": "Enspelled Ring Mail Level 8"},
+            {"base_item": "Scale Mail", "name": "Enspelled Scale Mail Level 8"},
+            {"base_item": "Splint Armor", "name": "Enspelled Splint Armor Level 8"},
+            {"base_item": "Studded Leather Armor", "name": "Enspelled Studded Leather Armor Level 8"}
+        ],
+        "notes": None,
+    },
+    "Plate Armor of Etherealness": {
+        "name": "Plate Armor of Etherealness",
+        "type": "Armor",
+        "rarity": "Legendary",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. While you're wearing this armor, you can speak its command word as an Action to gain the effect of the Etherealness spell, which lasts for the rest of the current Encounter or until you remove the armor or use an Action to speak the command word again. This property of the armor can't be used again until you take a Long Rest. The wearer has Disadvantage on Dexterity (Stealth) checks."
+        ),
+        "activation": ["Equip", "Action"],
+        "duration": ["End of Encounter"],
+        "charges": None,
+        "recharge": ["Long Rest"],
+        "variations": [
+            {"base_item": "Half Plate Armor", "name": "Half Plate Armor of Etherealness"},
+            {"base_item": "Plate Armor", "name": "Plate Armor of Etherealness"}
+        ],
+        "notes": None,
+    },
+    "Draught of the Colossus": {
+        "name": "Draught of the Colossus",
+        "type": "Potion",
+        "rarity": "Legendary",
+        "attunement": False,
+        "effect": (
+            "The Draught of the Colossus is a swirling concoction with tiny star-like spacks of crystalline matter floating in it. It contains the mysteries of matter and volume manipulation. It has been crafted using the blood of Void Dragons and doused in starlight for 100 day. Once drunk, the drinker of the potion must make a 6 consecutive Constitution Saves with a starting DC of 14 (the DC increases by 1 after every successful Save). The number of successful Saves decides the drinker's size and Strength ability score. The results are the following: 1 - Size = Small / Strength = 6 ; 2 - Size = Medium / Strength = 12 ; 3 - Size = Huge / Strength = 18 ; 4 - Size = Gargantuan / Strength = 24 ; 5 - Size = Titanic / Strength = 30 ; Size = Colossal / Strength 30. The drinker's Unarmed strikes deal Xd6 Bludgeoning damage and your weapon strikes deal Xd10 Bludgeoning, Piercing or Slashing damage (depends on the weapon). X is the number rolled. Creatures who succeed in all 6 Saves get an extra attack which is added to extra attacks from any other features and add their strength score twice instead of once. The effects last for the rest of the current Encounter. Once the effects end, the drinker suffers 5 levels of Exhaustion. A creature may consume this potion only once every Long Rest. The second time it is drunk, the creature dies immediately."
+        ),
+        "activation": ["Bonus Action"],
+        "duration": ["End of Encounter"],
+        "charges": None,
+        "recharge": [],
+        "notes": None,
+    },
+    "Potion of Giant Size": {
+        "name": "Potion of Giant Size",
+        "type": "Potion",
+        "rarity": "Legendary",
+        "attunement": False,
+        "effect": (
+            "When you drink this potion, you become Huge for the rest of the current Encounter if you are Medium or smaller, otherwise the potion does nothing. For that duration, your Strength becomes 25, if it isn't already higher, and your Hit Point maximum is doubled (your current Hit Points are doubled when you drink the potion). In addition, the reach of your melee attacks increases by 5ft. Everything you are carrying and wearing also increases in size for the duration. When rolling damage for weapons enlarged in this manner, roll three times the normal number of dice. When the effect ends, any Hit Points you have above your Hit Point maximum become Temporary Hit Points. This potion is a pale white liquid made from the tongue of a giant clam, with a pungent aroma akin to that of rotting algae. It tastes sweet, however, when consumed."
+        ),
+        "activation": ["Bonus Action"],
+        "duration": ["End of Encounter"],
+        "charges": None,
+        "recharge": [],
+        "notes": None,
+    },
+    "Potion of Storm Giant Strength": {
+        "name": "Potion of Storm Giant Strength",
+        "type": "Potion",
+        "rarity": "Legendary",
+        "attunement": False,
+        "effect": (
+            "When you drink this potion, your Strength score changes to 29 for the rest of the current Encounter. The potion has no effect on you if your Strength is equal to or greater than that score. This potion's transparent liquid has floating in it a sliver of fingernail from a storm giant."
+        ),
+        "activation": ["Bonus Action"],
+        "duration": ["End of Encounter"],
+        "charges": None,
+        "recharge": [],
+        "notes": None,
+    },
+    "Skygrinder's Tonic": {
+        "name": "Skygrinder's Tonic",
+        "type": "Potion",
+        "rarity": "Legendary",
+        "attunement": False,
+        "effect": (
+            "Skygrinder's Tonic is an immensely powerful brew, so named because those who drink it run so swiftly that they leave behind a trail of sparks whenever they go. It can barely contain its own energy, as minor electrical shocks constantly flash within its flask. When drunk, you experience the effects of the Haste, Longstrider, and Expeditious Retreat spells all at once for the rest of the current Encounter. When the duration ends, you suffer a level of Exhaustion as the unnatural rush of energy suddenly washes out of your system. Due to the instability of the Skygrinder's Tonic, whenever a creature drinks it, they need to roll 1d20. On a 1, the bottle simply explodes in your hand instead. Make a DC 20 Constitution Saving Throw, taking 4d10 Lightning damage on a failed Save, or half as much on a successful one. On a 20, the Skygrinder's Tonic could be a perfect batch. When this potion is drunk, you additionally experience the effects of a Time Stop spell, with the addition that the spell does not end if you move further than 1000ft away from the point where you drunk the potion. You still suffer a level of Exhaustion when the spell ends."
+        ),
+        "activation": ["Bonus Action"],
+        "duration": ["End of Encounter"],
+        "charges": None,
+        "recharge": [],
+        "notes": None,
+    },
+    "Ring of Air Elemental Command": {
+        "name": "Ring of Air Elemental Command",
+        "type": "Ring",
+        "rarity": "Legendary",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. This ring is linked to the Elemental Plane of Air. Elemental Bane: While wearing the ring, you have Advantage on Attack Rolls against Elementals and they have Disadvantage on Attack Rolls against you. Elemental Compulsion: While wearing the ring, you can take a Magic Action to try to compel an Elemental you see within 60ft of yourself. The Elemental makes a DC 18 Wisdom Saving Throw. On a failed Save, the Elemental has the Charmed condition until the start of your next turn, and you determine what it does with its move and Action on its next turn. Elemental Focus: While wearing the ring, you know Auran, you have Resistance to Lightning damage, and you have a Fly Speed equal to your Speed and can Hover. The ring has 5 charges and regains 1d4 + 1 expended charges after taking a Long Rest. While wearing the ring, you can cast a spell from it. A spell cast from the ring has a Save DC of 18. Choose the spell from the following list: Chain Lightning costs 3 charges, Feather Fall costs 0 charges, Gust of Wind costs 2 charges, Wind Wall costs 1 charge."
+        ),
+        "activation": ["Equip", "Action"],
+        "duration": ["Next Turn", "Passive"],
+        "charges": 5,
+        "recharge": ["Long Rest"],
+        "notes": None,
+    },
+    "Ring of Djinni Summoning": {
+        "name": "Ring of Djinni Summoning",
+        "type": "Ring",
+        "rarity": "Legendary",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. While wearing this ring, you can take a Magic Action to summon a particular Djinni from the Elemental Plane of Air. The djinni appears in an unoccupied space you choose within 120ft of yourself. It remains as long as you maintain Concentration for the rest of the current Encounter, or until it drops to 0 Hit Points. While summoned, the djinni is Friendly to you and your allies, and it obeys your commands. If you fail to command it, the djinni defends itself against attackers but takes no other actions. After the djinni departs, it can't be summoned again until you take 3 Long Rests, and the ring becomes nonmagical if the djinni dies. Rings of Djinni Summoning are often created by the djinn they summon and given to mortals as gifts of friendship or tokens of esteem."
+        ),
+        "activation": ["Equip", "Action"],
+        "duration": ["End of Encounter"],
+        "charges": 1,
+        "recharge": ["3 Long Rests"],
+        "notes": None,
+    },
+    "Ring of Earth Elemental Command": {
+        "name": "Ring of Earth Elemental Command",
+        "type": "Ring",
+        "rarity": "Legendary",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. This ring is linked to the Elemental Plane of Earth. Elemental Bane: While wearing the ring, you have Advantage on Attack Rolls against Elementals and they have Disadvantage on Attack Rolls against you. Elemental Compulsion: While wearing the ring, you can take a Magic Action to try to compel an Elemental you see within 60ft of yourself. The Elemental makes a DC 18 Wisdom Saving Throw. On a failed Save, the Elemental has the Charmed condition until the start of your next turn, and you determine what it does with its move and Action on its next turn. Elemental Focus: While wearing the ring, you gain the following properties: You know Terran, and you have Resistance to Acid damage. Terrain composed of rubble, rocks, or dirst isn't Difficult Terrain for you. In addition, you can move through solid earth or rock as if those areas were Difficult Terrain without disturbing the matter through which you pass. If you end your turn in solid earth or rock, you are shunted out to the nearest unoccupied space you last occupied. The ring has 5 charges and regains 1d4 + 1 expended charges after taking a Long Rest. While wearing the ring, you can cast a spell from it. A spell cast from the ring has the Save DC of 18. Choose the spell from the following list: Earthquake costs 5 charges, Stone Shape costs 2 charges, Stoneskin costs 3 charges, Wall of Stone costs 3 charges."
+        ),
+        "activation": ["Equip", "Action"],
+        "duration": ["Next Turn", "Passive"],
+        "charges": 5,
+        "recharge": ["Long Rest"],
+        "notes": None,
+    },
+    "Ring of Fire Elemental Command": {
+        "name": "Ring of Fire Elemental Command",
+        "type": "Ring",
+        "rarity": "Legendary",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. This ring is linked to the Elemental Plane of Fire. Elemental Bane: While wearing the ring, you have Advantage on Attack Rolls against Elementals and they have Disadvantage on Attack Rolls against you. Elemental Compulsion: While wearing the ring, you can take a Magic Action to try to compel an Elemental you see within 60ft of yourself. The Elemental makes a DC 18 Wisdom Saving Throw. On a failed Save, the Elemental has the Charmed condition until the start of your next turn, and you determine what it does with its move and Action on its next turn. Elemental Focus: While wearing the ring, you benefit from additional properties: You know Ignan, and you have Immunity to Fire damage. The ring has 5 charges and regains 1d4 + 1 expended charges after taking a Long Rest. While wearing the ring, you can cast a spell from it. A spell cast from the ring has a Save DC of 18. Choose the spell from the following list: Burning Hands costs 1 charge, Fireball costs 2 charges, Fire Storm costs 4 charges, Wall of Fire costs 3 charges."
+        ),
+        "activation": ["Equip", "Action"],
+        "duration": ["Next Turn", "Passive"],
+        "charges": 5,
+        "recharge": ["Long Rest"],
+        "notes": None,
+    },
+    "Ring of Invisibility": {
+        "name": "Ring of Invisibility",
+        "type": "Ring",
+        "rarity": "Legendary",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. While wearing this ring, you can take a Magic Action to give yourself the Invisible condition. You remain Invisible until the ring is removed or until you take a Bonus Action to become visible again."
+        ),
+        "activation": ["Equip", "Action"],
+        "duration": ["Bonus Action"],
+        "charges": None,
+        "recharge": [],
+        "notes": None,
+    },
+    "Ring of Spell Tuning": {
+        "name": "Ring of Spell Tuning",
+        "type": "Ring",
+        "rarity": "Legendary",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. While wearing this ring, you have Advantage on Saving Throws against spells. If you succeed on the Save for a spell of level 7 or lower, the spell has no effect on you. If that spell targeted only you and didn't create an area of effect, you can take a Reaction to deflect the spell back at the spell's caster; the caster must make a Saving Throw against the spell using their own spell Save DC."
+        ),
+        "activation": ["Equip", "Reaction"],
+        "duration": ["Passive"],
+        "charges": None,
+        "recharge": [],
+        "notes": None,
+    },
+    "Ring of Water Elemental Command": {
+        "name": "Ring of Water Elemental Command",
+        "type": "Ring",
+        "rarity": "Legendary",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. This ring is linked to the Elemental Plane of Water. Elemental Bane: While wearing the ring, you have Advantage on Attack Rolls against Elementals and they have Disadvantage on Attack Rolls against you. Elemental Compulsion: While wearing the ring, you can take a Magic Action to try to compel an Elemental you see within 60ft of yourself. The Elemental makes a DC 18 Wisdom Saving Throw. On a failed save, the Elemental has the Charmed condition until the start of your next turn, and you determine what it does with its move and Action on its next turn. Elemental Focus: While wearing the ring, you benefit from additional properties: You know Aquan, you gain a Swim Speed of 60ft, and you can breathe underwater. The ring has 5 charges and regains 1d4 + 1 expended charges after taking a Long Rest. While wearing the ring, you can cast a spell from it. A spell cast from the ring has a Save DC of 18. Choose the spell from the following list: Create or Destroy Water costs 1 charge, Ice Storm costs 2 charges, Tsunami costs 5 charges, Wall of Ice costs 3 charges, Water Walk costs 2 charges."
+        ),
+        "activation": ["Equip", "Action"],
+        "duration": ["Next Turn", "Passive"],
+        "charges": 5,
+        "recharge": ["Long Rest"],
+        "notes": None,
+    },
+    "Rod of Lordly Might": {
+        "name": "Rod of Lordly Might",
+        "type": "Rod",
+        "rarity": "Legendary",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. This rod has a flanged head, and it functions as a magic Mace that grants a +3 bonus to Attack Rolls and Damage Rolls made with it. The rod has properties associated with six different buttons that are set in a row along the haft. It has three other properties as well, detailed here. Buttons: You can press one of the following buttons as a Bonus Action; a button's effect lasts until you push a different button or until you push the same button again, which causes the rod to revert to its normal form. Button 1: A fiery blade sprouts from the end opposite the rod's flanged head. The flames shed Bright Light in a 40ft radius and Dim Light for an additional 40ft, and the blade functions as a magic Longsword or Shortsword (your choice) that deals an extra 2d6 Fire damage on a hit. Button 2: The rod's flanged head folds down and two crescent-shaped blades spring out, transforming the rod into a magic Battleaxe that grants a +3 bonus to Attack Rolls and Damage Rolls made with it. Button 3: The rod's flanged head folds down, a spear point springs from the rod's tip, and the rod's handle lengthens into a 6ft haft, transforming the rod into a magic Spear that grants a +3 bonus to Attack Rolls and Damage Rolls made with it. Button 4: The rod transforms into a climbing pole up to 50ft long (you specify the length), though the rod's buttons remain with you reach. In surfaces as hard as granite, a spike at the bottom and three hooks at the top anchor the pole. Horizontal bars 3 inches long fold out from the sides, 1ft apart, forming a ladder. The pole can bear up to 4000 pounds. More weight or lack of solid anchoring causes the rod to revert to its normal form. Button 5: The rod transforms into a handheld battering ram and grants its user a +10 bonus to Strength (Athletics) checks made to break through doors, barricades, and other barriers. Button 6: The rod assumes or remains in its normal form and indicates magnetic north. (Nothing happens if this function of the rod is used in a location that has no magnetic north.) The rod also gives you knowledge of your approximate depth beneath the ground or your height above it. Drain Life. When you hit a creature with a melee attack using the rod, you can force the target to make a DC 17 Constitution Saving Throw. On a failed Save, the target takes an extra 4d6 Necrotic damage, and you regain a number of Hit Points equal to half that Necrotic damage. Once used, this property can't be used again until you take a Long Rest. Paralyze. When you hit a creature with a melee attack using the rod, you can force the target to make a DC 17 Constitution Saving Throw. On a failed Save, the target has the Paralyzed condition for the rest of the Encounter. The target repeats the Save at the end of each of its turns, ending the effect on a success. Once used, this property can't be used again until you take a Long Rest. Terrify. While holding the rod, you can take a Magic Action to force each creature you can see within 30ft of yourself to make a DC 17 Wisdom Saving Throw. On a failed Save, a target has the Frightened condition for the rest of the current Encounter. A Frightened target repeats the Save at the end of each of its turns, ending the effect on itself on a success. Once used, this property can't be used again until you take a Long Rest."
+        ),
+        "activation": ["Action", "Bonus Action"],
+        "duration": ["Passive", "End of Encounter"],
+        "charges": None,
+        "recharge": ["Long Rest"],
+        "notes": None,
+    },
+    "Rod of Resurrection": {
+        "name": "Rod of Resurrection",
+        "type": "Rod",
+        "rarity": "Legendary",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. The rod has 5 charges. While you hold it, you can cast one of the following spells from it: Heal costs 1 charge or Resurrection costs 5 charges. The rod regains 1 expended charge after taking a Long Rest. If you expend the last charge, roll 1d20. On a 1, the rod disappears in a harmless burst of radiance."
+        ),
+        "activation": [],
+        "duration": [],
+        "charges": 5,
+        "recharge": [],
+        "notes": None,
+    },
+    "Boomstick": {
+        "name": "Boomstick",
+        "type": "Rod",
+        "rarity": "Legendary",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. This rod functions as a magic mace that grants a +3 bonus to Attack and Damage Rolls made with it and deals an additional 1d6 Fire damage and 1d6 Thunder damage on a hit. Once per turn, when you hit a creature with a melee attack using the rod, you can force the target to make a DC 17 Constitution Saving Throw. On a failure, the target is Stunned until the end of your next turn. Boom Blast: While holding the rod, you can use an Action to make a Ranged Weapon Attack against a creature within 300ft of you. On a hit, the creature takes 2d12 Fire damage and 2d12 Thunder damage. Hit or miss, each creature within 5ft of the target takes 2d6 Fire damage and 2d6 Thunder damage. When you use this attack, the tip of the rod flashes and it makes a sound like a shotgun blast. KER-BOOM!: The rod has 5 charges. While holding it, you can use an Action to expend 1 charge to create a tremendous explosion centered on a point you choose within 300ft of you. Each creature in a 60ft radius sphere centered on that point must make a DC 17 Dexterity Saving Throw. A target takes 8d6 Fire damage and 8d6 Thunder damage on a failed Save, or half as much damage on a successful one. The explosion spreads around corners, and it ignites flammable objects in the area that aren't being worn or carried. The rod regains 1d4 + 1 charges after taking a Long Rest."
+        ),
+        "activation": ["Action"],
+        "duration": ["Passive", "Instantaneous"],
+        "charges": 5,
+        "recharge": ["Long Rest"],
+        "notes": None,
+    },
+    "Spell Scroll Level 9": {
+        "name": "Spell Scroll Level 9",
+        "type": "Spell Scroll",
+        "rarity": "Legendary",
+        "attunement": False,
+        "effect": (
+            "A Spell Scroll bears the words of a single spell, written in a mystical cipher. If the spell is on your spell list, you can read the scroll and cast its spell without Material components. Otherwise, the scroll is unintelligible. Casting the spell by reading the scroll requires the spell's normal casting time. Once the spell is cast, the scroll crumbles to dust. If the casting is interrupted, the scroll isn't lost. If the spell is on your spell list but of a higher level than you can normally cast, you make a DC 19 ability check using your spellcasting ability to determine whether you cast the spell. On a failed check, the spell disappears from the scroll with no other effect. If the spell requires a Saving Throw or an Attack Roll, the spell Save DC is 19, and the Attack Bonus is +11."
+        ),
+        "activation": [],
+        "duration": [],
+        "charges": None,
+        "recharge": [],
+        "notes": None,
+    },
+    "Enspelled Staff Level 6": {
+        "name": "Enspelled Staff Level 6",
+        "type": "Staff",
+        "rarity": "Legendary",
+        "attunement": True,
+        "effect": (
+            "Requires attunement by a Spellcaster. Bound into this staff is a level 6 spell. The spell is determined when the staff is created and can be of any school of magic. The staff has 6 charges and regains 1d6 expended charges after taking a Long Rest. While holding the staff, you can expend 1 charge to cast its spell. If you expend the staff's last charge, roll 1d20. On a 1, the staff loses its properties and becomes a nonmagical Quarterstaff. The spell's Saving Throw DC is 17, and its Attack Bonus is +9."
+        ),
+        "activation": [],
+        "duration": [],
+        "charges": 6,
+        "recharge": ["Long Rest"],
+        "notes": None,
+    },
+    "Enspelled Staff Level 7": {
+        "name": "Enspelled Staff Level 7",
+        "type": "Staff",
+        "rarity": "Legendary",
+        "attunement": True,
+        "effect": (
+            "Requires attunement by a Spellcaster. Bound into this staff is a level 7 spell. The spell is determined when the staff is created and can be of any school of magic. The staff has 6 charges and regains 1d6 expended charges after taking a Long Rest. While holding the staff, you can expend 1 charge to cast its spell. If you expend the staff's last charge, roll 1d20. On a 1, the staff loses its properties and becomes a nonmagical Quarterstaff. The spell's Saving Throw DC is 18, and its Attack Bonus is +10."
+        ),
+        "activation": [],
+        "duration": [],
+        "charges": 6,
+        "recharge": ["Long Rest"],
+        "notes": None,
+    },
+    "Enspelled Staff Level 8": {
+        "name": "Enspelled Staff Level 8",
+        "type": "Staff",
+        "rarity": "Legendary",
+        "attunement": True,
+        "effect": (
+            "Requires attunement by a Spellcaster. Bound into this staff is a level 8 spell. The spell is determined when the staff is created and can be of any school of magic. The staff has 6 charges and regains 1d6 expended charges after taking a Long Rest. While holding the staff, you can expend 1 charge to cast its spell. If you expend the staff's last charge, roll 1d20. On a 1, the staff loses its properties and becomes a nonmagical Quarterstaff. The spell's Saving Throw DC is 18, and its Attack Bonus is +10."
+        ),
+        "activation": [],
+        "duration": [],
+        "charges": 6,
+        "recharge": ["Long Rest"],
+        "notes": None,
+    },
+    "Staff of the Magi": {
+        "name": "Staff of the Magi",
+        "type": "Staff",
+        "rarity": "Legendary",
+        "attunement": True,
+        "effect": (
+            "Requires attunement by a Sorcerer, Warlock, or Wizard. This staff has 50 charges and can be wielded as a magic Quarterstaff that grants a +2 bonus to Attack Rolls and Damage Rolls made with it. While you hold it, you gain a +2 bonus to Spell Attack Rolls. Spell Absorption. While holding the staff, you have Advantage on Saving Throws against spells. In addition, you can take a Reaction when another creature casts a spell that targets only you. If you do, the staff absorbs the magic of the spell, canceling its effect and gaining a number of charges equal to the absorbed spell's level. However, if doing so brings the staff's total number of charges above 50, the staff explodes as if you activated its Retributive Strike. While holding the staff, you can cast one of the following spells from it, using your spell save DC. Arcane Lock costs 0, Conjure Elemental costs 7, Detect Magic costs 0, Dispel Magic costs 3, Enlarge/Reduce costs 0, Fireball (Level 7 version) costs 7, Flaming Sphere costs 2, Ice Storm costs 4, Invisibility costs 2, Knock Cost costs 2, Light costs 0, Lightning Bolt (Level 7 version) costs 7, Mage Hand costs 0, Passwall costs 5, Protection From Evil and Good costs 0, Telekinesis costs 5, Wall of Fire costs 4, Web costs 2. The staff regains 4d6 + 2 expended charges after taking a Long Rest. If you expend the last charge, roll 1d20. On a 20, the staff regains 1d12+1 charges. Retributive Strike. You can take a Magic Action to break the staff over your knee or against a solid surface. The staff is destroyed and releases its magic in an explosion that fills a 30ft Emanation originating from itself. You have a 50 percent chance to instantly travel to a random Floor of the Tower, avoiding the explosion. If you fail to avoid the effect, you take Force damage equal to 16 times the number of charges in the staff. Each other creature in the area makes a DC 17 Dexterity Saving Throw. On a failed Save, a creature takes Force damage equal to 6 times the number of charges in the staff. On a successful Save, a creature takes half as much damage."
+        ),
+        "activation": ["Action"],
+        "duration": ["Passive"],
+        "charges": 50,
+        "recharge": ["Long Rest"],
+        "notes": None,
+    },
+    "Spindle of Fate": {
+        "name": "Spindle of Fate",
+        "type": "Wand",
+        "rarity": "Legendary",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. This wand is shaped like a drop spindle wrapped in red thread. The wand has 6 charges that can be used for the following properties: Battle Foreknowledge. When you roll Initiative, you can expend 1 charge to add or subtract your Proficiency Bonus from the total roll. Doom Foretold. As an Action, you can expend 2 charges to target a creature within 30ft of yourself and invoke that creature's doom. While the target is on the same plane of existence as you, you can see the direction to its location, and you know the direction of its movement if it's in motion. Additionally, once per turn when you deal damage to the doomed creature, you can roll 1d6 and add the number rolled to the Damage Roll. These benefits persist for the rest of the current Encounter or until you target another creature with this effect. Twist of Fate. When a creature within 60ft of you makes a Saving Throw or an Attack Roll, you can use your Reaction to expend 3 charges and alter the outcome, turning a failed Saving Throw into a successful one, a missed Attack Roll into a hit, or vice versa. The wand regains 1d6 expended charges after taking a Long Rest."
+        ),
+        "activation": ["Action", "Reaction"],
+        "duration": ["Passive"],
+        "charges": 6,
+        "recharge": ["Long Rest"],
+        "notes": None,
+    },
+    "Dual Wands of Spell Twinning": {
+        "name": "Dual Wands of Spell Twinning",
+        "type": "Wand",
+        "rarity": "Legendary",
+        "attunement": True,
+        "effect": (
+            "Requires attunement by a Spellcaster. These two wands of ebony can be dual wielded. They can be used as an Arcane Focus. When the caster casts a spell and uses these wands as an Arcane Focus, they are able to use their Bonus Action to copy the effects of the spell cast. If the spell is of 6th level or higher, the cast must make an Arcana check against a DC equal to 10 plus the spell's level. If they succeed, the spell is Twinned. If they fail, their Bonus Action is wasted. If the spell is 5th level or lower, no Arcana check is necessary. In order to copy a spell using these wands, the spell must meet the requirements of, and has all the restrictions of, the Sorcerer's Twin Spell Meta Magic. This effect stacks with the Sorcerer's Twinned Spell Meta Magic, effectively making the spell take effect 4 times, but the cast must make the Arcana check regardless of spell level, and they make the Arcana check with Disadvantage."
+        ),
+        "activation": ["Bonus Action"],
+        "duration": ["Instantaneous"],
+        "charges": None,
+        "recharge": [],
+        "notes": None,
+    },
+    "Ling Kuo's Magnificent Ink Brush": {
+        "name": "Ling Kuo's Magnificent Ink Brush",
+        "type": "Wand",
+        "rarity": "Legendary",
+        "attunement": True,
+        "effect": (
+            "Requires attunement by a Wizard. This comically oversized brush is the pride and glory of the scholar Ling Kuo, who, unlike almost every famous person in lore, lived fairly recently. It is roughly 3ft long, and can be used as a nonmagical club or whip if you are of a barbarian disposition. Finest Ink. Ling Kuo's Magnificent Ink Brush is magically enchanted to be eternally loaded with black ink of the finest quality the world has ever known. It can be used to write spell scrolls, spellbooks, or other magical writings. Thanks to its unique suitability to such a task, the time and cost to create such items is halved. Ink used to mark creatures, objects, and other surfaces will not wear away with age. It can be scrubbed off with magical cleaning agents such as universal solvent. Ink of Conjuration. If the brush is used in certain ways, it can feed ink into three-dimensional constructs that can spring to life for periods of time. The brush holds 9 charges for this purpose, 1d6 + 1 of which regenerate after taking a Long Rest. If the brush reaches 0 charges, its bounty of unlimited ink dries up and it can no longer be used to write or draw until it regains charges. While you are attuned to Link Kuo's Magnificent Brush, you may use these charges to cast the following spells, at their lowest level: Find Familiar costs 1, Eldritch Blast costs 1, Mirror Image costs 2, Darkness costs 2, Find Steed costs 2, Animate Dead costs 3, Conjure Animals costs 3, Conjure Minor Elementals costs 4, Conjure Elemental costs 5, Wall of Stone costs 5, Summon Fey at 7th level costs 7. All creatures and objects conjured by the brush are made entirely of animated black ink, and will invariably crumble into nothingness when the spell's duration ends, or by the next Encounter if the creatures would normally last indefinitely. Creatures created with the brush have no Intelligence score and cannot speak or understand any languages. They do not persist between castings."
+        ),
+        "activation": [],
+        "duration": ["Passive"],
+        "charges": 9,
+        "recharge": ["Long Rest"],
+        "notes": None,
+    },
+    "Temporal Wand": {
+        "name": "Temporal Wand",
+        "type": "Wand",
+        "rarity": "Legendary",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. This wand has a working clock grafted into the middle of the shaft. When held, it makes the wielder seem to shift and shimmer as though they are both there and not. This wand has 18 charges, and regains 1d8 + 3 charges after taking a Long Rest. While attuned to and wielding the wand, you expend charges to cause one or more of the following effects: As a Bonus Action, you gain Advantage on the next weapon attack you make within the next 10 Rounds of the current Encounter. 1 charge = Choose a spell with a casting time of an Action. This turn, it has a casting time of a Bonus Action. 2 charges = As an Action, you can use the wand to cast the Blur spell. When you cast the spell this way, it does not require Concentration. 3 charges = When another creature you can see ends its turn, as a Reaction you may rewind the creature's time until the start of its turn. All Actions and Movement the target took during its turn are considered to have not happened. The target regains all features, spell slots, item charges, or other things they have used, and other creatures regain any loss of Hit Points caused by the target and are unaffected by whatever other Actions the target has taken during their turn. 4 charges = As an Action, you may create a time bubble with the wand with a radius of 30ft at a point you can see within 90ft of you. Within that bubble, time is significantly slowed for all creatures inside of it. Creatures inside the radius have Disadvantage on their Attack Rolls, Saving Throws, and Ability Checks, are unable to take Reactions, and their movement speeds are reduced in half. The slowing time bubble requires Concentration and lasts for the rest of the current Encounter o until your Concentration is broken, as if with a spell."
+        ),
+        "activation": ["Action", "Bonus Action", "Reaction"],
+        "duration": [],
+        "charges": 18,
+        "recharge": ["Long Rest"],
+        "notes": None,
+    },
+    "True Wand": {
+        "name": "True Wand",
+        "type": "Wand",
+        "rarity": "Legendary",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. This beautiful, ornate wand appears as 5 smooth different connected tubes, the first of diamond, the second of amethyst, the third of ruby, the fourth of sapphire, and the fifth of emerald. When a spellcasting creature touches the wand, its appearance changes to reflect the tastes of the wielder. It has appeared as big as a rainbow colored umbrella, and as small as a reed that could fit into the palm of a large hand, and many things in between. While a new wielder will change the appearance of the wand again, the appearance to each creature that wields it is unique and doesn't charge (To clarify: if someone else uses the wand, it'll revert back to what the wielder originally had if they pick it back up later). This wand can be used as an Arcane Focus. If you can cast spells with an Arcane Focus and use this wand for your spells, your spells require no material componets that cost less than 1000GP. Additionally, when you cast a spell using this wand as your Arcane Focus, roll an Ability Check with your spellcasting ability score. If you roll higher than 11 + the spell's level, you cast the spell without using a spell slot. This fails if you have no spell slots remaining of the spell's level and therefore couldn't cast without succeeding."
+        ),
+        "activation": [],
+        "duration": ["Passive"],
+        "charges": None,
+        "recharge": [],
+        "notes": None,
+    },
+    "Defender": {
+        "name": "Defender",
+        "type": "Weapon",
+        "rarity": "Legendary",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. You gain a +3 bonus to Attack Rolls and Damage Rolls made with this magic weapon. The first time you attack with the weapon on each of your turns, you can transfer some or all of the weapon's bonus to your AC. For example, you could reduce the bonus to your Attack Rolls and Damage Rolls to +1 and gain a +2 bonus to AC. The adjusted bonuses remain in effect until the start of your next turn, although you must hold the weapon to gain a bonus to AC from it."
+        ),
+        "activation": [],
+        "duration": ["Passive"],
+        "charges": None,
+        "recharge": [],
+        "variations": [
+            {"base_item": "Battleaxe", "name": "Battleaxe Defender"},
+            {"base_item": "Club", "name": "Club Defender"},
+            {"base_item": "Dagger", "name": "Dagger Defender"},
+            {"base_item": "Flail", "name": "Flail Defender"},
+            {"base_item": "Glaive", "name": "Glaive Defender"},
+            {"base_item": "Greataxe", "name": "Greataxe Defender"},
+            {"base_item": "Greatclub", "name": "Greatclub Defender"},
+            {"base_item": "Greatsword", "name": "Greatsword Defender"},
+            {"base_item": "Halberd", "name": "Halberd Defender"},
+            {"base_item": "Handaxe", "name": "Handaxe Defender"},
+            {"base_item": "Javelin", "name": "Javelin Defender"},
+            {"base_item": "Lance", "name": "Lance Defender"},
+            {"base_item": "Light Hammer", "name": "Light Hammer Defender"},
+            {"base_item": "Longsword", "name": "Longsword Defender"},
+            {"base_item": "Mace", "name": "Mace Defender"},
+            {"base_item": "Maul", "name": "Maul Defender"},
+            {"base_item": "Morningstar", "name": "Morningstar Defender"},
+            {"base_item": "Musket", "name": "Musket Defender"},
+            {"base_item": "Pike", "name": "Pike Defender"},
+            {"base_item": "Pistol", "name": "Pistol Defender"},
+            {"base_item": "Quarterstaff", "name": "Quarterstaff Defender"},
+            {"base_item": "Rapier", "name": "Rapier Defender"},
+            {"base_item": "Scimitar", "name": "Scimitar Defender"},
+            {"base_item": "Shortbow", "name": "Shortbow Defender"},
+            {"base_item": "Shortsword", "name": "Shortsword Defender"},
+            {"base_item": "Sickle", "name": "Sickle Defender"},
+            {"base_item": "Sling", "name": "Sling Defender"},
+            {"base_item": "Spear", "name": "Spear Defender"},
+            {"base_item": "Staff", "name": "Staff Defender"},
+            {"base_item": "Trident", "name": "Trident Defender"},
+            {"base_item": "War Pick", "name": "War Pick Defender"},
+            {"base_item": "Warhammer", "name": "Warhammer Defender"},
+            {"base_item": "Whip", "name": "Whip Defender"}
+        ],
+        "notes": None,
+    },
+    "Enspelled Weapon Level 6": {
+        "name": "Enspelled Weapon Level 6",
+        "type": "Weapon",
+        "rarity": "Legendary",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. Bound into this weapon is a level 6 spell. The spell is determined when the weapon is created and must belong to the Conjuration, Divination, Evocation, Necromancy, or Transmutation school of magic. The weapon has 6 charges and regains 1d6 expended charges after taking a Long Rest. While holding the weapon, you can expend 1 charge to cast its spell. The spell's Saving Throw DC is 17, and its Attack Bonus is +9."
+        ),
+        "activation": [],
+        "duration": [],
+        "charges": 6,
+        "recharge": ["Long Rest"],
+        "variations": [
+            {"base_item": "Battleaxe", "name": "Enspelled Battleaxe Level 6"},
+            {"base_item": "Club", "name": "Enspelled Club Level 6"},
+            {"base_item": "Dagger", "name": "Enspelled Dagger Level 6"},
+            {"base_item": "Flail", "name": "Enspelled Flail Level 6"},
+            {"base_item": "Glaive", "name": "Enspelled Glaive Level 6"},
+            {"base_item": "Greataxe", "name": "Enspelled Greataxe Level 6"},
+            {"base_item": "Greatclub", "name": "Enspelled Greatclub Level 6"},
+            {"base_item": "Greatsword", "name": "Enspelled Greatsword Level 6"},
+            {"base_item": "Halberd", "name": "Enspelled Halberd Level 6"},
+            {"base_item": "Hand Crossbow", "name": "Enspelled Hand Crossbow Level 6"},
+            {"base_item": "Handaxe", "name": "Enspelled Handaxe Level 6"},
+            {"base_item": "Heavy Crossbow", "name": "Enspelled Heavy Crossbow Level 6"},
+            {"base_item": "Javelin", "name": "Enspelled Javelin Level 6"},
+            {"base_item": "Lance", "name": "Enspelled Lance Level 6"},
+            {"base_item": "Light Crossbow", "name": "Enspelled Light Crossbow Level 6"},
+            {"base_item": "Light Hammer", "name": "Enspelled Light Hammer Level 6"},
+            {"base_item": "Longbow", "name": "Enspelled Longbow Level 6"},
+            {"base_item": "Longsword", "name": "Enspelled Longsword Level 6"},
+            {"base_item": "Mace", "name": "Enspelled Mance Level 6"},
+            {"base_item": "Maul", "name": "Enspelled Maul Level 6"},
+            {"base_item": "Morningstar", "name": "Enspelled Morningstar Level 6"},
+            {"base_item": "Musket", "name": "Enspelled Musket Level 6"},
+            {"base_item": "Pike", "name": "Enspelled Pike Level 6"},
+            {"base_item": "Pistol", "name": "Enspelled Pistol Level 6"},
+            {"base_item": "Quarterstaff", "name": "Enspelled Quarterstaff Level 6"},
+            {"base_item": "Rapier", "name": "Enspelled Rapier Level 6"},
+            {"base_item": "Scimitar", "name": "Enspelled Scimitar Level 6"},
+            {"base_item": "Shortbow", "name": "Enspelled Shortbow Level 6"},
+            {"base_item": "Shortsword", "name": "Enspelled Shortsword Level 6"},
+            {"base_item": "Sickle", "name": "Enspelled Sickle Level 6"},
+            {"base_item": "Sling", "name": "Enspelled Sling Level 6"},
+            {"base_item": "Spear", "name": "Enspelled Spear Level 6"},
+            {"base_item": "Staff", "name": "Enspelled Staff Level 6"},
+            {"base_item": "Trident", "name": "Enspelled Trident Level 6"},
+            {"base_item": "War Pick", "name": "Enspelled War Pick Level 6"},
+            {"base_item": "Warhammer", "name": "Enspelled Warhammer Level 6"},
+            {"base_item": "Whip", "name": "Enspelled Whip Level 6"}
+        ],
+        "notes": None,
+    },
+    "Enspelled Weapon Level 7": {
+        "name": "Enspelled Weapon Level 7",
+        "type": "Weapon",
+        "rarity": "Legendary",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. Bound into this weapon is a level 7 spell. The spell is determined when the weapon is created and must belong to the Conjuration, Divination, Evocation, Necromancy, or Transmutation school of magic. The weapon has 6 charges and regains 1d6 expended charges after taking a Long Rest. While holding the weapon, you can expend 1 charge to cast its spell. The spell's Saving Throw DC is 18, and its Attack Bonus is +10."
+        ),
+        "activation": [],
+        "duration": [],
+        "charges": 6,
+        "recharge": ["Long Rest"],
+        "variations": [
+            {"base_item": "Battleaxe", "name": "Enspelled Battleaxe Level 7"},
+            {"base_item": "Club", "name": "Enspelled Club Level 7"},
+            {"base_item": "Dagger", "name": "Enspelled Dagger Level 7"},
+            {"base_item": "Flail", "name": "Enspelled Flail Level 7"},
+            {"base_item": "Glaive", "name": "Enspelled Glaive Level 7"},
+            {"base_item": "Greataxe", "name": "Enspelled Greataxe Level 7"},
+            {"base_item": "Greatclub", "name": "Enspelled Greatclub Level 7"},
+            {"base_item": "Greatsword", "name": "Enspelled Greatsword Level 7"},
+            {"base_item": "Halberd", "name": "Enspelled Halberd Level 7"},
+            {"base_item": "Hand Crossbow", "name": "Enspelled Hand Crossbow Level 7"},
+            {"base_item": "Handaxe", "name": "Enspelled Handaxe Level 7"},
+            {"base_item": "Heavy Crossbow", "name": "Enspelled Heavy Crossbow Level 7"},
+            {"base_item": "Javelin", "name": "Enspelled Javelin Level 7"},
+            {"base_item": "Lance", "name": "Enspelled Lance Level 7"},
+            {"base_item": "Light Crossbow", "name": "Enspelled Light Crossbow Level 7"},
+            {"base_item": "Light Hammer", "name": "Enspelled Light Hammer Level 7"},
+            {"base_item": "Longbow", "name": "Enspelled Longbow Level 7"},
+            {"base_item": "Longsword", "name": "Enspelled Longsword Level 7"},
+            {"base_item": "Mace", "name": "Enspelled Mace Level 7"},
+            {"base_item": "Maul", "name": "Enspelled Maul Level 7"},
+            {"base_item": "Morningstar", "name": "Enspelled Morningstar Level 7"},
+            {"base_item": "Musket", "name": "Enspelled Musket Level 7"},
+            {"base_item": "Pike", "name": "Enspelled Pike Level 7"},
+            {"base_item": "Pistol", "name": "Enspelled Pistol Level 7"},
+            {"base_item": "Quarterstaff", "name": "Enspelled Quarterstaff Level 7"},
+            {"base_item": "Rapier", "name": "Enspelled Rapier Level 7"},
+            {"base_item": "Scimitar", "name": "Enspelled Scimitar Level 7"},
+            {"base_item": "Shortbow", "name": "Enspelled Shortbow Level 7"},
+            {"base_item": "Shortsword", "name": "Enspelled Shortsword Level 7"},
+            {"base_item": "Sickle", "name": "Enspelled Sickle Level 7"},
+            {"base_item": "Sling", "name": "Enspelled Sling Level 7"},
+            {"base_item": "Spear", "name": "Enspelled Spear Level 7"},
+            {"base_item": "Trident", "name": "Enspelled Trident Level 7"},
+            {"base_item": "War Pick", "name": "Enspelled War Pick Level 7"},
+            {"base_item": "Warhammer", "name": "Enspelled Warhammer Level 7"},
+            {"base_item": "Whip", "name": "Enspelled Whip Level 7"}
+        ],
+        "notes": None,
+    },
+    "Enspelled Weapon Level 8": {
+        "name": "Enspelled Weapon Level 8",
+        "type": "Weapon",
+        "rarity": "Legendary",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. Bound into this weapon is a level 8 spell. The spell is determined when the weapon is created and must belong to the Conjuration, Divination, Evocation, Necromancy, or Transmutation school of magic. The weapon has 6 charges and regains 1d6 expended charges after taking a Long Rest. While holding the weapon, you can expend 1 charge to cast its spell. The spell's Saving Throw DC is 18, and its Attack Bonus is +10."
+        ),
+        "activation": [],
+        "duration": [],
+        "charges": 6,
+        "recharge": ["Long Rest"],
+        "variations": [
+            {"base_item": "Battleaxe", "name": "Enspelled Battleaxe Level 8"},
+            {"base_item": "Club", "name": "Enspelled Club Level 8"},
+            {"base_item": "Dagger", "name": "Enspelled Dagger Level 8"},
+            {"base_item": "Flail", "name": "Enspelled Flail Level 8"},
+            {"base_item": "Glaive", "name": "Enspelled Glaive Level 8"},
+            {"base_item": "Greataxe", "name": "Enspelled Greataxe Level 8"},
+            {"base_item": "Greatclub", "name": "Enspelled Greatclub Level 8"},
+            {"base_item": "Greatsword", "name": "Enspelled Greatsword Level 8"},
+            {"base_item": "Halberd", "name": "Enspelled Halberd Level 8"},
+            {"base_item": "Hand Crossbow", "name": "Enspelled Hand Crossbow Level 8"},
+            {"base_item": "Handaxe", "name": "Enspelled Handaxe Level 8"},
+            {"base_item": "Heavy Crossbow", "name": "Enspelled Heavy Crossbow Level 8"},
+            {"base_item": "Javelin", "name": "Enspelled Javelin Level 8"},
+            {"base_item": "Lance", "name": "Enspelled Lance Level 8"},
+            {"base_item": "Light Crossbow", "name": "Enspelled Light Crossbow Level 8"},
+            {"base_item": "Light Hammer", "name": "Enspelled Light Hammer Level 8"},
+            {"base_item": "Longbow", "name": "Enspelled Longbow Level 8"},
+            {"base_item": "Longsword", "name": "Enspelled Longsword Level 8"},
+            {"base_item": "Mace", "name": "Enspelled Mace Level 8"},
+            {"base_item": "Maul", "name": "Enspelled Maul Level 8"},
+            {"base_item": "Morningstar", "name": "Enspelled Morningstar Level 8"},
+            {"base_item": "Musket", "name": "Enspelled Musket Level 8"},
+            {"base_item": "Pike", "name": "Enspelled Pike Level 8"},
+            {"base_item": "Pistol", "name": "Enspelled Pistol Level 8"},
+            {"base_item": "Quarterstaff", "name": "Enspelled Quarterstaff Level 8"},
+            {"base_item": "Rapier", "name": "Enspelled Rapier Level 8"},
+            {"base_item": "Scimitar", "name": "Enspelled Scimitar Level 8"},
+            {"base_item": "Shortbow", "name": "Enspelled Shortbow Level 8"},
+            {"base_item": "Shortsword", "name": "Enspelled Shortsword Level 8"},
+            {"base_item": "Sickle", "name": "Enspelled Sickle Level 8"},
+            {"base_item": "Sling", "name": "Enspelled Sling Level 8"},
+            {"base_item": "Spear", "name": "Enspelled Spear Level 8"},
+            {"base_item": "Staff", "name": "Enspelled Staff Level 8"},
+            {"base_item": "Trident", "name": "Enspelled Trident Level 8"},
+            {"base_item": "War Pick", "name": "Enspelled War Pick Level 8"},
+            {"base_item": "Warhammer", "name": "Enspelled Warhammer Level 8"},
+            {"base_item": "Whip", "name": "Enspelled Whip Level 8"}
+        ],
+        "notes": None,
+    },
+    "Hammer of Thunderbolts": {
+        "name": "Hammer of Thunderbolts",
+        "type": "Weapon",
+        "rarity": "Legendary",
+        "attunement": False,
+        "effect": (
+            "You gain a +1 bonus to Attack Rolls and Damage Rolls made with this magic weapon. The weapon has 5 charges. You can expend 1 charge and make a Ranged Attack with the weapon, hurling it as if it had Thrown with a normal range of 20ft and a long range of 60ft. If the attack hits, the weapon unleashes a thunderclap audible out to 300ft. The target and every creature within 30ft of it other than you must succeed on a DC 17 Constitution Saving Throw or have the Stunned condition until the end of your next turn. Immediately after hitting or missing, the weapon flies back to your hand. The weapon regains 1d4 + 1 expended charges after taking a Long Rest."
+        ),
+        "activation": [],
+        "duration": ["Passive", "Instantaneous"],
+        "charges": 5,
+        "recharge": ["Long Rest"],
+        "variations": [
+            {"base_item": "Maul", "name": "Maul of Thunderbolts"},
+            {"base_item": "Warhammer", "name": "Warhammer of Thunderbolts"}
+        ],
+        "notes": None,
+    },
+    "Holy Avenger": {
+        "name": "Holy Avenger",
+        "type": "Weapon",
+        "rarity": "Legendary",
+        "attunement": True,
+        "effect": (
+            "Requires attunement by a Paladin. You gain a +3 bonus to Attack Rolls and Damage Rolls made with this magic weapon. When you hit a Fiend or an Undead with it, that creature takes an extra 2d10 Radiant damage. While you hold the drawn weapon, it creates a 10ft Emanation have Advantage on Saving Throws against spells and other magical effects. If you have 17 or more levels in the Paladin class, the size of the Emanation increases to 30ft."
+        ),
+        "activation": [],
+        "duration": ["Passive"],
+        "charges": None,
+        "recharge": [],
+        "variations": [
+            {"base_item": "Battleaxe", "name": "Holy Avenger Battleaxe"},
+            {"base_item": "Club", "name": "Holy Avenger Club"},
+            {"base_item": "Dagger", "name": "Holy Avenger Dagger"},
+            {"base_item": "Flail", "name": "Holy Avenger Flail"},
+            {"base_item": "Glaive", "name": "Holy Avenger Glaive"},
+            {"base_item": "Greataxe", "name": "Holy Avenger Greataxe"},
+            {"base_item": "Greatclub", "name": "Holy Avenger Greatclub"},
+            {"base_item": "Greatsword", "name": "Holy Avenger Greatsword"},
+            {"base_item": "Halberd", "name": "Holy Avenger Halberd"},
+            {"base_item": "Hand Crossbow", "name": "Holy Avenger Hand Crossbow"},
+            {"base_item": "Handaxe", "name": "Holy Avenger Handaxe"},
+            {"base_item": "Heavy Crossbow", "name": "Holy Avenger Heavy Crossbow"},
+            {"base_item": "Javelin", "name": "Holy Avenger Javelin"},
+            {"base_item": "Lance", "name": "Holy Avenger Lance"},
+            {"base_item": "Light Crossbow", "name": "Holy Avenger Light Crossbow"},
+            {"base_item": "Light Hammer", "name": "Holy Avenger Light Hammer"},
+            {"base_item": "Longbow", "name": "Holy Avenger Longbow"},
+            {"base_item": "Longsword", "name": "Holy Avenger Longsword"},
+            {"base_item": "Mace", "name": "Holy Avenger Mace"},
+            {"base_item": "Maul", "name": "Holy Avenger Maul"},
+            {"base_item": "Morningstar", "name": "Holy Avenger Morningstar"},
+            {"base_item": "Musket", "name": "Holy Avenger Musket"},
+            {"base_item": "Pike", "name": "Holy Avenger Pike"},
+            {"base_item": "Pistol", "name": "Holy Avenger Pistol"},
+            {"base_item": "Quarterstaff", "name": "Holy Avenger Quarterstaff"},
+            {"base_item": "Rapier", "name": "Holy Avenger Rapier"},
+            {"base_item": "Scimitar", "name": "Holy Avenger Scimitar"},
+            {"base_item": "Shortbow", "name": "Holy Avenger Shortbow"},
+            {"base_item": "Shortsword", "name": "Holy Avenger Shortsword"},
+            {"base_item": "Sickle", "name": "Holy Avenger Sickle"},
+            {"base_item": "Sling", "name": "Holy Avenger Sling"},
+            {"base_item": "Spear", "name": "Holy Avenger Spear"},
+            {"base_item": "Staff", "name": "Holy Avenger Staff"},
+            {"base_item": "Trident", "name": "Holy Avenger Trident"},
+            {"base_item": "War Pick", "name": "Holy Avenger War Pick"},
+            {"base_item": "Warhammer", "name": "Holy Avenger Warhammer"},
+            {"base_item": "Whip", "name": "Holy Avenger Whip"}
+        ],
+        "notes": None,
+    },
+    "Luck Blade": {
+        "name": "Luck Blade",
+        "type": "Weapon",
+        "rarity": "Legendary",
+        "attunement": True,
+        "effect": (
+            "Requires attunement. You gain a +1 bonus to Attack Rolls and Damage Rolls made with this magic weapon. While the weapon is on your person, you also gain a +1 bonus to Saving Throws. Luck. If the weapon is on your person, you can call on its luck (no action required) to reroll one failed D20 Test if you don't have the Incapacitated condition. You must use the second roll. Once used, this property can't be used again until you take a Long Rest."
+        ),
+        "activation": [],
+        "duration": ["Passive"],
+        "charges": None,
+        "recharge": [],
+        "variations": [
+            {"base_item": "Glaive", "name": "Luck Glaive"},
+            {"base_item": "Greatsword", "name": "Luck Greatsword"},
+            {"base_item": "Longsword", "name": "Luck Longsword"},
+            {"base_item": "Rapier", "name": "Luck Rapier"},
+            {"base_item": "Scimitar", "name": "Luck Scimitar"},
+            {"base_item": "Shortsword", "name": "Luck Shortsword"},
+            {"base_item": "Sickle", "name": "Luck Sickle"}
+        ],
+        "notes": None,
+    },
+    "Moonblade": {
+        "name": "Moonblade",
+        "type": "Weapon",
+        "rarity": "Legendary",
+        "attunement": True,
+        "effect": (
+            "Requires attunement by a creature of the weapon's choice. Of all the magic items created by levels, one of the most prized and jealously guarded is a Moonblade. In ancient times, nearly all elven noble houses claimed one such weapon. Over the centuries, some of these weapons have faded from the world, their magic lost as family lines have become extinct. Others have vanished with their bearers during great quests. Thus, only a few of these weapons remain. Every Moonblade longs for a bearer whose disposition and goals are compatible with its own. If you try to attune to the Moonblade, roll either a Deception or a Charisma check (DC equal to your level). If you fail, the Mooblade does not want you as its bearer, the weapon not only rejects you but also places a curse on you, causing you to make D20 Tests with Disadvantage for 3 consecutive Encounters or until the curse is ended by a Remove Curse spell or similar magic. If you succeed, the weapon accepts you, becoming attuned to it instantly, and a new rune appears on it. You remain attuned to the weapon until you die or the weapon is destroyed. A Moonblade functions like a nonmagical weapon of its kind for anyone other than its chosen bearer. A Moonblade has one rune on it for each bearer it has willingly served. Roll 1d6 + 1 upon attuning to it, the Moonblade will have that number of additional runes. The first rune grants a +1 bonus to Attack Rolls and Damage Rolls made with this magic weapon. Each rune beyond the first grants the Moonblade an additional property. The DM determines each feature randomly by rolling 1d100 on the Moonblade table. The Moonblade also confers a Minor Property randomly determined, detailed below. Sentience. A Moonblade is a sentient weapon with an Intelligence of 12, a Wisdom of 10, and a Charisma of 12. It has hearing and Darkvision out to 120ft. Its alignment matches that of its creator. The weapon communicates by transmitting emotions, sending a tingling sensation through the wielder's hand when it wants to communicate something it has sensed. It can communicate through visions or dreams when the wielder is either in a trance or asleep. Personality. A Moonblade has a personality similar to that of its creator. Once a Moonblade has decided on an owner, it belives that only that person should wield it, even if the bearer's alignment differs from that of the weapon's or the bearer's goals later clash with the weapon's goals."
+        ),
+        "activation": [],
+        "duration": ["Passive"],
+        "charges": None,
+        "recharge": [],
+        "variations": [
+            {"base_item": "Greatsword", "name": "Moonblade Greatsword"},
+            {"base_item": "Longsword", "name": "Moonblade Longsword"},
+            {"base_item": "Rapier", "name": "Moonblade Rapier"},
+            {"base_item": "Scimitar", "name": "Moonblade Scimitar"},
+            {"base_item": "Shortsword", "name": "Moonblade Shortsword"}
+        ],
+        "properties": "1 Minor Property",
+        "moonblade_table": [
+            
+        ],
         "notes": None,
     },
 }

@@ -587,7 +587,7 @@ WILD_SURGES = {
             you gain +1 to your AC until the start of your next turn. (Recharge 6)"""
     },
     "28": {
-        "name": "Wild Surge Of Rigid Form",
+        "name": "Wild Surge Of Rigid Order",
         "description": """The battlefield is suffused with relentless, unyielding magic of law, forcing all creatures under its influence to follow strict patterns.
             Lawful-aligned creatures can forgo rolling a d20 for Attack Rolls and Saving Throws to get an 11 on the die instead. Additionally, when they damage a creature,
             they can forgo rolling for damage to instead get a result on any damage dice equal to half the dice's maximum roll. For example, a d8 would deal 4 damage.""",

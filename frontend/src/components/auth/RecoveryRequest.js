@@ -15,6 +15,7 @@ const RecoveryRequest = () => {
     
     // Manual Request State
     const [manualUsername, setManualUsername] = useState('');
+    const [manualDiscordId, setManualDiscordId] = useState('');
     const [requestType, setRequestType] = useState('password');
     const [isSubmitting, setIsSubmitting] = useState(false);
     
@@ -79,19 +80,20 @@ const RecoveryRequest = () => {
 
     const handleManualSubmit = async (e) => {
         e.preventDefault();
-        if (!manualUsername.trim()) return;
+        if (!manualUsername.trim() || !manualDiscordId.trim()) return;
 
         setIsSubmitting(true);
         setStatus({ type: '', message: '' });
 
         try {
-            const data = await requestRecovery(manualUsername, requestType);
+            const data = await requestRecovery(manualUsername, requestType, manualDiscordId);
             if (data.success) {
                 setStatus({ 
                     type: 'success', 
-                    message: 'Your request has been submitted to the Archive of the Trials. Please contact the Admin directly on Discord to verify your identity using your Discord ID.' 
+                    message: 'Your request has been submitted to the Archive of the Trials. An admin will use your Discord ID to send your private recovery code.'
                 });
                 setManualUsername('');
+                setManualDiscordId('');
             } else {
                 setStatus({ type: 'error', message: data.error || 'Failed to submit request.' });
             }
@@ -246,6 +248,30 @@ const RecoveryRequest = () => {
                         </div>
 
                         <div className="form-group">
+                            <label htmlFor="discordId">Discord ID</label>
+                            <input
+                                id="discordId"
+                                type="text"
+                                value={manualDiscordId}
+                                onChange={(e) => setManualDiscordId(e.target.value.replace(/\D/g, '').slice(0, 19))}
+                                placeholder="Enter your 17-19 digit Discord ID"
+                                inputMode="numeric"
+                                pattern="\d{17,19}"
+                                title="Discord ID must be 17 to 19 digits."
+                                minLength="17"
+                                maxLength="19"
+                                required
+                                disabled={isSubmitting}
+                            />
+                            <div className="security-challenge-notice recovery-privacy-notice">
+                                <i className="fas fa-info-circle" aria-hidden="true"></i>
+                                <span>
+                                    Your Discord ID is stored only with this recovery request so an admin can send your private code. It is deleted when you finish resetting your private information and is not shown elsewhere on the site.
+                                </span>
+                            </div>
+                        </div>
+
+                        <div className="form-group">
                             <label htmlFor="requestType">What do you need help with?</label>
                             <select
                                 id="requestType"
@@ -272,7 +298,7 @@ const RecoveryRequest = () => {
                         <button 
                             type="submit" 
                             className="auth-btn" 
-                            disabled={isSubmitting || !manualUsername.trim()}
+                            disabled={isSubmitting || !manualUsername.trim() || !/^\d{17,19}$/.test(manualDiscordId)}
                             style={{ marginTop: '20px' }}
                         >
                             {isSubmitting ? 'Sending Scroll...' : 'Request Assistance'}

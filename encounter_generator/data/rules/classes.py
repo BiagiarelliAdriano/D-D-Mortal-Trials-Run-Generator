@@ -2956,7 +2956,7 @@ ROGUE = {
                 "id": "rogue_steady_aim",
                 "name": "Steady Aim",
                 "summary": "Bonus Action to gain Advantage on next attack; reduces speed to 0.",
-                "description": "By holding perfectly still, you can strike with incredible precision. You can use a Bonus Action to gain Advantage on your next attack roll.",
+                "description": "As a Bonus Action, you give yourself Advantage on your next Attack Roll on the current turn. You can use this feature only if you haven't moved during this turn, and after you use it, your Speed is 0 until the end of the current turn.",
                 "details": {
                     "Action": "Bonus Action",
                     "restriction": "Cannot have moved, reduces speed to 0 for turn"

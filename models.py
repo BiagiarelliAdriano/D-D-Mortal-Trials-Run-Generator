@@ -26,7 +26,6 @@ class User(db.Model):
     username = db.Column(db.String(80), unique=True, nullable=False)
     password_hash = db.Column(db.String(255), nullable=False)
     avatar = db.Column(db.String(255), nullable=False, default="") # D&D class inspired avatar names or file path
-    discord_id = db.Column(db.String(255), nullable=True)
     security_question = db.Column(db.String(255), nullable=True)
     security_answer_hash = db.Column(db.String(255), nullable=False)
     is_admin = db.Column(db.Boolean, default=False)
@@ -315,8 +314,9 @@ class RecoveryRequest(db.Model):
 
     username = db.Column(db.String(80), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True) # Linked if username matches
+    discord_id = db.Column(db.String(19), nullable=True)
     request_type = db.Column(db.String(20), nullable=False) # 'username', 'password', 'security_answer'
-    status = db.Column(db.String(20), default='pending') # 'pending', 'resolved', 'denied'
+    status = db.Column(db.String(20), default='pending') # 'pending', 'approved', 'resetting'
     recovery_code = db.Column(db.String(8), nullable=True)
     code_expires_at = db.Column(db.DateTime, nullable=True)
     created_at = db.Column(db.DateTime, default=func.now(), nullable=False)

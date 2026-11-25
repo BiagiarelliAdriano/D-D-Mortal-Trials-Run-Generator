@@ -388,7 +388,8 @@ def prepare_shop_item(item_name, rarity, category, cost):
 
     if category == "Weapon":
         weapon_bases = sorted(
-            MAGIC_ITEMS["common"]["Weapon"],
+            set(MAGIC_ITEMS["common"]["Weapon"])
+            | (set(WEAPONS_DATA) - {"Unarmed Strike"}),
             key=len,
             reverse=True
         )
@@ -673,7 +674,20 @@ app = Flask(__name__)
 CORS(app)
 
 # Database config
-uri = os.getenv("DATABASE_URL", "sqlite:///runs.db")
+database_url = os.getenv("DATABASE_URL")
+is_production = (
+    os.environ.get("FLASK_ENV") == "production"
+    or bool(os.environ.get("DYNO"))
+    or bool(database_url and not database_url.startswith("sqlite"))
+)
+if is_production and (
+    not database_url or database_url.startswith("sqlite:")
+):
+    raise RuntimeError(
+        "Production requires a non-SQLite DATABASE_URL; refusing to use a local SQLite database."
+    )
+
+uri = database_url or "sqlite:///runs.db"
 if uri.startswith("postgres://"):
     uri = uri.replace("postgres://", "postgresql://", 1)
 
@@ -700,7 +714,7 @@ def get_fernet(master_key):
 # In a real production app, this should be very secure.
 SYSTEM_RECOVERY_MASTER = os.getenv("SYSTEM_RECOVERY_MASTER")
 
-if os.environ.get("FLASK_ENV") != "production":
+if not is_production:
     with app.app_context():
         db.create_all()
         try:
@@ -813,15 +827,9 @@ def register():
         or not data.get("username")
         or not data.get("password")
         or not data.get("security_answer")
-        or not isinstance(data.get("discord_id"), str)
-        or not data["discord_id"].strip()
     ):
         return jsonify({"error": "Missing required fields"}), 400
 
-    discord_id = data["discord_id"].strip()
-    if not discord_id.isdigit() or not 17 <= len(discord_id) <= 19:
-        return jsonify({"error": "Discord ID must be 17 to 19 digits"}), 400
-        
     username = data["username"].strip()
     if User.query.filter_by(username=username).first():
         return jsonify({"error": "Username already taken."}), 409
@@ -829,7 +837,6 @@ def register():
     user = User(
         username=username,
         avatar=data.get("avatar", ""),
-        discord_id=discord_id,
         security_question=data.get("security_question", "What is the name of your very first Dungeons & Dragons character?").strip()
     )
     user.set_password(data["password"])
@@ -850,7 +857,6 @@ def register():
             "id": user.id, 
             "username": user.username, 
             "avatar": user.avatar,
-            "discord_id": user.discord_id,
             "is_admin": user.is_admin,
             "patreon_connected": user.patreon_connected,
             "patreon_tier": user.patreon_tier,
@@ -1389,7 +1395,6 @@ def admin_system():
             "id": u.id,
             "username": u.username,
             "avatar": u.avatar,
-            "discord_id": u.discord_id,
             "is_admin": u.is_admin,
             "patreon_connected": bool(u.patreon_connected),
             "patreon_tier": u.patreon_tier,
@@ -1447,8 +1452,12 @@ def admin_system():
 @app.route("/api/auth/recovery-request", methods=["POST"])
 def create_recovery_request():
     data = request.json
-    if not data or not data.get("username") or not data.get("request_type"):
-        return jsonify({"error": "Missing username or request type"}), 400
+    if not data or not data.get("username") or not data.get("request_type") or not data.get("discord_id"):
+        return jsonify({"error": "Username, request type, and Discord ID are required"}), 400
+
+    discord_id = data["discord_id"].strip() if isinstance(data["discord_id"], str) else ""
+    if not discord_id.isdigit() or not 17 <= len(discord_id) <= 19:
+        return jsonify({"error": "Discord ID must be 17 to 19 digits"}), 400
         
     username = data["username"].strip()
     request_type = data["request_type"] # 'username', 'password', 'security_answer'
@@ -1463,6 +1472,7 @@ def create_recovery_request():
     new_request = RecoveryRequest(
         username=username,
         user_id=user.id if user else None,
+        discord_id=discord_id,
         request_type=request_type
     )
     
@@ -1494,7 +1504,9 @@ def get_recovery_requests():
     if not master_key or master_key != SYSTEM_RECOVERY_MASTER:
         return jsonify({"error": "Invalid Master Key"}), 401
         
-    requests = RecoveryRequest.query.filter_by(status='pending').all()
+    requests = RecoveryRequest.query.filter(
+        RecoveryRequest.status.in_(['pending', 'approved'])
+    ).all()
     
     result = []
     for r in requests:
@@ -1503,14 +1515,16 @@ def get_recovery_requests():
             user_info = {
                 "id": r.user.id,
                 "username": r.user.username,
-                "discord_id": r.user.discord_id,
                 "security_question": r.user.security_question
             }
             
         result.append({
             "id": r.id,
             "provided_username": r.username,
+            "discord_id": r.discord_id,
             "request_type": r.request_type,
+            "status": r.status,
+            "recovery_code": r.recovery_code,
             "created_at": r.created_at.isoformat(),
             "user_info": user_info
         })
@@ -1548,11 +1562,10 @@ def resolve_recovery_request():
         recovery_req.status = 'approved'
         response_data["recovery_code"] = code
     elif action == 'deny':
-        recovery_req.status = 'denied'
+        db.session.delete(recovery_req)
     else:
         return jsonify({"error": "Invalid action"}), 400
         
-    recovery_req.resolved_at = func.now()
     db.session.commit()
     
     return jsonify(response_data), 200
@@ -1608,11 +1621,10 @@ def redeem_recovery():
     reset_token = create_access_token(
         identity=str(user.id),
         expires_delta=timedelta(minutes=5),
-        additional_claims={"is_recovery": True}
+        additional_claims={"is_recovery": True, "recovery_request_id": req.id}
     )
     
-    req.status = 'resolved'
-    req.resolved_at = datetime.utcnow()
+    req.status = 'resetting'
     db.session.commit()
     
     return jsonify({"success": True, "reset_token": reset_token}), 200
@@ -1631,6 +1643,13 @@ def reset_credentials():
         return jsonify({"error": "User not found"}), 404
         
     data = request.json
+    recovery_request_id = claims.get("recovery_request_id")
+    recovery_req = None
+    if recovery_request_id is not None:
+        recovery_req = db.session.get(RecoveryRequest, recovery_request_id)
+        if not recovery_req or recovery_req.user_id != user.id or recovery_req.status != 'resetting':
+            return jsonify({"error": "Recovery request is no longer active"}), 403
+
     new_password = data.get("new_password")
     new_security_question = data.get("new_security_question")
     new_security_answer = data.get("new_security_answer")
@@ -1646,6 +1665,9 @@ def reset_credentials():
     if new_security_question and new_security_answer:
         user.security_question = new_security_question.strip()
         user.set_security_answer(new_security_answer.strip())
+
+    if recovery_req:
+        db.session.delete(recovery_req)
         
     db.session.commit()
     return jsonify({"success": True, "message": "Credentials updated successfully"}), 200
